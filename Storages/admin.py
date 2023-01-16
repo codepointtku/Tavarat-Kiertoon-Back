@@ -1,4 +1,4 @@
 from django.contrib import admin
-from .models import Storages
+from .models import Storage
 
-admin.site.register(Storages)
+admin.site.register(Storage)

@@ -32,7 +32,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # Database apps
-    "Storages",
+    "storages",
+    "contact_forms",
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",

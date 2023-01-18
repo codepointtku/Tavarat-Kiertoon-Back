@@ -1,4 +1,4 @@
-"""module for Storages models"""
+"""module for storages models"""
 from django.db import models
 
 

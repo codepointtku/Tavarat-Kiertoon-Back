@@ -24,4 +24,4 @@ class Product(models.Model):
     free_description = models.TextField(blank=True, null=True)
     pictures = models.ForeignKey(Picture, on_delete=models.CASCADE)
     condition = models.CharField(max_length=50, blank=True, null=True)
-    date = models.DateTimeField()
+    date = models.DateTimeField(auto_now_add=True)

@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     # Database apps
     "storages",
     "contact_forms",
+    "products",
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",

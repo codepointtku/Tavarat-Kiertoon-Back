@@ -6,7 +6,7 @@ from django.db import models
 class ContactForm(models.Model):
     """class for making ContactForm table for database"""
 
-    id = models.AutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
     subject = models.CharField(max_length=255)

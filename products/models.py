@@ -20,6 +20,7 @@ class Product(models.Model):
     available = models.BooleanField(default=False)
     barcode = models.CharField(max_length=255, blank=True, null=True)
     category = models.CharField(max_length=255)
+    group_id = models.IntegerField(blank=True,null=True)
     name = models.CharField(max_length=255)
     estimate_price = models.FloatField(null=True, blank=True)
     price = models.FloatField(default=0.0)

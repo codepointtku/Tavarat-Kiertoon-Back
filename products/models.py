@@ -22,6 +22,6 @@ class Product(models.Model):
     storages_id = models.ForeignKey(Storage, on_delete=models.CASCADE)  # from app users
     shelf_id = models.IntegerField(blank=True, null=True)
     free_description = models.TextField(blank=True, null=True)
-    pictures = models.ForeignKey(Picture, on_delete=models.CASCADE)
+    pictures = models.ManyToManyField(Picture)
     condition = models.CharField(max_length=50, blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)

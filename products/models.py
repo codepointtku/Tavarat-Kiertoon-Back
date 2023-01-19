@@ -7,7 +7,7 @@ from storages.models import Storage
 class Picture(models.Model):
     """class for making Picture table for database"""
     id = models.BigAutoField(primary_key=True)
-    picture_address = models.ImageField(upload_to="")
+    picture_address = models.ImageField(upload_to="pictures")
 
 
 class Product(models.Model):
@@ -19,7 +19,7 @@ class Product(models.Model):
     name = models.CharField(max_length=255)
     estimate_price = models.FloatField(null=True, blank=True)
     price = models.FloatField(default=0.0)
-    storages_id = models.ForeignKey(Storage, on_delete=models.CASCADE)  # from app users
+    storages_id = models.ForeignKey(Storage, on_delete=models.DO_NOTHING)  # from app users
     shelf_id = models.IntegerField(blank=True, null=True)
     free_description = models.TextField(blank=True, null=True)
     pictures = models.ManyToManyField(Picture)

@@ -32,8 +32,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # Database apps
-    "storages",
     "contact_forms",
+    "products",
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -120,6 +120,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = "static/"
+
+#needs to be checked when ready for deplayment
+MEDIA_ROOT = "media/"
+MEDIA_URL = "media/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

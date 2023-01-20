@@ -20,14 +20,17 @@ class Product(models.Model):
     id = models.BigAutoField(primary_key=True)
     available = models.BooleanField(default=False)
     barcode = models.CharField(max_length=255, blank=True, null=True)
-    category = models.CharField(max_length=255)  # remember to link to categories after categories_table is created
+    # remember to link to categories after categories_table is created
+    category = models.CharField(max_length=255)  
     group_id = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255)
     estimate_price = models.FloatField(null=True, blank=True)
     price = models.FloatField(default=0.0)
-    storages_id = models.ForeignKey(Storage, on_delete=models.SET_NULL, null=True, blank=True)
+    #table startages_id Id link field
+    storages = models.ForeignKey(Storage, on_delete=models.SET_NULL, null=True, blank=True)
     shelf_id = models.IntegerField(blank=True, null=True)
     free_description = models.TextField(blank=True, null=True)
+    #linked to pictures table
     pictures = models.ManyToManyField(Picture)
     condition = models.CharField(max_length=50, blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)

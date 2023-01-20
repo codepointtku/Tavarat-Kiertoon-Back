@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     # Database apps
     "contact_forms",
     "products",
+    "users",
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -121,7 +122,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-#needs to be checked when ready for deplayment
+# needs to be checked when ready for deplayment
 MEDIA_ROOT = "media/"
 MEDIA_URL = "media/"
 
@@ -129,3 +130,5 @@ MEDIA_URL = "media/"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTH_USER_MODEL = "users.CustomUser"

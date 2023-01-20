@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "storages",
     "contact_forms",
     "categories",
+    "mptt",
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",

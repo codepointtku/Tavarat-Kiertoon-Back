@@ -15,23 +15,39 @@ class ShoppingCart(models.Model):
 
 
 class Order(models.Model):
+    """class modeling Order table in database"""
 
-    id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-
-    def product_availibility_check(user: object):
-        user = user.objects.get(id=user.id)
+    def product_availibility_check(User: object):
+        user = User.objects.get(id=User.id)
         shopping_cart = ShoppingCart.objects.get(user_id=user.id)
         product_list = shopping_cart.products.all()
         available_products = []
         for product in product_list:
             if product.available == True:
-                available_products.append(product.id)
-        # make check that looks for non available objects at same group id
+                available_products.append(product)
+            else:
+                for same_product in Product.objects.filter(group_id=product.group_id):
+                    if (
+                        same_product.available == True
+                        and same_product.id not in available_products
+                    ):
+                        available_products.append(same_product)
+                        break
         return available_products
 
+    id = models.BigAutoField(primary_key=True)
+    user = models.OneToOneField(CustomUser, on_delete=models.SET_NULL, null=True)
+    products = models.ManyToManyField(Product)
+    shopping_cart = models.ForeignKey(
+        ShoppingCart, on_delete=models.SET_NULL, null=True
+    )
+    # User = get_user_model()
+    # for product in product_availibility_check(User):
+    #     products.add(product)  # tarkista!!!!
+    # make check that looks for non available objects at same group id
+
     # products = product_avaibility_check(user)
-    products = models.ForeignKey(ShoppingCart, on_delete=models.SET_NULL, null=True)
+
     status = models.CharField(max_length=255)
 
     delivery_address = models.CharField(max_length=255)

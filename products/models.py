@@ -1,5 +1,7 @@
 from django.db import models
 
+from categories.models import Category
+
 
 # Create your models here.
 class Picture(models.Model):
@@ -21,7 +23,7 @@ class Product(models.Model):
     available = models.BooleanField(default=False)
     barcode = models.CharField(max_length=255, blank=True, null=True)
     # remember to link to categories after categories_table is created
-    category = models.CharField(max_length=255)  
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     group_id = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255)
     estimate_price = models.FloatField(null=True, blank=True)

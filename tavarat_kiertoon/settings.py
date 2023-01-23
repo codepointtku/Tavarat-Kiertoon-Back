@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "contact_forms",
     "products",
     "users",
+    "orders",
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",

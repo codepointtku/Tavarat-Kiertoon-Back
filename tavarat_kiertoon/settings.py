@@ -33,6 +33,8 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     # Database apps
     "contact_forms",
+    "categories",
+    "mptt",
     "products",
     "users",
     "orders",

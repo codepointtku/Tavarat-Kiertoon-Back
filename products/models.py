@@ -34,7 +34,7 @@ class Product(models.Model):
     free_description = models.TextField(blank=True, null=True)
     #linked to pictures table
     pictures = models.ManyToManyField(Picture)
-    #condition = models.CharField(max_length=50, blank=True, null=True) #condition is explained in  esc field
+    #condition = models.CharField(max_length=50, blank=True, null=True) #condition is explained in description field
     date = models.DateTimeField(auto_now_add=True)
     measurements = models.CharField(max_length=50, null=True, blank=True)
     color = models.CharField(max_length=50, null=True, blank=True)

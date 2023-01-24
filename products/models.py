@@ -28,7 +28,7 @@ class Product(models.Model):
     name = models.CharField(max_length=255)
     #estimate_price = models.FloatField(null=True, blank=True) #not needed
     price = models.FloatField(default=0.0)
-    #table startages_id Id link field
+    #table storages_id Id link field
     storages = models.ForeignKey(Storage, on_delete=models.SET_NULL, null=True, blank=True)
     shelf_id = models.IntegerField(blank=True, null=True)
     free_description = models.TextField(blank=True, null=True)

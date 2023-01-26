@@ -17,7 +17,7 @@ def categories(request):
         serializer = CategorySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-        return Response(serializer.data, status="201")
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def category(request, category_id):
@@ -25,7 +25,7 @@ def category(request, category_id):
     try:
         item = Category.objects.get(pk=category_id)
     except ObjectDoesNotExist:
-        return Response(status="500")
+        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     if request.method == 'GET':
         serializer = CategorySerializer(item)

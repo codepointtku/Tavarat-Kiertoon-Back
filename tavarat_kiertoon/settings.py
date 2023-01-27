@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "mptt",
     "products",
     "users",
+    "rest_framework",
     "orders",
     # Django apps
     "django.contrib.admin",

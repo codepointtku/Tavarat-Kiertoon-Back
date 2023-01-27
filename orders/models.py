@@ -17,9 +17,9 @@ class ShoppingCart(models.Model):
 class Order(models.Model):
     """class modeling Order table in database"""
 
-    def product_availibility_check(User: object):
-        user = User.objects.get(id=User.id)
-        shopping_cart = ShoppingCart.objects.get(user_id=user.id)
+    def product_availibility_check(user_id):
+        # not in use yet, needs to get user from frontend before creating Order instance
+        shopping_cart = ShoppingCart.objects.get(user_id=user_id)
         product_list = shopping_cart.products.all()
         available_products = []
         for product in product_list:
@@ -36,20 +36,9 @@ class Order(models.Model):
         return available_products
 
     id = models.BigAutoField(primary_key=True)
-    user = models.OneToOneField(CustomUser, on_delete=models.SET_NULL, null=True)
-    products = models.ManyToManyField(Product)
-    shopping_cart = models.ForeignKey(
-        ShoppingCart, on_delete=models.SET_NULL, null=True
-    )
-    # User = get_user_model()
-    # for product in product_availibility_check(User):
-    #     products.add(product)  # tarkista!!!!
-    # make check that looks for non available objects at same group id
-
-    # products = product_avaibility_check(user)
-
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    products = models.ManyToManyField(Product, blank=True)
     status = models.CharField(max_length=255)
-
     delivery_address = models.CharField(max_length=255)
     contact = models.CharField(max_length=255)
     order_info = models.TextField()

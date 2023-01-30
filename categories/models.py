@@ -19,3 +19,4 @@ class Category(MPTTModel):
     class Meta:
         verbose_name_plural = 'Categories'
     
+    

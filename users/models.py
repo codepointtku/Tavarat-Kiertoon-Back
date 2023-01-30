@@ -1,5 +1,9 @@
-from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
-                                        Group, PermissionsMixin)
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    Group,
+    PermissionsMixin,
+)
 from django.db import models
 
 # Create your models here.
@@ -60,4 +64,4 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     EMAIL_FIELD = "email"
 
     def __str__(self) -> str:
-        return f'User: {self.email}({self.id})'
+        return f"User: {self.email}({self.id})"

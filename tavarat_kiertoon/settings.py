@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "products",
     "users",
     "rest_framework",
+    "orders",
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",

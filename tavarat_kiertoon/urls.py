@@ -17,10 +17,16 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
+
 from categories import views
+from contact_forms.views import ContactFormDetail, ContactFormListView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("contact_forms/", ContactFormListView.as_view()),
+    path("contact_forms/<int:pk>/", ContactFormDetail.as_view()),
     path("categories/", views.categories),
-    path("categories/<int:category_id>/", views.category)
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) #works only during developoment? check when ready for deplayment?
+    path("categories/<int:category_id>/", views.category),
+] + static(
+    settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
+)  # works only during developoment? check when ready for deplayment?

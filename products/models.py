@@ -9,6 +9,9 @@ class Picture(models.Model):
     id = models.BigAutoField(primary_key=True)
     picture_address = models.ImageField(upload_to="pictures")
 
+    def __str__(self) -> str:
+        return f'Picture({self.id})'
+
 class Storage(models.Model):
     """class for making Storage table for database"""
 
@@ -16,6 +19,9 @@ class Storage(models.Model):
     name = models.CharField(max_length=255)
     address = models.CharField(max_length=255)
     in_use = models.BooleanField(default=True)
+
+    def __str__(self) -> str:
+        return f'Storage: {self.name}({self.id})'
 
 class Product(models.Model):
     """class for making Product table for database"""
@@ -39,3 +45,6 @@ class Product(models.Model):
     measurements = models.CharField(max_length=50, null=True, blank=True)
     color = models.CharField(max_length=50, null=True, blank=True)
     weight = models.FloatField(default=0.0, blank=True, null=True)
+
+    def __str__(self) -> str:
+        return f'Product: {self.name}({self.id})'

@@ -12,6 +12,8 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     products = models.ManyToManyField(Product)
     date = models.DateTimeField(auto_now=True)
+    def __str__(self) -> str:
+        return f"{self.user}'s ShoppingCart({self.id})"
 
 
 class Order(models.Model):
@@ -45,3 +47,6 @@ class Order(models.Model):
     contact = models.CharField(max_length=255, null=True, default=None, blank=True)
     order_info = models.TextField(null=True, default=None, blank=True)
     delivery_date = models.DateTimeField(null=True, default=None, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.user}'s Order({self.id})"

@@ -60,3 +60,13 @@ You need to be in the same folder as docker-compose.yml and to have Docker runni
 `docker-compose down --rmi all` closes if open and removes the images.
 
 On the next start Docker will rebuild the images using the new code.
+
+## Testing
+
+The coverage package can run tests with the command: `coverage run manage.py test`
+
+Test specific apps by adding app name to command, such as: `coverage run manage.py test categories`
+
+View test coverage in VSCode with the command: `coverage report`
+
+View more in-depth coverage in the browser with the command: `coverage html`. This will create a htmlcov folder. Copy the path of index.html inside htmlcov and paste into browser.

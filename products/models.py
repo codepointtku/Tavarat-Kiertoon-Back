@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 
 from categories.models import Category
@@ -11,7 +13,7 @@ class Picture(models.Model):
     picture_address = models.ImageField(upload_to="pictures")
 
     def __str__(self) -> str:
-        return f"Picture({self.id})"
+        return f"Picture: {os.path.basename(self.picture_address.name)}({self.id})"
 
 
 class Storage(models.Model):

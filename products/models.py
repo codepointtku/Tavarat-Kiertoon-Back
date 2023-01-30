@@ -1,4 +1,4 @@
-import os
+from os.path import basename
 
 from django.db import models
 
@@ -13,7 +13,7 @@ class Picture(models.Model):
     picture_address = models.ImageField(upload_to="pictures")
 
     def __str__(self) -> str:
-        return f"Picture: {os.path.basename(self.picture_address.name)}({self.id})"
+        return f"Picture: {basename(self.picture_address.name)}({self.id})"
 
 
 class Storage(models.Model):

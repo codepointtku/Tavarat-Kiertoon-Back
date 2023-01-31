@@ -11,7 +11,7 @@ def categories(request):
     if request.method == 'GET':
         data = Category.objects.all()
         serializer = CategorySerializer(data, many=True)
-        return Response({"categories": serializer.data})
+        return Response(serializer.data)
 
     elif request.method == 'POST':
         serializer = CategorySerializer(data=request.data)

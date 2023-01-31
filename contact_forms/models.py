@@ -14,3 +14,6 @@ class ContactForm(models.Model):
     message = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=255)
+
+    def __str__(self) -> str:
+        return f"{self.email}'s ContactForm({self.id})"

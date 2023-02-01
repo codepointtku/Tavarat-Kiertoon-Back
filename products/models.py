@@ -6,6 +6,16 @@ from categories.models import Category
 
 
 # Create your models here.
+class Color(models.Model):
+    """class for making Color table for database"""
+
+    id = models.BigAutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+
+    def __str__(self) -> str:
+        return f"Color: {self.name}({self.id})"
+
+
 class Picture(models.Model):
     """class for making Picture table for database"""
 
@@ -53,7 +63,7 @@ class Product(models.Model):
     # condition = models.CharField(max_length=50, blank=True, null=True) #condition is explained in description field
     date = models.DateTimeField(auto_now_add=True)
     measurements = models.CharField(max_length=50, null=True, blank=True)
-    color = models.CharField(max_length=50, null=True, blank=True)
+    color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True)
     weight = models.FloatField(default=0.0, blank=True, null=True)
 
     def __str__(self) -> str:

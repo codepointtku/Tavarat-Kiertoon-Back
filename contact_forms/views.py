@@ -12,6 +12,6 @@ class ContactFormListView(ListCreateAPIView):
     serializer_class = ContactFormSerializer
 
 
-class ContactFormDetail(RetrieveUpdateDestroyAPIView):
+class ContactFormDetailView(RetrieveUpdateDestroyAPIView):
     queryset = ContactForm.objects.all()
     serializer_class = ContactFormSerializer

@@ -19,12 +19,22 @@ from django.contrib import admin
 from django.urls import path
 
 from categories import views
-from contact_forms.views import ContactFormDetail, ContactFormListView
+from contact_forms.views import ContactFormDetailView, ContactFormListView
+from orders.views import (
+    OrderDetailView,
+    OrderListView,
+    ShoppingCartDetailView,
+    ShoppingCartListView,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("shopping_carts/", ShoppingCartListView.as_view()),
+    path("shopping_carts/<int:pk>", ShoppingCartDetailView.as_view()),
+    path("orders/", OrderListView.as_view()),
+    path("orders/<int:pk>", OrderDetailView.as_view()),
     path("contact_forms/", ContactFormListView.as_view()),
-    path("contact_forms/<int:pk>/", ContactFormDetail.as_view()),
+    path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
     path("categories/", views.categories),
     path("categories/<int:category_id>/", views.category),
 ] + static(

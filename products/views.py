@@ -1,5 +1,6 @@
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import OrderingFilter
 from .models import Product
 from .serializers import ProductSerializer
 
@@ -18,11 +19,17 @@ class ProductList(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     pagination_class = ProductListPagination
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["date", "name", "color"]
+    ordering = ["date", "name", "color"]
 
 
 class CategoryProductList(generics.ListAPIView):
     serializer_class = ProductSerializer
     pagination_class = CategoryProductListPagination
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["date", "name", "color"]
+    ordering = ["date", "name", "color"]
 
     def get_queryset(self):
         category = self.kwargs["category_id"]

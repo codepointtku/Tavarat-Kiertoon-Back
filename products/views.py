@@ -1,6 +1,7 @@
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import OrderingFilter
+from categories.models import Category
 from .models import Product
 from .serializers import ProductSerializer
 
@@ -33,7 +34,11 @@ class CategoryProductList(generics.ListAPIView):
 
     def get_queryset(self):
         category = self.kwargs["category_id"]
-        return Product.objects.filter(category=category)
+        categoryset = [category]
+        categories = Category.objects.filter(parent=category).values("id")
+        for i in categories:
+            categoryset.append(i["id"])
+        return Product.objects.filter(category__in=categoryset)
 
 
 class ProductDetail(generics.RetrieveUpdateDestroyAPIView):

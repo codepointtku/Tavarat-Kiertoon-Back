@@ -26,6 +26,7 @@ from orders.views import (
     ShoppingCartDetailView,
     ShoppingCartListView,
 )
+from products.views import CategoryProductList, ProductDetail, ProductList
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -33,6 +34,9 @@ urlpatterns = [
     path("shopping_carts/<int:pk>", ShoppingCartDetailView.as_view()),
     path("orders/", OrderListView.as_view()),
     path("orders/<int:pk>", OrderDetailView.as_view()),
+    path("products/", ProductList.as_view()),
+    path("categories/<int:category_id>/products/", CategoryProductList.as_view()),
+    path("products/<int:pk>/", ProductDetail.as_view()),
     path("contact_forms/", ContactFormListView.as_view()),
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
     path("categories/", views.categories),

@@ -33,6 +33,7 @@ class OrderListView(ListCreateAPIView):
         def available_product(product: object):
             for same_product in Product.objects.filter(group_id=product.group_id):
                 if same_product.available and same_product.id not in product_ids:
+                    product_ids.append(same_product.id)
                     return same_product.id
 
         return [

@@ -18,6 +18,12 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
+from bulletins.views import (
+    BulletinDetailView,
+    BulletinListView,
+    BulletinSubjectDetailView,
+    BulletinSubjectListView,
+)
 from categories import views
 from contact_forms.views import ContactFormDetailView, ContactFormListView
 from orders.views import (
@@ -41,6 +47,10 @@ urlpatterns = [
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
     path("categories/", views.categories),
     path("categories/<int:category_id>/", views.category),
+    path("bulletins", BulletinListView.as_view()),
+    path("bulletins/<int:pk>", BulletinDetailView.as_view()),
+    path("bulletin_subjects", BulletinSubjectListView.as_view()),
+    path("bulletin_subjects/<int:pk>", BulletinSubjectDetailView.as_view()),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

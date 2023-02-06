@@ -1,9 +1,27 @@
-from rest_framework import generics
-from rest_framework.pagination import PageNumberPagination
+from rest_framework import generics, status
 from rest_framework.filters import OrderingFilter
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+
 from categories.models import Category
-from .models import Product, Color, Picture, Storage
-from .serializers import ProductSerializer, ColorSerializer, PictureSerializer, StorageSerializer
+
+from .models import Color, Picture, Product, Storage
+from .serializers import (
+    ColorSerializer,
+    PictureSerializer,
+    ProductSerializer,
+    StorageSerializer,
+)
+
+
+def pictures_as_address_list(serializer):
+    data = serializer.data
+    data["pictures"] = [
+        Picture.objects.get(id=pic_id).picture_address.name
+        for pic_id in serializer.data["pictures"]
+    ]
+    return data
+
 
 # Create your views here.
 class ProductListPagination(PageNumberPagination):
@@ -23,6 +41,37 @@ class ProductListView(generics.ListCreateAPIView):
     filter_backends = [OrderingFilter]
     ordering_fields = ["date", "name", "color"]
     ordering = ["date", "name", "color"]
+
+    # def get(self, request, *args, **kwargs):
+    #     products = Product.objects.all()
+    #     serializer = ProductSerializer(products, many=True)
+    #     # data = pictures_as_address_list(serializer)
+    #     print(serializer.data)
+    #     return Response(serializer.data)
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+
+            serializer = self.get_serializer(page, many=True)
+            # Needs map function
+            print(serializer.data[0]["pictures"])
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        serializer = ProductSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            data = pictures_as_address_list(serializer)
+            return Response(data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CategoryProductListView(generics.ListAPIView):
@@ -44,7 +93,6 @@ class CategoryProductListView(generics.ListAPIView):
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-
 
 
 class ColorListView(generics.ListCreateAPIView):

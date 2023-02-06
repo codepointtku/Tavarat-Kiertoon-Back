@@ -1,9 +1,12 @@
 from rest_framework import generics
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import OrderingFilter
+from rest_framework.pagination import PageNumberPagination
+
 from categories.models import Category
+
 from .models import Product
 from .serializers import ProductSerializer
+
 
 # Create your views here.
 class ProductListPagination(PageNumberPagination):

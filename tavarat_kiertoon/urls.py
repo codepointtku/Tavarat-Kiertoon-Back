@@ -26,10 +26,26 @@ from orders.views import (
     ShoppingCartDetailView,
     ShoppingCartListView,
 )
-from products.views import CategoryProductList, ProductDetail, ProductList
+from products.views import (
+    CategoryProductList,
+    ProductDetail,
+    ProductList,
+    ColorList,
+    ColorDetail,
+    StorageList,
+    StorageDetail,
+    PictureList,
+    PictureDetail
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("storages/", StorageList.as_view()),
+    path("storages/<int:pk>/", StorageDetail.as_view()),
+    path("pictures/", PictureList.as_view()),
+    path("pictures/<int:pk>/", PictureDetail.as_view()),        
+    path("colors/", ColorList.as_view()),
+    path("colors/<int:pk>/", ColorDetail.as_view()),
     path("shopping_carts/", ShoppingCartListView.as_view()),
     path("shopping_carts/<int:pk>", ShoppingCartDetailView.as_view()),
     path("orders/", OrderListView.as_view()),

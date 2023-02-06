@@ -2,8 +2,8 @@ from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import OrderingFilter
 from categories.models import Category
-from .models import Product
-from .serializers import ProductSerializer
+from .models import Product, Color, Picture, Storage
+from .serializers import ProductSerializer, ColorSerializer, PictureSerializer, StorageSerializer
 
 # Create your views here.
 class ProductListPagination(PageNumberPagination):
@@ -44,3 +44,34 @@ class CategoryProductList(generics.ListAPIView):
 class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+
+
+class ColorList(generics.ListCreateAPIView):
+    queryset = Color.objects.all()
+    serializer_class = ColorSerializer
+
+
+class ColorDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Color.objects.all()
+    serializer_class = ColorSerializer
+
+
+class StorageList(generics.ListCreateAPIView):
+    queryset = Storage.objects.all()
+    serializer_class = StorageSerializer
+
+
+class StorageDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Storage.objects.all()
+    serializer_class = StorageSerializer
+
+
+class PictureList(generics.ListCreateAPIView):
+    queryset = Picture.objects.all()
+    serializer_class = PictureSerializer
+
+
+class PictureDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Picture.objects.all()
+    serializer_class = PictureSerializer

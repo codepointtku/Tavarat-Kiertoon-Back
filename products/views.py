@@ -37,12 +37,6 @@ class ProductListView(generics.ListCreateAPIView):
     ordering_fields = ["date", "name", "color"]
     ordering = ["date", "name", "color"]
 
-    # def get(self, request, *args, **kwargs):
-    #     products = Product.objects.all()
-    #     serializer = ProductSerializer(products, many=True)
-    #     # data = pictures_as_address_list(serializer)
-    #     print(serializer.data)
-    #     return Response(serializer.data)
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 

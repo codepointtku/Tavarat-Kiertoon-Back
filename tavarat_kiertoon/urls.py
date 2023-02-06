@@ -47,9 +47,9 @@ urlpatterns = [
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
     path("categories/", views.categories),
     path("categories/<int:category_id>/", views.category),
-    path("bulletins", BulletinListView.as_view()),
+    path("bulletins/", BulletinListView.as_view()),
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),
-    path("bulletin_subjects", BulletinSubjectListView.as_view()),
+    path("bulletin_subjects/", BulletinSubjectListView.as_view()),
     path("bulletin_subjects/<int:pk>", BulletinSubjectDetailView.as_view()),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT

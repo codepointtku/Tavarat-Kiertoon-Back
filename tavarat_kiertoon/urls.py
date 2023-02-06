@@ -32,17 +32,33 @@ from orders.views import (
     ShoppingCartDetailView,
     ShoppingCartListView,
 )
-from products.views import CategoryProductList, ProductDetail, ProductList
+from products.views import (
+    CategoryProductListView,
+    ProductDetailView,
+    ProductListView,
+    ColorListView,
+    ColorDetailView,
+    StorageListView,
+    StorageDetailView,
+    PictureListView,
+    PictureDetailView
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("storages/", StorageListView.as_view()),
+    path("storages/<int:pk>/", StorageDetailView.as_view()),
+    path("pictures/", PictureListView.as_view()),
+    path("pictures/<int:pk>/", PictureDetailView.as_view()),        
+    path("colors/", ColorListView.as_view()),
+    path("colors/<int:pk>/", ColorDetailView.as_view()),
     path("shopping_carts/", ShoppingCartListView.as_view()),
     path("shopping_carts/<int:pk>", ShoppingCartDetailView.as_view()),
     path("orders/", OrderListView.as_view()),
     path("orders/<int:pk>", OrderDetailView.as_view()),
-    path("products/", ProductList.as_view()),
-    path("categories/<int:category_id>/products/", CategoryProductList.as_view()),
-    path("products/<int:pk>/", ProductDetail.as_view()),
+    path("products/", ProductListView.as_view()),
+    path("categories/<int:category_id>/products/", CategoryProductListView.as_view()),
+    path("products/<int:pk>/", ProductDetailView.as_view()),
     path("contact_forms/", ContactFormListView.as_view()),
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
     path("categories/", views.categories),

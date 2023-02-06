@@ -2,8 +2,8 @@ from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import OrderingFilter
 from categories.models import Category
-from .models import Product
-from .serializers import ProductSerializer
+from .models import Product, Color, Picture, Storage
+from .serializers import ProductSerializer, ColorSerializer, PictureSerializer, StorageSerializer
 
 # Create your views here.
 class ProductListPagination(PageNumberPagination):
@@ -16,7 +16,7 @@ class CategoryProductListPagination(PageNumberPagination):
     page_size_query_param = "page_size"
 
 
-class ProductList(generics.ListCreateAPIView):
+class ProductListView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     pagination_class = ProductListPagination
@@ -25,7 +25,7 @@ class ProductList(generics.ListCreateAPIView):
     ordering = ["date", "name", "color"]
 
 
-class CategoryProductList(generics.ListAPIView):
+class CategoryProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
     pagination_class = CategoryProductListPagination
     filter_backends = [OrderingFilter]
@@ -41,6 +41,37 @@ class CategoryProductList(generics.ListAPIView):
         return Product.objects.filter(category__in=categoryset)
 
 
-class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
+class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+
+
+class ColorListView(generics.ListCreateAPIView):
+    queryset = Color.objects.all()
+    serializer_class = ColorSerializer
+
+
+class ColorDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Color.objects.all()
+    serializer_class = ColorSerializer
+
+
+class StorageListView(generics.ListCreateAPIView):
+    queryset = Storage.objects.all()
+    serializer_class = StorageSerializer
+
+
+class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Storage.objects.all()
+    serializer_class = StorageSerializer
+
+
+class PictureListView(generics.ListCreateAPIView):
+    queryset = Picture.objects.all()
+    serializer_class = PictureSerializer
+
+
+class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Picture.objects.all()
+    serializer_class = PictureSerializer

@@ -20,13 +20,11 @@ from django.urls import path
 
 from categories import views
 from contact_forms.views import ContactFormDetailView, ContactFormListView
-from orders.views import (
-    OrderDetailView,
-    OrderListView,
-    ShoppingCartDetailView,
-    ShoppingCartListView,
-)
+from orders.views import (OrderDetailView, OrderListView,
+                          ShoppingCartDetailView, ShoppingCartListView)
 from products.views import CategoryProductList, ProductDetail, ProductList
+from users.views import (UserCreateListView, UserDetailsListView,
+                         UserSingleGetView)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -41,6 +39,9 @@ urlpatterns = [
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
     path("categories/", views.categories),
     path("categories/<int:category_id>/", views.category),
+    path("users/", UserDetailsListView.as_view()),
+    path("users/create/", UserCreateListView.as_view()),
+    path("users/<int:pk>/", UserSingleGetView.as_view()),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

@@ -14,13 +14,8 @@ from .serializers import (
 )
 
 
-def pictures_as_address_list(serializer):
-    data = serializer.data
-    data["pictures"] = [
-        Picture.objects.get(id=pic_id).picture_address.name
-        for pic_id in serializer.data["pictures"]
-    ]
-    return data
+def pic_ids_as_address_list(pic_ids):
+    return [Picture.objects.get(id=pic_id).picture_address.name for pic_id in pic_ids]
 
 
 # Create your views here.
@@ -53,10 +48,11 @@ class ProductListView(generics.ListCreateAPIView):
 
         page = self.paginate_queryset(queryset)
         if page is not None:
-
             serializer = self.get_serializer(page, many=True)
-            # Needs map function
-            print(serializer.data[0]["pictures"])
+            for i in range(len(serializer.data)):
+                serializer.data[i]["pictures"] = pic_ids_as_address_list(
+                    serializer.data[i]["pictures"]
+                )
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
@@ -69,7 +65,8 @@ class ProductListView(generics.ListCreateAPIView):
         serializer = ProductSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            data = pictures_as_address_list(serializer)
+            data = serializer.data
+            data["pictures"] = pic_ids_as_address_list(data["pictures"])
             return Response(data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

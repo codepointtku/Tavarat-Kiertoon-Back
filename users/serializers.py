@@ -10,6 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = "__all__"
+        depth = 1
 
 class UserSerializer_create(serializers.ModelSerializer):
     """

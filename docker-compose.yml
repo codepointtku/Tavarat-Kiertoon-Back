@@ -1,10 +1,16 @@
 version: "3.9"
 services:
-  tavarat-kiertoon:
-    container_name: tavarat-kiertoon-back
-    build: .
-    command: >
-      sh -cx "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
+    tavarat-kiertoon:
+        container_name: tavarat-kiertoon-back
+        build: .
+        command: >
+            sh -cx "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+        restart: unless-stopped
+        ports:
+            - "8000:8000"
+        networks:
+            - tavaratnet
+
+networks:
+    tavaratnet:
+        driver: bridge

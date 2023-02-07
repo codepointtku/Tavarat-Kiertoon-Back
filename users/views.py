@@ -33,6 +33,7 @@ class UserCreateListView(APIView):
         print("test POST")
         serialized_values = UserSerializer_create(data=request.data)
         if serialized_values.is_valid():
+            #getting the data form serializer for user creation
             print("Onko printissa ja sitten seriliasoidut data", serialized_values)
             print("vastauksen data:   ", serialized_values.initial_data )
             first_name_post = serialized_values["first_name"].value
@@ -47,21 +48,20 @@ class UserCreateListView(APIView):
             print("phone: ", phone_number_post)
             print("password: ", password_post)
 
-            #checking that user doesnt exist already as email needs to be unique
+            #checking that user doesnt exist already as email needs to be unique ? redudant due to validation?
             if User.objects.filter(email=email_post).exists() :
                 print("found user with email of: ", email_post)
             else:
                 print("no user with email of: ", email_post)
-            #checking that email domain is valid
+            #checking that email domain is valid ?
             email_split = email_post.split("@")
             if not Validate_email_domain(email_split[1]):
                 print("uh duh??!?!?!")
                 return Response("invalid email domain")
             
             print("creating user with: ", first_name_post, last_name_post, email_post, phone_number_post, password_post)
-
+            #actually creating the user
             User.objects.create_user(first_name_post, last_name_post, email_post, phone_number_post, password_post)
-
 
             return Response(serialized_values.initial_data)
 

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import Http404
 from django.shortcuts import render
@@ -6,16 +7,21 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import CustomUser
-from .serializers import UserSerializer
+from .serializers import UserSerializer, UserSerializer_create
 
 User = get_user_model()
 
+def Validate_email_domain(email_domain):
+    #print("email domain: ", email_domain, "valid email domains: " , settings.VALID_EMAIL_DOMAINS)
+    if email_domain in settings.VALID_EMAIL_DOMAINS :
+        return True
+    return False
 
 # Create your views here.
 
-class UserDetailsListView(APIView):
+class UserCreateListView(APIView):
     """
-    List all users
+    List all users, and create with POST
     """
     def get(self, request, format=None):
         users = CustomUser.objects.all()
@@ -25,14 +31,37 @@ class UserDetailsListView(APIView):
 
     def post(self, request, format=None):
         print("test POST")
-        print("test POST, Doont save")
-        serialized_values = UserSerializer(data=request.data)
+        serialized_values = UserSerializer_create(data=request.data)
         if serialized_values.is_valid():
             print("Onko printissa ja sitten seriliasoidut data", serialized_values)
-            print("vastauksen data:   ",serialized_values.initial_data )
+            print("vastauksen data:   ", serialized_values.initial_data )
+            first_name_post = serialized_values["first_name"].value
+            last_name_post = serialized_values["last_name"].value
+            name_post = first_name_post + " " + last_name_post
+            email_post = serialized_values["email"].value
+            phone_number_post = serialized_values["phone_number"].value
+            password_post = serialized_values["password"].value
 
-            name_post = serialized_values.initial_data["name"]
-            email_post = serialized_values.initial_data["email"]
+            print("nimi: ", name_post)
+            print("email: ", email_post)
+            print("phone: ", phone_number_post)
+            print("password: ", password_post)
+
+            #checking that user doesnt exist already as email needs to be unique
+            if User.objects.filter(email=email_post).exists() :
+                print("found user with email of: ", email_post)
+            else:
+                print("no user with email of: ", email_post)
+            #checking that email domain is valid
+            email_split = email_post.split("@")
+            if not Validate_email_domain(email_split[1]):
+                print("uh duh??!?!?!")
+                return Response("invalid email domain")
+            
+            print("creating user with: ", first_name_post, last_name_post, email_post, phone_number_post, password_post)
+
+            User.objects.create_user(first_name_post, last_name_post, email_post, phone_number_post, password_post)
+
 
             return Response(serialized_values.initial_data)
 
@@ -49,10 +78,13 @@ class UserDetailsListView(APIView):
         return Response("TEST")
 
     # queryset = CustomUser.objects.all()  
-    serializer_class = UserSerializer
+    serializer_class = UserSerializer_create
     
 
-class UserCreateListView(generics.ListCreateAPIView):
+class UserDetailsListView(generics.ListCreateAPIView):
+    """
+    List all users
+    """
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 

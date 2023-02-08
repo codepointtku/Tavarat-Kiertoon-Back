@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import CustomUser
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer_full(serializers.ModelSerializer):
     """
     Serializer for users, all database fields
     """
@@ -11,6 +11,14 @@ class UserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = "__all__"
         depth = 1
+
+class UserSerializer_password(serializers.ModelSerializer):
+    """
+    Serializer for users, checking password fields
+    """
+    class Meta:
+        model = CustomUser
+        fields = "email","password"
 
 class UserSerializer_create(serializers.ModelSerializer):
     """
@@ -22,3 +30,13 @@ class UserSerializer_create(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = "first_name","last_name","email","phone_number", "password"
+
+class UserSerializer_limited(serializers.ModelSerializer):
+    """
+    Serializer for users, getting the revelant fields
+    """
+
+    class Meta:
+        model = CustomUser
+        fields = "id","last_login","name", "email","phone_number", "creation_date", "phone_number", "groups"
+        depth = 1

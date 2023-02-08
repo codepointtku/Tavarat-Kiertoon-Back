@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import CustomUser
-from .serializers import UserSerializer, UserSerializer_create
+from .serializers import UserSerializer_full, UserSerializer_create, UserSerializer_limited, UserSerializer_password
 
 User = get_user_model()
 
@@ -25,7 +25,7 @@ class UserCreateListView(APIView):
     """
     def get(self, request, format=None):
         users = CustomUser.objects.all()
-        serializer = UserSerializer(users, many = True)
+        serializer = UserSerializer_full(users, many = True)
         print("test GET")
         return Response(serializer.data)
 
@@ -86,7 +86,7 @@ class UserDetailsListView(generics.ListCreateAPIView):
     List all users
     """
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserSerializer_full
 
 class UserSingleGetView(APIView):
     """
@@ -100,8 +100,34 @@ class UserSingleGetView(APIView):
     
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
-        serializer = UserSerializer(user)
+        serializer = UserSerializer_full(user)
         return Response(serializer.data)
 
     # queryset = CustomUser.objects.all()
-    # serializer_class = UserSerializer
+    # serializer_class = UserSerializer_full
+
+
+class UserDetailsListView_limited(APIView):
+    """
+    Get Users with revelant fields
+    """
+    def get(self, request, format=None):
+        users = CustomUser.objects.all()
+        serializer = UserSerializer_limited(users, many = True)
+        print("test GET")
+        return Response(serializer.data)
+
+class UserView_password(APIView):
+    """
+    Get single user, password
+    """
+    def get_object(self, pk):
+        try:
+            return CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist:
+            raise Http404
+    
+    def get(self, request, pk, format=None):
+        user = self.get_object(pk)
+        serializer = UserSerializer_password(user)
+        return Response(serializer.data)

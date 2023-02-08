@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth.models import Group
 from django.http import Http404
 from django.shortcuts import render
 from rest_framework import generics, status
@@ -17,6 +18,15 @@ def Validate_email_domain(email_domain):
     if email_domain in settings.VALID_EMAIL_DOMAINS :
         return True
     return False
+
+def is_in_group(user, group_name):
+    """
+    Takes a user and a group name, and returns `True` if the user is in that group.
+    """
+    try:
+        return Group.objects.get(name=group_name).user_set.filter(id=user.id).exists()
+    except Group.DoesNotExist:
+        return None
 
 # Create your views here.
 
@@ -102,6 +112,12 @@ class UserSingleGetView(APIView):
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
         serializer = UserSerializer_full(user)
+
+        print("testin single user stuff")
+        group_name_check = "bicycle_group"
+        user_permission_ok = is_in_group(user,group_name_check)
+        print("permission to group: ", group_name_check ," ---is--: " ,user_permission_ok)
+
         return Response(serializer.data)
 
     # queryset = CustomUser.objects.all()
@@ -145,7 +161,7 @@ class UserView_password(APIView):
         pw_request = serialized_values_request.initial_data["password"]
         pw_database = serializer.data["password"]
 
-        check_word_for_hash = "pbkdf2_sha256"
+        check_word_for_hash = "pbkdf2_sha256" #remove once in deplayment??
 
         print("values to be checked: ENTERERD password:", pw_request , "DATABASE password: " , pw_database)
         password_checked = False
@@ -167,3 +183,23 @@ class UserView_password(APIView):
 
     serializer_class = UserSerializer_password
     
+class UserView_login(APIView):
+    def post(self, request, format=None):
+        print("test POST")
+        serialized_values_request = UserSerializer_password(data=request.data)
+        print(serialized_values_request)
+        
+        email_post = serialized_values_request.initial_data["email"]
+        print(email_post)
+        if User.objects.filter(email=email_post).exists() :
+            print("found user with email of: ", email_post)
+        else:
+            print("no user with email of: ", email_post)
+        
+        pw_request = serialized_values_request.initial_data["password"]
+        print("password", pw_request)
+
+        #return Response("bogos pinted with CHUK NORRIS")
+        return Response(serialized_values_request.initial_data)
+
+    serializer_class = UserSerializer_password

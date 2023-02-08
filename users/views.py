@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import check_password
 from django.http import Http404
 from django.shortcuts import render
 from rest_framework import generics, status
@@ -131,3 +132,38 @@ class UserView_password(APIView):
         user = self.get_object(pk)
         serializer = UserSerializer_password(user)
         return Response(serializer.data)
+    
+    def post(self, request, pk, format=None):
+        print("test POST")
+        user = self.get_object(pk)
+        serializer = UserSerializer_password(user)
+        serialized_values_request = UserSerializer_password(data=request.data)
+        print(serialized_values_request)
+        print("-------------------------------------------")
+        print(serializer)
+
+        pw_request = serialized_values_request.initial_data["password"]
+        pw_database = serializer.data["password"]
+
+        check_word_for_hash = "pbkdf2_sha256"
+
+        print("values to be checked: ENTERERD password:", pw_request , "DATABASE password: " , pw_database)
+        password_checked = False
+        if check_word_for_hash in pw_database :
+            password_checked  = check_password(pw_request,pw_database)
+        else:
+            print("stored password is faulty but chekcing anyway without hashing")
+            if pw_request == pw_database :
+                print("correct pasword without hashing")
+                password_checked = True
+
+
+        if password_checked :
+            print("salasana oikein")
+        else :
+            print("salasana väärin")
+
+        return Response(serializer.data)
+
+    serializer_class = UserSerializer_password
+    

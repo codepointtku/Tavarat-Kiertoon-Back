@@ -19,7 +19,7 @@ class UserSerializer_password(serializers.ModelSerializer):
     """
     class Meta:
         model = CustomUser
-        fields = "email","password"
+        fields = ["email","password"]
 
 class UserSerializer_create(serializers.ModelSerializer):
     """
@@ -30,7 +30,7 @@ class UserSerializer_create(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = "first_name","last_name","email","phone_number", "password"
+        fields = ["first_name","last_name","email","phone_number", "password"]
 
 class SubSerializerForGroups(serializers.ModelSerializer):
     """
@@ -45,11 +45,11 @@ class UserSerializer_limited(serializers.ModelSerializer):
     """
     Serializer for users, getting the revelant fields
     """
-    
-    groups = SubSerializerForGroups(many=True, read_only=True)
+    #groups = SubSerializerForGroups(many=True, read_only=True) #comes out in dict
     #test2 = serializers.CharField(default="test2")
+    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name") # comes out in list
 
     class Meta:
         model = CustomUser
-        fields = "id","last_login","name", "email","phone_number", "creation_date", "phone_number", "groups"
+        fields = ["id","last_login","name", "email","phone_number", "creation_date", "phone_number", "groups"]
         #depth = 1

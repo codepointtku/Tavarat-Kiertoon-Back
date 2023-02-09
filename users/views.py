@@ -10,8 +10,8 @@ from rest_framework.views import APIView
 
 from .models import CustomUser
 from .serializers import (UserSerializer_create, UserSerializer_full,
-                          UserSerializer_limited, UserSerializer_password,
-                          UserSerializer_password_2)
+                          UserSerializer_limited, UserSerializer_names,
+                          UserSerializer_password, UserSerializer_password_2)
 
 User = get_user_model()
 
@@ -38,7 +38,7 @@ class UserCreateListView(APIView):
     """
     def get(self, request, format=None):
         users = CustomUser.objects.all()
-        serializer = UserSerializer_full(users, many = True)
+        serializer = UserSerializer_names(users, many = True)
         print("test GET")
         return Response(serializer.data)
 
@@ -136,6 +136,21 @@ class UserDetailsListView_limited(APIView):
         print("test GET")
         return Response(serializer.data)
 
+class UserDetailsSingleView_limited(APIView):
+    """
+    Get single user with revelant fields
+    """
+    def get_object(self, pk):
+        try:
+            return CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        user = self.get_object(pk)
+        serializer = UserSerializer_limited(user)
+        return Response(serializer.data)
+
 class UserView_password(APIView):
     """
     Get single user, password
@@ -193,11 +208,24 @@ class UserView_password(APIView):
 class UserView_login(APIView):
     def post(self, request, format=None):
         print(request)
+        #test = {"password" : "1234" , "email" : "spsantam"}
+        #testing_serial_stuff = UserSerializer_password(data=test)
+        #print("TEST seria STUF:      ", testing_serial_stuff)
+        #serialized_values_request = UserSerializer_password(data=test)
         serialized_values_request = UserSerializer_password(data=request.data)
         print("test POST", serialized_values_request.is_valid(), serialized_values_request.errors)
         print(serialized_values_request)
         #if serialized_values_request.is_valid() :
-        email_post = serialized_values_request.initial_data["email"]
+        
+        try:
+            email_post = serialized_values_request.initial_data["email"]
+            pw_request = serialized_values_request.initial_data["password"]
+            print("password: ", pw_request)
+        except KeyError:
+            #serializer_class = UserSerializer_password
+            return Response("no password passed or no email passed")
+
+        
         print(email_post)
         if User.objects.filter(email=email_post).exists() :
             print("found user with email of: ", email_post)
@@ -210,9 +238,6 @@ class UserView_login(APIView):
             response_message = "no user with email of: " + email_post
             return Response(response_message)
 
-        pw_request = serialized_values_request.initial_data["password"]
-        print("password: ", pw_request)
-
         # if check_password(pw_request,user.password) :
         #     print("fffffffffffffffff")
 
@@ -220,6 +245,7 @@ class UserView_login(APIView):
             message = "Chuck norris kicked you in"
             serialized_response = UserSerializer_limited(user)
             #return Response(message)
+            
             return Response(serialized_response.data)
         else :
             return Response("Failty password try again")

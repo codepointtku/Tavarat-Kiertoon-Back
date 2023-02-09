@@ -27,7 +27,9 @@ from orders.views import (OrderDetailView, OrderListView,
                           ShoppingCartDetailView, ShoppingCartListView)
 from products.views import CategoryProductList, ProductDetail, ProductList
 from users.views import (UserCreateListView, UserDetailsListView,
-                         UserSingleGetView, UserDetailsListView_limited,UserView_password, UserView_login)
+                         UserDetailsListView_limited,
+                         UserDetailsSingleView_limited, UserSingleGetView,
+                         UserView_login, UserView_password)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -46,6 +48,7 @@ urlpatterns = [
     path("users/create/", UserCreateListView.as_view()),
     path("users/<int:pk>/", UserSingleGetView.as_view()),
     path("users/limited/", UserDetailsListView_limited.as_view()),
+    path("users/limited/<int:pk>", UserDetailsSingleView_limited.as_view()),
     path("users/password/<int:pk>/", UserView_password.as_view()),
     path("users/login/",UserView_login.as_view()),
     path("bulletins/", BulletinListView.as_view()),

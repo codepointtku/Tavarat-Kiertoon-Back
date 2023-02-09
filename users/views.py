@@ -9,7 +9,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import CustomUser
-from .serializers import UserSerializer_full, UserSerializer_create, UserSerializer_limited, UserSerializer_password
+from .serializers import (UserSerializer_create, UserSerializer_full,
+                          UserSerializer_limited, UserSerializer_password,
+                          UserSerializer_password_2)
 
 User = get_user_model()
 
@@ -156,10 +158,11 @@ class UserView_password(APIView):
         serialized_values_request = UserSerializer_password(data=request.data)
         print(serialized_values_request)
         print("-------------------------------------------")
-        print(serializer)
+        print(serializer , "\n -------------------")
 
         pw_request = serialized_values_request.initial_data["password"]
         pw_database = serializer.data["password"]
+        data_serializer = serializer.data
 
         check_word_for_hash = "pbkdf2_sha256" #remove once in deplayment??
 
@@ -175,31 +178,53 @@ class UserView_password(APIView):
 
 
         if password_checked :
-            print("salasana oikein")
+            print("salasana oikein, password_correct STATUS on: ", data_serializer["password_correct"])
+            data_serializer["password_correct"] = True
+            print("STATUS: ", data_serializer["password_correct"])
         else :
-            print("salasana väärin")
+            print("salasana väärin, password_correct STATUS on: ", data_serializer["password_correct"])
+            data_serializer["password_correct"] = False
+            print("STATUS: ", data_serializer["password_correct"])
 
-        return Response(serializer.data)
+        return Response(data_serializer)
 
     serializer_class = UserSerializer_password
     
 class UserView_login(APIView):
     def post(self, request, format=None):
-        print("test POST")
+        print(request)
         serialized_values_request = UserSerializer_password(data=request.data)
+        print("test POST", serialized_values_request.is_valid(), serialized_values_request.errors)
         print(serialized_values_request)
-        
+        #if serialized_values_request.is_valid() :
         email_post = serialized_values_request.initial_data["email"]
         print(email_post)
         if User.objects.filter(email=email_post).exists() :
             print("found user with email of: ", email_post)
+            user = User.objects.get(email=email_post)
+            print(user, "\n ------------")
+            print("Email: " , user.email, "   and password: " , user.password)
+
         else:
             print("no user with email of: ", email_post)
-        
-        pw_request = serialized_values_request.initial_data["password"]
-        print("password", pw_request)
+            response_message = "no user with email of: " + email_post
+            return Response(response_message)
 
-        #return Response("bogos pinted with CHUK NORRIS")
-        return Response(serialized_values_request.initial_data)
+        pw_request = serialized_values_request.initial_data["password"]
+        print("password: ", pw_request)
+
+        # if check_password(pw_request,user.password) :
+        #     print("fffffffffffffffff")
+
+        if check_password(pw_request,user.password) :
+            message = "Chuck norris kicked you in"
+            serialized_response = UserSerializer_limited(user)
+            #return Response(message)
+            return Response(serialized_response.data)
+        else :
+            return Response("Failty password try again")
+        #return Response(serialized_values_request.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response("bogos pinted with CHUK NORRIS")
+        #return Response(serialized_values_request.initial_data)
 
     serializer_class = UserSerializer_password

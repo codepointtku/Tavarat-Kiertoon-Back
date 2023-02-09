@@ -17,6 +17,15 @@ class UserSerializer_password(serializers.ModelSerializer):
     """
     Serializer for users, checking password fields
     """
+    password_correct = serializers.BooleanField(default=False)
+    class Meta:
+        model = CustomUser
+        fields = ["email","password","password_correct"]
+    
+class UserSerializer_password_2(serializers.ModelSerializer):
+    """
+    Serializer for users, checking password fields
+    """
     class Meta:
         model = CustomUser
         fields = ["email","password"]

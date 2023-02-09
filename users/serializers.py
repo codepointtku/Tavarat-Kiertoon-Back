@@ -1,7 +1,8 @@
+from django.contrib.auth.models import Group
 from rest_framework import serializers
 
 from .models import CustomUser
-from django.contrib.auth.models import Group
+
 
 class UserSerializer_full(serializers.ModelSerializer):
     """
@@ -37,7 +38,7 @@ class SubSerializerForGroups(serializers.ModelSerializer):
     """
     class Meta:
         model = Group
-        fields = "__all__"
+        fields = ["name"]
 
 
 class UserSerializer_limited(serializers.ModelSerializer):
@@ -45,10 +46,10 @@ class UserSerializer_limited(serializers.ModelSerializer):
     Serializer for users, getting the revelant fields
     """
     
-    test = SubSerializerForGroups(many=True, read_only=True)
-    test2 = serializers.CharField(default="test2")
+    groups = SubSerializerForGroups(many=True, read_only=True)
+    #test2 = serializers.CharField(default="test2")
 
     class Meta:
         model = CustomUser
-        fields = "id","last_login","name", "email","phone_number", "creation_date", "phone_number", "groups", "test", "test2"
-        depth = 1
+        fields = "id","last_login","name", "email","phone_number", "creation_date", "phone_number", "groups"
+        #depth = 1

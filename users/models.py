@@ -23,7 +23,11 @@ class CustomUserManager(BaseUserManager):
         )
         user.set_password(raw_password=password)
         user.save(using=self._db)
+        
+        if not Group.objects.filter(name="user_group").exists() :
+            Group.objects.create(name="user_group")
         group = Group.objects.get(name="user_group")
+
         user.groups.add(group)
 
         return user

@@ -1,11 +1,13 @@
 from rest_framework import serializers
-from .models import Product
-from .models import Color
-from .models import Picture
-from .models import Storage
+
+from .models import Color, Picture, Product, Storage
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    category_name = serializers.ReadOnlyField(source="category.name")
+    color_name = serializers.ReadOnlyField(source="color.name")
+    storage_name = serializers.ReadOnlyField(source="storages.name")
+
     class Meta:
         model = Product
         fields = "__all__"

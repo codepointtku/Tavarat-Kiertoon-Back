@@ -2,11 +2,7 @@ from django.shortcuts import render
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
 from .models import Contact, ContactForm
-from .serializers import (
-    ContactFormSerializer,
-    ContactSerializer,
-    ContactSerializer_for_front,
-)
+from .serializers import ContactFormSerializer, ContactSerializer
 
 # Create your views here.
 
@@ -23,9 +19,9 @@ class ContactFormDetailView(RetrieveUpdateDestroyAPIView):
 
 class ContactListView(ListCreateAPIView):
     queryset = Contact.objects.all()
-    serializer_class = ContactSerializer_for_front
+    serializer_class = ContactSerializer
 
 
 class ContactDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Contact.objects.all()
-    serializer_class = ContactSerializer_for_front
+    serializer_class = ContactSerializer

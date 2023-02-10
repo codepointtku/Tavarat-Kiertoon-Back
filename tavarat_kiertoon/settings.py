@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "users",
     "rest_framework",
     "orders",
+    "bikes",
     "corsheaders",
     # Django apps
     "django.contrib.admin",

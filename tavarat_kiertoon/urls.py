@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.conf import settings
+from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
@@ -34,14 +35,14 @@ from orders.views import (
 )
 from products.views import (
     CategoryProductListView,
+    ColorDetailView,
+    ColorListView,
+    PictureDetailView,
+    PictureListView,
     ProductDetailView,
     ProductListView,
-    ColorListView,
-    ColorDetailView,
-    StorageListView,
     StorageDetailView,
-    PictureListView,
-    PictureDetailView
+    StorageListView,
 )
 
 urlpatterns = [
@@ -49,7 +50,7 @@ urlpatterns = [
     path("storages/", StorageListView.as_view()),
     path("storages/<int:pk>/", StorageDetailView.as_view()),
     path("pictures/", PictureListView.as_view()),
-    path("pictures/<int:pk>/", PictureDetailView.as_view()),        
+    path("pictures/<int:pk>/", PictureDetailView.as_view()),
     path("colors/", ColorListView.as_view()),
     path("colors/<int:pk>/", ColorDetailView.as_view()),
     path("shopping_carts/", ShoppingCartListView.as_view()),
@@ -67,6 +68,7 @@ urlpatterns = [
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),
     path("bulletin_subjects/", BulletinSubjectListView.as_view()),
     path("bulletin_subjects/<int:pk>", BulletinSubjectDetailView.as_view()),
+    path("bikes/", include("bikes.urls")),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

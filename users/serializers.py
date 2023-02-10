@@ -8,43 +8,53 @@ class UserSerializer_full(serializers.ModelSerializer):
     """
     Serializer for users, all database fields
     """
+
     class Meta:
         model = CustomUser
         fields = "__all__"
         depth = 1
 
+
 class UserSerializer_password(serializers.ModelSerializer):
     """
     Serializer for users, checking password fields
     """
+
     password_correct = serializers.BooleanField(default=False)
+
     class Meta:
         model = CustomUser
-        fields = ["email","password","password_correct"]
-    
+        fields = ["email", "password", "password_correct"]
+
+
 class UserSerializer_password_2(serializers.ModelSerializer):
     """
     Serializer for users, checking password fields
     """
+
     class Meta:
         model = CustomUser
-        fields = ["email","password"]
+        fields = ["email", "password"]
+
 
 class UserSerializer_create(serializers.ModelSerializer):
     """
     Serializer for users, in specific format for user creation
     """
+
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=155)
 
     class Meta:
         model = CustomUser
-        fields = ["first_name","last_name","email","phone_number", "password"]
+        fields = ["first_name", "last_name", "email", "phone_number", "password"]
+
 
 class SubSerializerForGroups(serializers.ModelSerializer):
     """
     Serializer for getting group names from users
     """
+
     class Meta:
         model = Group
         fields = ["name"]
@@ -54,19 +64,30 @@ class UserSerializer_limited(serializers.ModelSerializer):
     """
     Serializer for users, getting the revelant fields
     """
-    #groups = SubSerializerForGroups(many=True, read_only=True) #comes out in dict
-    #test2 = serializers.CharField(default="test2")
-    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name") # comes out in list
+
+    # groups = SubSerializerForGroups(many=True, read_only=True) #comes out in dict
+    groups = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )  # comes out in list
 
     class Meta:
         model = CustomUser
-        fields = ["id","last_login","name", "email","phone_number", "phone_number", "groups"]
-        #depth = 1
+        fields = [
+            "id",
+            "last_login",
+            "name",
+            "email",
+            "phone_number",
+            "phone_number",
+            "groups",
+        ]
+
 
 class UserSerializer_names(serializers.ModelSerializer):
     """
     Serializer for users, name and email
     """
+
     class Meta:
         model = CustomUser
-        fields = ["name","email"]
+        fields = ["name", "email"]

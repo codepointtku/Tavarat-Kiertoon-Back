@@ -18,28 +18,47 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
-from bulletins.views import (BulletinDetailView, BulletinListView,
-                             BulletinSubjectDetailView,
-                             BulletinSubjectListView)
+from bulletins.views import (
+    BulletinDetailView,
+    BulletinListView,
+    BulletinSubjectDetailView,
+    BulletinSubjectListView,
+)
 from categories import views
 from contact_forms.views import ContactFormDetailView, ContactFormListView
-from orders.views import (OrderDetailView, OrderListView,
-                          ShoppingCartDetailView, ShoppingCartListView)
-from products.views import (CategoryProductListView, ColorDetailView,
-                            ColorListView, PictureDetailView, PictureListView,
-                            ProductDetailView, ProductListView,
-                            StorageDetailView, StorageListView)
-from users.views import (UserCreateListView, UserDetailsListView,
-                         UserDetailsListView_limited,
-                         UserDetailsSingleView_limited, UserSingleGetView,
-                         UserView_login, UserView_password)
+from orders.views import (
+    OrderDetailView,
+    OrderListView,
+    ShoppingCartDetailView,
+    ShoppingCartListView,
+)
+from products.views import (
+    CategoryProductListView,
+    ColorDetailView,
+    ColorListView,
+    PictureDetailView,
+    PictureListView,
+    ProductDetailView,
+    ProductListView,
+    StorageDetailView,
+    StorageListView,
+)
+from users.views import (
+    UserCreateListView,
+    UserDetailsListView,
+    UserDetailsListView_limited,
+    UserDetailsSingleView_limited,
+    UserSingleGetView,
+    UserView_login,
+    UserView_password,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("storages/", StorageListView.as_view()),
     path("storages/<int:pk>/", StorageDetailView.as_view()),
     path("pictures/", PictureListView.as_view()),
-    path("pictures/<int:pk>/", PictureDetailView.as_view()),        
+    path("pictures/<int:pk>/", PictureDetailView.as_view()),
     path("colors/", ColorListView.as_view()),
     path("colors/<int:pk>/", ColorDetailView.as_view()),
     path("shopping_carts/", ShoppingCartListView.as_view()),
@@ -59,7 +78,7 @@ urlpatterns = [
     path("users/limited/", UserDetailsListView_limited.as_view()),
     path("users/limited/<int:pk>", UserDetailsSingleView_limited.as_view()),
     path("users/password/<int:pk>/", UserView_password.as_view()),
-    path("users/login/",UserView_login.as_view()),
+    path("users/login/", UserView_login.as_view()),
     path("bulletins/", BulletinListView.as_view()),
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),
     path("bulletin_subjects/", BulletinSubjectListView.as_view()),

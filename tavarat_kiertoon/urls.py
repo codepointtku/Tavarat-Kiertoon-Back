@@ -23,7 +23,7 @@ from bulletins.views import (BulletinDetailView, BulletinListView,
                              BulletinSubjectListView)
 from categories import views
 from contact_forms.views import (ContactFormDetailView, ContactFormListView,
-                                 ContactsDetailView)
+                                 ContactsDetailView, ContactsDetailView_single)
 from orders.views import (OrderDetailView, OrderListView,
                           ShoppingCartDetailView, ShoppingCartListView)
 from products.views import (CategoryProductListView, ColorDetailView,
@@ -55,6 +55,7 @@ urlpatterns = [
     path("bulletin_subjects/", BulletinSubjectListView.as_view()),
     path("bulletin_subjects/<int:pk>", BulletinSubjectDetailView.as_view()),
     path("contacts/", ContactsDetailView.as_view()),
+    path("contacts/<int:pk>", ContactsDetailView_single.as_view()),
 
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT

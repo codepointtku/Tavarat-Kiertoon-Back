@@ -20,3 +20,7 @@ class ContactFormDetailView(RetrieveUpdateDestroyAPIView):
 class ContactsDetailView(ListCreateAPIView):
     queryset = Contacts.objects.all()
     serializer_class = ContactsSerializer
+
+class ContactsDetailView_single(RetrieveUpdateDestroyAPIView):
+    queryset = Contacts.objects.all()
+    serializer_class = ContactsSerializer

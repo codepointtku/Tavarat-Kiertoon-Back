@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import ContactForm, Contacts
+from .models import Contact, ContactForm
 
 
 class ContactFormSerializer(serializers.ModelSerializer):
@@ -8,7 +8,16 @@ class ContactFormSerializer(serializers.ModelSerializer):
         model = ContactForm
         fields = "__all__"
 
-class ContactsSerializer(serializers.ModelSerializer):
+
+class ContactSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Contacts
+        model = Contact
+        fields = "__all__"
+
+
+class ContactSerializer_for_front(serializers.ModelSerializer):
+    phoneNumber = serializers.ReadOnlyField(source="phone_number")
+
+    class Meta:
+        model = Contact
         fields = "__all__"

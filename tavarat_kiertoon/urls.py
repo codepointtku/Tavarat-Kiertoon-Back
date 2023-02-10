@@ -18,25 +18,43 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
-from bulletins.views import (BulletinDetailView, BulletinListView,
-                             BulletinSubjectDetailView,
-                             BulletinSubjectListView)
+from bulletins.views import (
+    BulletinDetailView,
+    BulletinListView,
+    BulletinSubjectDetailView,
+    BulletinSubjectListView,
+)
 from categories import views
-from contact_forms.views import (ContactFormDetailView, ContactFormListView,
-                                 ContactsDetailView, ContactsDetailView_single)
-from orders.views import (OrderDetailView, OrderListView,
-                          ShoppingCartDetailView, ShoppingCartListView)
-from products.views import (CategoryProductListView, ColorDetailView,
-                            ColorListView, PictureDetailView, PictureListView,
-                            ProductDetailView, ProductListView,
-                            StorageDetailView, StorageListView)
+from contact_forms.views import (
+    ContactDetailView,
+    ContactFormDetailView,
+    ContactFormListView,
+    ContactListView,
+)
+from orders.views import (
+    OrderDetailView,
+    OrderListView,
+    ShoppingCartDetailView,
+    ShoppingCartListView,
+)
+from products.views import (
+    CategoryProductListView,
+    ColorDetailView,
+    ColorListView,
+    PictureDetailView,
+    PictureListView,
+    ProductDetailView,
+    ProductListView,
+    StorageDetailView,
+    StorageListView,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("storages/", StorageListView.as_view()),
     path("storages/<int:pk>/", StorageDetailView.as_view()),
     path("pictures/", PictureListView.as_view()),
-    path("pictures/<int:pk>/", PictureDetailView.as_view()),        
+    path("pictures/<int:pk>/", PictureDetailView.as_view()),
     path("colors/", ColorListView.as_view()),
     path("colors/<int:pk>/", ColorDetailView.as_view()),
     path("shopping_carts/", ShoppingCartListView.as_view()),
@@ -54,9 +72,8 @@ urlpatterns = [
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),
     path("bulletin_subjects/", BulletinSubjectListView.as_view()),
     path("bulletin_subjects/<int:pk>", BulletinSubjectDetailView.as_view()),
-    path("contacts/", ContactsDetailView.as_view()),
-    path("contacts/<int:pk>", ContactsDetailView_single.as_view()),
-
+    path("contacts/", ContactListView.as_view()),
+    path("contacts/<int:pk>", ContactDetailView.as_view()),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

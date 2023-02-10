@@ -15,6 +15,15 @@ class ShoppingCartListView(ListCreateAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
 
+    def post(self, request):
+        serializer = ShoppingCartSerializer(data=request.data)
+        if serializer.is_valid():
+            if len(ShoppingCart.objects.filter(user=request.data["user"])) != 0:
+                ShoppingCart.objects.filter(user=request.data["user"]).delete()
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ShoppingCartDetailView(RetrieveDestroyAPIView):
     queryset = ShoppingCart.objects.all()

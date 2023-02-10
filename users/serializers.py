@@ -60,7 +60,7 @@ class UserSerializer_limited(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["id","last_login","name", "email","phone_number", "creation_date", "phone_number", "groups"]
+        fields = ["id","last_login","name", "email","phone_number", "phone_number", "groups"]
         #depth = 1
 
 class UserSerializer_names(serializers.ModelSerializer):

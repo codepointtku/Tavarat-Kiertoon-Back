@@ -52,7 +52,6 @@ from users.views import (
     GroupListView,
     GroupNameView,
     GroupPermissionCheck,
-    StorageListView,
     UserCreateListView,
     UserDetailsListView,
     UserDetailsListView_limited,

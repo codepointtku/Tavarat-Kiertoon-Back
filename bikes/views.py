@@ -11,14 +11,14 @@ def test(request):
     today = datetime.date.today()
     available_from = today + datetime.timedelta(days=7)
     available_to = today + datetime.timedelta(days=183)
-    closest_monday = today - datetime.timedelta(days=today.weekday())
+    monday = today - datetime.timedelta(days=today.weekday() + 7)
     return Response(
         {
             "date_info": {
                 "today": today,
                 "available_from": available_from,
                 "available_to": available_to,
-                "closest_monday": closest_monday,
+                "monday": monday,
             },
             "bikes": {},
         }

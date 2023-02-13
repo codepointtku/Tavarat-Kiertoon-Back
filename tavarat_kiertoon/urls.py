@@ -26,7 +26,12 @@ from bulletins.views import (
     BulletinSubjectListView,
 )
 from categories import views
-from contact_forms.views import ContactFormDetailView, ContactFormListView
+from contact_forms.views import (
+    ContactDetailView,
+    ContactFormDetailView,
+    ContactFormListView,
+    ContactListView,
+)
 from orders.views import (
     OrderDetailView,
     OrderListView,
@@ -69,6 +74,8 @@ urlpatterns = [
     path("bulletin_subjects/", BulletinSubjectListView.as_view()),
     path("bulletin_subjects/<int:pk>", BulletinSubjectDetailView.as_view()),
     path("bikes/", include("bikes.urls")),
+    path("contacts/", ContactListView.as_view()),
+    path("contacts/<int:pk>", ContactDetailView.as_view()),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

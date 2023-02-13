@@ -6,6 +6,8 @@ from django.contrib.auth.models import Group
 from django.http import Http404
 from django.shortcuts import render
 from rest_framework import generics, status
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -48,6 +50,8 @@ class UserCreateListView(APIView):
     """
     List all users, and create with POST
     """
+
+    # need to make this so that only ppl inside turku/customers intra can access this, cehcks?
 
     def get(self, request, format=None):
         users = CustomUser.objects.all()
@@ -121,6 +125,25 @@ class UserCreateListView(APIView):
 
 
 class UserView_login(APIView):
+    serializer_class = UserSerializer_password
+
+    def get(self, request, format=None):
+        if (request.user) == "AnonymousUser":
+            content = {
+                "user": str(request.user),  # `django.contrib.auth.User` instance.
+                "auth": str(request.auth),  # None
+            }
+            return Response(content)
+        else:
+            authentication_classes = [SessionAuthentication, BasicAuthentication]
+            permission_classes = [IsAuthenticated]
+            content = {
+                "user": str(request.user),  # `django.contrib.auth.User` instance.
+                "auth": str(request.auth),  # None
+            }
+            print("current logged on user: ", request.user)
+            return Response(content)
+
     def post(self, request, format=None):
         print(request)
         # test = {"password" : "1234" , "email" : "spsantam"}
@@ -164,6 +187,16 @@ class UserView_login(APIView):
             serialized_response = UserSerializer_limited(user)
             # return Response(message)
 
+            user_auth = authenticate(request, username=email_post, password=pw_request)
+            print(user_auth)
+            if user_auth is not None:
+                print("logging in user")
+                login(request, user_auth)
+            else:
+                print("something went wroooong")
+                # cool bean chuck noirris there is is so much redaunant code here, suffer from spaghetti code
+            current_user_serialized = UserSerializer_full(request.user)
+            return Response(current_user_serialized.data)
             return Response(serialized_response.data)
         else:
             return Response("Failty password try again")
@@ -171,18 +204,20 @@ class UserView_login(APIView):
         return Response("bogos pinted with CHUK NORRIS")
         # return Response(serialized_values_request.initial_data)
 
-    serializer_class = UserSerializer_password
-
 
 class UserView_logout(APIView):
     """
     Logs out the user
     """
 
+    # should this be used here ? just incase bugs so user can logout
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
+    # permission_classes = [IsAuthenticated]
+
     def get(self, request):
         logout(request)
 
-        return Response("derped")
+        return Response("Logged Out")
 
 
 # should not be used as returns non-necessary things, use the limited views instead as they are used to return nexessary things.
@@ -191,6 +226,9 @@ class UserDetailsListView(generics.ListAPIView):
     """
     List all users with all database fields, no POST here
     """
+
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
 
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer_full
@@ -202,6 +240,9 @@ class UserSingleGetView(APIView):
     """
     Get single user with all database fields, no POST here
     """
+
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
 
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer_full

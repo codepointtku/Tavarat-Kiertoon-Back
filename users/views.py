@@ -1,5 +1,6 @@
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
 from django.http import Http404
@@ -10,6 +11,7 @@ from rest_framework.views import APIView
 
 from .models import CustomUser
 from .serializers import (
+    GroupNameCheckSerializer,
     GroupNameSerializer,
     UserSerializer_create,
     UserSerializer_full,
@@ -118,6 +120,71 @@ class UserCreateListView(APIView):
     serializer_class = UserSerializer_create
 
 
+class UserView_login(APIView):
+    def post(self, request, format=None):
+        print(request)
+        # test = {"password" : "1234" , "email" : "spsantam"}
+        # testing_serial_stuff = UserSerializer_password(data=test)
+        # print("TEST seria STUF:      ", testing_serial_stuff)
+        # serialized_values_request = UserSerializer_password(data=test)
+        serialized_values_request = UserSerializer_password(data=request.data)
+        print(
+            "test POST",
+            serialized_values_request.is_valid(),
+            serialized_values_request.errors,
+        )
+        print(serialized_values_request)
+        # if serialized_values_request.is_valid() :
+
+        try:
+            email_post = serialized_values_request.initial_data["email"]
+            pw_request = serialized_values_request.initial_data["password"]
+            print("password: ", pw_request)
+        except KeyError:
+            # serializer_class = UserSerializer_password
+            return Response("no password passed or no email passed")
+
+        print(email_post)
+        if User.objects.filter(email=email_post).exists():
+            print("found user with email of: ", email_post)
+            user = User.objects.get(email=email_post)
+            print(user, "\n ------------")
+            print("Email: ", user.email, "   and password: ", user.password)
+
+        else:
+            print("no user with email of: ", email_post)
+            response_message = "no user with email of: " + email_post
+            return Response(response_message)
+
+        # if check_password(pw_request,user.password) :
+        #     print("fffffffffffffffff")
+
+        if check_password(pw_request, user.password):
+            message = "Chuck norris kicked you in"
+            serialized_response = UserSerializer_limited(user)
+            # return Response(message)
+
+            return Response(serialized_response.data)
+        else:
+            return Response("Failty password try again")
+        # return Response(serialized_values_request.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response("bogos pinted with CHUK NORRIS")
+        # return Response(serialized_values_request.initial_data)
+
+    serializer_class = UserSerializer_password
+
+
+class UserView_logout(APIView):
+    """
+    Logs out the user
+    """
+
+    def get(self, request):
+        logout(request)
+
+        return Response("derped")
+
+
 # should not be used as returns non-necessary things, use the limited views instead as they are used to return nexessary things.
 # leaving this here in the case of need
 class UserDetailsListView(generics.ListAPIView):
@@ -133,7 +200,7 @@ class UserDetailsListView(generics.ListAPIView):
 # leaving this here in the case of need
 class UserSingleGetView(APIView):
     """
-    Get single user with all database fields,
+    Get single user with all database fields, no POST here
     """
 
     queryset = CustomUser.objects.all()
@@ -163,7 +230,7 @@ class UserSingleGetView(APIView):
 # getting all groups and their names
 class GroupListView(generics.ListCreateAPIView):
     """
-    Get groups in list
+    Get group names in list
     """
 
     queryset = Group.objects.all()
@@ -178,6 +245,31 @@ class GroupNameView(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Group.objects.all()
     serializer_class = GroupNameSerializer
+
+
+class GroupPermissionCheck(APIView):
+    """
+    check the groups user belongs to
+    """
+
+    # def get(self, request, format=None):
+    #     # queryset = Group.objects.all()
+    #     # serializer_class = GroupNameCheckSerializer
+
+    #     return Response("DERP")
+
+    def post(self, request, format=None):
+        # queryset = Group.objects.all()
+        request_serializer = GroupNameCheckSerializer(data=request.data)
+
+        if request_serializer.is_valid():
+            print("was valid")
+            return Response(request_serializer.data)
+
+        print("was not valid")
+        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer_class = GroupNameCheckSerializer
 
 
 class UserDetailsListView_limited(APIView):
@@ -271,59 +363,5 @@ class UserView_password(APIView):
             print("STATUS: ", data_serializer["password_correct"])
 
         return Response(data_serializer)
-
-    serializer_class = UserSerializer_password
-
-
-class UserView_login(APIView):
-    def post(self, request, format=None):
-        print(request)
-        # test = {"password" : "1234" , "email" : "spsantam"}
-        # testing_serial_stuff = UserSerializer_password(data=test)
-        # print("TEST seria STUF:      ", testing_serial_stuff)
-        # serialized_values_request = UserSerializer_password(data=test)
-        serialized_values_request = UserSerializer_password(data=request.data)
-        print(
-            "test POST",
-            serialized_values_request.is_valid(),
-            serialized_values_request.errors,
-        )
-        print(serialized_values_request)
-        # if serialized_values_request.is_valid() :
-
-        try:
-            email_post = serialized_values_request.initial_data["email"]
-            pw_request = serialized_values_request.initial_data["password"]
-            print("password: ", pw_request)
-        except KeyError:
-            # serializer_class = UserSerializer_password
-            return Response("no password passed or no email passed")
-
-        print(email_post)
-        if User.objects.filter(email=email_post).exists():
-            print("found user with email of: ", email_post)
-            user = User.objects.get(email=email_post)
-            print(user, "\n ------------")
-            print("Email: ", user.email, "   and password: ", user.password)
-
-        else:
-            print("no user with email of: ", email_post)
-            response_message = "no user with email of: " + email_post
-            return Response(response_message)
-
-        # if check_password(pw_request,user.password) :
-        #     print("fffffffffffffffff")
-
-        if check_password(pw_request, user.password):
-            message = "Chuck norris kicked you in"
-            serialized_response = UserSerializer_limited(user)
-            # return Response(message)
-
-            return Response(serialized_response.data)
-        else:
-            return Response("Failty password try again")
-        # return Response(serialized_values_request.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response("bogos pinted with CHUK NORRIS")
-        # return Response(serialized_values_request.initial_data)
 
     serializer_class = UserSerializer_password

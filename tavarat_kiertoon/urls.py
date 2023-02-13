@@ -46,12 +46,14 @@ from products.views import (
 from users.views import (
     GroupListView,
     GroupNameView,
+    GroupPermissionCheck,
     UserCreateListView,
     UserDetailsListView,
     UserDetailsListView_limited,
     UserDetailsSingleView_limited,
     UserSingleGetView,
     UserView_login,
+    UserView_logout,
     UserView_password,
 )
 
@@ -82,7 +84,9 @@ urlpatterns = [
     path("users/password/<int:pk>/", UserView_password.as_view()),
     path("users/groups/", GroupListView.as_view()),
     path("users/groups/<int:pk>/", GroupNameView.as_view()),
+    path("users/groups/permission/", GroupPermissionCheck.as_view()),
     path("users/login/", UserView_login.as_view()),
+    path("users/logout/", UserView_logout.as_view()),
     path("bulletins/", BulletinListView.as_view()),
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),
     path("bulletin_subjects/", BulletinSubjectListView.as_view()),

@@ -101,3 +101,11 @@ class GroupNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ["id", "name"]
+
+
+class GroupNameCheckSerializer(serializers.ModelSerializer):
+    group_name = serializers.CharField(max_length=150)
+
+    class Meta:
+        model = CustomUser
+        fields = ["email", "groups", "group_name"]

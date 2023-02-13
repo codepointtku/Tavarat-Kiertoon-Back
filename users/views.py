@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 
 from .models import CustomUser
 from .serializers import (
+    GroupNameSerializer,
     UserSerializer_create,
     UserSerializer_full,
     UserSerializer_limited,
@@ -117,19 +118,26 @@ class UserCreateListView(APIView):
     serializer_class = UserSerializer_create
 
 
-class UserDetailsListView(generics.ListCreateAPIView):
+# should not be used as returns non-necessary things, use the limited views instead as they are used to return nexessary things.
+# leaving this here in the case of need
+class UserDetailsListView(generics.ListAPIView):
     """
-    List all users
+    List all users with all database fields, no POST here
     """
 
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer_full
 
 
+# should not be used as returns non-necessary things, use the limited views instead as they are used to return necessary things.
+# leaving this here in the case of need
 class UserSingleGetView(APIView):
     """
-    Get single user
+    Get single user with all database fields,
     """
+
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer_full
 
     def get_object(self, pk):
         try:
@@ -141,6 +149,7 @@ class UserSingleGetView(APIView):
         user = self.get_object(pk)
         serializer = UserSerializer_full(user)
 
+        # willl be removed alter/moved
         print("testin single user stuff")
         group_name_check = "bicycle_group"
         user_permission_ok = is_in_group(user, group_name_check)
@@ -150,8 +159,25 @@ class UserSingleGetView(APIView):
 
         return Response(serializer.data)
 
-    # queryset = CustomUser.objects.all()
-    # serializer_class = UserSerializer_full
+
+# getting all groups and their names
+class GroupListView(generics.ListCreateAPIView):
+    """
+    Get groups in list
+    """
+
+    queryset = Group.objects.all()
+    serializer_class = GroupNameSerializer
+
+
+# getting all groups and their names
+class GroupNameView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Get single group name and do magic
+    """
+
+    queryset = Group.objects.all()
+    serializer_class = GroupNameSerializer
 
 
 class UserDetailsListView_limited(APIView):

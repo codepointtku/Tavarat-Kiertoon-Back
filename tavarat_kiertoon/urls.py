@@ -44,6 +44,8 @@ from products.views import (
     StorageListView,
 )
 from users.views import (
+    GroupListView,
+    GroupNameView,
     UserCreateListView,
     UserDetailsListView,
     UserDetailsListView_limited,
@@ -78,6 +80,8 @@ urlpatterns = [
     path("users/limited/", UserDetailsListView_limited.as_view()),
     path("users/limited/<int:pk>", UserDetailsSingleView_limited.as_view()),
     path("users/password/<int:pk>/", UserView_password.as_view()),
+    path("users/groups/", GroupListView.as_view()),
+    path("users/groups/<int:pk>/", GroupNameView.as_view()),
     path("users/login/", UserView_login.as_view()),
     path("bulletins/", BulletinListView.as_view()),
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),

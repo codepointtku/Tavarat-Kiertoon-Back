@@ -91,3 +91,13 @@ class UserSerializer_names(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ["name", "email"]
+
+
+class GroupNameSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Groups
+    """
+
+    class Meta:
+        model = Group
+        fields = ["id", "name"]

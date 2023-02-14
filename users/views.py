@@ -320,22 +320,25 @@ class GroupPermissionCheck(APIView):
         request_serializer = GroupNameCheckSerializer(data=request.data)
         # request_serializer = GroupNameCheckSerializer(sample_data)
         # if request.data["test_boolean_check_email"] or None :
-
-        print(
-            "test boolean value:   ",
-            request_serializer,
-        )
-        print(
-            "test boolean value:   ",
-            request.data,
-        )
+        print(request.data)
+        # if request.data["test_boolean_check_email"] == None:
+        #     print("request eamil check is false:   -->: ")
+        request_serializer.is_valid(raise_exception=True)
+        # print(
+        #     "test boolean value:   ",
+        #     request_serializer,
+        # )
+        # print(
+        #     "test boolean value:   ",
+        #     request.data,
+        # )
         # if request_serializer.initial_data["test_boolean_check_email"].value:
         #     print("using email from post, not loggd in user")
         # # user = User.objects.get(email=email_post)
         # print(request_serializer.initial_data["group_name"])
         # if request_serializer.is_valid():
         #     print("was valid")
-        return Response(request_serializer.initial_data)
+        return Response(request_serializer.data)
 
         # print("was not valid")
         # return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

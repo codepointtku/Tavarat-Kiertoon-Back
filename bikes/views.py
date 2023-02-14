@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 @api_view(["GET"])
 def test(request):
+    """Just a test function I'll remove later"""
     today = datetime.date.today()
     available_from = today + datetime.timedelta(days=7)
     available_to = today + datetime.timedelta(days=183)
@@ -15,10 +16,8 @@ def test(request):
     return Response(
         {
             "date_info": {
-                "today": today,
                 "available_from": available_from,
                 "available_to": available_to,
-                "monday": monday,
             },
             "bikes": {},
         }

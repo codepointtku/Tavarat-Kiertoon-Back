@@ -64,7 +64,6 @@ class ProductListView(generics.ListCreateAPIView):
             checkid = Color.objects.filter(name=color).values("id")
 
             if not checkid:
-                print("asd")
                 newcolor = {"name": color}
                 colorserializer = ColorSerializer(data=newcolor)
                 if colorserializer.is_valid():

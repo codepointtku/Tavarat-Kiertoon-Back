@@ -17,9 +17,11 @@ from .serializers import (
 def pic_ids_as_address_list(pic_ids):
     return [Picture.objects.get(id=pic_id).picture_address.name for pic_id in pic_ids]
 
+
 def is_color_string(colortest):
     res = isinstance(colortest, str)
     return res
+
 # Create your views here.
 class ProductListPagination(PageNumberPagination):
     page_size = 100
@@ -55,11 +57,24 @@ class ProductListView(generics.ListCreateAPIView):
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        serializer = ProductSerializer(data=request.data)
-        color = request.data["color"]
+        instance = request.data
+        color = instance["color"]
         colorstring = is_color_string(color)
         if colorstring == True:
-            print(colorstring)
+            checkid = Color.objects.filter(name=color).values("id")
+
+            if not checkid:
+                print("asd")
+                newcolor = {"name": color}
+                colorserializer = ColorSerializer(data=newcolor)
+                if colorserializer.is_valid():
+                    colorserializer.save()
+                    checkid = Color.objects.filter(name=color).values("id")
+                    instance["color"] = checkid[0]["id"]
+            else:
+                instance["color"] = checkid[0]["id"]
+
+        serializer = ProductSerializer(data=instance)
         if serializer.is_valid():
             serializer.save()
             data = serializer.data

@@ -22,6 +22,24 @@ def is_color_string(colortest):
     res = isinstance(colortest, str)
     return res
 
+
+def color_check_create(instance):
+    color = instance["color"]
+    colorstring = is_color_string(color)
+    if colorstring:
+        checkid = Color.objects.filter(name=color).values("id")
+
+        if not checkid:
+            newcolor = {"name": color}
+            colorserializer = ColorSerializer(data=newcolor)
+            if colorserializer.is_valid():
+                colorserializer.save()
+                checkid = Color.objects.filter(name=color).values("id")
+                instance["color"] = checkid[0]["id"]
+        else:
+            instance["color"] = checkid[0]["id"]
+    return instance
+
 # Create your views here.
 class ProductListPagination(PageNumberPagination):
     page_size = 100
@@ -57,23 +75,9 @@ class ProductListView(generics.ListCreateAPIView):
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        instance = request.data
-        color = instance["color"]
-        colorstring = is_color_string(color)
-        if colorstring == True:
-            checkid = Color.objects.filter(name=color).values("id")
-
-            if not checkid:
-                newcolor = {"name": color}
-                colorserializer = ColorSerializer(data=newcolor)
-                if colorserializer.is_valid():
-                    colorserializer.save()
-                    checkid = Color.objects.filter(name=color).values("id")
-                    instance["color"] = checkid[0]["id"]
-            else:
-                instance["color"] = checkid[0]["id"]
-
-        serializer = ProductSerializer(data=instance)
+        colorinstance = request.data
+        productinstance = color_check_create(colorinstance)
+        serializer = ProductSerializer(data=productinstance)
         if serializer.is_valid():
             serializer.save()
             data = serializer.data

@@ -199,6 +199,7 @@ class UserView_login(APIView):
             return Response(current_user_serialized.data)
             return Response(serialized_response.data)
         else:
+            print("Failty password try again")
             return Response("Failty password try again")
         # return Response(serialized_values_request.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response("bogos pinted with CHUK NORRIS")
@@ -215,6 +216,7 @@ class UserView_logout(APIView):
     # permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        print("current user is  ---:     ", request.user)
         logout(request)
 
         return Response("Logged Out")
@@ -312,6 +314,14 @@ class GroupPermissionCheck(APIView):
             "auth": str(request.auth),  # None
         }
 
+        print("current user is  ---:     ", request.user)
+
+        user_id_list = [1, 2, 3, 3, 4, 5]
+        logged_in_users = User.objects.filter(id__in=user_id_list)
+        list_of_logged_in_users = [
+            {user.id: user.get_name()} for user in logged_in_users
+        ]
+        print(list_of_logged_in_users)
         return Response(content)
 
     def post(self, request, format=None):
@@ -349,13 +359,15 @@ class UserDetailsListView_limited(APIView):
     Get Users with revelant fields
     """
 
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
         users = CustomUser.objects.all()
         serializer = UserSerializer_limited(users, many=True)
         print("test GET")
+        print("current user is  ---:     ", request.user)
+        # print(serializer.data)
         return Response(serializer.data)
 
 

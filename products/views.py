@@ -76,7 +76,9 @@ class ProductListView(generics.ListCreateAPIView):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        modified_request = [request.data[0] for i in range(request.data[1])]
+        colorinstance = request.data
+        productinstance = color_check_create(colorinstance[0])
+        modified_request = [productinstance for i in range(request.data[1])]
         serializer = ProductSerializer(data=modified_request, many=True)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)

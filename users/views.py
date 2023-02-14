@@ -314,7 +314,20 @@ class GroupPermissionCheck(APIView):
 
     def post(self, request, format=None):
         # queryset = Group.objects.all()
+
         request_serializer = GroupNameCheckSerializer(data=request.data)
+
+        print(
+            "test boolean value:   ",
+            request_serializer.initial_data,
+        )
+        print(
+            "test boolean value:   ",
+            request.data,
+        )
+        # if request_serializer.initial_data["test_boolean_check_email"].value:
+        #     print("using email from post, not loggd in user")
+        # # user = User.objects.get(email=email_post)
         print(request_serializer.initial_data["group_name"])
         # if request_serializer.is_valid():
         #     print("was valid")

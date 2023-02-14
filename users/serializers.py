@@ -105,7 +105,15 @@ class GroupNameSerializer(serializers.ModelSerializer):
 
 class GroupNameCheckSerializer(serializers.ModelSerializer):
     group_name = serializers.CharField(max_length=150)
+    test_message = serializers.CharField(max_length=150)
+    test_boolean_check_email = serializers.BooleanField(default=False)
 
     class Meta:
         model = CustomUser
-        fields = ["email", "groups", "group_name"]
+        fields = [
+            "email",
+            "groups",
+            "group_name",
+            "test_message",
+            "test_boolean_check_email",
+        ]

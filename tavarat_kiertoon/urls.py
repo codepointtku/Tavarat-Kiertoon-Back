@@ -25,7 +25,12 @@ from bulletins.views import (
     BulletinSubjectListView,
 )
 from categories import views
-from contact_forms.views import ContactFormDetailView, ContactFormListView
+from contact_forms.views import (
+    ContactDetailView,
+    ContactFormDetailView,
+    ContactFormListView,
+    ContactListView,
+)
 from orders.views import (
     OrderDetailView,
     OrderListView,
@@ -34,14 +39,14 @@ from orders.views import (
 )
 from products.views import (
     CategoryProductListView,
+    ColorDetailView,
+    ColorListView,
+    PictureDetailView,
+    PictureListView,
     ProductDetailView,
     ProductListView,
-    ColorListView,
-    ColorDetailView,
-    StorageListView,
     StorageDetailView,
-    PictureListView,
-    PictureDetailView
+    StorageListView,
 )
 
 urlpatterns = [
@@ -49,7 +54,7 @@ urlpatterns = [
     path("storages/", StorageListView.as_view()),
     path("storages/<int:pk>/", StorageDetailView.as_view()),
     path("pictures/", PictureListView.as_view()),
-    path("pictures/<int:pk>/", PictureDetailView.as_view()),        
+    path("pictures/<int:pk>/", PictureDetailView.as_view()),
     path("colors/", ColorListView.as_view()),
     path("colors/<int:pk>/", ColorDetailView.as_view()),
     path("shopping_carts/", ShoppingCartListView.as_view()),
@@ -67,6 +72,8 @@ urlpatterns = [
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),
     path("bulletin_subjects/", BulletinSubjectListView.as_view()),
     path("bulletin_subjects/<int:pk>", BulletinSubjectDetailView.as_view()),
+    path("contacts/", ContactListView.as_view()),
+    path("contacts/<int:pk>", ContactDetailView.as_view()),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

@@ -274,6 +274,9 @@ class GroupListView(generics.ListCreateAPIView):
     Get group names in list
     """
 
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = Group.objects.all()
     serializer_class = GroupNameSerializer
 
@@ -284,6 +287,9 @@ class GroupNameView(generics.RetrieveUpdateDestroyAPIView):
     Get single group name and do magic
     """
 
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = Group.objects.all()
     serializer_class = GroupNameSerializer
 
@@ -293,22 +299,29 @@ class GroupPermissionCheck(APIView):
     check the groups user belongs to
     """
 
-    # def get(self, request, format=None):
-    #     # queryset = Group.objects.all()
-    #     # serializer_class = GroupNameCheckSerializer
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    #     return Response("DERP")
+    def get(self, request, format=None):
+        # queryset = Group.objects.all()
+        # serializer_class = GroupNameCheckSerializer
+        content = {
+            "user": str(request.user),  # `django.contrib.auth.User` instance.
+            "auth": str(request.auth),  # None
+        }
+
+        return Response(content)
 
     def post(self, request, format=None):
         # queryset = Group.objects.all()
         request_serializer = GroupNameCheckSerializer(data=request.data)
+        print(request_serializer.initial_data["group_name"])
+        # if request_serializer.is_valid():
+        #     print("was valid")
+        return Response(request_serializer.initial_data)
 
-        if request_serializer.is_valid():
-            print("was valid")
-            return Response(request_serializer.data)
-
-        print("was not valid")
-        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # print("was not valid")
+        # return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     serializer_class = GroupNameCheckSerializer
 

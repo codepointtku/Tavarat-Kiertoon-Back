@@ -24,7 +24,10 @@ from bulletins.views import (
     BulletinSubjectDetailView,
     BulletinSubjectListView,
 )
-from categories import views
+from categories.views import(
+    CategoryListView,
+    CategoryDetailView
+)
 from contact_forms.views import (
     ContactDetailView,
     ContactFormDetailView,
@@ -66,8 +69,8 @@ urlpatterns = [
     path("products/<int:pk>/", ProductDetailView.as_view()),
     path("contact_forms/", ContactFormListView.as_view()),
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
-    path("categories/", views.categories),
-    path("categories/<int:category_id>/", views.category),
+    path("categories/", CategoryListView.as_view()),
+    path("categories/<int:pk>/", CategoryDetailView.as_view()),
     path("bulletins/", BulletinListView.as_view()),
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),
     path("bulletin_subjects/", BulletinSubjectListView.as_view()),

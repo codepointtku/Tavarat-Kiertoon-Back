@@ -4,11 +4,12 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
 from django.http import Http404
 from django.shortcuts import render
-from rest_framework import generics, status
-from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework import generics, status, permissions
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication, BaseAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import AuthenticationFailed
 
 from .models import CustomUser
 from .serializers import (
@@ -42,9 +43,51 @@ def is_in_group(user, group_name):
     except Group.DoesNotExist:
         return None
 
+class HasGroupPermission(permissions.BasePermission):
+    """
+    Ensure user is in required groups.
+    """
+    message = "Lacking right to a group to perfom this action"
 
+    def has_permission(self, request, view):
+        # Get a mapping of methods -> required group.
+        required_groups_mapping = getattr(view, "required_groups", {})
+
+        # Determine the required groups for this particular request method.
+        required_groups = required_groups_mapping.get(request.method, [])
+
+        # Return True if the user has all the required groups or is staff.
+        return all([is_in_group(request.user, group_name) if group_name != "__all__" else True for group_name in required_groups]) or (request.user and request.user.is_staff)
 # Create your views here.
 
+class ExampleAuthentication(BaseAuthentication):
+
+    def authenticate(self, request):
+
+        # Get the username and password
+        username = request.data.get('email', None)
+        password = request.data.get('password', None)
+
+        if not username or not password:
+            raise AuthenticationFailed(('No credentials provided.'))
+            #raise AuthenticationFailed(_('No credentials provided.'))
+
+        credentials = {
+            get_user_model().USERNAME_FIELD: username,
+            'password': password
+        }
+
+        user = authenticate(**credentials)
+        
+        if user is None:
+            raise AuthenticationFailed(('Invalid username/password.'))
+            #raise AuthenticationFailed(_('Invalid username/password.'))
+
+        if not user.is_active:
+            raise AuthenticationFailed(('User inactive or deleted.'))
+            #raise AuthenticationFailed(_('User inactive or deleted.'))
+
+        return (user, None)  # authentication successful
 
 class UserCreateListView(APIView):
     """
@@ -86,11 +129,14 @@ class UserCreateListView(APIView):
             # checking that email domain is valid ?
             if "@" not in email_post:
                 #could this check be doen in validator along while keeping the other validaitons for the field. - ----- --
-                return Response("invalid email address, has no @", status=status.HTTP_400_BAD_REQUEST)
-            email_split = email_post.split("@")
-            if not Validate_email_domain(email_split[1]):
-                print("uh duh??!?!?!")
-                return Response("invalid email domain")
+                #return Response("invalid email address, has no @", status=status.HTTP_400_BAD_REQUEST)
+                pass
+            else:
+                #no @ in email so creating non email based user I guess???? so no nee to check domain?, should check if location based account is check for security?
+                email_split = email_post.split("@")
+                if not Validate_email_domain(email_split[1]):
+                    print("uh duh??!?!?!")
+                    return Response("invalid email domain")
 
             print(
                 "creating user with: ",
@@ -129,6 +175,8 @@ class UserCreateListView(APIView):
 
 class UserView_login(APIView):
     serializer_class = UserSerializer_password
+    authentication_classes = [SessionAuthentication, ExampleAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
         if (request.user) == "AnonymousUser":
@@ -149,6 +197,12 @@ class UserView_login(APIView):
 
     def post(self, request, format=None):
         print(request)
+        content = {
+                "user": str(request.user),  # `django.contrib.auth.User` instance.
+                "auth": str(request.auth),  # None
+            }
+
+        print("CONNNNNNTEEEENNNTTTT_ _------:",     content)
         # test = {"password" : "1234" , "email" : "spsantam"}
         # testing_serial_stuff = UserSerializer_password(data=test)
         # print("TEST seria STUF:      ", testing_serial_stuff)
@@ -194,7 +248,7 @@ class UserView_login(APIView):
             print(user_auth)
             if user_auth is not None:
                 print("logging in user")
-                login(request, user_auth)
+                #login(request, user_auth)
             else:
                 print("something went wroooong")
                 # cool bean chuck noirris there is is so much redaunant code here, suffer from spaghetti code
@@ -303,15 +357,22 @@ class GroupPermissionCheck(APIView):
     """
     check the groups user belongs to
     """
-
+    #authenticaction confirms that the user nad that he was logged in, not permissions. PERSMISSIONs are well permissions if the user has rights to them
     authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     serializer_class = GroupNameCheckSerializer
+    test_message = "this is test amessage does it come out"
+    #permission_classes = [HasGroupPermission]
+    required_groups = {
+         'GET': ['user_group','bicycle_group'],
+         'POST': ['moderators', 'someMadeUpGroup'],
+         'PUT': ['__all__'],
+     }
 
     def get(self, request, format=None):
         # queryset = Group.objects.all()
         # serializer_class = GroupNameCheckSerializer
-
+        print(self.permission_classes)
         content = {
             "user": str(request.user),  # `django.contrib.auth.User` instance.
             "auth": str(request.auth),  # None
@@ -319,12 +380,12 @@ class GroupPermissionCheck(APIView):
 
         print("current user is  ---:     ", request.user)
 
-        user_id_list = [1, 2, 3, 3, 4, 5]
-        logged_in_users = User.objects.filter(id__in=user_id_list)
-        list_of_logged_in_users = [
-            {user.id: user.get_name()} for user in logged_in_users
-        ]
-        print(list_of_logged_in_users)
+        # user_id_list = [1, 2, 3, 3, 4, 5]
+        # logged_in_users = User.objects.filter(id__in=user_id_list)
+        # list_of_logged_in_users = [
+        #     {user.id: user.get_name()} for user in logged_in_users
+        # ]
+        # print(list_of_logged_in_users)
         return Response(content)
 
     def post(self, request, format=None):
@@ -362,14 +423,15 @@ class UserDetailsListView_limited(APIView):
     Get Users with revelant fields
     """
 
-    # authentication_classes = [SessionAuthentication, BasicAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
         users = CustomUser.objects.all()
         serializer = UserSerializer_limited(users, many=True)
         print("test GET")
         print("current user is  ---:     ", request.user)
+        print("data in request: ", request.data)
         # print(serializer.data)
         return Response(serializer.data)
 

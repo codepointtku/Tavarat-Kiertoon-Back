@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
 from django.http import Http404
@@ -21,6 +20,7 @@ from .serializers import (
     UserSerializer_names,
     UserSerializer_password,
     UserSerializer_password_2,
+    UserSerializer_update,
 )
 
 User = get_user_model()
@@ -84,6 +84,9 @@ class UserCreateListView(APIView):
             else:
                 print("no user with email of: ", email_post)
             # checking that email domain is valid ?
+            if "@" not in email_post:
+                #could this check be doen in validator along while keeping the other validaitons for the field. - ----- --
+                return Response("invalid email address, has no @", status=status.HTTP_400_BAD_REQUEST)
             email_split = email_post.split("@")
             if not Validate_email_domain(email_split[1]):
                 print("uh duh??!?!?!")
@@ -389,6 +392,37 @@ class UserDetailsSingleView_limited(APIView):
         user = self.get_object(pk)
         serializer = UserSerializer_limited(user)
         return Response(serializer.data)
+
+class UserView_update_info(APIView):
+    """
+    Get logged in users information and update it
+    """
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = UserSerializer_update
+    queryset = User.objects.all()
+
+    def get(self, request, format=None):
+        #print(request.user)
+        if str(request.user) == "AnonymousUser" :
+            message = "PLease log in you are: " + str(request.user)
+            print(message)
+
+            return Response(message)
+        else:
+            print(request.user)
+            queryset = User.objects.filter(id = request.user.id)
+            print(queryset)
+            serialized_data_full = UserSerializer_full(queryset, many = True)
+            print(serialized_data_full.data)
+            return Response(self.serializer_class(request.user).data)
+
+    def put(self, request, format=None):
+        serializer = self.serializer_class(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserView_password(APIView):

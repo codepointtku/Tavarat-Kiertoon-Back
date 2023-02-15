@@ -60,6 +60,7 @@ from users.views import (
     UserView_login,
     UserView_logout,
     UserView_password,
+    UserView_update_info,
 )
 
 urlpatterns = [
@@ -92,6 +93,7 @@ urlpatterns = [
     path("users/groups/permission/", GroupPermissionCheck.as_view()),
     path("users/login/", UserView_login.as_view()),
     path("users/logout/", UserView_logout.as_view()),
+    path("users/update/", UserView_update_info.as_view()),
     path("bulletins/", BulletinListView.as_view()),
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),
     path("bulletin_subjects/", BulletinSubjectListView.as_view()),

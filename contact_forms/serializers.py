@@ -10,9 +10,7 @@ class ContactFormSerializer(serializers.ModelSerializer):
 
 
 class ContactSerializer(serializers.ModelSerializer):
-    # phone_number in the form that front wants
-    phoneNumber = serializers.ReadOnlyField(source="phone_number")
 
     class Meta:
         model = Contact
-        fields = ["name", "address", "email", "phoneNumber"]
+        fields = "__all__"

@@ -1,3 +1,8 @@
+import base64
+import io
+
+from django.core.files.base import ContentFile, File
+from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
@@ -157,6 +162,19 @@ class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
 class PictureListView(generics.ListCreateAPIView):
     queryset = Picture.objects.all()
     serializer_class = PictureSerializer
+
+    def create(self, request, *args, **kwargs):
+        print(request.FILES.values())
+        for file in request.FILES.values():
+            serializer = self.get_serializer(
+                data={
+                    "picture_address": ContentFile(file.read(), name=file._get_name())
+                }
+            )
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data)
 
 
 class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):

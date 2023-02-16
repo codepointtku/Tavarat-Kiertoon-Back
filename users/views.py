@@ -3,14 +3,21 @@ from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
 from django.http import Http404
+from django.middleware import csrf
 from django.shortcuts import render
-from rest_framework import generics, status, permissions
-from rest_framework.authentication import BasicAuthentication, SessionAuthentication, BaseAuthentication
+from rest_framework import generics, permissions, status
+from rest_framework.authentication import (
+    BaseAuthentication,
+    BasicAuthentication,
+    SessionAuthentication,
+)
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.tokens import RefreshToken
 
+from .authenticate import CustomAuthenticationJWT, enforce_csrf
 from .models import CustomUser
 from .serializers import (
     GroupNameCheckSerializer,
@@ -34,6 +41,14 @@ def Validate_email_domain(email_domain):
     return False
 
 
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
+
+
 def is_in_group(user, group_name):
     """
     Takes a user and a group name, and returns `True` if the user is in that group.
@@ -43,11 +58,13 @@ def is_in_group(user, group_name):
     except Group.DoesNotExist:
         return None
 
+
 class HasGroupPermission(permissions.BasePermission):
     """
     Ensure user is in required groups.
     """
-    message = "Lacking right to a group to perfom this action"
+
+    message = "Lacking right to a correct group to perfom this action"
 
     def has_permission(self, request, view):
         # Get a mapping of methods -> required group.
@@ -57,37 +74,44 @@ class HasGroupPermission(permissions.BasePermission):
         required_groups = required_groups_mapping.get(request.method, [])
 
         # Return True if the user has all the required groups or is staff.
-        return all([is_in_group(request.user, group_name) if group_name != "__all__" else True for group_name in required_groups]) or (request.user and request.user.is_staff)
+        return all(
+            [
+                is_in_group(request.user, group_name)
+                if group_name != "__all__"
+                else True
+                for group_name in required_groups
+            ]
+        ) or (request.user and request.user.is_staff)
+
+
 # Create your views here.
 
+
 class ExampleAuthentication(BaseAuthentication):
-
     def authenticate(self, request):
-
         # Get the username and password
-        username = request.data.get('email', None)
-        password = request.data.get('password', None)
+        username = request.data.get("email", None)
+        password = request.data.get("password", None)
+        print("TEST print from example authentication, request is:   ", request.data)
 
         if not username or not password:
-            raise AuthenticationFailed(('No credentials provided.'))
-            #raise AuthenticationFailed(_('No credentials provided.'))
+            raise AuthenticationFailed(("No credentials provided."))
+            # raise AuthenticationFailed(_('No credentials provided.'))
 
-        credentials = {
-            get_user_model().USERNAME_FIELD: username,
-            'password': password
-        }
+        credentials = {get_user_model().USERNAME_FIELD: username, "password": password}
 
         user = authenticate(**credentials)
-        
+
         if user is None:
-            raise AuthenticationFailed(('Invalid username/password.'))
-            #raise AuthenticationFailed(_('Invalid username/password.'))
+            raise AuthenticationFailed(("Invalid username/password."))
+            # raise AuthenticationFailed(_('Invalid username/password.'))
 
         if not user.is_active:
-            raise AuthenticationFailed(('User inactive or deleted.'))
-            #raise AuthenticationFailed(_('User inactive or deleted.'))
+            raise AuthenticationFailed(("User inactive or deleted."))
+            # raise AuthenticationFailed(_('User inactive or deleted.'))
 
         return (user, None)  # authentication successful
+
 
 class UserCreateListView(APIView):
     """
@@ -128,11 +152,11 @@ class UserCreateListView(APIView):
                 print("no user with email of: ", email_post)
             # checking that email domain is valid ?
             if "@" not in email_post:
-                #could this check be doen in validator along while keeping the other validaitons for the field. - ----- --
-                #return Response("invalid email address, has no @", status=status.HTTP_400_BAD_REQUEST)
+                # could this check be doen in validator along while keeping the other validaitons for the field. - ----- --
+                # return Response("invalid email address, has no @", status=status.HTTP_400_BAD_REQUEST)
                 pass
             else:
-                #no @ in email so creating non email based user I guess???? so no nee to check domain?, should check if location based account is check for security?
+                # no @ in email so creating non email based user I guess???? so no nee to check domain?, should check if location based account is check for security?
                 email_split = email_post.split("@")
                 if not Validate_email_domain(email_split[1]):
                     print("uh duh??!?!?!")
@@ -175,10 +199,24 @@ class UserCreateListView(APIView):
 
 class UserView_login(APIView):
     serializer_class = UserSerializer_password
-    authentication_classes = [SessionAuthentication, ExampleAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [
+    #     SessionAuthentication,
+    #     ExampleAuthentication,
+    #     CustomAuthenticationJWT,
+    # ]
+    # authentication_classes = [ExampleAuthentication]
+    # permission_classes = [IsAuthenticated]
+
+    # permission_classes = [HasGroupPermission]
+    # required_groups = {
+    #     # "GET": ["user_group", "bicycle_group"],
+    #     "GET": ["__all__"],
+    #     "POST": ["moderators", "someMadeUpGroup"],
+    #     "PUT": ["__all__"],
+    # }
 
     def get(self, request, format=None):
+        print("GET request is:  ", request)
         if (request.user) == "AnonymousUser":
             content = {
                 "user": str(request.user),  # `django.contrib.auth.User` instance.
@@ -186,8 +224,17 @@ class UserView_login(APIView):
             }
             return Response(content)
         else:
-            authentication_classes = [SessionAuthentication, BasicAuthentication]
-            permission_classes = [IsAuthenticated]
+            # authentication_classes = [SessionAuthentication, BasicAuthentication]
+            # permission_classes = [IsAuthenticated]
+
+            # permission_classes = [HasGroupPermission]
+            # required_groups = {
+            #     "GET": ["user_group", "bicycle_group"],
+            #     # "GET": ["__all__"],
+            #     "POST": ["moderators", "someMadeUpGroup"],
+            #     "PUT": ["__all__"],
+            # }
+
             content = {
                 "user": str(request.user),  # `django.contrib.auth.User` instance.
                 "auth": str(request.auth),  # None
@@ -196,13 +243,13 @@ class UserView_login(APIView):
             return Response(content)
 
     def post(self, request, format=None):
-        print(request)
+        print("POST request is:   ", request)
         content = {
-                "user": str(request.user),  # `django.contrib.auth.User` instance.
-                "auth": str(request.auth),  # None
-            }
+            "user": str(request.user),  # `django.contrib.auth.User` instance.
+            "auth": str(request.auth),  # None
+        }
 
-        print("CONNNNNNTEEEENNNTTTT_ _------:",     content)
+        print("CONNNNNNTEEEENNNTTTT_ _------:", content)
         # test = {"password" : "1234" , "email" : "spsantam"}
         # testing_serial_stuff = UserSerializer_password(data=test)
         # print("TEST seria STUF:      ", testing_serial_stuff)
@@ -239,20 +286,53 @@ class UserView_login(APIView):
         # if check_password(pw_request,user.password) :
         #     print("fffffffffffffffff")
 
+        data = request.data
+        response = Response()
+
         if check_password(pw_request, user.password):
             message = "Chuck norris kicked you in"
+            print(message)
             serialized_response = UserSerializer_limited(user)
             # return Response(message)
-
-            user_auth = authenticate(request, username=email_post, password=pw_request)
+            print("request user is:   ", request.user)
+            # user_auth = authenticate(request, username=email_post, password=pw_request)
+            user_auth = authenticate(username=email_post, password=pw_request)
             print(user_auth)
             if user_auth is not None:
-                print("logging in user")
-                #login(request, user_auth)
+                print("logging in user:   ", user_auth)
+                print(
+                    "actually lets do the token stuff and active check first----- :  "
+                )
+
+                if user_auth.is_active:
+                    data = get_tokens_for_user(user_auth)
+                    response.set_cookie(
+                        key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+                        value=data["access"],
+                        expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+                        secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                        httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                        samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                    )
+                    csrf.get_token(request)
+                    response.data = {"Success": "Login successfully", "data": data}
+                    print(
+                        "printing the response data with token stuff for example--------:   ",
+                        response.data,
+                    )
+                    return response
+                else:
+                    return Response(
+                        {"No active": "This account is not active!!"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+
+                # login(request, user_auth)
             else:
                 print("something went wroooong")
                 # cool bean chuck noirris there is is so much redaunant code here, suffer from spaghetti code
-            current_user_serialized = UserSerializer_full(request.user)
+
+            current_user_serialized = UserSerializer_full(user_auth)
             return Response(current_user_serialized.data)
             return Response(serialized_response.data)
         else:
@@ -357,17 +437,19 @@ class GroupPermissionCheck(APIView):
     """
     check the groups user belongs to
     """
-    #authenticaction confirms that the user nad that he was logged in, not permissions. PERSMISSIONs are well permissions if the user has rights to them
+
+    # authenticaction confirms that the user nad that he was logged in, not permissions. PERSMISSIONs are well permissions if the user has rights to them
     authentication_classes = [SessionAuthentication, BasicAuthentication]
-    #permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = GroupNameCheckSerializer
     test_message = "this is test amessage does it come out"
-    #permission_classes = [HasGroupPermission]
+    permission_classes = [HasGroupPermission]
     required_groups = {
-         'GET': ['user_group','bicycle_group'],
-         'POST': ['moderators', 'someMadeUpGroup'],
-         'PUT': ['__all__'],
-     }
+        # "GET": ["user_group", "bicycle_group"],
+        "GET": ["__all__"],
+        "POST": ["moderators", "someMadeUpGroup"],
+        "PUT": ["__all__"],
+    }
 
     def get(self, request, format=None):
         # queryset = Group.objects.all()
@@ -455,10 +537,12 @@ class UserDetailsSingleView_limited(APIView):
         serializer = UserSerializer_limited(user)
         return Response(serializer.data)
 
+
 class UserView_update_info(APIView):
     """
     Get logged in users information and update it
     """
+
     authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -466,22 +550,24 @@ class UserView_update_info(APIView):
     queryset = User.objects.all()
 
     def get(self, request, format=None):
-        #print(request.user)
-        if str(request.user) == "AnonymousUser" :
+        # print(request.user)
+        if str(request.user) == "AnonymousUser":
             message = "PLease log in you are: " + str(request.user)
             print(message)
 
             return Response(message)
         else:
             print(request.user)
-            queryset = User.objects.filter(id = request.user.id)
+            queryset = User.objects.filter(id=request.user.id)
             print(queryset)
-            serialized_data_full = UserSerializer_full(queryset, many = True)
+            serialized_data_full = UserSerializer_full(queryset, many=True)
             print(serialized_data_full.data)
             return Response(self.serializer_class(request.user).data)
 
     def put(self, request, format=None):
-        serializer = self.serializer_class(request.user, data=request.data, partial=True)
+        serializer = self.serializer_class(
+            request.user, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)

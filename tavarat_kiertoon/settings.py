@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "products",
     "users",
     "rest_framework",
+    "rest_framework_simplejwt",
     "orders",
     "corsheaders",
     # Django apps
@@ -126,10 +127,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# for the use in whole program, set in invidual viuews of apps to use?
-# REST_FRAMEWORK = {
-#     "DEFAULT_AUTHENTICATION_CLASSES": ("users.authenticate.CustomAuthenticationJWT",),
-# }
+# for the use in whole program, set in invidual views of apps to use?
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+}
 
 from datetime import timedelta
 
@@ -144,7 +147,10 @@ SIMPLE_JWT = {
     "VERIFYING_KEY": None,
     "AUDIENCE": None,
     "ISSUER": None,
-    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_TYPES": (
+        "Bearer",
+        "groups",
+    ),
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",

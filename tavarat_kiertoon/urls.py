@@ -16,7 +16,12 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
+)
 
 from bulletins.views import (
     BulletinDetailView,
@@ -100,7 +105,10 @@ urlpatterns = [
     path("bulletin_subjects/<int:pk>", BulletinSubjectDetailView.as_view()),
     path("contacts/", ContactListView.as_view()),
     path("contacts/<int:pk>", ContactDetailView.as_view()),
-    path('api-auth/', include('rest_framework.urls')),
+    path("api-auth/", include("rest_framework.urls")),
+    path("api/jwt-token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/jwt-token/refresh/", TokenRefreshView.as_view(), name="token_refrest"),
+    path("api/jwt-token/verify/", TokenVerifyView.as_view(), name="token_verify"),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

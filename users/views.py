@@ -15,6 +15,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .authenticate import CustomAuthenticationJWT, enforce_csrf
@@ -380,6 +381,7 @@ class UserSingleGetView(APIView):
     Get single user with all database fields, no POST here
     """
 
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
     authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -414,6 +416,7 @@ class GroupListView(generics.ListCreateAPIView):
     """
 
     authentication_classes = [SessionAuthentication, BasicAuthentication]
+    # authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     queryset = Group.objects.all()
@@ -505,10 +508,14 @@ class UserDetailsListView_limited(APIView):
     Get Users with revelant fields
     """
 
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
+        print("REQUEST data:     ", request.data)
+        print("REQUEST:     ", request)
+        # print("REQUEST header:     ", request)
         users = CustomUser.objects.all()
         serializer = UserSerializer_limited(users, many=True)
         print("test GET")
@@ -523,7 +530,7 @@ class UserDetailsSingleView_limited(APIView):
     Get single user with revelant fields
     """
 
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [BasicAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get_object(self, pk):

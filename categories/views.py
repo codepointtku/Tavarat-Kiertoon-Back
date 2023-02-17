@@ -10,10 +10,16 @@ class CategoryListView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         instance = request.data
-        levelchecker = Category.objects.filter(id=instance["parent"]).values("level")
-        level = list(levelchecker)
-        serializer = CategorySerializer(data=request.data)
-        if serializer.is_valid()and level[0]["level"] < 2:
+
+        try:
+            parentcheck = Category.objects.get(id=instance["parent"])
+            if parentcheck.level >= 2:
+                return Response("Maximum category level(2) exceeded",status=status.HTTP_400_BAD_REQUEST)
+        except:
+            instance["parent"] == None
+        
+        serializer = CategorySerializer(data=instance)
+        if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

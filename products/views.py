@@ -164,11 +164,16 @@ class PictureListView(generics.ListCreateAPIView):
     serializer_class = PictureSerializer
 
     def create(self, request, *args, **kwargs):
-        print(request.FILES.values())
+        for key in request.FILES.keys():
+            print(key)
         for file in request.FILES.values():
+            print(dir(file))
+            ext = file.content_type.split("/")[1]
             serializer = self.get_serializer(
                 data={
-                    "picture_address": ContentFile(file.read(), name=file._get_name())
+                    "picture_address": ContentFile(
+                        file.read(), name=f"{file.name}.{ext}"
+                    )
                 }
             )
             serializer.is_valid(raise_exception=True)

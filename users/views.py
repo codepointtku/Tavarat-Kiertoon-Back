@@ -20,9 +20,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .authenticate import CustomAuthenticationJWT, enforce_csrf
 from .models import CustomUser
+from .permissions import HasGroupPermission, is_in_group
 from .serializers import (
     GroupNameCheckSerializer,
     GroupNameSerializer,
+    GroupPermissionsSerializer,
     UserSerializer_create,
     UserSerializer_full,
     UserSerializer_limited,
@@ -48,41 +50,6 @@ def get_tokens_for_user(user):
         "refresh": str(refresh),
         "access": str(refresh.access_token),
     }
-
-
-def is_in_group(user, group_name):
-    """
-    Takes a user and a group name, and returns `True` if the user is in that group.
-    """
-    try:
-        return Group.objects.get(name=group_name).user_set.filter(id=user.id).exists()
-    except Group.DoesNotExist:
-        return None
-
-
-class HasGroupPermission(permissions.BasePermission):
-    """
-    Ensure user is in required groups.
-    """
-
-    message = "Lacking right to a correct group to perfom this action"
-
-    def has_permission(self, request, view):
-        # Get a mapping of methods -> required group.
-        required_groups_mapping = getattr(view, "required_groups", {})
-
-        # Determine the required groups for this particular request method.
-        required_groups = required_groups_mapping.get(request.method, [])
-
-        # Return True if the user has all the required groups or is staff.
-        return all(
-            [
-                is_in_group(request.user, group_name)
-                if group_name != "__all__"
-                else True
-                for group_name in required_groups
-            ]
-        ) or (request.user and request.user.is_staff)
 
 
 # Create your views here.
@@ -199,12 +166,18 @@ class UserCreateListView(APIView):
 
 
 class UserView_login(APIView):
+    """
+    GET the current logged in user and returns it.
+    POST to login user manually, access token to http only cookie to user also.
+    """
+
     serializer_class = UserSerializer_password
-    # authentication_classes = [
-    #     SessionAuthentication,
-    #     ExampleAuthentication,
-    #     CustomAuthenticationJWT,
-    # ]
+    authentication_classes = [
+        SessionAuthentication,
+        # ExampleAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
     # authentication_classes = [ExampleAuthentication]
     # permission_classes = [IsAuthenticated]
 
@@ -217,7 +190,7 @@ class UserView_login(APIView):
     # }
 
     def get(self, request, format=None):
-        print("GET request is:  ", request)
+        print("GET request is:  ", request.user)
         if (request.user) == "AnonymousUser":
             content = {
                 "user": str(request.user),  # `django.contrib.auth.User` instance.
@@ -241,6 +214,7 @@ class UserView_login(APIView):
                 "auth": str(request.auth),  # None
             }
             print("current logged on user: ", request.user)
+            print("current logged on user that is returned: ", content)
             return Response(content)
 
     def post(self, request, format=None):
@@ -321,6 +295,7 @@ class UserView_login(APIView):
                         "printing the response data with token stuff for example--------:   ",
                         response.data,
                     )
+                    login(request, user_auth)
                     return response
                 else:
                     return Response(
@@ -328,7 +303,7 @@ class UserView_login(APIView):
                         status=status.HTTP_404_NOT_FOUND,
                     )
 
-                # login(request, user_auth)
+                login(request, user_auth)
             else:
                 print("something went wroooong")
                 # cool bean chuck noirris there is is so much redaunant code here, suffer from spaghetti code
@@ -415,25 +390,50 @@ class GroupListView(generics.ListCreateAPIView):
     Get group names in list
     """
 
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
     # authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["__all__"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+    }
 
     queryset = Group.objects.all()
     serializer_class = GroupNameSerializer
 
 
 # getting all groups and their names
-class GroupNameView(generics.RetrieveUpdateDestroyAPIView):
+class GroupNameView(generics.RetrieveUpdateAPIView):
+    # class GroupNameView(APIView):
     """
     Get single group name and do magic
     """
 
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["__all__"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+    }
 
     queryset = Group.objects.all()
     serializer_class = GroupNameSerializer
+
+    # def post(self, request, format=None):
+    #     print("test")
+
+    #     Response("test")
 
 
 class GroupPermissionCheck(APIView):
@@ -442,28 +442,34 @@ class GroupPermissionCheck(APIView):
     """
 
     # authenticaction confirms that the user nad that he was logged in, not permissions. PERSMISSIONs are well permissions if the user has rights to them
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [
+        JWTAuthentication,
+        BasicAuthentication,
+        SessionAuthentication,
+    ]
     # permission_classes = [IsAuthenticated]
     serializer_class = GroupNameCheckSerializer
     test_message = "this is test amessage does it come out"
     permission_classes = [HasGroupPermission]
     required_groups = {
-        # "GET": ["user_group", "bicycle_group"],
-        "GET": ["__all__"],
-        "POST": ["moderators", "someMadeUpGroup"],
+        "GET": ["user_group"],
+        # "GET": ["__all__"],
+        "POST": ["user_group"],
         "PUT": ["__all__"],
     }
 
     def get(self, request, format=None):
         # queryset = Group.objects.all()
         # serializer_class = GroupNameCheckSerializer
-        print(self.permission_classes)
+        print("permission classes----: ", self.permission_classes)
         content = {
             "user": str(request.user),  # `django.contrib.auth.User` instance.
             "auth": str(request.auth),  # None
         }
-
+        print(self.test_message)
         print("current user is  ---:     ", request.user)
+        print("REQUEST headers ---:     ", request.headers)
 
         # user_id_list = [1, 2, 3, 3, 4, 5]
         # logged_in_users = User.objects.filter(id__in=user_id_list)
@@ -476,6 +482,8 @@ class GroupPermissionCheck(APIView):
     def post(self, request, format=None):
         # queryset = Group.objects.all()
         # sample_data = {"test_boolean_check_email": True}
+        print(self.test_message)
+        print("user: ", request.user)
         request_serializer = GroupNameCheckSerializer(data=request.data)
         # request_serializer = GroupNameCheckSerializer(sample_data)
         # if request.data["test_boolean_check_email"] or None :
@@ -501,6 +509,24 @@ class GroupPermissionCheck(APIView):
 
         # print("was not valid")
         # return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+    }
+
+    queryset = User.objects.all()
+    serializer_class = GroupPermissionsSerializer
 
 
 class UserDetailsListView_limited(APIView):

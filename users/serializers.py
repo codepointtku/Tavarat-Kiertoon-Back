@@ -49,6 +49,7 @@ class UserSerializer_create(serializers.ModelSerializer):
         model = CustomUser
         fields = ["first_name", "last_name", "email", "phone_number", "password"]
 
+
 class UserSerializer_update(serializers.ModelSerializer):
     """
     Serializer for users, for updating user information
@@ -57,6 +58,7 @@ class UserSerializer_update(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ["name", "phone_number"]
+
 
 class SubSerializerForGroups(serializers.ModelSerializer):
     """
@@ -124,4 +126,14 @@ class GroupNameCheckSerializer(serializers.ModelSerializer):
             "group_name",
             "test_message",
             "test_boolean_check_email",
+        ]
+
+
+class GroupPermissionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = [
+            "name",
+            "email",
+            "groups",
         ]

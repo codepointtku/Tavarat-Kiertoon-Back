@@ -1,5 +1,4 @@
-import base64
-import io
+import re
 
 from django.core.files.base import ContentFile, File
 from django.utils import timezone
@@ -164,22 +163,17 @@ class PictureListView(generics.ListCreateAPIView):
     serializer_class = PictureSerializer
 
     def create(self, request, *args, **kwargs):
-        for key in request.FILES.keys():
-            print(key)
-        for file in request.FILES.values():
-            print(dir(file))
-            ext = file.content_type.split("/")[1]
+        for filename, file in request.FILES.items():
+            file_name = re.search("\[(.*)\]", filename).group(1)
             serializer = self.get_serializer(
-                data={
-                    "picture_address": ContentFile(
-                        file.read(), name=f"{file.name}.{ext}"
-                    )
-                }
+                data={"picture_address": ContentFile(file.read(), name=file_name)}
             )
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 
 class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):

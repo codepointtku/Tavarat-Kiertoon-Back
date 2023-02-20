@@ -22,15 +22,13 @@ def pic_ids_as_address_list(pic_ids):
     return [Picture.objects.get(id=pic_id).picture_address.name for pic_id in pic_ids]
 
 
-def is_color_string(colortest):
-    res = isinstance(colortest, str)
-    return res
-
-
 def color_check_create(instance):
-    color = instance["color"]
-    colorstring = is_color_string(color)
-    if colorstring:
+    try:
+        color = int(instance["color"])
+    except ValueError:
+        color = instance["color"]
+    color_is_string = isinstance(color, str)
+    if color_is_string:
         checkid = Color.objects.filter(name=color).values("id")
 
         if not checkid:
@@ -70,6 +68,7 @@ class ProductListView(generics.ListCreateAPIView):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
+            print(serializer.data)
             for i in range(len(serializer.data)):
                 serializer.data[i]["pictures"] = pic_ids_as_address_list(
                     serializer.data[i]["pictures"]
@@ -77,19 +76,40 @@ class ProductListView(generics.ListCreateAPIView):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
+        print(serializer.data)
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        colorinstance = request.data
-        productinstance = color_check_create(colorinstance[0])
-        modified_request = [productinstance for i in range(request.data[1])]
+        request_data = request.data
+        productinstance = color_check_create(request_data)
+        modified_request = [productinstance] * int(request.data["amount"])
         serializer = ProductSerializer(data=modified_request, many=True)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        products = serializer.save()
+
+        picture_ids = []
+        for file in request.FILES.getlist("pictures[]"):
+            ext = file.content_type.split("/")[1]
+            pic_serializer = PictureSerializer(
+                data={
+                    "picture_address": ContentFile(
+                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                    )
+                }
+            )
+            pic_serializer.is_valid(raise_exception=True)
+            self.perform_create(pic_serializer)
+            picture_ids.append(pic_serializer.data["id"])
+
+        for product in products:
+            for picture_id in picture_ids:
+                product.pictures.add(picture_id)
+
         for i in range(len(serializer.data)):
             serializer.data[i]["pictures"] = pic_ids_as_address_list(
                 serializer.data[i]["pictures"]
             )
+        print(serializer.data)
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
@@ -165,11 +185,14 @@ class PictureListView(generics.ListCreateAPIView):
     serializer_class = PictureSerializer
 
     def create(self, request, *args, **kwargs):
+        print(request.FILES)
+        a = 1
         for filename, file in request.FILES.items():
-            file_name = re.search("\[(.*)\]", filename).group(1)
+            # file_name = re.search("\[(.*)\]", filename).group(1)
             serializer = self.get_serializer(
-                data={"picture_address": ContentFile(file.read(), name=file_name)}
+                data={"picture_address": ContentFile(file.read(), name=f"blob{a}.jpg")}
             )
+            a += 1
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)

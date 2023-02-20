@@ -40,6 +40,7 @@ def color_check_create(instance):
             instance["color"] = checkid[0]["id"]
     return instance
 
+
 # Create your views here.
 class ProductListPagination(PageNumberPagination):
     page_size = 100
@@ -74,16 +75,21 @@ class ProductListView(generics.ListCreateAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def post(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         colorinstance = request.data
-        productinstance = color_check_create(colorinstance)
-        serializer = ProductSerializer(data=productinstance)
-        if serializer.is_valid():
-            serializer.save()
-            data = serializer.data
-            data["pictures"] = pic_ids_as_address_list(data["pictures"])
-            return Response(data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        productinstance = color_check_create(colorinstance[0])
+        modified_request = [productinstance for i in range(request.data[1])]
+        serializer = ProductSerializer(data=modified_request, many=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        for i in range(len(serializer.data)):
+            serializer.data[i]["pictures"] = pic_ids_as_address_list(
+                serializer.data[i]["pictures"]
+            )
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 
 class CategoryProductListView(generics.ListAPIView):

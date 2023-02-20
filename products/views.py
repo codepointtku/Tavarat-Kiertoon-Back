@@ -96,11 +96,12 @@ class ProductListView(generics.ListCreateAPIView):
                         file.read(), name=f"{timezone.now().timestamp()}.{ext}"
                     )
                 }
-            )
+            )  # use creation date as name?
             pic_serializer.is_valid(raise_exception=True)
             self.perform_create(pic_serializer)
             picture_ids.append(pic_serializer.data["id"])
 
+        # combine pic_ids_as_address_list with enumerate loop?
         for product in products:
             for picture_id in picture_ids:
                 product.pictures.add(picture_id)

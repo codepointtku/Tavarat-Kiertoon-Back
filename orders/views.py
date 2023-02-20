@@ -6,7 +6,12 @@ from rest_framework.response import Response
 from products.models import Product
 
 from .models import Order, ShoppingCart
-from .serializers import OrderSerializer, ShoppingCartSerializer
+from .serializers import (
+    OrderSerializer,
+    OrderDetailSerializer,
+    ShoppingCartSerializer,
+    ShoppingCartDetailSerializer,
+)
 
 # Create your views here.
 
@@ -27,7 +32,7 @@ class ShoppingCartListView(ListCreateAPIView):
 
 class ShoppingCartDetailView(RetrieveDestroyAPIView):
     queryset = ShoppingCart.objects.all()
-    serializer_class = ShoppingCartSerializer
+    serializer_class = ShoppingCartDetailSerializer
 
 
 class OrderListView(ListCreateAPIView):
@@ -66,4 +71,4 @@ class OrderListView(ListCreateAPIView):
 
 class OrderDetailView(RetrieveDestroyAPIView):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    serializer_class = OrderDetailSerializer

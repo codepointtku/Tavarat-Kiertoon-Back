@@ -67,3 +67,10 @@ class OrderListView(ListCreateAPIView):
 class OrderDetailView(RetrieveDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+
+    def delete(self, request, *args, **kwargs):
+        order = Order.objects.get(id=request.data["productId"])
+        for product in order.products.all():
+            if product.id == request.data["product"]:
+                order.products.remove(product.id)
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -97,7 +97,21 @@ class UserCreateListView(APIView):
 
     def post(self, request, format=None):
         print("test POST")
+        request.data["first_name"] = "Chuck"
+        request.data["last_name"] = "Norris"
+        request.data["phone_number"] = "666"
         serialized_values = UserSerializer_create(data=request.data)
+        print(
+            "stuff you got  from erkkos purrka koodi-----:      ",
+            serialized_values.initial_data,
+        )
+        # serialized_values["first_name"] = "Chuck"
+        # serialized_values["last_name"] = "Norris"
+        # print(
+        #     "stuff you got  from erkkos purrka koodi-----EDIT:      ",
+        #     serialized_values.initial_data,
+        # )
+
         if serialized_values.is_valid():
             # getting the data form serializer for user creation
             print("Onko printissa ja sitten seriliasoidut data", serialized_values)
@@ -149,7 +163,7 @@ class UserCreateListView(APIView):
             )
 
             return Response(serialized_values.initial_data)
-
+        print(serialized_values.errors)
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
         # return Response(serialized_values.initial_data)

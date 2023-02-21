@@ -53,7 +53,7 @@ class BikeStock(models.Model):
     """Model for the bike stock, which is each individual bike."""
 
     class StateChoices(models.TextChoices):
-        """Choices for the state of the bike"""
+        """Choices for the state of the bike."""
 
         AVAILABLE = "AVAILABLE"
         MAINTENANCE = "MAINTENANCE"
@@ -79,6 +79,8 @@ class BikeRental(models.Model):
     """Model for the bike rentals, same as orders."""
 
     class StateChoices(models.TextChoices):
+        """Choices for the state of the rental."""
+
         WAITING = "WAITING"
         BEING_PROCESSED = "BEING_PROCESSED "
         ACTIVE = "ACTIVE"

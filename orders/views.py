@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveDestroyAPIView
 from rest_framework.response import Response
 
-from products.models import Product
+from products.models import Product, Picture
 
 from .models import Order, ShoppingCart
 from .serializers import (
@@ -14,6 +14,8 @@ from .serializers import (
 )
 
 # Create your views here.
+def pic_ids_as_address_list(pic_ids):
+    return [Picture.objects.get(id=pic_id).picture_address.name for pic_id in pic_ids]
 
 
 class ShoppingCartListView(ListCreateAPIView):
@@ -33,6 +35,16 @@ class ShoppingCartListView(ListCreateAPIView):
 class ShoppingCartDetailView(RetrieveDestroyAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartDetailSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        item = 0
+        for product in data["products"]:
+            data["products"][item]["pictures"] = pic_ids_as_address_list(data["products"][item]["pictures"])
+            item += 1
+        return Response(data)
 
 
 class OrderListView(ListCreateAPIView):
@@ -72,3 +84,13 @@ class OrderListView(ListCreateAPIView):
 class OrderDetailView(RetrieveDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        item = 0
+        for product in data["products"]:
+            data["products"][item]["pictures"] = pic_ids_as_address_list(data["products"][item]["pictures"])
+            item += 1
+        return Response(data)

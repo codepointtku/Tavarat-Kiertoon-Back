@@ -23,7 +23,8 @@ class ShoppingCartDetailSerializer(serializers.ModelSerializer):
 
 class OrderDetailSerializer(serializers.ModelSerializer):
     products = ProductSerializer(many=True, read_only=True)
-    
+
     class Meta:
         model = Order
-        fields = "__all__" 
+        fields = "__all__"
+        

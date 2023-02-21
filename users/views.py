@@ -325,7 +325,7 @@ class UserView_login(APIView):
 
 class UserView_logout(APIView):
     """
-    Logs out the user and flush sessioin
+    Logs out the user and flush session
     """
 
     # should this be used here ? just incase bugs so user can logout
@@ -335,8 +335,11 @@ class UserView_logout(APIView):
     def get(self, request):
         print("current user is  ---:     ", request.user)
         logout(request)
-
-        return Response("Logged Out")
+        return Response(
+            "Logged Out, remember to clear stuff(JWT-token (access_token and refresh_token)) at the front ends local storage.",
+            status=status.HTTP_200_OK,
+        )
+        # return response
 
 
 # should not be used as returns non-necessary things, use the limited views instead as they are used to return nexessary things.
@@ -631,14 +634,26 @@ class UserView_update_info(APIView):
     Get logged in users information and update it
     """
 
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+        "POST": ["user_group"],
+        "PUT": ["user_group"],
+        "PATCH": ["user_group"],
+    }
 
     serializer_class = UserSerializer_update
     queryset = User.objects.all()
 
     def get(self, request, format=None):
         # print(request.user)
+        # redutant probably
         if str(request.user) == "AnonymousUser":
             message = "PLease log in you are: " + str(request.user)
             print(message)
@@ -650,7 +665,8 @@ class UserView_update_info(APIView):
             print(queryset)
             serialized_data_full = UserSerializer_full(queryset, many=True)
             print(serialized_data_full.data)
-            return Response(self.serializer_class(request.user).data)
+            return Response(UserSerializer_limited(request.user).data)
+            # return Response(self.serializer_class(request.user).data)
 
     def put(self, request, format=None):
         serializer = self.serializer_class(
@@ -659,6 +675,29 @@ class UserView_update_info(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserViewUpdateSingle(generics.RetrieveUpdateAPIView):
+    """
+    Get specific users info for updating
+    """
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+    }
+
+    serializer_class = UserSerializer_update
+    queryset = User.objects.all()
 
 
 class UserView_password(APIView):

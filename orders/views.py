@@ -1,6 +1,10 @@
 from django.shortcuts import render
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, RetrieveDestroyAPIView
+from rest_framework.generics import (
+    ListCreateAPIView,
+    RetrieveDestroyAPIView,
+    RetrieveUpdateDestroyAPIView,
+)
 from rest_framework.response import Response
 
 from products.models import Product
@@ -64,6 +68,19 @@ class OrderListView(ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class OrderDetailView(RetrieveDestroyAPIView):
+class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+
+    def delete(self, request, *args, **kwargs):
+        order = Order.objects.get(id=request.data["productId"])
+        for product in order.products.all():
+            if product.id == request.data["product"]:
+                order.products.remove(product.id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_update(self, serializer):
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

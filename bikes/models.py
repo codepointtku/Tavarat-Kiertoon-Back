@@ -2,6 +2,7 @@
 
 from django.db import models
 
+from products.models import Color
 from users.models import CustomUser
 
 
@@ -42,6 +43,7 @@ class Bike(models.Model):
         BikeBrand, null=True, blank=True, on_delete=models.SET_NULL
     )
     size = models.ForeignKey(BikeSize, null=True, blank=True, on_delete=models.SET_NULL)
+    color = models.ForeignKey(Color, null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self) -> str:
         return f"Bike: {self.name}({self.id})"

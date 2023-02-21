@@ -21,10 +21,13 @@ class UserSerializer_password(serializers.ModelSerializer):
     """
 
     password_correct = serializers.BooleanField(default=False)
+    message_for_user = serializers.CharField(
+        default="Your password was wrong/no entered"
+    )
 
     class Meta:
         model = CustomUser
-        fields = ["email", "password", "password_correct"]
+        fields = ["email", "password", "password_correct", "message_for_user"]
 
 
 class UserSerializer_password_2(serializers.ModelSerializer):

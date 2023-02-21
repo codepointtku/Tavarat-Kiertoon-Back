@@ -165,6 +165,9 @@ class UserCreateListView(APIView):
     serializer_class = UserSerializer_create
 
 
+# leaving session and basic auth for easing testing purposes, remove them once deplayed to use only JWT?
+
+
 class UserView_login(APIView):
     """
     GET the current logged in user and returns it.
@@ -321,7 +324,7 @@ class UserView_login(APIView):
 
 class UserView_logout(APIView):
     """
-    Logs out the user
+    Logs out the user and flush sessioin
     """
 
     # should this be used here ? just incase bugs so user can logout
@@ -342,8 +345,18 @@ class UserDetailsListView(generics.ListAPIView):
     List all users with all database fields, no POST here
     """
 
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+
+    required_groups = {
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+    }
 
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer_full
@@ -357,8 +370,18 @@ class UserSingleGetView(APIView):
     """
 
     # authentication_classes = [SessionAuthentication, BasicAuthentication]
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+
+    required_groups = {
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+    }
 
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer_full
@@ -395,7 +418,6 @@ class GroupListView(generics.ListCreateAPIView):
         BasicAuthentication,
         JWTAuthentication,
     ]
-    # authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["__all__"],
@@ -407,11 +429,13 @@ class GroupListView(generics.ListCreateAPIView):
     serializer_class = GroupNameSerializer
 
 
-# getting all groups and their names
+# getting single  group name and update it
 class GroupNameView(generics.RetrieveUpdateAPIView):
     # class GroupNameView(APIView):
     """
-    Get single group name and do magic
+    THIS SHOULD NOT BE USED, DELETE NOT ALLOWED HERE
+    Get single group name and allow updating its name
+    could be dangerous for functionality refer to other ppl should this be done if really needed
     """
 
     authentication_classes = [
@@ -421,7 +445,7 @@ class GroupNameView(generics.RetrieveUpdateAPIView):
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["__all__"],
+        "GET": ["admin_group"],
         "POST": ["admin_group"],
         "PUT": ["admin_group"],
         "PATCH": ["admin_group"],
@@ -438,7 +462,7 @@ class GroupNameView(generics.RetrieveUpdateAPIView):
 
 class GroupPermissionCheck(APIView):
     """
-    check the groups user belongs to
+    check the groups user belongs to and return them
     """
 
     # authenticaction confirms that the user nad that he was logged in, not permissions. PERSMISSIONs are well permissions if the user has rights to them
@@ -456,7 +480,7 @@ class GroupPermissionCheck(APIView):
         "GET": ["user_group"],
         # "GET": ["__all__"],
         "POST": ["user_group"],
-        "PUT": ["__all__"],
+        "PUT": ["user_group"],
     }
 
     def get(self, request, format=None):
@@ -471,12 +495,19 @@ class GroupPermissionCheck(APIView):
         print("current user is  ---:     ", request.user)
         print("REQUEST headers ---:     ", request.headers)
 
+        # user = User.objects.get(request.user)
+        # serializer = UserSerializer_limited(user, many=True)
+        # print(serializer.data)
+        # request_serializer = GroupNameCheckSerializer(data=request.data)
+
+        # print("request users group are ---:   ", request.user)
         # user_id_list = [1, 2, 3, 3, 4, 5]
         # logged_in_users = User.objects.filter(id__in=user_id_list)
         # list_of_logged_in_users = [
         #     {user.id: user.get_name()} for user in logged_in_users
         # ]
         # print(list_of_logged_in_users)
+        # return Response(request_serializer.initial_data)
         return Response(content)
 
     def post(self, request, format=None):
@@ -534,9 +565,19 @@ class UserDetailsListView_limited(APIView):
     Get Users with revelant fields
     """
 
-    # authentication_classes = [SessionAuthentication, BasicAuthentication]
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
+    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+    }
 
     def get(self, request, format=None):
         print("REQUEST data:     ", request.data)
@@ -556,8 +597,19 @@ class UserDetailsSingleView_limited(APIView):
     Get single user with revelant fields
     """
 
-    authentication_classes = [BasicAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+    }
 
     def get_object(self, pk):
         try:
@@ -608,11 +660,26 @@ class UserView_update_info(APIView):
 
 class UserView_password(APIView):
     """
-    Get single user, password
+    DO NOT USE RIGHT NOW
+    Get single user, and try to check password
+    also used for resetting password, but this functionality still no done
+    needs more resarching so ignore this spaghetti for now
+    currently this was just made to test/practise things
     """
 
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+    }
 
     def get_object(self, pk):
         try:
@@ -661,6 +728,7 @@ class UserView_password(APIView):
                 data_serializer["password_correct"],
             )
             data_serializer["password_correct"] = True
+            data_serializer["message_for_user"] = "Your password was CORRECT"
             print("STATUS: ", data_serializer["password_correct"])
         else:
             print(
@@ -668,6 +736,7 @@ class UserView_password(APIView):
                 data_serializer["password_correct"],
             )
             data_serializer["password_correct"] = False
+            data_serializer["message_for_user"] = "Your password was WRONG"
             print("STATUS: ", data_serializer["password_correct"])
 
         return Response(data_serializer)

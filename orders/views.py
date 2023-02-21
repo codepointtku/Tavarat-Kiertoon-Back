@@ -87,27 +87,30 @@ class OrderListView(ListCreateAPIView):
 
 class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    serializer_class = OrderDetailSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        item = 0
+        for product in data["products"]:
+            data["products"][item]["pictures"] = pic_ids_as_address_list(
+                data["products"][item]["pictures"]
+            )
+            item += 1
+        return Response(data)
 
     def delete(self, request, *args, **kwargs):
         order = Order.objects.get(id=request.data["productId"])
         for product in order.products.all():
             if product.id == request.data["product"]:
                 order.products.remove(product.id)
+                return Response(status=status.HTTP_202_ACCEPTED)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_update(self, serializer):
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = OrderDetailSerializer(instance)
-        data = serializer.data
-        item = 0
-        for product in data["products"]:
-            data["products"][item]["pictures"] = pic_ids_as_address_list(data["products"][item]["pictures"])
-            item += 1
-        return Response(data)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)

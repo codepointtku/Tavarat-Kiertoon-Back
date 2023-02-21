@@ -83,11 +83,11 @@ class OrderListView(ListCreateAPIView):
 
 class OrderDetailView(RetrieveDestroyAPIView):
     queryset = Order.objects.all()
-    serializer_class = OrderDetailSerializer
+    serializer_class = OrderSerializer
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = self.get_serializer(instance)
+        serializer = OrderDetailSerializer(instance)
         data = serializer.data
         item = 0
         for product in data["products"]:

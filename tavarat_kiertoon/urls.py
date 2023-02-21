@@ -29,7 +29,7 @@ from bulletins.views import (
     BulletinSubjectDetailView,
     BulletinSubjectListView,
 )
-from categories import views
+from categories.views import CategoryDetailView, CategoryListView
 from contact_forms.views import (
     ContactDetailView,
     ContactFormDetailView,
@@ -86,8 +86,8 @@ urlpatterns = [
     path("products/<int:pk>/", ProductDetailView.as_view()),
     path("contact_forms/", ContactFormListView.as_view()),
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
-    path("categories/", views.categories),
-    path("categories/<int:category_id>/", views.category),
+    path("categories/", CategoryListView.as_view()),
+    path("categories/<int:pk>/", CategoryDetailView.as_view()),
     path("users/", UserDetailsListView.as_view()),
     path("users/create/", UserCreateListView.as_view()),
     path("users/<int:pk>/", UserSingleGetView.as_view()),

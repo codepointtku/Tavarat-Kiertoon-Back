@@ -136,6 +136,20 @@ class GroupPermissionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = [
+            "id",
+            "name",
+            "email",
+            "groups",
+        ]
+
+
+class GroupPermissionsSerializerNames(serializers.ModelSerializer):
+    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
             "name",
             "email",
             "groups",

@@ -25,6 +25,7 @@ from .serializers import (
     GroupNameCheckSerializer,
     GroupNameSerializer,
     GroupPermissionsSerializer,
+    GroupPermissionsSerializerNames,
     UserSerializer_create,
     UserSerializer_full,
     UserSerializer_limited,
@@ -495,8 +496,10 @@ class GroupPermissionCheck(APIView):
         print("current user is  ---:     ", request.user)
         print("REQUEST headers ---:     ", request.headers)
 
-        # user = User.objects.get(request.user)
-        # serializer = UserSerializer_limited(user, many=True)
+        # user = User.objects.get(id=request.user.id)
+        # print(user)
+        serializer = GroupPermissionsSerializerNames(request.user)
+        print(serializer.data)
         # print(serializer.data)
         # request_serializer = GroupNameCheckSerializer(data=request.data)
 
@@ -507,7 +510,7 @@ class GroupPermissionCheck(APIView):
         #     {user.id: user.get_name()} for user in logged_in_users
         # ]
         # print(list_of_logged_in_users)
-        # return Response(request_serializer.initial_data)
+        return Response(serializer.data)
         return Response(content)
 
     def post(self, request, format=None):

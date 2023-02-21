@@ -1,9 +1,9 @@
+"""The bike rental views."""
+
 import datetime
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-# TODO: Write docstrings
 
 
 @api_view(["GET"])

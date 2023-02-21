@@ -1,4 +1,4 @@
-"""Module for bike rental models."""
+"""The bike rental model."""
 
 from django.db import models
 
@@ -53,6 +53,8 @@ class BikeStock(models.Model):
     """Model for the bike stock, which is each individual bike."""
 
     class StateChoices(models.TextChoices):
+        """Choices for the state of the bike"""
+
         AVAILABLE = "AVAILABLE"
         MAINTENANCE = "MAINTENANCE"
         RENTED = "RENTED"

@@ -2,7 +2,7 @@
 
 from django.db import models
 
-from products.models import Color
+from products.models import Color, Storage
 from users.models import CustomUser
 
 
@@ -67,6 +67,7 @@ class BikeStock(models.Model):
         default="AVAILABLE",
     )
     bike = models.ForeignKey(Bike, on_delete=models.CASCADE)
+    storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return f"Bike stock: {self.barcode}({self.id})"

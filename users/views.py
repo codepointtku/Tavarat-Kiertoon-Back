@@ -87,7 +87,11 @@ class UserCreateListView(APIView):
     List all users, and create with POST
     !!!!HUOM !!!! ENNEN KUIN USERMIODELIA PÄIVITETÄÄN EI VOIDA TEHDÄ YHTEISKÄYTTÖTILIÄ KUNNOLLA JOTEN TESTAUS MUUTTUJIA
     TL;DR noormi käyttäjät toimivat, yhteiskäyttäjät puoliksi yhteiskäyttäjä EI LUO VIELÄ MITÄÄN
+    WIll be cleaned later
     """
+
+    # queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer_create
 
     # need to make this so that only ppl inside turku/customers intra can access this, cehcks?
 
@@ -216,20 +220,6 @@ class UserCreateListView(APIView):
         print(serialized_values.errors)
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # return Response(serialized_values.initial_data)
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        # User.objects.create_user("derp5", "derpingonton5", "derp5@depr5.derp5", "5555", "123456789")
-
-        return Response("TEST")
-
-    # queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer_create
-
-
 # leaving session and basic auth for easing testing purposes, remove them once deplayed to use only JWT?
 
 
@@ -237,25 +227,16 @@ class UserView_login(APIView):
     """
     GET the current logged in user and returns it.
     POST to login user manually, access token to http only cookie to user also.
+    POST use jwt-token login instead, leaving this here right now if its  needed
     """
 
     serializer_class = UserSerializer_password
+
     authentication_classes = [
         SessionAuthentication,
-        # ExampleAuthentication,
         BasicAuthentication,
         JWTAuthentication,
     ]
-    # authentication_classes = [ExampleAuthentication]
-    # permission_classes = [IsAuthenticated]
-
-    # permission_classes = [HasGroupPermission]
-    # required_groups = {
-    #     # "GET": ["user_group", "bicycle_group"],
-    #     "GET": ["__all__"],
-    #     "POST": ["moderators", "someMadeUpGroup"],
-    #     "PUT": ["__all__"],
-    # }
 
     def get(self, request, format=None):
         print("GET request is:  ", request.user)
@@ -266,144 +247,70 @@ class UserView_login(APIView):
             }
             return Response(content)
         else:
-            # authentication_classes = [SessionAuthentication, BasicAuthentication]
-            # permission_classes = [IsAuthenticated]
-
-            # permission_classes = [HasGroupPermission]
-            # required_groups = {
-            #     "GET": ["user_group", "bicycle_group"],
-            #     # "GET": ["__all__"],
-            #     "POST": ["moderators", "someMadeUpGroup"],
-            #     "PUT": ["__all__"],
-            # }
 
             content = {
                 "user": str(request.user),  # `django.contrib.auth.User` instance.
                 "auth": str(request.auth),  # None
             }
-            print("current logged on user: ", request.user)
-            print("current logged on user that is returned: ", content)
             return Response(content)
 
     def post(self, request, format=None):
-        print("POST request is:   ", request)
-        content = {
-            "user": str(request.user),  # `django.contrib.auth.User` instance.
-            "auth": str(request.auth),  # None
-        }
 
-        print("CONNNNNNTEEEENNNTTTT_ _------:", content)
-        # test = {"password" : "1234" , "email" : "spsantam"}
-        # testing_serial_stuff = UserSerializer_password(data=test)
-        # print("TEST seria STUF:      ", testing_serial_stuff)
-        # serialized_values_request = UserSerializer_password(data=test)
         serialized_values_request = UserSerializer_password(data=request.data)
-        print(
-            "test POST",
-            serialized_values_request.is_valid(),
-            serialized_values_request.errors,
-        )
-        print(serialized_values_request)
-        # if serialized_values_request.is_valid() :
-
         try:
             email_post = serialized_values_request.initial_data["email"]
             pw_request = serialized_values_request.initial_data["password"]
-            print("password: ", pw_request)
         except KeyError:
-            # serializer_class = UserSerializer_password
             return Response("no password passed or no email passed")
 
-        print(email_post)
         if User.objects.filter(email=email_post).exists():
-            print("found user with email of: ", email_post)
             user = User.objects.get(email=email_post)
-            print(user, "\n ------------")
-            print("Email: ", user.email, "   and password: ", user.password)
-
         else:
-            print("no user with email of: ", email_post)
             response_message = "no user with email of: " + email_post
             return Response(response_message)
-
-        # if check_password(pw_request,user.password) :
-        #     print("fffffffffffffffff")
 
         data = request.data
         response = Response()
 
-        if check_password(pw_request, user.password):
-            message = "Chuck norris kicked you in"
-            print(message)
-            serialized_response = UserSerializer_limited(user)
-            # return Response(message)
-            print("request user is:   ", request.user)
-            # user_auth = authenticate(request, username=email_post, password=pw_request)
-            user_auth = authenticate(username=email_post, password=pw_request)
-            print(user_auth)
-            if user_auth is not None:
-                print("logging in user:   ", user_auth)
-                print(
-                    "actually lets do the token stuff and active check first----- :  "
+        user_auth = authenticate(username=email_post, password=pw_request)
+        if user_auth is not None:
+
+            if user_auth.is_active:
+                data = get_tokens_for_user(user_auth)
+                response.set_cookie(
+                    key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+                    value=data["access"],
+                    expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+                    secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                    httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                    samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
                 )
-
-                if user_auth.is_active:
-                    data = get_tokens_for_user(user_auth)
-                    response.set_cookie(
-                        key=settings.SIMPLE_JWT["AUTH_COOKIE"],
-                        value=data["access"],
-                        expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-                        secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                        httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                        samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-                    )
-                    csrf.get_token(request)
-                    response.data = {"Success": "Login successfully", "data": data}
-                    print(
-                        "printing the response data with token stuff for example--------:   ",
-                        response.data,
-                    )
-                    login(request, user_auth)
-                    return response
-                else:
-                    return Response(
-                        {"No active": "This account is not active!!"},
-                        status=status.HTTP_404_NOT_FOUND,
-                    )
-
+                csrf.get_token(request)
+                response.data = {"Success": "Login successfully", "data": data}
+                print(
+                    "printing the response data with token stuff for example--------:   ",
+                    response.data,
+                )
                 login(request, user_auth)
+                return response
             else:
-                print("something went wroooong")
-                # cool bean chuck noirris there is is so much redaunant code here, suffer from spaghetti code
-
-            current_user_serialized = UserSerializer_full(user_auth)
-            return Response(current_user_serialized.data)
-            return Response(serialized_response.data)
+                return Response(
+                    {"No active": "This account is not active!!"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
         else:
-            print("Failty password try again")
-            return Response("Failty password try again")
-        # return Response(serialized_values_request.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response("bogos pinted with CHUK NORRIS")
-        # return Response(serialized_values_request.initial_data)
-
+            return Response("Failed to authenticate User/Faulty login information", status=status.HTTP_401_UNAUTHORIZED)
 
 class UserView_logout(APIView):
     """
     Logs out the user and flush session
     """
-
-    # should this be used here ? just incase bugs so user can logout
-    # authentication_classes = [SessionAuthentication, BasicAuthentication]
-    # permission_classes = [IsAuthenticated]
-
     def get(self, request):
-        print("current user is  ---:     ", request.user)
         logout(request)
         return Response(
             "Logged Out, remember to clear stuff(JWT-token (access_token and refresh_token)) at the front ends local storage.",
             status=status.HTTP_200_OK,
         )
-        # return response
 
 
 # should not be used as returns non-necessary things, use the limited views instead as they are used to return nexessary things.
@@ -464,14 +371,6 @@ class UserSingleGetView(APIView):
         user = self.get_object(pk)
         serializer = UserSerializer_full(user)
 
-        # willl be removed alter/moved
-        print("testin single user stuff")
-        group_name_check = "bicycle_group"
-        user_permission_ok = is_in_group(user, group_name_check)
-        print(
-            "permission to group: ", group_name_check, " ---is--: ", user_permission_ok
-        )
-
         return Response(serializer.data)
 
 
@@ -522,27 +421,19 @@ class GroupNameView(generics.RetrieveUpdateAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupNameSerializer
 
-    # def post(self, request, format=None):
-    #     print("test")
-
-    #     Response("test")
-
 
 class GroupPermissionCheck(APIView):
     """
     check the groups user belongs to and return them
+    kinda redutant? can be gotten from another views, users too
     """
 
-    # authenticaction confirms that the user nad that he was logged in, not permissions. PERSMISSIONs are well permissions if the user has rights to them
-    # authentication_classes = [SessionAuthentication, BasicAuthentication]
     authentication_classes = [
         JWTAuthentication,
         BasicAuthentication,
         SessionAuthentication,
     ]
-    # permission_classes = [IsAuthenticated]
     serializer_class = GroupNameCheckSerializer
-    test_message = "this is test amessage does it come out"
     permission_classes = [HasGroupPermission]
     required_groups = {
         "GET": ["user_group"],
@@ -552,64 +443,17 @@ class GroupPermissionCheck(APIView):
     }
 
     def get(self, request, format=None):
-        # queryset = Group.objects.all()
-        # serializer_class = GroupNameCheckSerializer
-        print("permission classes----: ", self.permission_classes)
-        content = {
-            "user": str(request.user),  # `django.contrib.auth.User` instance.
-            "auth": str(request.auth),  # None
-        }
-        print(self.test_message)
-        print("current user is  ---:     ", request.user)
-        print("REQUEST headers ---:     ", request.headers)
-
-        # user = User.objects.get(id=request.user.id)
-        # print(user)
         serializer = GroupPermissionsSerializerNames(request.user)
-        print(serializer.data)
-        # print(serializer.data)
-        # request_serializer = GroupNameCheckSerializer(data=request.data)
-
-        # print("request users group are ---:   ", request.user)
-        # user_id_list = [1, 2, 3, 3, 4, 5]
-        # logged_in_users = User.objects.filter(id__in=user_id_list)
-        # list_of_logged_in_users = [
-        #     {user.id: user.get_name()} for user in logged_in_users
-        # ]
-        # print(list_of_logged_in_users)
         return Response(serializer.data)
-        return Response(content)
 
     def post(self, request, format=None):
-        # queryset = Group.objects.all()
-        # sample_data = {"test_boolean_check_email": True}
-        print(self.test_message)
-        print("user: ", request.user)
+        #print("user: ", request.user)
         request_serializer = GroupNameCheckSerializer(data=request.data)
-        # request_serializer = GroupNameCheckSerializer(sample_data)
-        # if request.data["test_boolean_check_email"] or None :
-        print(request.data)
-        # if request.data["test_boolean_check_email"] == None:
-        #     print("request eamil check is false:   -->: ")
+        #print(request.data)
         request_serializer.is_valid(raise_exception=True)
-        # print(
-        #     "test boolean value:   ",
-        #     request_serializer,
-        # )
-        # print(
-        #     "test boolean value:   ",
-        #     request.data,
-        # )
-        # if request_serializer.initial_data["test_boolean_check_email"].value:
-        #     print("using email from post, not loggd in user")
-        # # user = User.objects.get(email=email_post)
-        # print(request_serializer.initial_data["group_name"])
-        # if request_serializer.is_valid():
-        #     print("was valid")
+
         return Response(request_serializer.data)
 
-        # print("was not valid")
-        # return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
@@ -647,7 +491,6 @@ class UserDetailsListView_limited(APIView):
         BasicAuthentication,
         JWTAuthentication,
     ]
-    # authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["admin_group"],
@@ -657,15 +500,8 @@ class UserDetailsListView_limited(APIView):
     }
 
     def get(self, request, format=None):
-        print("REQUEST data:     ", request.data)
-        print("REQUEST:     ", request)
-        # print("REQUEST header:     ", request)
         users = CustomUser.objects.all()
         serializer = UserSerializer_limited(users, many=True)
-        print("test GET")
-        print("current user is  ---:     ", request.user)
-        print("data in request: ", request.data)
-        # print(serializer.data)
         return Response(serializer.data)
 
 
@@ -723,7 +559,6 @@ class UserView_update_info(APIView):
     queryset = User.objects.all()
 
     def get(self, request, format=None):
-        # print(request.user)
         # redutant probably
         if str(request.user) == "AnonymousUser":
             message = "PLease log in you are: " + str(request.user)
@@ -731,13 +566,10 @@ class UserView_update_info(APIView):
 
             return Response(message)
         else:
-            print(request.user)
             queryset = User.objects.filter(id=request.user.id)
-            print(queryset)
             serialized_data_full = UserSerializer_full(queryset, many=True)
-            print(serialized_data_full.data)
             return Response(UserSerializer_limited(request.user).data)
-            # return Response(self.serializer_class(request.user).data)
+
 
     def put(self, request, format=None):
         serializer = self.serializer_class(

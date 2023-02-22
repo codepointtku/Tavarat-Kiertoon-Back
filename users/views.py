@@ -85,6 +85,8 @@ class ExampleAuthentication(BaseAuthentication):
 class UserCreateListView(APIView):
     """
     List all users, and create with POST
+    !!!!HUOM !!!! ENNEN KUIN USERMIODELIA PÄIVITETÄÄN EI VOIDA TEHDÄ YHTEISKÄYTTÖTILIÄ KUNNOLLA JOTEN TESTAUS MUUTTUJIA
+    TL;DR noormi käyttäjät toimivat, yhteiskäyttäjät puoliksi yhteiskäyttäjä EI LUO VIELÄ MITÄÄN
     """
 
     # need to make this so that only ppl inside turku/customers intra can access this, cehcks?
@@ -97,10 +99,30 @@ class UserCreateListView(APIView):
 
     def post(self, request, format=None):
         print("test POST")
-        request.data["first_name"] = "Chuck"
-        request.data["last_name"] = "Norris"
-        request.data["phone_number"] = "666"
-        serialized_values = UserSerializer_create(data=request.data)
+        temp_req = request.data.copy()
+        print("test data: ", temp_req)
+        #checking the request data if correct vlues exist, so that we get all values to create user before from finishes the reg forms
+        #remove after front is finished with this
+        if temp_req.get("first_name") == None :
+            print("no first_name so giving default")
+            temp_req["first_name"] = "Chuck"
+        if temp_req.get("last_name") == None :
+            print("no last_name so giving default")
+            temp_req["last_name"] = "Norris"
+        if temp_req.get("phone_number") == None :
+            print("no phone_number so giving default")
+            temp_req["phone_number"] = "666"
+        if temp_req.get("toimipaikka") == None :
+            print("no toimipaikka so giving default")
+            print("here?")
+            #temp_req["toimipaikka"] = "true"
+            print("here2?")
+        if temp_req.get("vastuuhenkilo") == None :
+            print("no vastuuhenkilo so giving default")
+            temp_req["vastuuhenkilo"] = "spsantam"
+
+        
+        serialized_values = UserSerializer_create(data=temp_req)
         print(
             "stuff you got  from erkkos purrka koodi-----:      ",
             serialized_values.initial_data,
@@ -122,47 +144,75 @@ class UserCreateListView(APIView):
             email_post = serialized_values["email"].value
             phone_number_post = serialized_values["phone_number"].value
             password_post = serialized_values["password"].value
+            toimipaikka_post = serialized_values["toimipaikka"].value
 
             print("nimi: ", name_post)
             print("email: ", email_post)
             print("phone: ", phone_number_post)
             print("password: ", password_post)
+            print("toimipaikka: ", toimipaikka_post)
 
-            # checking that user doesnt exist already as email needs to be unique ? redudant due to validation?
-            if User.objects.filter(email=email_post).exists():
-                print("found user with email of: ", email_post)
+            if toimipaikka_post :
+                print("toimipaikka on TRUE")
+            
+            if not toimipaikka_post :
+                print("luodaan normi käyttäjä: ")
+
+                # checking that user doesnt exist already as email needs to be unique ? redudant due to validation from serializer
+                if User.objects.filter(email=email_post).exists():
+                    print("found user with email of: ", email_post)
+                else:
+                    print("no user with email of: ", email_post)
+                # checking that email domain is valid ? for testing purposes pass with invalid emila addresses, in production always return invalid user name if not email address
+                if "@" not in email_post:
+                    # could this check be doen in validator along while keeping the other validaitons for the field. - ----- --
+                    # return Response("invalid email address, has no @", status=status.HTTP_400_BAD_REQUEST)
+                    pass
+                else:
+                    # no @ in email so creating non email based user I guess???? so no nee to check domain?, should check if location based account is check for security?
+                    email_split = email_post.split("@")
+                    if not Validate_email_domain(email_split[1]):
+                        print("uh duh??!?!?!")
+                        return Response("invalid email domain", status=status.HTTP_400_BAD_REQUEST)
+
+                print(
+                    "creating user with: ",
+                    first_name_post,
+                    last_name_post,
+                    email_post,
+                    phone_number_post,
+                    password_post,
+                )
+                # actually creating the user
+                User.objects.create_user(
+                    first_name_post,
+                    last_name_post,
+                    email_post,
+                    phone_number_post,
+                    password_post,
+                )
+
+                return Response(serialized_values.initial_data, status=status.HTTP_201_CREATED)
             else:
-                print("no user with email of: ", email_post)
-            # checking that email domain is valid ?
-            if "@" not in email_post:
-                # could this check be doen in validator along while keeping the other validaitons for the field. - ----- --
-                # return Response("invalid email address, has no @", status=status.HTTP_400_BAD_REQUEST)
-                pass
-            else:
-                # no @ in email so creating non email based user I guess???? so no nee to check domain?, should check if location based account is check for security?
-                email_split = email_post.split("@")
-                if not Validate_email_domain(email_split[1]):
-                    print("uh duh??!?!?!")
-                    return Response("invalid email domain")
+                print("luoddaan toimipaikka tili: ")
+                if serialized_values.data.get("vastuuhenkilo", None) is None :
+                    print("must have vastuuhenkilö if crreating toimipaikak tili")
 
-            print(
-                "creating user with: ",
-                first_name_post,
-                last_name_post,
-                email_post,
-                phone_number_post,
-                password_post,
-            )
-            # actually creating the user
-            User.objects.create_user(
-                first_name_post,
-                last_name_post,
-                email_post,
-                phone_number_post,
-                password_post,
-            )
+                    return Response("must have vastuuhenkilö if crreating toimipaikak tili", status=status.HTTP_400_BAD_REQUEST)
+                vastuuhenkilo = serialized_values.data.get("vastuuhenkilo")
+                print("vasstuu henkilo on-----: ", vastuuhenkilo)
+                if User.objects.filter(email=vastuuhenkilo).exists():
+                    print("found user with email of: ", vastuuhenkilo)
+                    user = User.objects.get(email=vastuuhenkilo)
+                    print(user, "\n ------------")
+                    print("Email: ", user.email, "   and password: ", user.password)
 
-            return Response(serialized_values.initial_data)
+                else:
+                    print("no user with email of: ", vastuuhenkilo)
+                    response_message = "no user with email of: " + vastuuhenkilo
+                    return Response(response_message, status=status.HTTP_400_BAD_REQUEST)
+
+                return Response("DERP Create a creation funktion and then we think", status=status.HTTP_201_CREATED)
         print(serialized_values.errors)
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -569,11 +619,18 @@ class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
         JWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
+    # required_groups = {
+    #     "GET": ["admin_group"],
+    #     "POST": ["admin_group"],
+    #     "PUT": ["admin_group"],
+    #     "PATCH": ["admin_group"],
+    # }
+    #use adming_group later, for testing purpose this is on user_group
     required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
+        "GET": ["user_group"],
+        "POST": ["user_group"],
+        "PUT": ["user_group"],
+        "PATCH": ["user_group"],
     }
 
     queryset = User.objects.all()

@@ -47,10 +47,12 @@ class UserSerializer_create(serializers.ModelSerializer):
 
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=155)
+    toimipaikka = serializers.BooleanField(default=False)
+    vastuuhenkilo = serializers.CharField(max_length=150, required=False)
 
     class Meta:
         model = CustomUser
-        fields = ["first_name", "last_name", "email", "phone_number", "password"]
+        fields = ["first_name", "last_name", "email", "phone_number", "password", "toimipaikka", "vastuuhenkilo"]
 
 
 class UserSerializer_update(serializers.ModelSerializer):

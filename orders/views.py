@@ -7,12 +7,19 @@ from rest_framework.generics import (
 )
 from rest_framework.response import Response
 
-from products.models import Product
+from products.models import Product, Picture
 
 from .models import Order, ShoppingCart
-from .serializers import OrderSerializer, ShoppingCartSerializer
+from .serializers import (
+    OrderSerializer,
+    OrderDetailSerializer,
+    ShoppingCartSerializer,
+    ShoppingCartDetailSerializer,
+)
 
 # Create your views here.
+def pic_ids_as_address_list(pic_ids):
+    return [Picture.objects.get(id=pic_id).picture_address.name for pic_id in pic_ids]
 
 
 class ShoppingCartListView(ListCreateAPIView):
@@ -31,7 +38,17 @@ class ShoppingCartListView(ListCreateAPIView):
 
 class ShoppingCartDetailView(RetrieveDestroyAPIView):
     queryset = ShoppingCart.objects.all()
-    serializer_class = ShoppingCartSerializer
+    serializer_class = ShoppingCartDetailSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        item = 0
+        for product in data["products"]:
+            data["products"][item]["pictures"] = pic_ids_as_address_list(data["products"][item]["pictures"])
+            item += 1
+        return Response(data)
 
 
 class OrderListView(ListCreateAPIView):
@@ -70,17 +87,30 @@ class OrderListView(ListCreateAPIView):
 
 class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    serializer_class = OrderDetailSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        item = 0
+        for product in data["products"]:
+            data["products"][item]["pictures"] = pic_ids_as_address_list(
+                data["products"][item]["pictures"]
+            )
+            item += 1
+        return Response(data)
 
     def delete(self, request, *args, **kwargs):
         order = Order.objects.get(id=request.data["productId"])
         for product in order.products.all():
             if product.id == request.data["product"]:
                 order.products.remove(product.id)
+                return Response(status=status.HTTP_202_ACCEPTED)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_update(self, serializer):
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)

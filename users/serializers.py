@@ -15,7 +15,7 @@ class UserSerializerFull(serializers.ModelSerializer):
         depth = 1
 
 
-class UserSerializer_password(serializers.ModelSerializer):
+class UserSerializerPassword(serializers.ModelSerializer):
     """
     Serializer for users, checking password fields
     """
@@ -30,7 +30,7 @@ class UserSerializer_password(serializers.ModelSerializer):
         fields = ["email", "password", "password_correct", "message_for_user"]
 
 
-class UserSerializer_password_2(serializers.ModelSerializer):
+class UserSerializerPassword2(serializers.ModelSerializer):
     """
     Serializer for users, checking password fields
     """

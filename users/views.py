@@ -18,7 +18,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .authenticate import CustomAuthenticationJWT, enforce_csrf
+from .authenticate import CustomAuthenticationJWT, ExampleAuthentication, enforce_csrf
 from .models import CustomUser
 from .permissions import HasGroupPermission, is_in_group
 from .serializers import (
@@ -26,13 +26,13 @@ from .serializers import (
     GroupNameSerializer,
     GroupPermissionsSerializer,
     GroupPermissionsSerializerNames,
-    UserSerializer_password,
-    UserSerializer_password_2,
     UserSerializerCreate,
     UserSerializerCreateReturn,
     UserSerializerFull,
     UserSerializerLimited,
     UserSerializerNames,
+    UserSerializerPassword,
+    UserSerializerPassword2,
     UserSerializerUpdate,
 )
 
@@ -57,32 +57,6 @@ def get_tokens_for_user(user):
 # Create your views here.
 
 
-class ExampleAuthentication(BaseAuthentication):
-    def authenticate(self, request):
-        # Get the username and password
-        username = request.data.get("email", None)
-        password = request.data.get("password", None)
-        print("TEST print from example authentication, request is:   ", request.data)
-
-        if not username or not password:
-            raise AuthenticationFailed(("No credentials provided."))
-            # raise AuthenticationFailed(_('No credentials provided.'))
-
-        credentials = {get_user_model().USERNAME_FIELD: username, "password": password}
-
-        user = authenticate(**credentials)
-
-        if user is None:
-            raise AuthenticationFailed(("Invalid username/password."))
-            # raise AuthenticationFailed(_('Invalid username/password.'))
-
-        if not user.is_active:
-            raise AuthenticationFailed(("User inactive or deleted."))
-            # raise AuthenticationFailed(_('User inactive or deleted.'))
-
-        return (user, None)  # authentication successful
-
-
 class UserCreateListView(APIView):
     """
     List all users, and create with POST
@@ -99,7 +73,6 @@ class UserCreateListView(APIView):
     def get(self, request, format=None):
         users = CustomUser.objects.all()
         serializer = UserSerializerNames(users, many=True)
-        print("test GET")
         return Response(serializer.data)
 
     def post(self, request, format=None):
@@ -219,7 +192,7 @@ class UserViewLogin(APIView):
 
     """
 
-    serializer_class = UserSerializer_password
+    serializer_class = UserSerializerPassword
 
     authentication_classes = [
         SessionAuthentication,
@@ -495,7 +468,7 @@ class UserViewUpdateInfo(APIView):
     def get(self, request, format=None):
         # redutant probably
         if str(request.user) == "AnonymousUser":
-            message = "PLease log in you are: " + str(request.user)
+            message = "Please log in you are: " + str(request.user)
             print(message)
 
             return Response(message)
@@ -568,14 +541,14 @@ class UserViewPassword(APIView):
 
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
-        serializer = UserSerializer_password(user)
+        serializer = UserSerializerPassword(user)
         return Response(serializer.data)
 
     def post(self, request, pk, format=None):
         print("test POST")
         user = self.get_object(pk)
-        serializer = UserSerializer_password(user)
-        serialized_values_request = UserSerializer_password(data=request.data)
+        serializer = UserSerializerPassword(user)
+        serialized_values_request = UserSerializerPassword(data=request.data)
         print(serialized_values_request)
         print("-------------------------------------------")
         print(serializer, "\n -------------------")
@@ -620,4 +593,4 @@ class UserViewPassword(APIView):
 
         return Response(data_serializer)
 
-    serializer_class = UserSerializer_password
+    serializer_class = UserSerializerPassword

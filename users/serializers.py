@@ -4,7 +4,7 @@ from rest_framework import serializers
 from .models import CustomUser
 
 
-class UserSerializer_full(serializers.ModelSerializer):
+class UserSerializerFull(serializers.ModelSerializer):
     """
     Serializer for users, all database fields
     """
@@ -40,7 +40,7 @@ class UserSerializer_password_2(serializers.ModelSerializer):
         fields = ["email", "password"]
 
 
-class UserSerializer_create(serializers.ModelSerializer):
+class UserSerializerCreate(serializers.ModelSerializer):
     """
     Serializer for users, in specific format for user creation
     """
@@ -49,13 +49,45 @@ class UserSerializer_create(serializers.ModelSerializer):
     last_name = serializers.CharField(max_length=155)
     toimipaikka = serializers.BooleanField(default=False)
     vastuuhenkilo = serializers.CharField(max_length=150, required=False)
+    phone_number = serializers.CharField(max_length=50)
 
     class Meta:
         model = CustomUser
-        fields = ["first_name", "last_name", "email", "phone_number", "password", "toimipaikka", "vastuuhenkilo"]
+        fields = [
+            "first_name",
+            "last_name",
+            "email",
+            "phone_number",
+            "password",
+            "toimipaikka",
+            "vastuuhenkilo",
+        ]
 
 
-class UserSerializer_update(serializers.ModelSerializer):
+class UserSerializerCreateReturn(serializers.ModelSerializer):
+    """
+    Serializer for users, in specific format for user creation
+    """
+
+    first_name = serializers.CharField(max_length=100)
+    last_name = serializers.CharField(max_length=155)
+    toimipaikka = serializers.BooleanField(default=False)
+    vastuuhenkilo = serializers.CharField(max_length=150, required=False)
+    phone_number = serializers.CharField(max_length=50)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "first_name",
+            "last_name",
+            "email",
+            "phone_number",
+            "toimipaikka",
+            "vastuuhenkilo",
+        ]
+
+
+class UserSerializerUpdate(serializers.ModelSerializer):
     """
     Serializer for users, for updating user information
     """
@@ -75,7 +107,7 @@ class SubSerializerForGroups(serializers.ModelSerializer):
         fields = ["name"]
 
 
-class UserSerializer_limited(serializers.ModelSerializer):
+class UserSerializerLimited(serializers.ModelSerializer):
     """
     Serializer for users, getting the revelant fields
     """
@@ -98,7 +130,7 @@ class UserSerializer_limited(serializers.ModelSerializer):
         ]
 
 
-class UserSerializer_names(serializers.ModelSerializer):
+class UserSerializerNames(serializers.ModelSerializer):
     """
     Serializer for users, name and email
     """

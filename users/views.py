@@ -26,13 +26,14 @@ from .serializers import (
     GroupNameSerializer,
     GroupPermissionsSerializer,
     GroupPermissionsSerializerNames,
-    UserSerializer_create,
-    UserSerializer_full,
-    UserSerializer_limited,
-    UserSerializer_names,
     UserSerializer_password,
     UserSerializer_password_2,
-    UserSerializer_update,
+    UserSerializerCreate,
+    UserSerializerCreateReturn,
+    UserSerializerFull,
+    UserSerializerLimited,
+    UserSerializerNames,
+    UserSerializerUpdate,
 )
 
 User = get_user_model()
@@ -87,17 +88,17 @@ class UserCreateListView(APIView):
     List all users, and create with POST
     !!!!HUOM !!!! ENNEN KUIN USERMIODELIA PÄIVITETÄÄN EI VOIDA TEHDÄ YHTEISKÄYTTÖTILIÄ KUNNOLLA JOTEN TESTAUS MUUTTUJIA
     TL;DR noormi käyttäjät toimivat, yhteiskäyttäjät puoliksi yhteiskäyttäjä EI LUO VIELÄ MITÄÄN
-    WIll be cleaned later
+    WIll be cleaned later, ask spsantam for more info
     """
 
     # queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer_create
+    serializer_class = UserSerializerCreate
 
     # need to make this so that only ppl inside turku/customers intra can access this, cehcks?
 
     def get(self, request, format=None):
         users = CustomUser.objects.all()
-        serializer = UserSerializer_names(users, many=True)
+        serializer = UserSerializerNames(users, many=True)
         print("test GET")
         return Response(serializer.data)
 
@@ -125,7 +126,7 @@ class UserCreateListView(APIView):
             print("no vastuuhenkilo so giving default")
             temp_req["vastuuhenkilo"] = "spsantam"
 
-        serialized_values = UserSerializer_create(data=temp_req)
+        serialized_values = UserSerializerCreate(data=temp_req)
         print(
             "stuff you got  from erkkos purrka koodi-----:      ",
             serialized_values.initial_data,
@@ -188,6 +189,10 @@ class UserCreateListView(APIView):
                     phone_number_post,
                     password_post,
                 )
+                return_serializer = UserSerializerCreateReturn(
+                    data=serialized_values.data
+                )
+                return_serializer.is_valid()
                 # actually creating the user
                 User.objects.create_user(
                     first_name_post,
@@ -197,9 +202,7 @@ class UserCreateListView(APIView):
                     password_post,
                 )
 
-                return Response(
-                    serialized_values.initial_data, status=status.HTTP_201_CREATED
-                )
+                return Response(return_serializer.data, status=status.HTTP_201_CREATED)
             else:
                 print("luoddaan toimipaikka tili: ")
                 if serialized_values.data.get("vastuuhenkilo", None) is None:
@@ -225,7 +228,7 @@ class UserCreateListView(APIView):
                     )
 
                 return Response(
-                    "DERP Create a creation funktion and then we think",
+                    "DERP Create a creation funktion and then we think, yes user was ot created yet",
                     status=status.HTTP_201_CREATED,
                 )
         print(serialized_values.errors)
@@ -235,11 +238,11 @@ class UserCreateListView(APIView):
 # leaving session and basic auth for easing testing purposes, remove them once deplayed to use only JWT?
 
 
-class UserView_login(APIView):
+class UserViewLogin(APIView):
     """
-    GET the current logged in user and returns it.
-    POST to login user manually, access token to http only cookie to user also.
-    POST use jwt-token login instead, leaving this here right now if its  needed
+    GET the current logged in user and returns it. used for checking logged in user
+    use jwt-api for actuaal login
+
     """
 
     serializer_class = UserSerializer_password
@@ -251,70 +254,14 @@ class UserView_login(APIView):
     ]
 
     def get(self, request, format=None):
-        print("GET request is:  ", request.user)
-        if (request.user) == "AnonymousUser":
-            content = {
-                "user": str(request.user),  # `django.contrib.auth.User` instance.
-                "auth": str(request.auth),  # None
-            }
-            return Response(content)
-        else:
-            content = {
-                "user": str(request.user),  # `django.contrib.auth.User` instance.
-                "auth": str(request.auth),  # None
-            }
-            return Response(content)
-
-    def post(self, request, format=None):
-        serialized_values_request = UserSerializer_password(data=request.data)
-        try:
-            email_post = serialized_values_request.initial_data["email"]
-            pw_request = serialized_values_request.initial_data["password"]
-        except KeyError:
-            return Response("no password passed or no email passed")
-
-        if User.objects.filter(email=email_post).exists():
-            user = User.objects.get(email=email_post)
-        else:
-            response_message = "no user with email of: " + email_post
-            return Response(response_message)
-
-        data = request.data
-        response = Response()
-
-        user_auth = authenticate(username=email_post, password=pw_request)
-        if user_auth is not None:
-            if user_auth.is_active:
-                data = get_tokens_for_user(user_auth)
-                response.set_cookie(
-                    key=settings.SIMPLE_JWT["AUTH_COOKIE"],
-                    value=data["access"],
-                    expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-                    secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                    httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                    samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-                )
-                csrf.get_token(request)
-                response.data = {"Success": "Login successfully", "data": data}
-                print(
-                    "printing the response data with token stuff for example--------:   ",
-                    response.data,
-                )
-                login(request, user_auth)
-                return response
-            else:
-                return Response(
-                    {"No active": "This account is not active!!"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-        else:
-            return Response(
-                "Failed to authenticate User/Faulty login information",
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
+        content = {
+            "user": str(request.user),  # `django.contrib.auth.User` instance.
+            "auth": str(request.auth),  # None
+        }
+        return Response(content)
 
 
-class UserView_logout(APIView):
+class UserViewLogout(APIView):
     """
     Logs out the user and flush session
     """
@@ -348,7 +295,7 @@ class UserDetailsListView(generics.ListAPIView):
     }
 
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer_full
+    serializer_class = UserSerializerFull
 
 
 # should not be used as returns non-necessary things, use the limited views instead as they are used to return necessary things.
@@ -373,7 +320,7 @@ class UserSingleGetView(APIView):
     }
 
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer_full
+    serializer_class = UserSerializerFull
 
     def get_object(self, pk):
         try:
@@ -383,7 +330,7 @@ class UserSingleGetView(APIView):
 
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
-        serializer = UserSerializer_full(user)
+        serializer = UserSerializerFull(user)
 
         return Response(serializer.data)
 
@@ -494,7 +441,7 @@ class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
     serializer_class = GroupPermissionsSerializer
 
 
-class UserDetailsListView_limited(APIView):
+class UserDetailsListViewLimited(APIView):
     """
     Get Users with revelant fields
     """
@@ -514,11 +461,11 @@ class UserDetailsListView_limited(APIView):
 
     def get(self, request, format=None):
         users = CustomUser.objects.all()
-        serializer = UserSerializer_limited(users, many=True)
+        serializer = UserSerializerLimited(users, many=True)
         return Response(serializer.data)
 
 
-class UserDetailsSingleView_limited(APIView):
+class UserDetailsSingleViewLimited(APIView):
     """
     Get single user with revelant fields
     """
@@ -545,11 +492,11 @@ class UserDetailsSingleView_limited(APIView):
 
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
-        serializer = UserSerializer_limited(user)
+        serializer = UserSerializerLimited(user)
         return Response(serializer.data)
 
 
-class UserView_update_info(APIView):
+class UserViewUpdateInfo(APIView):
     """
     Get logged in users information and update it
     """
@@ -568,7 +515,7 @@ class UserView_update_info(APIView):
         "PATCH": ["user_group"],
     }
 
-    serializer_class = UserSerializer_update
+    serializer_class = UserSerializerUpdate
     queryset = User.objects.all()
 
     def get(self, request, format=None):
@@ -580,8 +527,8 @@ class UserView_update_info(APIView):
             return Response(message)
         else:
             queryset = User.objects.filter(id=request.user.id)
-            serialized_data_full = UserSerializer_full(queryset, many=True)
-            return Response(UserSerializer_limited(request.user).data)
+            serialized_data_full = UserSerializerFull(queryset, many=True)
+            return Response(UserSerializerLimited(request.user).data)
 
     def put(self, request, format=None):
         serializer = self.serializer_class(
@@ -611,17 +558,18 @@ class UserViewUpdateSingle(generics.RetrieveUpdateAPIView):
         "PATCH": ["admin_group"],
     }
 
-    serializer_class = UserSerializer_update
+    serializer_class = UserSerializerUpdate
     queryset = User.objects.all()
 
 
-class UserView_password(APIView):
+class UserViewPassword(APIView):
     """
     DO NOT USE RIGHT NOW
-    Get single user, and try to check password
-    also used for resetting password, but this functionality still no done
+    Get single user, and try to check password (OLD tests)
+    also used for resetting password, but this functionality still not done
     needs more resarching so ignore this spaghetti for now
-    currently this was just made to test/practise things
+    currently this was just made to test/practise things WILL BE CHANGED
+    more info from spsantam
     """
 
     authentication_classes = [

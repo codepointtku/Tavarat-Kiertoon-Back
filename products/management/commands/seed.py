@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 
 from categories.models import Category
 from products.models import Color, Storage
+from users.models import CustomUser
 
 # python manage.py seed --mode=refresh
 
@@ -29,6 +30,7 @@ def clear_data():
     Color.objects.all().delete()
     Storage.objects.all().delete()
     Category.objects.all().delete()
+    CustomUser.objects.all().delete()
 
 
 def create_colors():
@@ -74,6 +76,18 @@ def create_categories():
     return
 
 
+def create_users():
+    """Creates user objects from the list."""
+    users = [
+        {"email": "testi@turku.fi"},
+        {"email": "testi2@turku.fi"},
+    ]
+    for user in users:
+        user_object = CustomUser(email=user["email"])
+        user_object.save()
+    return
+
+
 def run_seed(self, mode):
     """Seed database based on mode.
 
@@ -88,3 +102,4 @@ def run_seed(self, mode):
     create_colors()
     create_storages()
     create_categories()
+    create_users()

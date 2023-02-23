@@ -99,7 +99,7 @@ urlpatterns = [
     path("users/groups/<int:pk>/", GroupNameView.as_view()),
     path("users/groups/permission/", GroupPermissionCheck.as_view()),
     path("users/groups/permission/<int:pk>/", GroupPermissionUpdate.as_view()),
-    path("users/login/", UserViewLogin.as_view()),
+    path("users/login_check/", UserViewLogin.as_view()),
     path("users/logout/", UserViewLogout.as_view()),
     path("users/update/", UserViewUpdateInfo.as_view()),
     path("users/update/<int:pk>", UserViewUpdateSingle.as_view()),
@@ -110,9 +110,9 @@ urlpatterns = [
     path("contacts/", ContactListView.as_view()),
     path("contacts/<int:pk>", ContactDetailView.as_view()),
     path("api-auth/", include("rest_framework.urls")),
-    path("api/jwt-token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/jwt-token/refresh/", TokenRefreshView.as_view(), name="token_refrest"),
-    path("api/jwt-token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    path("users/login", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("users/login/refresh/", TokenRefreshView.as_view(), name="token_refrest"),
+    path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

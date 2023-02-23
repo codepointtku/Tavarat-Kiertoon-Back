@@ -6,4 +6,3 @@ COPY . .
 
 RUN pip install --no-cache-dir -r requirements.txt
 RUN python manage.py makemigrations
-# RUN python manage.py seed

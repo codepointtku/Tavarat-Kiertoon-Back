@@ -105,9 +105,6 @@ class UserCreateListView(APIView):
             print("password: ", password_post)
             print("toimipaikka: ", toimipaikka_post)
 
-            if toimipaikka_post:
-                print("toimipaikka on TRUE")
-
             if not toimipaikka_post:
                 print("luodaan normi käyttäjä: ")
 

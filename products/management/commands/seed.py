@@ -5,7 +5,7 @@ from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from bulletins.models import Bulletin, BulletinSubject
+from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact
 from products.models import Color, Picture, Product, Storage
@@ -29,8 +29,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("Seeding data...")
         run_seed(self, options["mode"])
-        self.stdout.write("Done.")
-        self.stdout.write("Remember to createsuperuser.")
+        self.stdout.write("Done. Remember to createsuperuser if needed.")
 
 
 def clear_data():
@@ -41,7 +40,6 @@ def clear_data():
     CustomUser.objects.all().delete()
     Picture.objects.all().delete()
     Product.objects.all().delete()
-    BulletinSubject.objects.all().delete()
     Bulletin.objects.all().delete()
     Contact.objects.all().delete()
 

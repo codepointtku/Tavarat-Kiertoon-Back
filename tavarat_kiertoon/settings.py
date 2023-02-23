@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "orders",
     "corsheaders",
+    "django_filters",
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -87,7 +88,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "tavarat_kiertoon.wsgi.application"
 
-
+REST_FRAMEWORK = {
+    "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
+}
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 

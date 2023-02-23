@@ -56,9 +56,10 @@ class ProductListView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     pagination_class = ProductListPagination
-    filter_backends = [OrderingFilter]
-    ordering_fields = ["date", "name", "color"]
-    ordering = ["date", "name", "color"]
+    # filter_backends = [OrderingFilter]
+    # ordering_fields = ["date", "name", "color"]
+    # ordering = ["date", "name", "color"]
+    filter_fields = ("date", "name", "color")
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

@@ -10,10 +10,10 @@ class ContactForm(models.Model):
     name = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
     subject = models.CharField(max_length=255)
-    category = models.CharField(max_length=255)
     message = models.TextField()
+    order_id = models.IntegerField(blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=255)
+    status = models.CharField(max_length=255, default="Not read")
 
     def __str__(self) -> str:
         return f"{self.email}'s ContactForm({self.id})"

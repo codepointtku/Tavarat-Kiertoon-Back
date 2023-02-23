@@ -77,15 +77,16 @@ class UserCreateListView(APIView):
 
     def post(self, request, format=None):
         serialized_values = UserSerializerCreate(data=request.data)
-        print(
-            "stuff you got  from erkkos purrka koodi-----:      ",
-            serialized_values.initial_data,
-        )
+
+        # temporaty creating the user and amdin groups here, for testing, this should be run first somewhere else
+        if not Group.objects.filter(name="user_group").exists():
+            Group.objects.create(name="user_group")
+        if not Group.objects.filter(name="admin_group").exists():
+            Group.objects.create(name="admin_group")
 
         if serialized_values.is_valid():
             # getting the data form serializer for user creation
-            print("Onko printissa ja sitten seriliasoidut data", serialized_values)
-            print("vastauksen data:   ", serialized_values.initial_data)
+            print("vastauksen data:   ", serialized_values.data)
             first_name_post = serialized_values["first_name"].value
             last_name_post = serialized_values["last_name"].value
             name_post = first_name_post + " " + last_name_post
@@ -131,7 +132,7 @@ class UserCreateListView(APIView):
                     last_name_post,
                     email_post,
                     phone_number_post,
-                    password_post,
+                    # password_post,
                 )
                 return_serializer = UserSerializerCreateReturn(
                     data=serialized_values.data
@@ -355,15 +356,17 @@ class GroupPermissionCheck(APIView):
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        # print("user: ", request.user)
         request_serializer = GroupNameCheckSerializer(data=request.data)
-        # print(request.data)
         request_serializer.is_valid(raise_exception=True)
 
         return Response(request_serializer.data)
 
 
 class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
+    """
+    Update users permissions, should be only allowed to admins, on testing phase allowing fo users
+    """
+
     authentication_classes = [
         SessionAuthentication,
         BasicAuthentication,

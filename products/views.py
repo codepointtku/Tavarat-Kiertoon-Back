@@ -6,8 +6,12 @@ from rest_framework.response import Response
 from categories.models import Category
 
 from .models import Color, Picture, Product, Storage
-from .serializers import (ColorSerializer, PictureSerializer,
-                          ProductSerializer, StorageSerializer)
+from .serializers import (
+    ColorSerializer,
+    PictureSerializer,
+    ProductSerializer,
+    StorageSerializer,
+)
 
 
 def pic_ids_as_address_list(pic_ids):

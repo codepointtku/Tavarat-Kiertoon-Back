@@ -1,5 +1,9 @@
-from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
-                                        Group, PermissionsMixin)
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    Group,
+    PermissionsMixin,
+)
 from django.db import models
 
 # Create your models here.
@@ -23,8 +27,8 @@ class CustomUserManager(BaseUserManager):
         )
         user.set_password(raw_password=password)
         user.save(using=self._db)
-        
-        if not Group.objects.filter(name="user_group").exists() :
+
+        if not Group.objects.filter(name="user_group").exists():
             Group.objects.create(name="user_group")
         group = Group.objects.get(name="user_group")
 

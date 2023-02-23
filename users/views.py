@@ -83,6 +83,10 @@ class UserCreateListView(APIView):
             Group.objects.create(name="user_group")
         if not Group.objects.filter(name="admin_group").exists():
             Group.objects.create(name="admin_group")
+        if not Group.objects.filter(name="storage_group").exists():
+            Group.objects.create(name="storage_group")
+        if not Group.objects.filter(name="bicycle_group").exists():
+            Group.objects.create(name="bicycle_group")
 
         if serialized_values.is_valid():
             # getting the data form serializer for user creation

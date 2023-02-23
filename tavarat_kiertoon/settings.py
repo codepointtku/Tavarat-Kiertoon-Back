@@ -196,4 +196,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.CustomUser"
 
 # setting for allowed domains in email to be used elsewhere in program
-VALID_EMAIL_DOMAINS = ["turku.fi"]
+VALID_EMAIL_DOMAINS = ["turku.fi", "edu.turku.fi"]

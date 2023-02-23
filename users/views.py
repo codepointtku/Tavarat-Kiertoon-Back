@@ -94,7 +94,7 @@ class UserCreateListView(APIView):
     # queryset = CustomUser.objects.all()
     serializer_class = UserSerializerCreate
 
-    # need to make this so that only ppl inside turku/customers intra can access this, cehcks?
+    # need to make this so that only ppl inside turku/customers intra can access this, cehcks?,  only admins?
 
     def get(self, request, format=None):
         users = CustomUser.objects.all()
@@ -103,40 +103,11 @@ class UserCreateListView(APIView):
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        print("test POST")
-        temp_req = request.data.copy()
-        print("test data: ", temp_req)
-        # checking the request data if correct vlues exist, so that we get all values to create user before from finishes the reg forms
-        # remove after front is finished with this
-        if temp_req.get("first_name") == None:
-            print("no first_name so giving default")
-            temp_req["first_name"] = "Chuck"
-        if temp_req.get("last_name") == None:
-            print("no last_name so giving default")
-            temp_req["last_name"] = "Norris"
-        if temp_req.get("phone_number") == None:
-            print("no phone_number so giving default")
-            temp_req["phone_number"] = "666"
-        if temp_req.get("toimipaikka") == None:
-            print("no toimipaikka so giving default")
-            print("here?")
-            # temp_req["toimipaikka"] = "true"
-            print("here2?")
-        if temp_req.get("vastuuhenkilo") == None:
-            print("no vastuuhenkilo so giving default")
-            temp_req["vastuuhenkilo"] = "spsantam"
-
-        serialized_values = UserSerializerCreate(data=temp_req)
+        serialized_values = UserSerializerCreate(data=request.data)
         print(
             "stuff you got  from erkkos purrka koodi-----:      ",
             serialized_values.initial_data,
         )
-        # serialized_values["first_name"] = "Chuck"
-        # serialized_values["last_name"] = "Norris"
-        # print(
-        #     "stuff you got  from erkkos purrka koodi-----EDIT:      ",
-        #     serialized_values.initial_data,
-        # )
 
         if serialized_values.is_valid():
             # getting the data form serializer for user creation
@@ -173,7 +144,7 @@ class UserCreateListView(APIView):
                     # return Response("invalid email address, has no @", status=status.HTTP_400_BAD_REQUEST)
                     pass
                 else:
-                    # no @ in email so creating non email based user I guess???? so no nee to check domain?, should check if location based account is check for security?
+                    # no @ in email so creating non email based user I guess???? so no need to check domain?, should check if location based account is check for security?
                     email_split = email_post.split("@")
                     if not Validate_email_domain(email_split[1]):
                         print("uh duh??!?!?!")
@@ -204,6 +175,9 @@ class UserCreateListView(APIView):
 
                 return Response(return_serializer.data, status=status.HTTP_201_CREATED)
             else:
+                # -----------------------------------------------------
+                # UNFINISHED STUFF WILLL BE CHANGED
+                # -----------------------------------------------------
                 print("luoddaan toimipaikka tili: ")
                 if serialized_values.data.get("vastuuhenkilo", None) is None:
                     print("must have vastuuhenkilö if crreating toimipaikak tili")
@@ -228,7 +202,7 @@ class UserCreateListView(APIView):
                     )
 
                 return Response(
-                    "DERP Create a creation funktion and then we think, yes user was ot created yet",
+                    "DERP Create a creation funktion and then we think, yes user was not created yet",
                     status=status.HTTP_201_CREATED,
                 )
         print(serialized_values.errors)

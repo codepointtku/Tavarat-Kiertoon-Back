@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 
+from categories.models import Category
 from products.models import Color, Storage
 
 # python manage.py seed --mode=refresh
@@ -27,6 +28,7 @@ def clear_data():
     """Deletes all the table data."""
     Color.objects.all().delete()
     Storage.objects.all().delete()
+    Category.objects.all().delete()
 
 
 def create_colors():
@@ -38,7 +40,7 @@ def create_colors():
     return
 
 
-def create_storage():
+def create_storages():
     """Creates storage objects from the list."""
     storages = [
         {"name": "Varasto X", "address": "Blabla 2b, 20230 Turku", "in_use": True},
@@ -50,6 +52,25 @@ def create_storage():
             name=storage["name"], address=storage["address"], in_use=storage["in_use"]
         )
         storage_object.save()
+    return
+
+
+def create_categories():
+    """Creates category objects from the list."""
+    categories = [
+        {"name": "Huonekalut"},
+        {"name": "Tuolit", "parent": "Huonekalut"},
+        {"name": "Toimistotuolit", "parent": "Tuolit"},
+        {"name": "Keittiökamat"},
+        {"name": "Kahvinkeitin", "parent": "Keittiökamat"},
+    ]
+    for category in categories:
+        if "parent" in category:
+            parent_object = Category.objects.get(name=category["parent"])
+            category_object = Category(name=category["name"], parent=parent_object)
+        else:
+            category_object = Category(name=category["name"])
+        category_object.save()
     return
 
 
@@ -65,4 +86,5 @@ def run_seed(self, mode):
         return
 
     create_colors()
-    create_storage()
+    create_storages()
+    create_categories()

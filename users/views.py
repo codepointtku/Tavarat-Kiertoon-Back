@@ -105,27 +105,26 @@ class UserCreateListView(APIView):
         print("test POST")
         temp_req = request.data.copy()
         print("test data: ", temp_req)
-        #checking the request data if correct vlues exist, so that we get all values to create user before from finishes the reg forms
-        #remove after front is finished with this
-        if temp_req.get("first_name") == None :
+        # checking the request data if correct vlues exist, so that we get all values to create user before from finishes the reg forms
+        # remove after front is finished with this
+        if temp_req.get("first_name") == None:
             print("no first_name so giving default")
             temp_req["first_name"] = "Chuck"
-        if temp_req.get("last_name") == None :
+        if temp_req.get("last_name") == None:
             print("no last_name so giving default")
             temp_req["last_name"] = "Norris"
-        if temp_req.get("phone_number") == None :
+        if temp_req.get("phone_number") == None:
             print("no phone_number so giving default")
             temp_req["phone_number"] = "666"
-        if temp_req.get("toimipaikka") == None :
+        if temp_req.get("toimipaikka") == None:
             print("no toimipaikka so giving default")
             print("here?")
-            #temp_req["toimipaikka"] = "true"
+            # temp_req["toimipaikka"] = "true"
             print("here2?")
-        if temp_req.get("vastuuhenkilo") == None :
+        if temp_req.get("vastuuhenkilo") == None:
             print("no vastuuhenkilo so giving default")
             temp_req["vastuuhenkilo"] = "spsantam"
 
-        
         serialized_values = UserSerializer_create(data=temp_req)
         print(
             "stuff you got  from erkkos purrka koodi-----:      ",
@@ -156,10 +155,10 @@ class UserCreateListView(APIView):
             print("password: ", password_post)
             print("toimipaikka: ", toimipaikka_post)
 
-            if toimipaikka_post :
+            if toimipaikka_post:
                 print("toimipaikka on TRUE")
-            
-            if not toimipaikka_post :
+
+            if not toimipaikka_post:
                 print("luodaan normi käyttäjä: ")
 
                 # checking that user doesnt exist already as email needs to be unique ? redudant due to validation from serializer
@@ -177,7 +176,9 @@ class UserCreateListView(APIView):
                     email_split = email_post.split("@")
                     if not Validate_email_domain(email_split[1]):
                         print("uh duh??!?!?!")
-                        return Response("invalid email domain", status=status.HTTP_400_BAD_REQUEST)
+                        return Response(
+                            "invalid email domain", status=status.HTTP_400_BAD_REQUEST
+                        )
 
                 print(
                     "creating user with: ",
@@ -196,13 +197,18 @@ class UserCreateListView(APIView):
                     password_post,
                 )
 
-                return Response(serialized_values.initial_data, status=status.HTTP_201_CREATED)
+                return Response(
+                    serialized_values.initial_data, status=status.HTTP_201_CREATED
+                )
             else:
                 print("luoddaan toimipaikka tili: ")
-                if serialized_values.data.get("vastuuhenkilo", None) is None :
+                if serialized_values.data.get("vastuuhenkilo", None) is None:
                     print("must have vastuuhenkilö if crreating toimipaikak tili")
 
-                    return Response("must have vastuuhenkilö if crreating toimipaikak tili", status=status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        "must have vastuuhenkilö if crreating toimipaikak tili",
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
                 vastuuhenkilo = serialized_values.data.get("vastuuhenkilo")
                 print("vasstuu henkilo on-----: ", vastuuhenkilo)
                 if User.objects.filter(email=vastuuhenkilo).exists():
@@ -214,11 +220,17 @@ class UserCreateListView(APIView):
                 else:
                     print("no user with email of: ", vastuuhenkilo)
                     response_message = "no user with email of: " + vastuuhenkilo
-                    return Response(response_message, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        response_message, status=status.HTTP_400_BAD_REQUEST
+                    )
 
-                return Response("DERP Create a creation funktion and then we think", status=status.HTTP_201_CREATED)
+                return Response(
+                    "DERP Create a creation funktion and then we think",
+                    status=status.HTTP_201_CREATED,
+                )
         print(serialized_values.errors)
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # leaving session and basic auth for easing testing purposes, remove them once deplayed to use only JWT?
 
@@ -247,7 +259,6 @@ class UserView_login(APIView):
             }
             return Response(content)
         else:
-
             content = {
                 "user": str(request.user),  # `django.contrib.auth.User` instance.
                 "auth": str(request.auth),  # None
@@ -255,7 +266,6 @@ class UserView_login(APIView):
             return Response(content)
 
     def post(self, request, format=None):
-
         serialized_values_request = UserSerializer_password(data=request.data)
         try:
             email_post = serialized_values_request.initial_data["email"]
@@ -274,7 +284,6 @@ class UserView_login(APIView):
 
         user_auth = authenticate(username=email_post, password=pw_request)
         if user_auth is not None:
-
             if user_auth.is_active:
                 data = get_tokens_for_user(user_auth)
                 response.set_cookie(
@@ -299,12 +308,17 @@ class UserView_login(APIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
         else:
-            return Response("Failed to authenticate User/Faulty login information", status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                "Failed to authenticate User/Faulty login information",
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
 
 class UserView_logout(APIView):
     """
     Logs out the user and flush session
     """
+
     def get(self, request):
         logout(request)
         return Response(
@@ -447,13 +461,12 @@ class GroupPermissionCheck(APIView):
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        #print("user: ", request.user)
+        # print("user: ", request.user)
         request_serializer = GroupNameCheckSerializer(data=request.data)
-        #print(request.data)
+        # print(request.data)
         request_serializer.is_valid(raise_exception=True)
 
         return Response(request_serializer.data)
-
 
 
 class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
@@ -469,7 +482,7 @@ class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
     #     "PUT": ["admin_group"],
     #     "PATCH": ["admin_group"],
     # }
-    #use adming_group later, for testing purpose this is on user_group
+    # use adming_group later, for testing purpose this is on user_group
     required_groups = {
         "GET": ["user_group"],
         "POST": ["user_group"],
@@ -569,7 +582,6 @@ class UserView_update_info(APIView):
             queryset = User.objects.filter(id=request.user.id)
             serialized_data_full = UserSerializer_full(queryset, many=True)
             return Response(UserSerializer_limited(request.user).data)
-
 
     def put(self, request, format=None):
         serializer = self.serializer_class(

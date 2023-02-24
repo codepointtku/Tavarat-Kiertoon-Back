@@ -16,7 +16,12 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
+)
 
 from bulletins.views import (
     BulletinDetailView,
@@ -24,10 +29,7 @@ from bulletins.views import (
     BulletinSubjectDetailView,
     BulletinSubjectListView,
 )
-from categories.views import(
-    CategoryListView,
-    CategoryDetailView
-)
+from categories.views import CategoryDetailView, CategoryListView
 from contact_forms.views import (
     ContactDetailView,
     ContactFormDetailView,
@@ -51,6 +53,22 @@ from products.views import (
     StorageDetailView,
     StorageListView,
 )
+from users.views import (
+    GroupListView,
+    GroupNameView,
+    GroupPermissionCheck,
+    GroupPermissionUpdate,
+    UserCreateListView,
+    UserDetailsListView,
+    UserDetailsListViewLimited,
+    UserDetailsSingleViewLimited,
+    UserSingleGetView,
+    UserViewLogin,
+    UserViewLogout,
+    UserViewPassword,
+    UserViewUpdateInfo,
+    UserViewUpdateSingle,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -71,12 +89,30 @@ urlpatterns = [
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
     path("categories/", CategoryListView.as_view()),
     path("categories/<int:pk>/", CategoryDetailView.as_view()),
+    path("users/", UserDetailsListView.as_view()),
+    path("users/create/", UserCreateListView.as_view()),
+    path("users/<int:pk>/", UserSingleGetView.as_view()),
+    path("users/limited/", UserDetailsListViewLimited.as_view()),
+    path("users/limited/<int:pk>", UserDetailsSingleViewLimited.as_view()),
+    path("users/password/<int:pk>/", UserViewPassword.as_view()),
+    path("users/groups/", GroupListView.as_view()),
+    path("users/groups/<int:pk>/", GroupNameView.as_view()),
+    path("users/groups/permission/", GroupPermissionCheck.as_view()),
+    path("users/groups/permission/<int:pk>/", GroupPermissionUpdate.as_view()),
+    path("users/login_check/", UserViewLogin.as_view()),
+    path("users/logout/", UserViewLogout.as_view()),
+    path("users/update/", UserViewUpdateInfo.as_view()),
+    path("users/update/<int:pk>/", UserViewUpdateSingle.as_view()),
     path("bulletins/", BulletinListView.as_view()),
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),
     path("bulletin_subjects/", BulletinSubjectListView.as_view()),
     path("bulletin_subjects/<int:pk>", BulletinSubjectDetailView.as_view()),
     path("contacts/", ContactListView.as_view()),
     path("contacts/<int:pk>", ContactDetailView.as_view()),
+    path("api-auth/", include("rest_framework.urls")),
+    path("users/login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("users/login/refresh/", TokenRefreshView.as_view(), name="token_refrest"),
+    path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

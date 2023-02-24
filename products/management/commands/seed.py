@@ -206,9 +206,10 @@ def create_products():
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
         },
     ]
+    true_false = [1, 1, 1, 0]
     for product in products:
         product_object = Product(
-            available=True,
+            available=random.choice(true_false),
             name=product["name"],
             free_description=product["free_description"],
             category=random.choice(Category.objects.all()),

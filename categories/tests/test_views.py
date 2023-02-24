@@ -31,7 +31,7 @@ class TestCategories(TestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 400)
 
-    def test_parent_none(self):
+    def test_post_parent_none(self):
         url = "/categories/"
         data = {"name": "parentless", "parent": ""}
         response = self.client.post(url, data)
@@ -42,3 +42,12 @@ class TestCategories(TestCase):
         data = {"parent": self.test_category0.id}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 400)
+
+    def test_self_string(self):
+        self.assertEqual(str(self.test_category),
+            f"Category: {self.test_category.name}({self.test_category.id})"
+        )
+        self.assertEqual(str(self.test_category0),(
+            f"Category: {self.test_category0.name}({self.test_category0.id}) "
+            f"Parent Category: {self.test_category0.parent.name}({self.test_category0.parent.id})"
+        ))

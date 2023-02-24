@@ -59,6 +59,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     creation_date = models.DateTimeField(auto_now_add=True)
     phone_number = models.CharField(max_length=255, null=True)
+    user_name = models.CharField(max_length=255)
+    joint_user = models.BooleanField(default=False)
+    contact_person = models.CharField(max_length=255, null=True, blank=True)
 
     objects = CustomUserManager()
 
@@ -69,3 +72,16 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self) -> str:
         return f"User: {self.email}({self.id})"
+
+
+class UserAddress(models.Model):
+    """class for making UserAddress table for database"""
+
+    id = models.BigAutoField(primary_key=True)
+    address = models.CharField(max_length=255)
+    zip_code = models.CharField(max_length=10)
+    city = models.CharField(max_length=100)
+    user = models.ManyToManyField(CustomUser)
+
+    def __str__(self) -> str:
+        return f"Address: {self.address} {self.zip_code} {self.city} ({self.id})"

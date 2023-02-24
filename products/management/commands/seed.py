@@ -1,6 +1,7 @@
 import random
 import urllib.request
 
+from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -50,6 +51,15 @@ def create_colors():
     for color in colors:
         color_object = Color(name=color)
         color_object.save()
+    return
+
+
+def create_groups():
+    """creates the user groups used in project"""
+    groups = ["user_group", "admin_group", "storage_group", "bicycle_group"]
+    for group in groups:
+        group_object = Group(name=group)
+        group_object.save()
     return
 
 
@@ -286,6 +296,7 @@ def run_seed(self, mode):
         return
 
     create_colors()
+    create_groups()
     create_storages()
     create_categories()
     create_users()

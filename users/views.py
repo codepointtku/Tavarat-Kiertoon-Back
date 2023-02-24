@@ -96,15 +96,19 @@ class UserCreateListView(APIView):
             email_post = serialized_values["email"].value
             phone_number_post = serialized_values["phone_number"].value
             password_post = serialized_values["password"].value
-            toimipaikka_post = serialized_values["toimipaikka"].value
+            joint_user_post = serialized_values["joint_user"].value
+            contact_person_post = serialized_values["contact_person"].value
+            address_post = serialized_values["address"].value
 
             print("nimi: ", name_post)
             print("email: ", email_post)
             print("phone: ", phone_number_post)
             print("password: ", password_post)
-            print("toimipaikka: ", toimipaikka_post)
+            print("joint_user: ", joint_user_post)
+            print("contact_person: ", contact_person_post)
+            print("address: ", address_post)
 
-            if not toimipaikka_post:
+            if not joint_user_post:
                 print("luodaan normi käyttäjä: ")
 
                 # checking that user doesnt exist already as email needs to be unique ? redudant due to validation from serializer

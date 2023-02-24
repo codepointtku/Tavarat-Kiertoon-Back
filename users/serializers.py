@@ -47,8 +47,8 @@ class UserSerializerCreate(serializers.ModelSerializer):
 
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=155)
-    toimipaikka = serializers.BooleanField(default=False)
-    vastuuhenkilo = serializers.CharField(max_length=150, required=False)
+    joint_user = serializers.BooleanField(default=False)
+    contact_person = serializers.CharField(max_length=150, required=False)
     phone_number = serializers.CharField(max_length=50)
 
     class Meta:
@@ -59,8 +59,10 @@ class UserSerializerCreate(serializers.ModelSerializer):
             "email",
             "phone_number",
             "password",
-            "toimipaikka",
-            "vastuuhenkilo",
+            "joint_user",
+            "contact_person",
+            "address",
+            "user_name",
         ]
 
 

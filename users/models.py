@@ -10,7 +10,18 @@ from django.db import models
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, first_name, last_name, email, phone_number, password):
+    def create_user(
+        self,
+        first_name,
+        last_name,
+        email,
+        phone_number,
+        password,
+        joint_user,
+        contact_person,
+        address,
+        user_name,
+    ):
         """function for creating a user"""
         if not first_name:
             raise ValueError("Users must have first name")
@@ -20,11 +31,39 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Users must have email")
         if not phone_number:
             raise ValueError("Users must have phone number")
-        user = self.model(
-            email=self.normalize_email(email=email),
-            phone_number=phone_number,
-            name=(first_name + " " + last_name).title(),
-        )
+        if not address:
+            raise ValueError("Users must have address")
+        if not phone_number and joint_user:
+            raise ValueError("Users must have user name")
+
+        if not contact_person:
+            raise ValueError("Users must have contact person")
+
+        if not joint_user:
+            user_name = email
+
+        if not user_name:
+            raise ValueError("Users must have user name")
+
+        if joint_user:
+            user = self.model(
+                email=self.normalize_email(email=email),
+                phone_number=phone_number,
+                name=(first_name + " " + last_name).title(),
+                user_name=user_name,
+                address=address,
+                joint_user=joint_user,
+                contact_person=contact_person,
+            )
+        else:
+            user = self.model(
+                email=self.normalize_email(email=email),
+                phone_number=phone_number,
+                name=(first_name + " " + last_name).title(),
+                user_name=self.normalize_email(email=email),
+                address=address,
+            )
+
         user.set_password(raw_password=password)
         user.save(using=self._db)
 
@@ -49,6 +88,18 @@ class CustomUserManager(BaseUserManager):
         return user
 
 
+class UserAddress(models.Model):
+    """class for making UserAddress table for database"""
+
+    id = models.BigAutoField(primary_key=True)
+    address = models.CharField(max_length=255)
+    zip_code = models.CharField(max_length=10)
+    city = models.CharField(max_length=100)
+
+    def __str__(self) -> str:
+        return f"Address: {self.address} {self.zip_code} {self.city} ({self.id})"
+
+
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     """class representing User in database"""
 
@@ -59,9 +110,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     creation_date = models.DateTimeField(auto_now_add=True)
     phone_number = models.CharField(max_length=255, null=True)
-    user_name = models.CharField(max_length=255)
+    user_name = models.CharField(max_length=255, null=True, blank=True)
     joint_user = models.BooleanField(default=False)
     contact_person = models.CharField(max_length=255, null=True, blank=True)
+    address = models.ManyToManyField(UserAddress)
 
     objects = CustomUserManager()
 
@@ -72,16 +124,3 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self) -> str:
         return f"User: {self.email}({self.id})"
-
-
-class UserAddress(models.Model):
-    """class for making UserAddress table for database"""
-
-    id = models.BigAutoField(primary_key=True)
-    address = models.CharField(max_length=255)
-    zip_code = models.CharField(max_length=10)
-    city = models.CharField(max_length=100)
-    user = models.ManyToManyField(CustomUser)
-
-    def __str__(self) -> str:
-        return f"Address: {self.address} {self.zip_code} {self.city} ({self.id})"

@@ -18,7 +18,6 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .authenticate import CustomAuthenticationJWT, ExampleAuthentication, enforce_csrf
 from .models import CustomUser
 from .permissions import HasGroupPermission, is_in_group
 from .serializers import (

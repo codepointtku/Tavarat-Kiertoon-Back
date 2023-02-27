@@ -65,27 +65,6 @@ def create_groups():
     return
 
 
-def create_useraddress():
-    """Creates user_address objects from the list."""
-    user_addresses = [
-        {"address": "Kebabbilan tie 1", "zip_code": "20210", "city": "Kebab"},
-        {
-            "address": "Chuck Norriksen Kartano 666",
-            "zip_code": "60606",
-            "city": "Manala",
-        },
-        {"address": "Pizza on hyvää polku", "zip_code": "123456789", "city": "Pitsa"},
-    ]
-    for address in user_addresses:
-        address_object = UserAddress(
-            address=address["address"],
-            zip_code=address["zip_code"],
-            city=address["city"],
-        )
-        address_object.save()
-    return
-
-
 def create_storages():
     """Creates storage objects from the list."""
     storages = [
@@ -148,6 +127,37 @@ def create_users():
         user_object.save()
         group = Group.objects.get(name="user_group")
         user_object.groups.add(group)
+
+    return
+
+
+def create_useraddress():
+    """Creates user_address objects from the list."""
+    user_addresses = [
+        {"address": "Kebabbilan tie 1", "zip_code": "20210", "city": "Kebab"},
+        {
+            "address": "Chuck Norriksen Kartano 666",
+            "zip_code": "60606",
+            "city": "Manala",
+        },
+        {"address": "Pizza on hyvää polku", "zip_code": "123456789", "city": "Pitsa"},
+    ]
+    for address in user_addresses:
+        address_object = UserAddress(
+            address=address["address"],
+            zip_code=address["zip_code"],
+            city=address["city"],
+            linked_user=CustomUser.objects.get(user_name="super"),
+        )
+        address_object.save()
+
+    address_object = UserAddress(
+        address="testila 1",
+        zip_code="123456789",
+        city="testi city",
+        linked_user=CustomUser.objects.get(user_name="testi@turku.fi"),
+    )
+    address_object.save()
 
     return
 
@@ -339,10 +349,10 @@ def run_seed(self, mode):
 
     create_colors()
     create_groups()
-    create_useraddress()
     create_storages()
     create_categories()
     create_users()
+    create_useraddress()
     for i in range(6):
         create_picture()
     create_products()

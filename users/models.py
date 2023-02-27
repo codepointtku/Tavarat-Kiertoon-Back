@@ -20,6 +20,8 @@ class CustomUserManager(BaseUserManager):
         joint_user,
         contact_person,
         address,
+        zip_code,
+        city,
         user_name,
     ):
         """function for creating a user"""
@@ -33,6 +35,10 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Users must have phone number")
         if not address:
             raise ValueError("Users must have address")
+        if not zip_code:
+            raise ValueError("Users must have zip_code")
+        if not city:
+            raise ValueError("Users must have city")
         if not phone_number and joint_user:
             raise ValueError("Users must have user name")
 
@@ -71,6 +77,8 @@ class CustomUserManager(BaseUserManager):
             Group.objects.create(name="user_group")
         group = Group.objects.get(name="user_group")
 
+        # creating the address for user
+
         user.groups.add(group)
 
         return user
@@ -88,18 +96,6 @@ class CustomUserManager(BaseUserManager):
         return user
 
 
-class UserAddress(models.Model):
-    """class for making UserAddress table for database"""
-
-    id = models.BigAutoField(primary_key=True)
-    address = models.CharField(max_length=255)
-    zip_code = models.CharField(max_length=10)
-    city = models.CharField(max_length=100)
-
-    def __str__(self) -> str:
-        return f"Address: {self.address} {self.zip_code} {self.city} ({self.id})"
-
-
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     """class representing User in database"""
 
@@ -113,7 +109,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     user_name = models.CharField(max_length=255, unique=True)
     joint_user = models.BooleanField(default=False)
     contact_person = models.CharField(max_length=255, null=True, blank=True)
-    address = models.ManyToManyField(UserAddress)
+    # address = models.ManyToManyField(UserAddress)
 
     objects = CustomUserManager()
 
@@ -124,3 +120,16 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self) -> str:
         return f"User: {self.user_name}({self.id})"
+
+
+class UserAddress(models.Model):
+    """class for making UserAddress table for database"""
+
+    id = models.BigAutoField(primary_key=True)
+    address = models.CharField(max_length=255)
+    zip_code = models.CharField(max_length=10)
+    city = models.CharField(max_length=100)
+    linked_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"Address: {self.address} {self.zip_code} {self.city} ({self.id})"

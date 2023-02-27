@@ -100,6 +100,8 @@ class UserCreateListView(APIView):
             contact_person_post = serialized_values["contact_person"].value
 
             address_post = serialized_values["address"].value
+            zip_code_post = serialized_values["zip_code"].value
+            city_post = serialized_values["city"].value
 
             print("nimi: ", name_post)
             print("email: ", email_post)
@@ -138,6 +140,9 @@ class UserCreateListView(APIView):
                     email_post,
                     phone_number_post,
                     # password_post,
+                    address_post,
+                    zip_code_post,
+                    city_post,
                 )
                 return_serializer = UserSerializerCreateReturn(
                     data=serialized_values.data
@@ -150,6 +155,9 @@ class UserCreateListView(APIView):
                     email_post,
                     phone_number_post,
                     password_post,
+                    address_post,
+                    zip_code_post,
+                    city_post,
                 )
 
                 return Response(return_serializer.data, status=status.HTTP_201_CREATED)

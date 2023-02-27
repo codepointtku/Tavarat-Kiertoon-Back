@@ -10,7 +10,7 @@ from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact
 from products.models import Color, Picture, Product, Storage
-from users.models import CustomUser
+from users.models import CustomUser, UserAddress
 
 # python manage.py seed
 
@@ -44,6 +44,7 @@ def clear_data():
     Bulletin.objects.all().delete()
     Contact.objects.all().delete()
     Group.objects.all().delete()
+    UserAddress.objects.all().delete()
 
 
 def create_colors():
@@ -61,6 +62,27 @@ def create_groups():
     for group in groups:
         group_object = Group(name=group)
         group_object.save()
+    return
+
+
+def create_useraddress():
+    """Creates user_address objects from the list."""
+    user_addresses = [
+        {"address": "Kebabbilan tie 1", "zip_code": "20210", "city": "Kebab"},
+        {
+            "address": "Chuck Norriksen Kartano 666",
+            "zip_code": "60606",
+            "city": "Manala",
+        },
+        {"address": "Pizza on hyvää polku", "zip_code": "123456789", "city": "Pitsa"},
+    ]
+    for address in user_addresses:
+        address_object = UserAddress(
+            address=address["address"],
+            zip_code=address["zip_code"],
+            city=address["city"],
+        )
+        address_object.save()
     return
 
 
@@ -317,6 +339,7 @@ def run_seed(self, mode):
 
     create_colors()
     create_groups()
+    create_useraddress()
     create_storages()
     create_categories()
     create_users()

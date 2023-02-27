@@ -98,6 +98,7 @@ class UserCreateListView(APIView):
             password_post = serialized_values["password"].value
             joint_user_post = serialized_values["joint_user"].value
             contact_person_post = serialized_values["contact_person"].value
+
             address_post = serialized_values["address"].value
 
             print("nimi: ", name_post)

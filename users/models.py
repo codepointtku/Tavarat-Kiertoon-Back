@@ -36,8 +36,8 @@ class CustomUserManager(BaseUserManager):
         if not phone_number and joint_user:
             raise ValueError("Users must have user name")
 
-        if not contact_person:
-            raise ValueError("Users must have contact person")
+        if not contact_person and joint_user:
+            raise ValueError("Users must have contact person if joint_user")
 
         if not joint_user:
             user_name = email

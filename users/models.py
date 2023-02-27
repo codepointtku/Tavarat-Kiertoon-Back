@@ -75,9 +75,9 @@ class CustomUserManager(BaseUserManager):
 
         return user
 
-    def create_superuser(self, email, password):
+    def create_superuser(self, user_name, password):
         """function for creating a superuser"""
-        user = self.model(email=email)
+        user = self.model(user_name=user_name, email=user_name)
         user.set_password(raw_password=password)
         user.is_admin = True
         user.is_staff = True
@@ -110,7 +110,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     creation_date = models.DateTimeField(auto_now_add=True)
     phone_number = models.CharField(max_length=255, null=True)
-    user_name = models.CharField(max_length=255, null=True, blank=True)
+    user_name = models.CharField(max_length=255, unique=True)
     joint_user = models.BooleanField(default=False)
     contact_person = models.CharField(max_length=255, null=True, blank=True)
     address = models.ManyToManyField(UserAddress)
@@ -119,8 +119,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     REQUIRED_FIELDS = []
 
-    USERNAME_FIELD = "email"
+    USERNAME_FIELD = "user_name"
     EMAIL_FIELD = "email"
 
     def __str__(self) -> str:
-        return f"User: {self.email}({self.id})"
+        return f"User: {self.user_name}({self.id})"

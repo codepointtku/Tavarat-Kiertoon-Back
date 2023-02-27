@@ -43,6 +43,7 @@ def clear_data():
     Product.objects.all().delete()
     Bulletin.objects.all().delete()
     Contact.objects.all().delete()
+    Group.objects.all().delete()
 
 
 def create_colors():
@@ -100,12 +101,31 @@ def create_categories():
 def create_users():
     """Creates user objects from the list."""
     users = [
-        {"email": "testi@turku.fi"},
-        {"email": "testi2@turku.fi"},
+        {
+            "user_name": "testi@turku.fi",
+            "password": "testi",
+            "email": "testi@turku.fi",
+        },
+        {
+            "user_name": "kavhila@turku.fi",
+            "password": "1234",
+            "email": "kavhila@turku.fi",
+        },
     ]
+    # creating test super user
+    user_object_super = CustomUser(user_name="super", email="super")
+    user_object_super.set_password(raw_password="super")
+    user_object_super.is_admin = True
+    user_object_super.is_staff = True
+    user_object_super.is_superuser = True
+    user_object_super.save()
+
     for user in users:
-        user_object = CustomUser(email=user["email"])
+        user_object = CustomUser(user_name=user["user_name"], email=user["email"])
+        user_object.set_password(raw_password=user["password"])
         user_object.save()
+        group = Group.objects.get(name="user_group")
+        user_object.groups.add(group)
 
     return
 

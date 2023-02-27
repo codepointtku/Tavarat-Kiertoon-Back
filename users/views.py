@@ -140,23 +140,10 @@ class UserCreateListView(APIView):
             elif not joint_user_post:
                 user_name_post = email_post
 
-            print(
-                "creating user with: ",
-                first_name_post,
-                last_name_post,
-                email_post,
-                phone_number_post,
-                # password_post,
-                address_post,
-                zip_code_post,
-                city_post,
-                contact_person_post,
-                joint_user_post,
-            )
             return_serializer = UserSerializerCreateReturn(data=serialized_values.data)
             return_serializer.is_valid()
 
-            # create email verification for user creation
+            # create email verification for user creation  /// FOR LATER WHO EVER DOES IT
 
             # actually creating the user
             User.objects.create_user(

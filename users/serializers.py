@@ -87,8 +87,6 @@ class UserSerializerCreateReturn(serializers.ModelSerializer):
             "last_name",
             "email",
             "phone_number",
-            "toimipaikka",
-            "vastuuhenkilo",
         ]
 
 

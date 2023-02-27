@@ -89,7 +89,6 @@ class UserCreateListView(APIView):
 
         if serialized_values.is_valid():
             # getting the data form serializer for user creation
-            print("vastauksen data:   ", serialized_values.data)
             first_name_post = serialized_values["first_name"].value
             last_name_post = serialized_values["last_name"].value
             name_post = first_name_post + " " + last_name_post
@@ -103,6 +102,8 @@ class UserCreateListView(APIView):
             zip_code_post = serialized_values["zip_code"].value
             city_post = serialized_values["city"].value
 
+            user_name_post = serialized_values["user_name"].value
+
             print("nimi: ", name_post)
             print("email: ", email_post)
             print("phone: ", phone_number_post)
@@ -113,90 +114,67 @@ class UserCreateListView(APIView):
             print("zip_code: ", zip_code_post)
             print("city: ", city_post)
 
-            if not joint_user_post:
-                print("luodaan normi käyttäjä: ")
-
-                # checking that user doesnt exist already as email needs to be unique ? redudant due to validation from serializer
-                if User.objects.filter(email=email_post).exists():
-                    print("found user with email of: ", email_post)
-                else:
-                    print("no user with email of: ", email_post)
-                # checking that email domain is valid ? for testing purposes pass with invalid emila addresses, in production always return invalid user name if not email address
-                if "@" not in email_post:
-                    # could this check be doen in validator along while keeping the other validaitons for the field. - ----- --
-                    # return Response("invalid email address, has no @", status=status.HTTP_400_BAD_REQUEST)
-                    pass
-                else:
-                    # no @ in email so creating non email based user I guess???? so no need to check domain?, should check if location based account is check for security?
-                    email_split = email_post.split("@")
-                    if not Validate_email_domain(email_split[1]):
-                        print("uh duh??!?!?!")
-                        return Response(
-                            "invalid email domain", status=status.HTTP_400_BAD_REQUEST
-                        )
-
-                print(
-                    "creating user with: ",
-                    first_name_post,
-                    last_name_post,
-                    email_post,
-                    phone_number_post,
-                    # password_post,
-                    address_post,
-                    zip_code_post,
-                    city_post,
-                )
-                return_serializer = UserSerializerCreateReturn(
-                    data=serialized_values.data
-                )
-                return_serializer.is_valid()
-                # actually creating the user
-                User.objects.create_user(
-                    first_name=first_name_post,
-                    last_name=last_name_post,
-                    email=email_post,
-                    phone_number=phone_number_post,
-                    password=password_post,
-                    address=address_post,
-                    zip_code=zip_code_post,
-                    city=city_post,
-                    user_name=email_post,
-                    joint_user=False,
-                    contact_person="",
-                )
-
-                return Response(return_serializer.data, status=status.HTTP_201_CREATED)
+            # checking that email domain is valid ? for testing purposes pass with invalid emila addresses, in production always return invalid user name if not email address
+            if "@" not in email_post:
+                pass
             else:
-                # -----------------------------------------------------
-                # UNFINISHED STUFF WILLL BE CHANGED
-                # -----------------------------------------------------
-                print("luoddaan toimipaikka tili: ")
-                if serialized_values.data.get("vastuuhenkilo", None) is None:
-                    print("must have vastuuhenkilö if crreating toimipaikak tili")
-
+                # no @ in email so creating non email based user I guess???? so no need to check domain?, should check if location based account is check for security?
+                email_split = email_post.split("@")
+                if not Validate_email_domain(email_split[1]):
+                    return Response(
+                        "invalid email domain", status=status.HTTP_400_BAD_REQUEST
+                    )
+            if joint_user_post:
+                if contact_person_post is None:
                     return Response(
                         "must have vastuuhenkilö if crreating toimipaikak tili",
                         status=status.HTTP_400_BAD_REQUEST,
                     )
-                vastuuhenkilo = serialized_values.data.get("vastuuhenkilo")
-                print("vasstuu henkilo on-----: ", vastuuhenkilo)
-                if User.objects.filter(email=vastuuhenkilo).exists():
-                    print("found user with email of: ", vastuuhenkilo)
-                    user = User.objects.get(email=vastuuhenkilo)
-                    print(user, "\n ------------")
-                    print("Email: ", user.email, "   and password: ", user.password)
-
+                if User.objects.filter(email=contact_person_post).exists():
+                    user = User.objects.get(email=contact_person_post)
                 else:
-                    print("no user with email of: ", vastuuhenkilo)
-                    response_message = "no user with email of: " + vastuuhenkilo
+                    response_message = "no user with email of: " + contact_person_post
                     return Response(
                         response_message, status=status.HTTP_400_BAD_REQUEST
                     )
+            elif not joint_user_post:
+                user_name_post = email_post
 
-                return Response(
-                    "DERP Create a creation funktion and then we think, yes user was not created yet",
-                    status=status.HTTP_201_CREATED,
-                )
+            print(
+                "creating user with: ",
+                first_name_post,
+                last_name_post,
+                email_post,
+                phone_number_post,
+                # password_post,
+                address_post,
+                zip_code_post,
+                city_post,
+                contact_person_post,
+                joint_user_post,
+            )
+            return_serializer = UserSerializerCreateReturn(data=serialized_values.data)
+            return_serializer.is_valid()
+
+            # create email verification for user creation
+
+            # actually creating the user
+            User.objects.create_user(
+                first_name=first_name_post,
+                last_name=last_name_post,
+                email=email_post,
+                phone_number=phone_number_post,
+                password=password_post,
+                address=address_post,
+                zip_code=zip_code_post,
+                city=city_post,
+                user_name=user_name_post,
+                joint_user=joint_user_post,
+                contact_person=contact_person_post,
+            )
+
+            return Response(return_serializer.data, status=status.HTTP_201_CREATED)
+
         print(serialized_values.errors)
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -17,12 +17,12 @@ class CustomUserManager(BaseUserManager):
         email,
         phone_number,
         password,
-        joint_user,
-        contact_person,
         address,
         zip_code,
         city,
         user_name,
+        joint_user,
+        contact_person,
     ):
         """function for creating a user"""
         if not first_name:
@@ -57,7 +57,6 @@ class CustomUserManager(BaseUserManager):
                 phone_number=phone_number,
                 name=(first_name + " " + last_name).title(),
                 user_name=user_name,
-                address=address,
                 joint_user=joint_user,
                 contact_person=contact_person,
             )
@@ -67,11 +66,14 @@ class CustomUserManager(BaseUserManager):
                 phone_number=phone_number,
                 name=(first_name + " " + last_name).title(),
                 user_name=self.normalize_email(email=email),
-                address=address,
             )
 
         user.set_password(raw_password=password)
         user.save(using=self._db)
+
+        UserAddress.objects.create(
+            address=address, zip_code=zip_code, city=city, linked_user=user
+        )
 
         if not Group.objects.filter(name="user_group").exists():
             Group.objects.create(name="user_group")

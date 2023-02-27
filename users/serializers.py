@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Group
 from rest_framework import serializers
 
-from .models import CustomUser
+from .models import CustomUser, UserAddress
 
 
 class UserSerializerFull(serializers.ModelSerializer):
@@ -50,6 +50,9 @@ class UserSerializerCreate(serializers.ModelSerializer):
     joint_user = serializers.BooleanField(default=False)
     contact_person = serializers.CharField(max_length=150, required=False)
     phone_number = serializers.CharField(max_length=50)
+    address = serializers.CharField(max_length=255)
+    zip_code = serializers.CharField(max_length=10)
+    city = serializers.CharField(max_length=100)
 
     class Meta:
         model = CustomUser
@@ -61,8 +64,10 @@ class UserSerializerCreate(serializers.ModelSerializer):
             "password",
             "joint_user",
             "contact_person",
-            "address",
             "user_name",
+            "address",
+            "zip_code",
+            "city",
         ]
 
 
@@ -73,8 +78,6 @@ class UserSerializerCreateReturn(serializers.ModelSerializer):
 
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=155)
-    toimipaikka = serializers.BooleanField(default=False)
-    vastuuhenkilo = serializers.CharField(max_length=150, required=False)
     phone_number = serializers.CharField(max_length=50)
 
     class Meta:

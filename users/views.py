@@ -110,6 +110,8 @@ class UserCreateListView(APIView):
             print("joint_user: ", joint_user_post)
             print("contact_person: ", contact_person_post)
             print("address: ", address_post)
+            print("zip_code: ", zip_code_post)
+            print("city: ", city_post)
 
             if not joint_user_post:
                 print("luodaan normi käyttäjä: ")
@@ -150,14 +152,17 @@ class UserCreateListView(APIView):
                 return_serializer.is_valid()
                 # actually creating the user
                 User.objects.create_user(
-                    first_name_post,
-                    last_name_post,
-                    email_post,
-                    phone_number_post,
-                    password_post,
-                    address_post,
-                    zip_code_post,
-                    city_post,
+                    first_name=first_name_post,
+                    last_name=last_name_post,
+                    email=email_post,
+                    phone_number=phone_number_post,
+                    password=password_post,
+                    address=address_post,
+                    zip_code=zip_code_post,
+                    city=city_post,
+                    user_name=email_post,
+                    joint_user=False,
+                    contact_person="",
                 )
 
                 return Response(return_serializer.data, status=status.HTTP_201_CREATED)

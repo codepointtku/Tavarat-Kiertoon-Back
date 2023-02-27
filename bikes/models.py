@@ -68,7 +68,7 @@ class BikeStock(models.Model):
         choices=StateChoices.choices,
         default="AVAILABLE",
     )
-    bike = models.ForeignKey(Bike, on_delete=models.CASCADE)
+    bike = models.ForeignKey(Bike, related_name="stock", on_delete=models.CASCADE)
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
@@ -86,7 +86,7 @@ class BikeRental(models.Model):
         ACTIVE = "ACTIVE"
 
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-    bike_stock = models.ManyToManyField(BikeStock)
+    bike_stock = models.ManyToManyField(BikeStock, related_name="rental")
     start_date = models.DateField()
     end_date = models.DateField()
     state = models.CharField(

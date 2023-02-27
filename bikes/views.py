@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from bikes.models import Bike
+from bikes.serializers import BikeSerializer
 
 
 @api_view(["GET"])
@@ -16,7 +17,7 @@ def test(request):
     available_from = today + datetime.timedelta(days=7)
     available_to = today + datetime.timedelta(days=183)
 
-    queryset = Bike.objects.all().values()
+    serializer = BikeSerializer(Bike.objects.all(), many=True)
 
     return Response(
         {
@@ -24,7 +25,7 @@ def test(request):
                 "available_from": available_from,
                 "available_to": available_to,
             },
-            "bikey_boo": queryset,
+            "bikey_boo": serializer.data,
             "bikes": [
                 {
                     "id": 1,

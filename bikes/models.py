@@ -100,3 +100,20 @@ class BikeRental(models.Model):
 
     def __str__(self) -> str:
         return f"Bike rental: {self.user.name}({self.id})"
+
+
+class BikePackage(models.Model):
+    """Model for the bike packages, which has the bikes that are part of this package."""
+
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+    type = models.ForeignKey(BikeType, null=True, blank=True, on_delete=models.SET_NULL)
+    brand = models.ForeignKey(
+        BikeBrand, null=True, blank=True, on_delete=models.SET_NULL
+    )
+    size = models.ForeignKey(BikeSize, null=True, blank=True, on_delete=models.SET_NULL)
+    color = models.ForeignKey(Color, null=True, blank=True, on_delete=models.SET_NULL)
+    bikes = models.ManyToManyField(Bike)
+
+    def __str__(self) -> str:
+        return f"Bike package: {self.name}({self.id})"

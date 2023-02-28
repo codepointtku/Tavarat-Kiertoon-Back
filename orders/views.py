@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
@@ -10,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from products.models import Picture, Product
+from products.views import pic_ids_as_address_list
 
 from .models import Order, ShoppingCart
 from .serializers import (
@@ -19,10 +21,7 @@ from .serializers import (
     ShoppingCartSerializer,
 )
 
-
 # Create your views here.
-def pic_ids_as_address_list(pic_ids):
-    return [Picture.objects.get(id=pic_id).picture_address.name for pic_id in pic_ids]
 
 
 class ShoppingCartListView(ListCreateAPIView):
@@ -49,7 +48,12 @@ class ShoppingCartDetailView(RetrieveDestroyAPIView):
     ]
 
     def retrieve(self, request, *args, **kwargs):
-        instance = ShoppingCart.objects.get(user=request.user)
+        if request.user.is_anonymous:
+            return Response("You must be logged in to see your shoppingcart")
+        try:
+            instance = ShoppingCart.objects.get(user=request.user)
+        except ObjectDoesNotExist:
+            return Response("Shoppincart for this user doesnt exist")
         serializer = self.get_serializer(instance)
         for product in serializer.data["products"]:
             product["pictures"] = pic_ids_as_address_list(product["pictures"])

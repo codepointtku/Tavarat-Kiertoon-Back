@@ -84,8 +84,10 @@ def create_categories():
         {"name": "Huonekalut"},
         {"name": "Tuolit", "parent": "Huonekalut"},
         {"name": "Toimistotuolit", "parent": "Tuolit"},
-        {"name": "Keittiökamat"},
-        {"name": "Kahvinkeitin", "parent": "Keittiökamat"},
+        {"name": "Jakkarat", "parent": "Tuolit"},
+        {"name": "Elektroniikka"},
+        {"name": "Keittiölaitteet", "parent": "Elektroniikka"},
+        {"name": "Kahvinkeitin", "parent": "Keittiölaitteet"},
     ]
     for category in categories:
         if "parent" in category:
@@ -212,7 +214,7 @@ def create_products():
             available=random.choice(true_false),
             name=product["name"],
             free_description=product["free_description"],
-            category=random.choice(Category.objects.all()),
+            category=random.choice(Category.objects.filter(level=2)),
             color=random.choice(Color.objects.all()),
             storages=random.choice(Storage.objects.all()),
         )

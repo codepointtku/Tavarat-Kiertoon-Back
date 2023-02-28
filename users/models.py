@@ -71,6 +71,7 @@ class CustomUserManager(BaseUserManager):
         user.set_password(raw_password=password)
         user.save(using=self._db)
 
+        # creating the address for user
         UserAddress.objects.create(
             address=address, zip_code=zip_code, city=city, linked_user=user
         )
@@ -78,8 +79,6 @@ class CustomUserManager(BaseUserManager):
         if not Group.objects.filter(name="user_group").exists():
             Group.objects.create(name="user_group")
         group = Group.objects.get(name="user_group")
-
-        # creating the address for user
 
         user.groups.add(group)
 
@@ -131,7 +130,9 @@ class UserAddress(models.Model):
     address = models.CharField(max_length=255)
     zip_code = models.CharField(max_length=10)
     city = models.CharField(max_length=100)
-    linked_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    linked_user = models.ForeignKey(
+        CustomUser, related_name="address_list", on_delete=models.CASCADE
+    )
 
     def __str__(self) -> str:
         return f"Address: {self.address} {self.zip_code} {self.city} ({self.id})"

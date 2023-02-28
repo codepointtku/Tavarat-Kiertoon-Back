@@ -4,17 +4,6 @@ from rest_framework import serializers
 from .models import CustomUser, UserAddress
 
 
-class UserSerializerFull(serializers.ModelSerializer):
-    """
-    Serializer for users, all database fields
-    """
-
-    class Meta:
-        model = CustomUser
-        fields = "__all__"
-        depth = 1
-
-
 class UserSerializerPassword(serializers.ModelSerializer):
     """
     Serializer for users, checking password fields
@@ -38,6 +27,16 @@ class UserSerializerPassword2(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ["email", "password"]
+
+
+class UserAddressSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user address
+    """
+
+    class Meta:
+        model = UserAddress
+        fields = "__all__"
 
 
 class UserSerializerCreate(serializers.ModelSerializer):
@@ -110,6 +109,19 @@ class SubSerializerForGroups(serializers.ModelSerializer):
         fields = ["name"]
 
 
+class UserSerializerFull(serializers.ModelSerializer):
+    """
+    Serializer for users, all database fields
+    """
+
+    address_list = UserAddressSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = "__all__"
+        depth = 1
+
+
 class UserSerializerLimited(serializers.ModelSerializer):
     """
     Serializer for users, getting the revelant fields
@@ -119,6 +131,8 @@ class UserSerializerLimited(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(
         many=True, read_only=True, slug_field="name"
     )  # comes out in list
+
+    address_list = UserAddressSerializer(many=True, read_only=True)
 
     class Meta:
         model = CustomUser
@@ -130,6 +144,9 @@ class UserSerializerLimited(serializers.ModelSerializer):
             "phone_number",
             "phone_number",
             "groups",
+            "address_list",
+            "joint_user",
+            "contact_person",
         ]
 
 

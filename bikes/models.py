@@ -60,8 +60,8 @@ class BikeStock(models.Model):
         RENTED = "RENTED"
         RETIRED = "RETIRED"
 
-    barcode = models.CharField(max_length=255)
-    # ? Can barcode be trusted to be unique?
+    number = models.CharField(max_length=255)
+    frame_number = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     state = models.CharField(
         max_length=255,

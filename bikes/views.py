@@ -25,7 +25,7 @@ def test(request):
                 "available_from": available_from,
                 "available_to": available_to,
             },
-            "bikey_boo": serializer.data,
+            "db_bikes": serializer.data,
             "bikes": [
                 {
                     "id": 1,

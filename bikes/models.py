@@ -72,7 +72,7 @@ class BikeStock(models.Model):
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return f"Bike stock: {self.barcode}({self.id})"
+        return f"Bike stock: {self.number}({self.id})"
 
 
 class BikeRental(models.Model):

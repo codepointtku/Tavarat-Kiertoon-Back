@@ -97,14 +97,9 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        data = serializer.data
-        item = 0
-        for product in data["products"]:
-            data["products"][item]["pictures"] = pic_ids_as_address_list(
-                data["products"][item]["pictures"]
-            )
-            item += 1
-        return Response(data)
+        for product in serializer.data["products"]:
+            product["pictures"] = pic_ids_as_address_list(product["pictures"])
+        return Response(serializer.data)
 
     def delete(self, request, *args, **kwargs):
         order = Order.objects.get(id=request.data["productId"])

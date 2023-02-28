@@ -49,16 +49,13 @@ class Product(models.Model):
     )
     group_id = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255)
-    # estimate_price = models.FloatField(null=True, blank=True) #not needed
     price = models.FloatField(default=0.0)
     storages = models.ForeignKey(
         Storage, on_delete=models.SET_NULL, null=True, blank=True
     )
     shelf_id = models.IntegerField(blank=True, null=True)
     free_description = models.TextField(blank=True, null=True)
-    # linked to pictures table
     pictures = models.ManyToManyField(Picture, blank=True)
-    # condition = models.CharField(max_length=50, blank=True, null=True) #condition is explained in description field
     date = models.DateTimeField(auto_now_add=True)
     measurements = models.CharField(max_length=50, null=True, blank=True)
     color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True)

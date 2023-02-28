@@ -1,7 +1,7 @@
-import re
-
-from django.core.files.base import ContentFile, File
+from django.core.files.base import ContentFile
+from django.db.models import Q
 from django.utils import timezone
+from django_filters import rest_framework as filters
 from rest_framework import generics, status
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
@@ -54,13 +54,36 @@ class CategoryProductListPagination(PageNumberPagination):
     page_size_query_param = "page_size"
 
 
+class ProductFilter(filters.FilterSet):
+    search = filters.CharFilter(method="search_filter", label="Search")
+    category = filters.ModelMultipleChoiceFilter(queryset=Category.objects.all())
+    color = filters.ModelMultipleChoiceFilter(queryset=Color.objects.all())
+
+    class Meta:
+        model = Product
+        fields = ["search", "category", "color"]
+
+    def search_filter(self, queryset, name, value):
+        return queryset.filter(
+            Q(name__icontains=value) | Q(free_description__icontains=value)
+        )
+
+
 class ProductListView(generics.ListCreateAPIView):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     pagination_class = ProductListPagination
-    filter_backends = [OrderingFilter]
-    ordering_fields = ["date", "name", "color"]
-    ordering = ["date", "name", "color"]
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    search_fields = ["name", "free_description"]
+    ordering_fields = ["date"]
+    ordering = ["date"]
+    filterset_class = ProductFilter
+
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        a = self.request.query_params.get("a")
+        if a is None:
+            queryset = queryset.filter(available=True)
+        return queryset
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -113,22 +136,6 @@ class ProductListView(generics.ListCreateAPIView):
         )
 
 
-class CategoryProductListView(generics.ListAPIView):
-    serializer_class = ProductSerializer
-    pagination_class = CategoryProductListPagination
-    filter_backends = [OrderingFilter]
-    ordering_fields = ["date", "name", "color"]
-    ordering = ["date", "name", "color"]
-
-    def get_queryset(self):
-        category = self.kwargs["category_id"]
-        categoryset = [category]
-        categories = Category.objects.filter(parent=category).values("id")
-        for i in categories:
-            categoryset.append(i["id"])
-        return Product.objects.filter(category__in=categoryset)
-
-
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -155,6 +162,22 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         data = serializer.data
         data["pictures"] = pic_ids_as_address_list(data["pictures"])
         return Response(data)
+
+
+class CategoryProductListView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+    pagination_class = CategoryProductListPagination
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["date", "name", "color"]
+    ordering = ["date", "name", "color"]
+
+    def get_queryset(self):
+        category = self.kwargs["category_id"]
+        categoryset = [category]
+        categories = Category.objects.filter(parent=category).values("id")
+        for i in categories:
+            categoryset.append(i["id"])
+        return Product.objects.filter(category__in=categoryset)
 
 
 class ColorListView(generics.ListCreateAPIView):

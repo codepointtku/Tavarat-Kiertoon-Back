@@ -82,21 +82,23 @@ class BikeRental(models.Model):
         """Choices for the state of the rental."""
 
         WAITING = "WAITING"
-        BEING_PROCESSED = "BEING_PROCESSED "
+        BEING_PROCESSED = "BEING_PROCESSED"
         ACTIVE = "ACTIVE"
 
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     bike_stock = models.ManyToManyField(BikeStock, related_name="rental")
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
     state = models.CharField(
         max_length=255,
         choices=StateChoices.choices,
         default="WAITING",
     )
     delivery_address = models.CharField(max_length=255)
-    contact = models.CharField(max_length=255)
-    rental_info = models.CharField(max_length=255)
+    pickup = models.BooleanField(default=False)
+    contact_name = models.CharField(max_length=255)
+    contact_phone_number = models.CharField(max_length=255)
+    extra_info = models.CharField(max_length=255)
 
     def __str__(self) -> str:
         return f"Bike rental: {self.user.name}({self.id})"

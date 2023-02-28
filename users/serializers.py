@@ -47,7 +47,6 @@ class UserSerializerCreate(serializers.ModelSerializer):
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=155)
     joint_user = serializers.BooleanField(default=False)
-    contact_person = serializers.CharField(max_length=150, required=False)
     phone_number = serializers.CharField(max_length=50)
     address = serializers.CharField(max_length=255)
     zip_code = serializers.CharField(max_length=10)
@@ -62,7 +61,6 @@ class UserSerializerCreate(serializers.ModelSerializer):
             "phone_number",
             "password",
             "joint_user",
-            "contact_person",
             "user_name",
             "address",
             "zip_code",
@@ -145,8 +143,6 @@ class UserSerializerLimited(serializers.ModelSerializer):
             "phone_number",
             "groups",
             "address_list",
-            "joint_user",
-            "contact_person",
         ]
 
 

@@ -73,19 +73,20 @@ class UserCreateListView(APIView):
         return Response(serializer.data)
 
     def post(self, request, format=None):
+        if request.data["user_name"] is None:
+            request.data["user_name"] = request.data["email"]
         serialized_values = UserSerializerCreate(data=request.data)
 
-        # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
-        if not Group.objects.filter(name="user_group").exists():
-            Group.objects.create(name="user_group")
-        if not Group.objects.filter(name="admin_group").exists():
-            Group.objects.create(name="admin_group")
-        if not Group.objects.filter(name="storage_group").exists():
-            Group.objects.create(name="storage_group")
-        if not Group.objects.filter(name="bicycle_group").exists():
-            Group.objects.create(name="bicycle_group")
-
         if serialized_values.is_valid():
+            # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
+            if not Group.objects.filter(name="user_group").exists():
+                Group.objects.create(name="user_group")
+            if not Group.objects.filter(name="admin_group").exists():
+                Group.objects.create(name="admin_group")
+            if not Group.objects.filter(name="storage_group").exists():
+                Group.objects.create(name="storage_group")
+            if not Group.objects.filter(name="bicycle_group").exists():
+                Group.objects.create(name="bicycle_group")
             # getting the data form serializer for user creation and necessary checks
             first_name_post = serialized_values["first_name"].value
             last_name_post = serialized_values["last_name"].value
@@ -94,7 +95,6 @@ class UserCreateListView(APIView):
             phone_number_post = serialized_values["phone_number"].value
             password_post = serialized_values["password"].value
             joint_user_post = serialized_values["joint_user"].value
-            contact_person_post = serialized_values["contact_person"].value
 
             address_post = serialized_values["address"].value
             zip_code_post = serialized_values["zip_code"].value
@@ -102,39 +102,42 @@ class UserCreateListView(APIView):
 
             user_name_post = serialized_values["user_name"].value
 
-            # checking that email domain is valid
-            if "@" not in email_post:
-                if not joint_user_post:
+            # joint user checks
+            if joint_user_post:
+                pass
+                # if User.objects.filter(email=email_post).exists():
+                #     print("found user")
+                #     user = User.objects.get(email=email_post)
+                # else:
+                #     response_message = (
+                #         "no user with email of: "
+                #         + email_post
+                #         + ". try to have someone else for contact person"
+                #     )
+                #     return Response(
+                #         response_message, status=status.HTTP_400_BAD_REQUEST
+                #     )
+            elif not joint_user_post:
+                user_name_post = email_post
+                if User.objects.filter(user_name=user_name_post).exists():
+                    response_message = email_post + ". already exists"
                     return Response(
-                        "must have email address if creating normal user",
-                        status=status.HTTP_400_BAD_REQUEST,
+                        response_message, status=status.HTTP_400_BAD_REQUEST
                     )
+
+            # checking that email domain is valid
+            # checking email domain
+            if "@" not in email_post:
+                return Response(
+                    "Not a valid email address",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             else:
                 email_split = email_post.split("@")
                 if not Validate_email_domain(email_split[1]):
                     return Response(
                         "invalid email domain", status=status.HTTP_400_BAD_REQUEST
                     )
-            # joint user checks
-            if joint_user_post:
-                if contact_person_post is None:
-                    return Response(
-                        "must have contact if creating joint user",
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                if User.objects.filter(email=contact_person_post).exists():
-                    user = User.objects.get(email=contact_person_post)
-                else:
-                    response_message = (
-                        "no user with email of: "
-                        + contact_person_post
-                        + ". try to have someone else for contact person"
-                    )
-                    return Response(
-                        response_message, status=status.HTTP_400_BAD_REQUEST
-                    )
-            elif not joint_user_post:
-                user_name_post = email_post
 
             return_serializer = UserSerializerCreateReturn(data=serialized_values.data)
             return_serializer.is_valid()
@@ -153,7 +156,6 @@ class UserCreateListView(APIView):
                 city=city_post,
                 user_name=user_name_post,
                 joint_user=joint_user_post,
-                contact_person=contact_person_post,
             )
 
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)

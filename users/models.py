@@ -22,7 +22,6 @@ class CustomUserManager(BaseUserManager):
         city,
         user_name,
         joint_user,
-        contact_person,
     ):
         """function for creating a user"""
         if not first_name:
@@ -41,10 +40,6 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Users must have city")
         if not phone_number and joint_user:
             raise ValueError("Users must have user name")
-
-        if not contact_person and joint_user:
-            raise ValueError("Users must have contact person if joint_user")
-
         if not joint_user:
             user_name = email
 
@@ -57,8 +52,6 @@ class CustomUserManager(BaseUserManager):
                 phone_number=phone_number,
                 name=(first_name + " " + last_name).title(),
                 user_name=user_name,
-                joint_user=joint_user,
-                contact_person=contact_person,
             )
         else:
             user = self.model(
@@ -102,14 +95,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255, null=True)
-    email = models.CharField(max_length=255, unique=True)
+    email = models.CharField(max_length=255)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     creation_date = models.DateTimeField(auto_now_add=True)
     phone_number = models.CharField(max_length=255, null=True)
     user_name = models.CharField(max_length=255, unique=True)
-    joint_user = models.BooleanField(default=False)
-    contact_person = models.CharField(max_length=255, null=True, blank=True)
 
     objects = CustomUserManager()
 

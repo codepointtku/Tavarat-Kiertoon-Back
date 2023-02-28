@@ -102,22 +102,7 @@ class UserCreateListView(APIView):
 
             user_name_post = serialized_values["user_name"].value
 
-            # joint user checks
-            if joint_user_post:
-                pass
-                # if User.objects.filter(email=email_post).exists():
-                #     print("found user")
-                #     user = User.objects.get(email=email_post)
-                # else:
-                #     response_message = (
-                #         "no user with email of: "
-                #         + email_post
-                #         + ". try to have someone else for contact person"
-                #     )
-                #     return Response(
-                #         response_message, status=status.HTTP_400_BAD_REQUEST
-                #     )
-            elif not joint_user_post:
+            if not joint_user_post:
                 user_name_post = email_post
                 if User.objects.filter(user_name=user_name_post).exists():
                     response_message = email_post + ". already exists"

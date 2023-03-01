@@ -32,7 +32,6 @@ from .serializers import (
     UserSerializerLimited,
     UserSerializerNames,
     UserSerializerPassword,
-    UserSerializerPassword2,
     UserSerializerUpdate,
 )
 

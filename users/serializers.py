@@ -18,17 +18,6 @@ class UserSerializerPassword(serializers.ModelSerializer):
         model = CustomUser
         fields = ["email", "password", "password_correct", "message_for_user"]
 
-
-class UserSerializerPassword2(serializers.ModelSerializer):
-    """
-    Serializer for users, checking password fields
-    """
-
-    class Meta:
-        model = CustomUser
-        fields = ["email", "password"]
-
-
 class UserAddressSerializer(serializers.ModelSerializer):
     """
     Serializer for user address

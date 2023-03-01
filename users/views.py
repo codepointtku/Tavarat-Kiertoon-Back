@@ -173,6 +173,56 @@ class UserViewLogin(APIView):
         }
         return Response(content)
 
+class UserLogin2View(APIView):
+    """
+    Login with jwt token and as http only cookie
+    """
+    serializer_class = UserSerializerPassword
+
+    def post(self, request, format=None):
+        print("am I here")
+        data = request.data
+        print(data)
+        response = Response()        
+        user_name = data.get('user_name', None)
+        password = data.get('password', None)
+        user = authenticate(username=user_name, password=password)
+        
+        if user is not None:
+            if user.is_active:
+                print("do magic")
+                print(request.COOKIES)
+                data = get_tokens_for_user(user)
+                response.set_cookie(
+                    key = settings.SIMPLE_JWT['AUTH_COOKIE'], 
+                    value = data["access"],
+                    expires = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                )
+                response.set_cookie(
+                    "refresh_token", 
+                    value = data["refresh"],
+                    expires = settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
+                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                )
+                response.set_cookie('cookie', 'MY COOKIE VALUE')
+                response.set_cookie('cookie2', 'MY COOKIE VALUE2')
+                csrf.get_token(request)
+                response.data = {"Success" : "Login successfully","data":data}
+                print(response)
+                print(response.data)
+                return response
+            else:
+                return Response({"No active" : "This account is not active!!"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Invalid" : "Invalid username or password!!"}, status=status.HTTP_404_NOT_FOUND)
+
+class testCookieView(APIView):
+    pass
 
 class UserViewLogout(APIView):
     """

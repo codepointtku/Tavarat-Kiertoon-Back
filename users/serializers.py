@@ -16,7 +16,7 @@ class UserSerializerPassword(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["email", "password", "password_correct", "message_for_user"]
+        fields = ["email", "password", "user_name", "password_correct", "message_for_user"]
 
 class UserAddressSerializer(serializers.ModelSerializer):
     """

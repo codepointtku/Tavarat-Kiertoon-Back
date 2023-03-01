@@ -23,10 +23,11 @@ def pic_ids_as_address_list(pic_ids):
 
 
 def color_check_create(instance):
+    testi = instance.copy()
     try:
-        color = int(instance["color"])
+        color = int(testi["color"])
     except ValueError:
-        color = instance["color"]
+        color = testi["color"]
     color_is_string = isinstance(color, str)
     if color_is_string:
         checkid = Color.objects.filter(name=color).values("id")
@@ -37,10 +38,10 @@ def color_check_create(instance):
             if colorserializer.is_valid():
                 colorserializer.save()
                 checkid = Color.objects.filter(name=color).values("id")
-                instance["color"] = checkid[0]["id"]
+                testi["color"] = checkid[0]["id"]
         else:
-            instance["color"] = checkid[0]["id"]
-    return instance
+            testi["color"] = checkid[0]["id"]
+    return testi
 
 
 # Create your views here.

@@ -56,12 +56,27 @@ class TestProduct(TestCase):
         print(Product.objects.all())
         print(self.test_product)
 
-    def test_post_product_and_color(self):
+    def test_post_product_amount_multiple(self):
         url = "/products/"
-        data = [{
+        data = {
             "name": "nahkatuoli", "price": 0, "category": self.test_category.id,
-            "color": self.test_color.id, "storages": self.test_storage.id
-        },1]
+            "color": self.test_color.id, "storages": self.test_storage.id, "amount": 2
+        }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 201)
-        print(data)
+        print(Product.objects.all())
+
+    def test_post_product_color_as_string(self):
+        url = "/products/"
+        data = {
+            "name": "nahkatuoli", "price": 0, "category": self.test_category.id,
+            "color": "nahka", "storages": self.test_storage.id, "amount": 1
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 201)
+        print(Product.objects.all())
+
+    def test_get_product(self):
+        url = "/products/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)

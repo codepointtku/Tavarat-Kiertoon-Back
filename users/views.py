@@ -10,15 +10,16 @@ from rest_framework.authentication import (
     BaseAuthentication,
     BasicAuthentication,
     SessionAuthentication,
+    CSRFCheck,
 )
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .authenticate import CustomJWTAuthentication
+#from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission, is_in_group
 from .serializers import (
@@ -53,6 +54,60 @@ def get_tokens_for_user(user):
         "access": str(refresh.access_token),
     }
 
+def enforce_csrf(request):
+    print("enforce CRF now")
+    check = CSRFCheck() # NEEEEEEDDDDDSSSSS FIXIN???????????
+    print("next up check")
+    check.process_request(request)
+    reason = check.process_view(request, None, (), {})
+    if reason:
+        raise PermissionDenied('CSRF Failed: %s' % reason)
+
+class CustomJWTAuthentication(JWTAuthentication):
+    def authenticate(self, request):
+        print("-----------------------STARTING JWT custom auth------------")
+        header = self.get_header(request)
+        print("header: ", header)
+        print("cookies??????????????????: ", request.COOKIES)
+        if header is None:
+            raw_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE']) or None
+        else:
+            raw_token = self.get_raw_token(header)
+        print("RAW TOKEN-------------: ", raw_token)
+        if raw_token is None:
+            return None
+        
+        validated_token = self.get_validated_token(raw_token)
+        print("before CSRF")
+        enforce_csrf(request)
+        return self.get_user(validated_token), validated_token
+
+class ExampleAuthentication(BaseAuthentication):
+    def authenticate(self, request):
+        # Get the username and password
+        username = request.data.get("user_name", None)
+        password = request.data.get("password", None)
+        print("TEST print from example authentication, request.data is:   ", request.data)
+        print("TEST print from example authentication, request.COOKIES is:   ", request.COOKIES)
+
+
+        if not username or not password:
+            raise AuthenticationFailed(("No credentials provided."))
+            # raise AuthenticationFailed(_('No credentials provided.'))
+
+        credentials = {get_user_model().USERNAME_FIELD: username, "password": password}
+
+        user = authenticate(**credentials)
+
+        if user is None:
+            raise AuthenticationFailed(("Invalid username/password."))
+            # raise AuthenticationFailed(_('Invalid username/password.'))
+
+        if not user.is_active:
+            raise AuthenticationFailed(("User inactive or deleted."))
+            # raise AuthenticationFailed(_('User inactive or deleted.'))
+
+        return (user, None)  # authentication successful
 
 # Create your views here.
 
@@ -231,8 +286,37 @@ class UserLogin2View(APIView):
             return Response({"Invalid" : "Invalid username or password!!"}, status=status.HTTP_404_NOT_FOUND)
 
 class UserLoginTestView(APIView):
-    
+
+    authentication_classes = [
+    #     #SessionAuthentication,
+    #     #BasicAuthentication,
+    #     #JWTAuthentication,
+        CustomJWTAuthentication,
+        #ExampleAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+        "POST": ["user_group"],
+        "PUT": ["user_group"],
+        "PATCH": ["user_group"],
+    }
+
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializerPassword
+
     def get(self, request):
+        print("testing things, on the page now")
+        print(request.COOKIES)
+        content = {
+            "user": str(request.user),  # `django.contrib.auth.User` instance.
+            "auth": str(request.auth),  # None
+        }
+        print(content)
+
+        return Response({"cookies" : request.COOKIES , "user": content})
+
+    def post(self, request):
         print("testing things")
         print(request.COOKIES)
         content = {

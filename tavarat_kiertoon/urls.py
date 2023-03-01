@@ -72,6 +72,7 @@ from users.views import (
     UserViewUpdateInfo,
     UserViewUpdateSingle,
     UserLogin2View,
+    UserLoginTestView,
 )
 
 urlpatterns = [
@@ -119,6 +120,7 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
     path("users/login2/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("users/login/", UserLogin2View.as_view(), name="token_obtain_pair"),
+    path("users/login/test", UserLoginTestView.as_view(), name="token_obtain_pair"),
     path("users/login/refresh/", TokenRefreshView.as_view(), name="token_refrest"),
     path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
 ] + static(

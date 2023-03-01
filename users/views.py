@@ -18,6 +18,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission, is_in_group
 from .serializers import (
@@ -209,6 +210,14 @@ class UserLogin2View(APIView):
                     httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
                     samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
                 )
+                response.set_cookie(
+                    "POOOOGGGGG", 
+                    value = "Pogos pinted",
+                    expires = settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
+                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                )
                 response.set_cookie('cookie', 'MY COOKIE VALUE')
                 response.set_cookie('cookie2', 'MY COOKIE VALUE2')
                 csrf.get_token(request)
@@ -221,8 +230,18 @@ class UserLogin2View(APIView):
         else:
             return Response({"Invalid" : "Invalid username or password!!"}, status=status.HTTP_404_NOT_FOUND)
 
-class testCookieView(APIView):
-    pass
+class UserLoginTestView(APIView):
+    
+    def get(self, request):
+        print("testing things")
+        print(request.COOKIES)
+        content = {
+            "user": str(request.user),  # `django.contrib.auth.User` instance.
+            "auth": str(request.auth),  # None
+        }
+        print(content)
+
+        return Response(request.COOKIES)
 
 class UserViewLogout(APIView):
     """

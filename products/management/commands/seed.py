@@ -10,7 +10,7 @@ from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact
 from products.models import Color, Picture, Product, Storage
-from users.models import CustomUser
+from users.models import CustomUser, UserAddress
 
 # python manage.py seed
 
@@ -43,6 +43,8 @@ def clear_data():
     Product.objects.all().delete()
     Bulletin.objects.all().delete()
     Contact.objects.all().delete()
+    Group.objects.all().delete()
+    UserAddress.objects.all().delete()
 
 
 def create_colors():
@@ -100,12 +102,62 @@ def create_categories():
 def create_users():
     """Creates user objects from the list."""
     users = [
-        {"email": "testi@turku.fi"},
-        {"email": "testi2@turku.fi"},
+        {
+            "user_name": "testi@turku.fi",
+            "password": "testi",
+            "email": "testi@turku.fi",
+        },
+        {
+            "user_name": "kavhila@turku.fi",
+            "password": "1234",
+            "email": "kavhila@turku.fi",
+        },
     ]
+    # creating test super user
+    user_object_super = CustomUser(user_name="super", email="super")
+    user_object_super.set_password(raw_password="super")
+    user_object_super.is_admin = True
+    user_object_super.is_staff = True
+    user_object_super.is_superuser = True
+    user_object_super.save()
+
     for user in users:
-        user_object = CustomUser(email=user["email"])
+        user_object = CustomUser(user_name=user["user_name"], email=user["email"])
+        user_object.set_password(raw_password=user["password"])
         user_object.save()
+        group = Group.objects.get(name="user_group")
+        user_object.groups.add(group)
+
+    return
+
+
+def create_useraddress():
+    """Creates user_address objects from the list."""
+    user_addresses = [
+        {"address": "Kebabbilan tie 1", "zip_code": "20210", "city": "Kebab"},
+        {
+            "address": "Chuck Norriksen Kartano 666",
+            "zip_code": "60606",
+            "city": "Manala",
+        },
+        {"address": "Pizza on hyvää polku", "zip_code": "123456789", "city": "Pitsa"},
+    ]
+    for address in user_addresses:
+        address_object = UserAddress(
+            address=address["address"],
+            zip_code=address["zip_code"],
+            city=address["city"],
+            linked_user=CustomUser.objects.get(user_name="super"),
+        )
+        address_object.save()
+
+    address_object = UserAddress(
+        address="testila 1",
+        zip_code="123456789",
+        city="testi city",
+        linked_user=CustomUser.objects.get(user_name="testi@turku.fi"),
+    )
+    address_object.save()
 
     return
 
@@ -300,6 +352,7 @@ def run_seed(self, mode):
     create_storages()
     create_categories()
     create_users()
+    create_useraddress()
     for i in range(6):
         create_picture()
     create_products()

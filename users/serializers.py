@@ -1,18 +1,7 @@
 from django.contrib.auth.models import Group
 from rest_framework import serializers
 
-from .models import CustomUser
-
-
-class UserSerializerFull(serializers.ModelSerializer):
-    """
-    Serializer for users, all database fields
-    """
-
-    class Meta:
-        model = CustomUser
-        fields = "__all__"
-        depth = 1
+from .models import CustomUser, UserAddress
 
 
 class UserSerializerPassword(serializers.ModelSerializer):
@@ -29,15 +18,14 @@ class UserSerializerPassword(serializers.ModelSerializer):
         model = CustomUser
         fields = ["email", "password", "password_correct", "message_for_user"]
 
-
-class UserSerializerPassword2(serializers.ModelSerializer):
+class UserAddressSerializer(serializers.ModelSerializer):
     """
-    Serializer for users, checking password fields
+    Serializer for user address
     """
 
     class Meta:
-        model = CustomUser
-        fields = ["email", "password"]
+        model = UserAddress
+        fields = "__all__"
 
 
 class UserSerializerCreate(serializers.ModelSerializer):
@@ -47,9 +35,11 @@ class UserSerializerCreate(serializers.ModelSerializer):
 
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=155)
-    toimipaikka = serializers.BooleanField(default=False)
-    vastuuhenkilo = serializers.CharField(max_length=150, required=False)
+    joint_user = serializers.BooleanField(default=False)
     phone_number = serializers.CharField(max_length=50)
+    address = serializers.CharField(max_length=255)
+    zip_code = serializers.CharField(max_length=10)
+    city = serializers.CharField(max_length=100)
 
     class Meta:
         model = CustomUser
@@ -59,8 +49,11 @@ class UserSerializerCreate(serializers.ModelSerializer):
             "email",
             "phone_number",
             "password",
-            "toimipaikka",
-            "vastuuhenkilo",
+            "joint_user",
+            "user_name",
+            "address",
+            "zip_code",
+            "city",
         ]
 
 
@@ -71,8 +64,6 @@ class UserSerializerCreateReturn(serializers.ModelSerializer):
 
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=155)
-    toimipaikka = serializers.BooleanField(default=False)
-    vastuuhenkilo = serializers.CharField(max_length=150, required=False)
     phone_number = serializers.CharField(max_length=50)
 
     class Meta:
@@ -82,8 +73,6 @@ class UserSerializerCreateReturn(serializers.ModelSerializer):
             "last_name",
             "email",
             "phone_number",
-            "toimipaikka",
-            "vastuuhenkilo",
         ]
 
 
@@ -107,6 +96,19 @@ class SubSerializerForGroups(serializers.ModelSerializer):
         fields = ["name"]
 
 
+class UserSerializerFull(serializers.ModelSerializer):
+    """
+    Serializer for users, all database fields
+    """
+
+    address_list = UserAddressSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = "__all__"
+        depth = 1
+
+
 class UserSerializerLimited(serializers.ModelSerializer):
     """
     Serializer for users, getting the revelant fields
@@ -116,6 +118,8 @@ class UserSerializerLimited(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(
         many=True, read_only=True, slug_field="name"
     )  # comes out in list
+
+    address_list = UserAddressSerializer(many=True, read_only=True)
 
     class Meta:
         model = CustomUser
@@ -127,6 +131,7 @@ class UserSerializerLimited(serializers.ModelSerializer):
             "phone_number",
             "phone_number",
             "groups",
+            "address_list",
         ]
 
 

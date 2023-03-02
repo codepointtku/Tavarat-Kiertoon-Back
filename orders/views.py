@@ -43,10 +43,10 @@ class ShoppingCartDetailView(RetrieveDestroyAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartDetailSerializer
     authentication_classes = [
-        # SessionAuthentication,
-        # BasicAuthentication,
-        # JWTAuthentication,
-        CustomJWTAuthentication
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     def retrieve(self, request, *args, **kwargs):

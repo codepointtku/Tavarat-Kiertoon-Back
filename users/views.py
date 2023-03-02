@@ -63,6 +63,15 @@ def enforce_csrf(request):
     )  # <-- this line is said problem, someone could look and understand it. but it works with this parameter right
     print("next up check")
     check.process_request(request)
+    print(
+        "csrf: ",
+        request.META["CSRF_COOKIE"],
+        "origin: ",
+        # request.META,
+        # request.META["HTTP_ORIGIN"],
+    )
+    # if request.META["HTTP_ORIGIN"].exists():
+    #     print(request.META["HTTP_ORIGIN"])
     reason = check.process_view(request, None, (), {})
     if reason:
         raise PermissionDenied("CSRF Failed: %s" % reason)
@@ -84,7 +93,7 @@ class CustomJWTAuthentication(JWTAuthentication):
 
         validated_token = self.get_validated_token(raw_token)
         print("before CSRF")
-        # enforce_csrf(request)
+        enforce_csrf(request)
         return self.get_user(validated_token), validated_token
 
 
@@ -334,7 +343,7 @@ class UserLoginTestView(APIView):
     serializer_class = UserSerializerPassword
 
     def get(self, request):
-        print("testing things, on the page now")
+        print("testing things, on the page now GET")
         print(request.COOKIES)
         content = {
             "user": str(request.user),  # `django.contrib.auth.User` instance.
@@ -352,13 +361,14 @@ class UserLoginTestView(APIView):
         )
 
     def post(self, request):
-        print("testing things")
+        print("testing things POST")
         print(request.COOKIES)
         content = {
             "user": str(request.user),  # `django.contrib.auth.User` instance.
             "auth": str(request.auth),  # None
         }
         print(content)
+        serializer_class = UserSerializerPassword
 
         return Response(request.COOKIES)
 

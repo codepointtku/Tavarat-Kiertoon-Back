@@ -85,6 +85,7 @@ urlpatterns = [
     path("colors/<int:pk>/", ColorDetailView.as_view()),
     path("shopping_carts/", ShoppingCartListView.as_view()),
     path("shopping_cart/", ShoppingCartDetailView.as_view()),
+    # path("users/login/test/", ShoppingCartDetailView.as_view()),
     path("orders/", OrderListView.as_view()),
     path("orders/<int:pk>/", OrderDetailView.as_view()),
     path("products/", ProductListView.as_view()),

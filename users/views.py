@@ -84,7 +84,7 @@ class CustomJWTAuthentication(JWTAuthentication):
 
         validated_token = self.get_validated_token(raw_token)
         print("before CSRF")
-        enforce_csrf(request)
+        # enforce_csrf(request)
         return self.get_user(validated_token), validated_token
 
 

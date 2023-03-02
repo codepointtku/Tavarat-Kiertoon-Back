@@ -99,7 +99,7 @@ class BikeRental(models.Model):
     pickup = models.BooleanField(default=False)
     contact_name = models.CharField(max_length=255)
     contact_phone_number = models.CharField(max_length=255)
-    extra_info = models.CharField(max_length=255)
+    extra_info = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self) -> str:
         return f"Bike rental: {self.user.name}({self.id})"

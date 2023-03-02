@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from .models import Bike, BikePackage
+from .models import Bike, BikeAmount, BikePackage, BikeStock
+
+
+class BikeStockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeStock
+        fields = ["id", "number", "frame_number", "created_at", "state", "storage"]
 
 
 class BikeSerializer(serializers.ModelSerializer):
@@ -10,6 +16,9 @@ class BikeSerializer(serializers.ModelSerializer):
     size_name = serializers.ReadOnlyField(source="size.name")
     color_name = serializers.ReadOnlyField(source="color.name")
     max_available = serializers.ReadOnlyField(source="stock.count")
+
+    # bikes = serializers.StringRelatedField(many=True)
+    stock = BikeStockSerializer(many=True)
 
     class Meta:
         model = Bike
@@ -26,8 +35,15 @@ class BikeSerializer(serializers.ModelSerializer):
         ]
 
 
+class BikeAmountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeAmount
+        fields = ["bike", "amount"]
+
+
 class BikePackageSerializer(serializers.ModelSerializer):
-    bikes = serializers.StringRelatedField(many=True)
+    # bikes = serializers.StringRelatedField(many=True)
+    bikes = BikeAmountSerializer(many=True)
 
     class Meta:
         model = BikePackage

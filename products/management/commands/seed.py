@@ -377,7 +377,7 @@ def create_bike_size():
 
 
 def create_bike_types():
-    types = ["BMX", "City", "Muksubussi", "Sähköbussi"]
+    types = ["BMX", "City", "Muksubussi", "Sähkö"]
     for bike_type in types:
         bike_object = BikeType(name=bike_type)
         bike_object.save()

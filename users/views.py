@@ -9,8 +9,8 @@ from rest_framework import generics, permissions, status
 from rest_framework.authentication import (
     BaseAuthentication,
     BasicAuthentication,
-    SessionAuthentication,
     CSRFCheck,
+    SessionAuthentication,
 )
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
@@ -19,7 +19,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
-#from .authenticate import CustomJWTAuthentication
+# from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission, is_in_group
 from .serializers import (
@@ -54,14 +54,19 @@ def get_tokens_for_user(user):
         "access": str(refresh.access_token),
     }
 
+
 def enforce_csrf(request):
     print("enforce CRF now")
-    check = CSRFCheck() # NEEEEEEDDDDDSSSSS FIXIN???????????
+    # all examples show that CSRFCheck should not require parameters to work but it doesnt work and igves error
+    check = CSRFCheck(
+        request
+    )  # <-- this line is said problem, someone could look and understand it. but it works with this parameter right
     print("next up check")
     check.process_request(request)
     reason = check.process_view(request, None, (), {})
     if reason:
-        raise PermissionDenied('CSRF Failed: %s' % reason)
+        raise PermissionDenied("CSRF Failed: %s" % reason)
+
 
 class CustomJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
@@ -70,26 +75,31 @@ class CustomJWTAuthentication(JWTAuthentication):
         print("header: ", header)
         print("cookies??????????????????: ", request.COOKIES)
         if header is None:
-            raw_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE']) or None
+            raw_token = request.COOKIES.get(settings.SIMPLE_JWT["AUTH_COOKIE"]) or None
         else:
             raw_token = self.get_raw_token(header)
         print("RAW TOKEN-------------: ", raw_token)
         if raw_token is None:
             return None
-        
+
         validated_token = self.get_validated_token(raw_token)
         print("before CSRF")
         enforce_csrf(request)
         return self.get_user(validated_token), validated_token
+
 
 class ExampleAuthentication(BaseAuthentication):
     def authenticate(self, request):
         # Get the username and password
         username = request.data.get("user_name", None)
         password = request.data.get("password", None)
-        print("TEST print from example authentication, request.data is:   ", request.data)
-        print("TEST print from example authentication, request.COOKIES is:   ", request.COOKIES)
-
+        print(
+            "TEST print from example authentication, request.data is:   ", request.data
+        )
+        print(
+            "TEST print from example authentication, request.COOKIES is:   ",
+            request.COOKIES,
+        )
 
         if not username or not password:
             raise AuthenticationFailed(("No credentials provided."))
@@ -108,6 +118,7 @@ class ExampleAuthentication(BaseAuthentication):
             # raise AuthenticationFailed(_('User inactive or deleted.'))
 
         return (user, None)  # authentication successful
+
 
 # Create your views here.
 
@@ -229,70 +240,87 @@ class UserViewLogin(APIView):
         }
         return Response(content)
 
+
 class UserLogin2View(APIView):
     """
     Login with jwt token and as http only cookie
     """
+
     serializer_class = UserSerializerPassword
 
     def post(self, request, format=None):
         print("am I here")
         data = request.data
         print(data)
-        response = Response()        
-        user_name = data.get('user_name', None)
-        password = data.get('password', None)
+        response = Response()
+        user_name = data.get("user_name", None)
+        password = data.get("password", None)
         user = authenticate(username=user_name, password=password)
-        
+
         if user is not None:
             if user.is_active:
                 print("do magic")
                 print(request.COOKIES)
                 data = get_tokens_for_user(user)
                 response.set_cookie(
-                    key = settings.SIMPLE_JWT['AUTH_COOKIE'], 
-                    value = data["access"],
-                    expires = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
-                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                    key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+                    value=data["access"],
+                    expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+                    secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                    httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                    samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                    path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
                 )
                 response.set_cookie(
-                    "refresh_token", 
-                    value = data["refresh"],
-                    expires = settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
-                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                    "refresh_token",
+                    value=data["refresh"],
+                    expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+                    secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                    httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                    samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                    path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
                 )
                 response.set_cookie(
-                    "POOOOGGGGG", 
-                    value = "Pogos pinted",
-                    expires = settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
-                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                    "POOOOGGGGG",
+                    value="Pogos pinted",
+                    expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+                    secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                    httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                    samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
                 )
-                response.set_cookie('cookie', 'MY COOKIE VALUE')
-                response.set_cookie('cookie2', 'MY COOKIE VALUE2')
+                response.set_cookie("cookie", "MY COOKIE VALUE")
+                response.set_cookie("cookie2", "MY COOKIE VALUE2")
+
+                serializer_group = UserSerializerLimited(user)
+
                 csrf.get_token(request)
-                response.data = {"Success" : "Login successfully","data":data}
+                response.data = {
+                    "Success": "Login successfully",
+                    "user_name": serializer_group.data["user_name"],
+                    "groups": serializer_group.data["groups"],
+                }
                 print(response)
                 print(response.data)
                 return response
             else:
-                return Response({"No active" : "This account is not active!!"}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"No active": "This account is not active!!"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
         else:
-            return Response({"Invalid" : "Invalid username or password!!"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"Invalid": "Invalid username or password!!"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
 
 class UserLoginTestView(APIView):
-
     authentication_classes = [
-    #     #SessionAuthentication,
-    #     #BasicAuthentication,
-    #     #JWTAuthentication,
+        #     #SessionAuthentication,
+        #     #BasicAuthentication,
+        #     #JWTAuthentication,
         CustomJWTAuthentication,
-        #ExampleAuthentication,
+        # ExampleAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
@@ -313,8 +341,15 @@ class UserLoginTestView(APIView):
             "auth": str(request.auth),  # None
         }
         print(content)
+        serializer_group = UserSerializerLimited(request.user)
 
-        return Response({"cookies" : request.COOKIES , "user": content})
+        return Response(
+            {
+                "cookies": request.COOKIES,
+                "user": content,
+                "groups": serializer_group.data["groups"],
+            }
+        )
 
     def post(self, request):
         print("testing things")
@@ -326,6 +361,7 @@ class UserLoginTestView(APIView):
         print(content)
 
         return Response(request.COOKIES)
+
 
 class UserViewLogout(APIView):
     """

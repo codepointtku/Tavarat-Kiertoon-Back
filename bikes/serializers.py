@@ -31,10 +31,10 @@ class BikeStockSerializer(serializers.ModelSerializer):
 
 class BikeSerializer(serializers.ModelSerializer):
     # color = serializers.StringRelatedField(many=True)
-    type_name = serializers.ReadOnlyField(source="type.name")
-    brand_name = serializers.ReadOnlyField(source="brand.name")
-    size_name = serializers.ReadOnlyField(source="size.name")
-    color_name = serializers.ReadOnlyField(source="color.name")
+    type = serializers.StringRelatedField(source="type.name")
+    brand = serializers.StringRelatedField(source="brand.name")
+    size = serializers.StringRelatedField(source="size.name")
+    color = serializers.StringRelatedField(source="color.name")
     max_available = serializers.ReadOnlyField(source="stock.count")
 
     # bikes = serializers.StringRelatedField(many=True)
@@ -48,10 +48,10 @@ class BikeSerializer(serializers.ModelSerializer):
             "max_available",
             "stock",
             "description",
-            "type_name",
-            "brand_name",
-            "size_name",
-            "color_name",
+            "type",
+            "brand",
+            "size",
+            "color",
         ]
 
 

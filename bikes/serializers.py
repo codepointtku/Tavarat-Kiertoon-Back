@@ -62,7 +62,6 @@ class BikeAmountSerializer(serializers.ModelSerializer):
 
 
 class BikePackageSerializer(serializers.ModelSerializer):
-    # bikes = serializers.StringRelatedField(many=True)
     bikes = BikeAmountSerializer(many=True)
 
     class Meta:

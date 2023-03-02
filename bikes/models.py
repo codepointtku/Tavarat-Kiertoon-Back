@@ -56,6 +56,7 @@ class BikeStock(models.Model):
         """Choices for the state of the bike."""
 
         AVAILABLE = "AVAILABLE"
+        PACKAGE_ONLY = "PACKAGE_ONLY"
         MAINTENANCE = "MAINTENANCE"
         RENTED = "RENTED"
         RETIRED = "RETIRED"
@@ -109,13 +110,19 @@ class BikePackage(models.Model):
 
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
-    type = models.ForeignKey(BikeType, null=True, blank=True, on_delete=models.SET_NULL)
-    brand = models.ForeignKey(
-        BikeBrand, null=True, blank=True, on_delete=models.SET_NULL
-    )
-    size = models.ForeignKey(BikeSize, null=True, blank=True, on_delete=models.SET_NULL)
-    color = models.ForeignKey(Color, null=True, blank=True, on_delete=models.SET_NULL)
-    bikes = models.ManyToManyField(Bike)
 
     def __str__(self) -> str:
         return f"Bike package: {self.name}({self.id})"
+
+
+class BikeAmount(models.Model):
+    """Model for the bike amount, which is used in the bike package."""
+
+    bike = models.ForeignKey(Bike, on_delete=models.CASCADE)
+    amount = models.IntegerField()
+    package = models.ForeignKey(
+        BikePackage, related_name="bikes", on_delete=models.CASCADE
+    )
+
+    def __str__(self) -> str:
+        return f"Bike amount: {self.amount}x{self.bike}({self.id})"

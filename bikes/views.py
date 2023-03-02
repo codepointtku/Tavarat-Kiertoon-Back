@@ -5,8 +5,8 @@ import datetime
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from bikes.models import Bike
-from bikes.serializers import BikeSerializer
+from bikes.models import Bike, BikePackage
+from bikes.serializers import BikePackageSerializer, BikeSerializer
 
 
 @api_view(["GET"])
@@ -17,7 +17,10 @@ def test(request):
     available_from = today + datetime.timedelta(days=7)
     available_to = today + datetime.timedelta(days=183)
 
-    serializer = BikeSerializer(Bike.objects.all(), many=True)
+    bike_serializer = BikeSerializer(Bike.objects.all(), many=True)
+    bike_package_serializer = BikePackageSerializer(
+        BikePackage.objects.all(), many=True
+    )
 
     return Response(
         {
@@ -25,7 +28,8 @@ def test(request):
                 "available_from": available_from,
                 "available_to": available_to,
             },
-            "db_bikes": serializer.data,
+            "db_bikes": bike_serializer.data,
+            "db_packages": bike_package_serializer.data,
             "bikes": [
                 {
                     "id": 1,

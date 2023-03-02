@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Bike
+from .models import Bike, BikePackage
 
 
 class BikeSerializer(serializers.ModelSerializer):
@@ -23,4 +23,17 @@ class BikeSerializer(serializers.ModelSerializer):
             "brand_name",
             "size_name",
             "color_name",
+        ]
+
+
+class BikePackageSerializer(serializers.ModelSerializer):
+    bikes = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = BikePackage
+        fields = [
+            "id",
+            "name",
+            "description",
+            "bikes",
         ]

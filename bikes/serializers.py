@@ -1,12 +1,32 @@
 from rest_framework import serializers
 
-from .models import Bike, BikeAmount, BikePackage, BikeStock
+from .models import Bike, BikeAmount, BikePackage, BikeRental, BikeStock
+
+
+class BikeRentalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeRental
+        fields = [
+            "id",
+            "start_date",
+            "end_date",
+        ]
 
 
 class BikeStockSerializer(serializers.ModelSerializer):
+    rental = BikeRentalSerializer(many=True)
+
     class Meta:
         model = BikeStock
-        fields = ["id", "number", "frame_number", "created_at", "state", "storage"]
+        fields = [
+            "id",
+            "number",
+            "frame_number",
+            "created_at",
+            "state",
+            "storage",
+            "rental",
+        ]
 
 
 class BikeSerializer(serializers.ModelSerializer):

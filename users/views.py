@@ -66,12 +66,12 @@ def enforce_csrf(request):
     print(
         "csrf: ",
         request.META["CSRF_COOKIE"],
-        "origin: ",
-        # request.META,
-        # request.META["HTTP_ORIGIN"],
     )
-    # if request.META["HTTP_ORIGIN"].exists():
-    #     print(request.META["HTTP_ORIGIN"])
+    test = "HTTP_ORIGIN" in request.META
+    print(test)
+    if test:
+        print("origin: ", request.META["HTTP_ORIGIN"])
+        print("host: ", request.get_host())
     reason = check.process_view(request, None, (), {})
     if reason:
         raise PermissionDenied("CSRF Failed: %s" % reason)

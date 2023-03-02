@@ -41,7 +41,11 @@ def test(request):
 
     for index, package in enumerate(bike_package_serializer.data):
         serializer_package = bike_package_serializer.data[index]
-        # serializer_package["type"] = "Paketti"
+        serializer_package["type"] = "Paketti"
+        serializer_package["taken"] = {}
+        serializer_package["max_available"] = 1
+        serializer_package["brand"] = None
+        serializer_package["color"] = None
         for bike in package["bikes"]:
             bike_object = Bike.objects.get(id=bike["bike"])
             if "size" in serializer_package:

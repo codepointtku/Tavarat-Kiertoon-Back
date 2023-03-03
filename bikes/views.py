@@ -4,12 +4,12 @@ import datetime
 
 from rest_framework import generics
 from rest_framework.decorators import api_view
-
 # from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
 from bikes.models import Bike, BikePackage, BikeStock
-from bikes.serializers import BikePackageSerializer, BikeSerializer, BikeStockSerializer
+from bikes.serializers import (BikePackageSerializer, BikeSerializer,
+                               BikeStockSerializer)
 
 
 class BikeStockList(generics.ListAPIView):

@@ -36,7 +36,7 @@ class Command(BaseCommand):
 
 def clear_data():
     """Deletes all the table data."""
-    # BulletinSubject
+    BulletinSubject.objects.all().delete()
     Bulletin.objects.all().delete()
     Category.objects.all().delete()
     # ContactForm
@@ -323,6 +323,15 @@ def create_bulletins():
             author=random.choice(CustomUser.objects.all()),
         )
         bulletin_object.save()
+    queryset = Bulletin.objects.all()
+    for query in queryset:
+        query.subject.set(
+            [
+                random.choice(BulletinSubject.objects.all()),
+                random.choice(BulletinSubject.objects.all()),
+                random.choice(BulletinSubject.objects.all()),
+            ]
+        )
 
 
 def create_contacts():

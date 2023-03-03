@@ -2,11 +2,20 @@
 
 import datetime
 
+from rest_framework import generics
 from rest_framework.decorators import api_view
+
+# from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from bikes.models import Bike, BikePackage
-from bikes.serializers import BikePackageSerializer, BikeSerializer
+from bikes.models import Bike, BikePackage, BikeStock
+from bikes.serializers import BikePackageSerializer, BikeSerializer, BikeStockSerializer
+
+
+class BikeStockList(generics.ListAPIView):
+    queryset = BikeStock.objects.all()
+    serializer_class = BikeStockSerializer
+    # permission_classes = [isAdminUser]
 
 
 @api_view(["GET"])

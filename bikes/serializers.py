@@ -20,6 +20,7 @@ class BikeStockSerializer(serializers.ModelSerializer):
         model = BikeStock
         fields = [
             "id",
+            "bike",
             "number",
             "frame_number",
             "created_at",

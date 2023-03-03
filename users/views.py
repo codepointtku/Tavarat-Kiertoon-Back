@@ -67,7 +67,7 @@ def enforce_csrf(request):
         "csrf: ",
         request.META["CSRF_COOKIE"],
     )
-    print("HEADERS:   ", request.META)
+    # print("HEADERS:   ", request.META)
     test = "HTTP_ORIGIN" in request.META
     print("http origin state: ", test)
     if test:
@@ -242,6 +242,7 @@ class UserLogin2View(APIView):
                 print("do magic")
                 print(request.COOKIES)
                 data = get_tokens_for_user(user)
+                # KSYTÄÄN ARNOLTA VIHJHETTÄ TÄHÄN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! tokenien käytöön ja halintaan
                 response.set_cookie(
                     key=settings.SIMPLE_JWT["AUTH_COOKIE"],
                     value=data["access"],
@@ -260,16 +261,6 @@ class UserLogin2View(APIView):
                     samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
                     path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
                 )
-                response.set_cookie(
-                    "POOOOGGGGG",
-                    value="Pogos pinted",
-                    expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
-                    secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                    httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                    samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-                )
-                response.set_cookie("cookie", "MY COOKIE VALUE")
-                response.set_cookie("cookie2", "MY COOKIE VALUE2")
 
                 serializer_group = UserSerializerLimited(user)
 

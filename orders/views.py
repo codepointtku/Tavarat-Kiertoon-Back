@@ -38,7 +38,7 @@ class ShoppingCartListView(ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ShoppingCartDetailView(RetrieveDestroyAPIView):
+class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartDetailSerializer
     authentication_classes = [
@@ -53,11 +53,21 @@ class ShoppingCartDetailView(RetrieveDestroyAPIView):
         try:
             instance = ShoppingCart.objects.get(user=request.user)
         except ObjectDoesNotExist:
-            return Response("Shoppincart for this user doesnt exist")
+            return Response("Shopping cart for this user does not exist")
         serializer = self.get_serializer(instance)
         for product in serializer.data["products"]:
             product["pictures"] = pic_ids_as_address_list(product["pictures"])
         return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        try:
+            instance = ShoppingCart.objects.get(user=request.user)
+        except ObjectDoesNotExist:
+            return Response("Shopping cart for this user does not exist")
+        if serializer.is_valid():
+            serializer.save(instance)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OrderListView(ListCreateAPIView):

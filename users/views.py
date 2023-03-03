@@ -100,38 +100,6 @@ class CustomJWTAuthentication(JWTAuthentication):
         return self.get_user(validated_token), validated_token
 
 
-class ExampleAuthentication(BaseAuthentication):
-    def authenticate(self, request):
-        # Get the username and password
-        username = request.data.get("user_name", None)
-        password = request.data.get("password", None)
-        print(
-            "TEST print from example authentication, request.data is:   ", request.data
-        )
-        print(
-            "TEST print from example authentication, request.COOKIES is:   ",
-            request.COOKIES,
-        )
-
-        if not username or not password:
-            raise AuthenticationFailed(("No credentials provided."))
-            # raise AuthenticationFailed(_('No credentials provided.'))
-
-        credentials = {get_user_model().USERNAME_FIELD: username, "password": password}
-
-        user = authenticate(**credentials)
-
-        if user is None:
-            raise AuthenticationFailed(("Invalid username/password."))
-            # raise AuthenticationFailed(_('Invalid username/password.'))
-
-        if not user.is_active:
-            raise AuthenticationFailed(("User inactive or deleted."))
-            # raise AuthenticationFailed(_('User inactive or deleted.'))
-
-        return (user, None)  # authentication successful
-
-
 # Create your views here.
 
 
@@ -332,7 +300,6 @@ class UserLoginTestView(APIView):
         #     #BasicAuthentication,
         #     #JWTAuthentication,
         CustomJWTAuthentication,
-        # ExampleAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {

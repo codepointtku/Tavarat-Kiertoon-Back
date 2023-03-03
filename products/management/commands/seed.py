@@ -129,6 +129,7 @@ def create_users():
         },
     ]
     # creating test super user
+    # Fix Samis shit by using createsuperuser
     user_object_super = CustomUser(user_name="super", email="super")
     user_object_super.set_password(raw_password="super")
     user_object_super.is_admin = True

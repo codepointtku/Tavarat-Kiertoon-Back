@@ -1,5 +1,6 @@
 import random
 import urllib.request
+from copy import copy
 
 from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
@@ -287,7 +288,6 @@ def create_products():
     for product in products:
         same_products = []
         product_object = Product(
-            available=random.choice(true_false),
             name=product["name"],
             group_id=product["group_id"],
             barcode=product["barcode"],
@@ -296,8 +296,13 @@ def create_products():
             color=random.choice(Color.objects.all()),
             storages=random.choice(Storage.objects.all()),
         )
-        for _ in range(random.randint(1, 3)):
-            same_products.append(product_object)
+        for _ in range(
+            random.choices(
+                range(1, 11), cum_weights=[10, 13, 15, 16, 17, 18, 19, 20, 21, 22]
+            )[0]
+        ):
+            same_products.append(copy(product_object))
+            same_products[-1].available = random.choice(true_false)
         Product.objects.bulk_create(same_products)
     queryset = Product.objects.all()
     for query in queryset:

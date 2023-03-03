@@ -12,29 +12,32 @@ from categories.models import Category
 
 
 class TestProduct(TestCase):
-    def setUp(self):
-        self.test_color = Color.objects.create(name="punainen")
-        self.test_storage = Storage.objects.create(name="mokkavarasto")
-        self.test_parentcategory = Category.objects.create(name="coffee")
-        self.test_category = Category.objects.create(name="subcoffee", parent=self.test_parentcategory)
-        self.test_category1 = Category.objects.create(name="subcoffee2", parent=self.test_parentcategory)
-        # result = urllib.request.urlretrieve("https://picsum.photos/200")
-        # picture_object = Picture(
-        # picture_address=ContentFile(
-        #     open(result[0], "rb").read(), name=f"{timezone.now().timestamp()}.jpg"
-        #     )
-        # )
-        # picture_object.save()
-        self.test_picture = Picture.objects.create(picture_address="https://picsum.photos/200.jpg")
-        self.test_picture1 = Picture.objects.create(picture_address="https://picsum.photos/200.jpg")
-
-        self.test_product = Product.objects.create(
-            name="nahkasohva", price=0, category=self.test_category,
-            color=self.test_color, storages=self.test_storage
+    @classmethod
+    def setUpTestData(cls):
+        cls.test_color = Color.objects.create(name="punainen")
+        cls.test_storage = Storage.objects.create(name="mokkavarasto")
+        cls.test_parentcategory = Category.objects.create(name="coffee")
+        cls.test_category = Category.objects.create(name="subcoffee", parent=cls.test_parentcategory)
+        cls.test_category1 = Category.objects.create(name="subcoffee2", parent=cls.test_parentcategory)
+        
+        result = urllib.request.urlretrieve("https://picsum.photos/200")
+        cls.test_picture = Picture.objects.create(picture_address=ContentFile(
+                open(result[0], "rb").read(),
+                name=f"{timezone.now().timestamp()}.jpg"
+            )
         )
-        self.test_product1 = Product.objects.create(
-            name="sohvanahka", price=0, category=self.test_category,
-            color=self.test_color, storages=self.test_storage
+        cls.test_picture1 = Picture.objects.create(picture_address=ContentFile(
+                open(result[0], "rb").read(),
+                name=f"{timezone.now().timestamp()}.jpg"
+            )
+        )
+        cls.test_product = Product.objects.create(
+            name="nahkasohva", price=0, category=cls.test_category,
+            color=cls.test_color, storages=cls.test_storage
+        )
+        cls.test_product1 = Product.objects.create(
+            name="sohvanahka", price=0, category=cls.test_category,
+            color=cls.test_color, storages=cls.test_storage
         )
 
     def test_get_colors(self):
@@ -57,7 +60,7 @@ class TestProduct(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
-    def test_get_product(self):
+    def test_get_product_by_id(self):
         url = f"/products/{self.test_product.id}/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -68,7 +71,10 @@ class TestProduct(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_post_picture(self):
-        picture = urllib.request.urlretrieve(url="https://picsum.photos/200.jpg", filename="testpicture.jpg")
+        picture = urllib.request.urlretrieve(
+            url="https://picsum.photos/200.jpg",
+            filename="media/pictures/testpicture.jpg"
+        )
         url = "/pictures/"
         data = {"file": open(picture[0], "rb")}
         response = self.client.post(url, data, format="multipart")

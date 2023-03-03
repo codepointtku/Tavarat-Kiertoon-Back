@@ -252,7 +252,7 @@ class UserLogin2View(APIView):
                     path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
                 )
                 response.set_cookie(
-                    "refresh_token",
+                    key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
                     value=data["refresh"],
                     expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
                     secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],

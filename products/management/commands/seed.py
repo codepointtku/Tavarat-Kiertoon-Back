@@ -6,9 +6,10 @@ from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from bulletins.models import Bulletin
+from bulletins.models import Bulletin, BulletinSubject
 from categories.models import Category
-from contact_forms.models import Contact
+from contact_forms.models import Contact, ContactForm
+from orders.models import Order, ShoppingCart
 from products.models import Color, Picture, Product, Storage
 from users.models import CustomUser, UserAddress
 
@@ -35,16 +36,28 @@ class Command(BaseCommand):
 
 def clear_data():
     """Deletes all the table data."""
-    Color.objects.all().delete()
-    Storage.objects.all().delete()
-    Category.objects.all().delete()
-    CustomUser.objects.all().delete()
-    Picture.objects.all().delete()
-    Product.objects.all().delete()
+    # BulletinSubject
     Bulletin.objects.all().delete()
+    Category.objects.all().delete()
+    # ContactForm
     Contact.objects.all().delete()
-    Group.objects.all().delete()
+    # ShoppingCart
+    # Order
+    Color.objects.all().delete()
+    Picture.objects.all().delete()
+    Storage.objects.all().delete()
+    Product.objects.all().delete()
+    CustomUser.objects.all().delete()
     UserAddress.objects.all().delete()
+    Group.objects.all().delete()
+
+
+def create_bulletin_subjects():
+    """Creates bulletin subjects from the list"""
+    b_subjects = ["Yleinen", "Sivusto", "Mobiili"]
+    for subject in b_subjects:
+        b_subject_obj = BulletinSubject(name=subject)
+        b_subject_obj.save()
 
 
 def create_colors():
@@ -53,7 +66,6 @@ def create_colors():
     for color in colors:
         color_object = Color(name=color)
         color_object.save()
-    return
 
 
 def create_groups():
@@ -62,7 +74,6 @@ def create_groups():
     for group in groups:
         group_object = Group(name=group)
         group_object.save()
-    return
 
 
 def create_storages():
@@ -77,7 +88,6 @@ def create_storages():
             name=storage["name"], address=storage["address"], in_use=storage["in_use"]
         )
         storage_object.save()
-    return
 
 
 def create_categories():
@@ -87,6 +97,9 @@ def create_categories():
         {"name": "Tuolit", "parent": "Huonekalut"},
         {"name": "Toimistotuolit", "parent": "Tuolit"},
         {"name": "Jakkarat", "parent": "Tuolit"},
+        {"name": "Pöydät", "parent": "Huonekalut"},
+        {"name": "Yöpöydät", "parent": "Pöydät"},
+        {"name": "Ruokapöydät", "parent": "Pöydät"},
         {"name": "Elektroniikka"},
         {"name": "Keittiölaitteet", "parent": "Elektroniikka"},
         {"name": "Kahvinkeitin", "parent": "Keittiölaitteet"},
@@ -98,7 +111,6 @@ def create_categories():
         else:
             category_object = Category(name=category["name"])
         category_object.save()
-    return
 
 
 def create_users():
@@ -130,8 +142,6 @@ def create_users():
         group = Group.objects.get(name="user_group")
         user_object.groups.add(group)
 
-    return
-
 
 def create_useraddress():
     """Creates user_address objects from the list."""
@@ -161,8 +171,6 @@ def create_useraddress():
     )
     address_object.save()
 
-    return
-
 
 def create_picture():
     """Creates a picture object from an api."""
@@ -173,7 +181,6 @@ def create_picture():
         )
     )
     picture_object.save()
-    return
 
 
 def create_products():
@@ -280,7 +287,6 @@ def create_products():
                 random.choice(Picture.objects.all()),
             ],
         )
-    return
 
 
 def create_bulletins():
@@ -317,7 +323,6 @@ def create_bulletins():
             author=random.choice(CustomUser.objects.all()),
         )
         bulletin_object.save()
-    return
 
 
 def create_contacts():
@@ -337,7 +342,6 @@ def create_contacts():
             phone_number=contact["phone_number"],
         )
         contact_object.save()
-    return
 
 
 def run_seed(self, mode):
@@ -350,6 +354,7 @@ def run_seed(self, mode):
     if mode == MODE_CLEAR:
         return
 
+    create_bulletin_subjects()
     create_colors()
     create_groups()
     create_storages()

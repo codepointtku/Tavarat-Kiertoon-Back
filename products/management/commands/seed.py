@@ -235,80 +235,57 @@ def create_products():
             "barcode": "1241",
         },
         {
-            "name": "Kahvikuppi",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "8",
-            "barcode": "1241",
-        },
-        {
-            "name": "Kahvikuppi",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "8",
-            "barcode": "1241",
-        },
-        {
-            "name": "Kahvinkeitin",
+            "name": "Kahvipaketti",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
             "group_id": "9",
             "barcode": "1242",
         },
         {
-            "name": "Kahvipaketti",
+            "name": "Kahvimylly",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
             "group_id": "10",
             "barcode": "1243",
         },
         {
-            "name": "Kahvimylly",
+            "name": "Kahvipapu",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
             "group_id": "11",
             "barcode": "1244",
         },
         {
-            "name": "Kahvipapu",
+            "name": "Tonipal_kahville",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
             "group_id": "12",
             "barcode": "1245",
         },
         {
-            "name": "Tonipal_kahville",
+            "name": "Kahvipannu",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
             "group_id": "13",
             "barcode": "1246",
         },
         {
-            "name": "Kahvipannu",
+            "name": "Termoskannu",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
             "group_id": "14",
             "barcode": "1247",
         },
         {
-            "name": "Termoskannu",
+            "name": "Kahvilautanen",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
             "group_id": "15",
             "barcode": "1248",
         },
         {
-            "name": "Kahvilautanen",
+            "name": "Kahviaddiktio",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
             "group_id": "16",
             "barcode": "1249",
         },
-        {
-            "name": "Kahviaddiktio",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "17",
-            "barcode": "1250",
-        },
-        {
-            "name": "Jakkara",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "18",
-            "barcode": "1251",
-        },
     ]
     true_false = [1, 1, 1, 0]
     for product in products:
+        same_products = []
         product_object = Product(
             available=random.choice(true_false),
             name=product["name"],
@@ -319,7 +296,9 @@ def create_products():
             color=random.choice(Color.objects.all()),
             storages=random.choice(Storage.objects.all()),
         )
-        product_object.save()
+        for _ in range(random.randint(1, 3)):
+            same_products.append(product_object)
+        Product.objects.bulk_create(same_products)
     queryset = Product.objects.all()
     for query in queryset:
         query.pictures.set(

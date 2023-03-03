@@ -41,7 +41,7 @@ def clear_data():
     Category.objects.all().delete()
     # ContactForm
     Contact.objects.all().delete()
-    # ShoppingCart
+    ShoppingCart.objects.all().delete()
     # Order
     Color.objects.all().delete()
     Picture.objects.all().delete()
@@ -289,6 +289,20 @@ def create_products():
         )
 
 
+def create_shopping_carts():
+    users = CustomUser.objects.all()
+    for user in users:
+        cart_obj = ShoppingCart(user=user)
+        cart_obj.save()
+    queryset = ShoppingCart.objects.all()
+    for query in queryset:
+        query.products.set(
+            random.sample(
+                list(Product.objects.filter(available=True)), random.randint(1, 6)
+            )
+        )
+
+
 def create_bulletins():
     bulletins = [
         {
@@ -375,3 +389,4 @@ def run_seed(self, mode):
     create_products()
     create_bulletins()
     create_contacts()
+    create_shopping_carts()

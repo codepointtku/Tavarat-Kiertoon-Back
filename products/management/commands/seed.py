@@ -129,13 +129,7 @@ def create_users():
         },
     ]
     # creating test super user
-    # Fix Samis shit by using createsuperuser
-    user_object_super = CustomUser(user_name="super", email="super")
-    user_object_super.set_password(raw_password="super")
-    user_object_super.is_admin = True
-    user_object_super.is_staff = True
-    user_object_super.is_superuser = True
-    user_object_super.save()
+    CustomUser.objects.create_superuser(user_name="super", password="super")
 
     for user in users:
         user_object = CustomUser(user_name=user["user_name"], email=user["email"])
@@ -155,23 +149,16 @@ def create_useraddress():
             "city": "Manala",
         },
         {"address": "Pizza on hyvää polku", "zip_code": "123456789", "city": "Pitsa"},
+        {"address": "testila 1", "zip_code": "123456789", "city": "testi city"},
     ]
     for address in user_addresses:
         address_object = UserAddress(
             address=address["address"],
             zip_code=address["zip_code"],
             city=address["city"],
-            linked_user=CustomUser.objects.get(user_name="super"),
+            linked_user=random.choice(CustomUser.objects.all()),
         )
         address_object.save()
-
-    address_object = UserAddress(
-        address="testila 1",
-        zip_code="123456789",
-        city="testi city",
-        linked_user=CustomUser.objects.get(user_name="testi@turku.fi"),
-    )
-    address_object.save()
 
 
 def create_picture():

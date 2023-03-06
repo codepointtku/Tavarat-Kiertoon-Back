@@ -34,7 +34,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("Seeding data...")
         run_seed(self, options["mode"])
-        self.stdout.write("Done. Remember to createsuperuser if needed.")
+        self.stdout.write("Done. Superuser name is super and password is super")
 
 
 def clear_data():

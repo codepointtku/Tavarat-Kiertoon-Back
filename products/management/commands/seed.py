@@ -150,47 +150,45 @@ def create_users():
     """Creates user objects from the list."""
     users = [
         {
-            "user_name": "testi@turku.fi",
-            "password": "testi",
+            "first_name": "Billy",
+            "last_name": "Herrington",
             "email": "testi@turku.fi",
+            "phone_number": "0000000000",
+            "password": "testi",
+            "address": "Katulantiekuja 22",
+            "zip_code": "20100",
+            "city": "Turku",
+            "user_name": "",
+            "joint_user": False,
         },
         {
-            "user_name": "kavhila@turku.fi",
-            "password": "1234",
-            "email": "kavhila@turku.fi",
+            "first_name": "Sami",
+            "last_name": "Imas",
+            "email": "testi@turku.fi",
+            "phone_number": "+358441234567",
+            "password": "samionkuningas1987",
+            "address": "Pizza on hyvää polku",
+            "zip_code": "80085",
+            "city": "Rauma",
+            "user_name": "Samin mashausopisto",
+            "joint_user": True,
         },
     ]
     # creating test super user
     CustomUser.objects.create_superuser(user_name="super", password="super")
-
     for user in users:
-        user_object = CustomUser(user_name=user["user_name"], email=user["email"])
-        user_object.set_password(raw_password=user["password"])
-        user_object.save()
-        group = Group.objects.get(name="user_group")
-        user_object.groups.add(group)
-
-
-def create_useraddress():
-    """Creates user_address objects from the list."""
-    user_addresses = [
-        {"address": "Kebabbilan tie 1", "zip_code": "20210", "city": "Kebab"},
-        {
-            "address": "Chuck Norriksen Kartano 666",
-            "zip_code": "60606",
-            "city": "Manala",
-        },
-        {"address": "Pizza on hyvää polku", "zip_code": "123456789", "city": "Pitsa"},
-        {"address": "testila 1", "zip_code": "123456789", "city": "testi city"},
-    ]
-    for address in user_addresses:
-        address_object = UserAddress(
-            address=address["address"],
-            zip_code=address["zip_code"],
-            city=address["city"],
-            linked_user=random.choice(CustomUser.objects.all()),
+        CustomUser.objects.create_user(
+            first_name=user["first_name"],
+            last_name=user["last_name"],
+            email=user["email"],
+            phone_number=user["phone_number"],
+            password=user["password"],
+            address=user["address"],
+            zip_code=user["zip_code"],
+            city=user["city"],
+            user_name=user["user_name"],
+            joint_user=user["joint_user"],
         )
-        address_object.save()
 
 
 def create_picture():
@@ -430,7 +428,6 @@ def run_seed(self, mode):
     create_storages()
     create_categories()
     create_users()
-    create_useraddress()
     for _ in range(6):
         create_picture()
     create_products()

@@ -18,20 +18,20 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import CustomUser
+from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission, is_in_group
 from .serializers import (
     GroupNameCheckSerializer,
     GroupNameSerializer,
     GroupPermissionsSerializer,
     GroupPermissionsSerializerNames,
+    UserAddressSerializer,
     UserSerializerCreate,
     UserSerializerCreateReturn,
     UserSerializerFull,
     UserSerializerLimited,
     UserSerializerNames,
     UserSerializerPassword,
-    UserSerializerPassword2,
     UserSerializerUpdate,
 )
 
@@ -59,9 +59,6 @@ def get_tokens_for_user(user):
 class UserCreateListView(APIView):
     """
     List all users, and create with POST
-    !!!!HUOM !!!! ENNEN KUIN USERMIODELIA PÄIVITETÄÄN EI VOIDA TEHDÄ YHTEISKÄYTTÖTILIÄ KUNNOLLA JOTEN TESTAUS MUUTTUJIA
-    TL;DR noormi käyttäjät toimivat, yhteiskäyttäjät puoliksi yhteiskäyttäjä EI LUO VIELÄ MITÄÄN
-    WIll be cleaned later, ask spsantam for more info
     """
 
     # queryset = CustomUser.objects.all()
@@ -75,110 +72,78 @@ class UserCreateListView(APIView):
         return Response(serializer.data)
 
     def post(self, request, format=None):
+        if request.data["user_name"] is None:
+            request.data["user_name"] = request.data["email"]
         serialized_values = UserSerializerCreate(data=request.data)
 
-        # temporaty creating the user and amdin groups here, for testing, this should be run first somewhere else
-        if not Group.objects.filter(name="user_group").exists():
-            Group.objects.create(name="user_group")
-        if not Group.objects.filter(name="admin_group").exists():
-            Group.objects.create(name="admin_group")
-        if not Group.objects.filter(name="storage_group").exists():
-            Group.objects.create(name="storage_group")
-        if not Group.objects.filter(name="bicycle_group").exists():
-            Group.objects.create(name="bicycle_group")
-
         if serialized_values.is_valid():
-            # getting the data form serializer for user creation
-            print("vastauksen data:   ", serialized_values.data)
+            # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
+            if not Group.objects.filter(name="user_group").exists():
+                Group.objects.create(name="user_group")
+            if not Group.objects.filter(name="admin_group").exists():
+                Group.objects.create(name="admin_group")
+            if not Group.objects.filter(name="storage_group").exists():
+                Group.objects.create(name="storage_group")
+            if not Group.objects.filter(name="bicycle_group").exists():
+                Group.objects.create(name="bicycle_group")
+            # getting the data form serializer for user creation and necessary checks
             first_name_post = serialized_values["first_name"].value
             last_name_post = serialized_values["last_name"].value
             name_post = first_name_post + " " + last_name_post
             email_post = serialized_values["email"].value
             phone_number_post = serialized_values["phone_number"].value
             password_post = serialized_values["password"].value
-            toimipaikka_post = serialized_values["toimipaikka"].value
+            joint_user_post = serialized_values["joint_user"].value
 
-            print("nimi: ", name_post)
-            print("email: ", email_post)
-            print("phone: ", phone_number_post)
-            print("password: ", password_post)
-            print("toimipaikka: ", toimipaikka_post)
+            address_post = serialized_values["address"].value
+            zip_code_post = serialized_values["zip_code"].value
+            city_post = serialized_values["city"].value
 
-            if not toimipaikka_post:
-                print("luodaan normi käyttäjä: ")
+            user_name_post = serialized_values["user_name"].value
 
-                # checking that user doesnt exist already as email needs to be unique ? redudant due to validation from serializer
-                if User.objects.filter(email=email_post).exists():
-                    print("found user with email of: ", email_post)
-                else:
-                    print("no user with email of: ", email_post)
-                # checking that email domain is valid ? for testing purposes pass with invalid emila addresses, in production always return invalid user name if not email address
-                if "@" not in email_post:
-                    # could this check be doen in validator along while keeping the other validaitons for the field. - ----- --
-                    # return Response("invalid email address, has no @", status=status.HTTP_400_BAD_REQUEST)
-                    pass
-                else:
-                    # no @ in email so creating non email based user I guess???? so no need to check domain?, should check if location based account is check for security?
-                    email_split = email_post.split("@")
-                    if not Validate_email_domain(email_split[1]):
-                        print("uh duh??!?!?!")
-                        return Response(
-                            "invalid email domain", status=status.HTTP_400_BAD_REQUEST
-                        )
-
-                print(
-                    "creating user with: ",
-                    first_name_post,
-                    last_name_post,
-                    email_post,
-                    phone_number_post,
-                    # password_post,
-                )
-                return_serializer = UserSerializerCreateReturn(
-                    data=serialized_values.data
-                )
-                return_serializer.is_valid()
-                # actually creating the user
-                User.objects.create_user(
-                    first_name_post,
-                    last_name_post,
-                    email_post,
-                    phone_number_post,
-                    password_post,
-                )
-
-                return Response(return_serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                # -----------------------------------------------------
-                # UNFINISHED STUFF WILLL BE CHANGED
-                # -----------------------------------------------------
-                print("luoddaan toimipaikka tili: ")
-                if serialized_values.data.get("vastuuhenkilo", None) is None:
-                    print("must have vastuuhenkilö if crreating toimipaikak tili")
-
-                    return Response(
-                        "must have vastuuhenkilö if crreating toimipaikak tili",
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                vastuuhenkilo = serialized_values.data.get("vastuuhenkilo")
-                print("vasstuu henkilo on-----: ", vastuuhenkilo)
-                if User.objects.filter(email=vastuuhenkilo).exists():
-                    print("found user with email of: ", vastuuhenkilo)
-                    user = User.objects.get(email=vastuuhenkilo)
-                    print(user, "\n ------------")
-                    print("Email: ", user.email, "   and password: ", user.password)
-
-                else:
-                    print("no user with email of: ", vastuuhenkilo)
-                    response_message = "no user with email of: " + vastuuhenkilo
+            if not joint_user_post:
+                user_name_post = email_post
+                if User.objects.filter(user_name=user_name_post).exists():
+                    response_message = email_post + ". already exists"
                     return Response(
                         response_message, status=status.HTTP_400_BAD_REQUEST
                     )
 
+            # checking that email domain is valid
+            # checking email domain
+            if "@" not in email_post:
                 return Response(
-                    "DERP Create a creation funktion and then we think, yes user was not created yet",
-                    status=status.HTTP_201_CREATED,
+                    "Not a valid email address",
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
+            else:
+                email_split = email_post.split("@")
+                if not Validate_email_domain(email_split[1]):
+                    return Response(
+                        "invalid email domain", status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            return_serializer = UserSerializerCreateReturn(data=serialized_values.data)
+            return_serializer.is_valid()
+
+            # create email verification for user creation  /// FOR LATER WHO EVER DOES IT
+
+            # actually creating the user
+            User.objects.create_user(
+                first_name=first_name_post,
+                last_name=last_name_post,
+                email=email_post,
+                phone_number=phone_number_post,
+                password=password_post,
+                address=address_post,
+                zip_code=zip_code_post,
+                city=city_post,
+                user_name=user_name_post,
+                joint_user=joint_user_post,
+            )
+
+            return Response(return_serializer.data, status=status.HTTP_201_CREATED)
+
         print(serialized_values.errors)
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -510,6 +475,95 @@ class UserViewUpdateSingle(generics.RetrieveUpdateAPIView):
 
     serializer_class = UserSerializerUpdate
     queryset = User.objects.all()
+
+
+class UserAddressListView(generics.ListAPIView):
+    """
+    Get list of all addresss users have
+    """
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+    }
+
+    serializer_class = UserAddressSerializer
+    queryset = UserAddress.objects.all()
+
+
+class UserAddressAddView(APIView):
+    """
+    Get list of all addresss logged in user has, and add new one
+    """
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+        "POST": ["user_group"],
+        "PUT": ["user_group"],
+        "PATCH": ["user_group"],
+    }
+
+    serializer_class = UserAddressSerializer
+    queryset = UserAddress.objects.all()
+
+    def get(self, request, format=None):
+        qs = UserAddress.objects.filter(linked_user=request.user.id)
+        print(qs)
+        serialized_info = UserAddressSerializer(qs, many=True)
+        print(serialized_info.data)
+        return Response(serialized_info.data)
+
+    def post(self, request, format=None):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        print(serializer.data["address"])
+        UserAddress.objects.create(
+            address=serializer.data["address"],
+            zip_code=serializer.data["zip_code"],
+            city=serializer.data["city"],
+            linked_user=request.user,
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Get specific address by id and do update/destroy/ to it
+    """
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+        "DELETE": ["admin_group"],
+    }
+
+    serializer_class = UserAddressSerializer
+    queryset = UserAddress.objects.all()
 
 
 class UserViewPassword(APIView):

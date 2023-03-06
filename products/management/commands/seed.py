@@ -448,7 +448,6 @@ def create_bike_package():
             name=package["name"], description=package["description"]
         )
         package_object.save()
-        # for package in packages:
         package_object = BikePackage.objects.get(name=package["name"])
         for bike in package["bikes"]:
             bike_object = Bike.objects.get(size=BikeSize.objects.get(name=bike["size"]))

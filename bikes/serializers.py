@@ -31,7 +31,6 @@ class BikeStockSerializer(serializers.ModelSerializer):
 
 
 class BikeSerializer(serializers.ModelSerializer):
-    # color = serializers.StringRelatedField(many=True)
     type = serializers.StringRelatedField(source="type.name")
     brand = serializers.StringRelatedField(source="brand.name")
     size = serializers.StringRelatedField(source="size.name")

@@ -59,15 +59,15 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
             product["pictures"] = pic_ids_as_address_list(product["pictures"])
         return Response(serializer.data)
 
-    def perform_update(self, serializer):
+    def update(self, request, *args, ** kwargs):
         try:
             instance = ShoppingCart.objects.get(user=request.user)
         except ObjectDoesNotExist:
             return Response("Shopping cart for this user does not exist")
-        if serializer.is_valid():
-            serializer.save(instance)
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = ShoppingCartSerializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
 class OrderListView(ListCreateAPIView):

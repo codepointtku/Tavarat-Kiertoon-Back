@@ -265,6 +265,7 @@ class UserLogin2View(APIView):
                 serializer_group = UserSerializerLimited(user)
 
                 csrf.get_token(request)
+                response.status_code = status.HTTP_200_OK
                 response.data = {
                     "Success": "Login successfully",
                     "user_name": serializer_group.data["user_name"],
@@ -286,6 +287,10 @@ class UserLogin2View(APIView):
 
 
 class UserLoginTestView(APIView):
+    """
+    this view is mainly used for testing purposes
+    """
+
     authentication_classes = [
         #     #SessionAuthentication,
         #     #BasicAuthentication,

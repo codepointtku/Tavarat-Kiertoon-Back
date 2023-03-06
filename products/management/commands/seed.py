@@ -1,6 +1,7 @@
 import random
 import urllib.request
 from copy import copy
+from datetime import datetime
 
 from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
@@ -11,6 +12,7 @@ from bulletins.models import Bulletin, BulletinSubject
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
 from orders.models import Order, ShoppingCart
+from orders.views import product_availibility_check
 from products.models import Color, Picture, Product, Storage
 from users.models import CustomUser, UserAddress
 
@@ -43,7 +45,7 @@ def clear_data():
     ContactForm.objects.all().delete()
     Contact.objects.all().delete()
     ShoppingCart.objects.all().delete()
-    # Order
+    Order.objects.all().delete()
     Color.objects.all().delete()
     Picture.objects.all().delete()
     Storage.objects.all().delete()
@@ -152,7 +154,7 @@ def create_users():
         {
             "first_name": "Billy",
             "last_name": "Herrington",
-            "email": "testi@turku.fi",
+            "email": "billy.herrington@turku.fi",
             "phone_number": "0000000000",
             "password": "testi",
             "address": "Katulantiekuja 22",
@@ -171,6 +173,54 @@ def create_users():
             "zip_code": "80085",
             "city": "Rauma",
             "user_name": "Samin mashausopisto",
+            "joint_user": True,
+        },
+        {
+            "first_name": "Pekka",
+            "last_name": "Python",
+            "email": "pekka.python@turku.fi",
+            "phone_number": "0401234567",
+            "password": "password",
+            "address": "Pythosentie 12",
+            "zip_code": "22222",
+            "city": "Lohja",
+            "user_name": "",
+            "joint_user": False,
+        },
+        {
+            "first_name": "Pirjo",
+            "last_name": "Pythonen",
+            "email": "pirjo.pythonen@turku.fi",
+            "phone_number": "0501234567",
+            "password": "salasana",
+            "address": "Pythosentie 12",
+            "zip_code": "22222",
+            "city": "Lohja",
+            "user_name": "",
+            "joint_user": False,
+        },
+        {
+            "first_name": "Jad",
+            "last_name": "TzTok",
+            "email": "TzTok-Jad@turku.fi",
+            "phone_number": "702-079597",
+            "password": "F-you-woox",
+            "address": "TzHaar Fight Cave",
+            "zip_code": "Wave 63",
+            "city": "Brimhaven",
+            "user_name": "",
+            "joint_user": False,
+        },
+        {
+            "first_name": "Kavhi",
+            "last_name": "La",
+            "email": "kavhi@turku.fi",
+            "phone_number": "1112223344",
+            "password": "kavhi123",
+            "address": "kavhilantie 1",
+            "zip_code": "20100",
+            "city": "Turku",
+            "user_name": "Kavhila",
             "joint_user": True,
         },
     ]
@@ -347,6 +397,58 @@ def create_shopping_carts():
         )
 
 
+def create_orders():
+    users = CustomUser.objects.filter(is_admin=False)
+    statuses = ["Waiting", "Delivery", "Finished"]
+    order_infos = [
+        "Ethän tamma laukkoo, elä heinee vällii haakkoo"
+        "Ravirata tuolla jo pilikistää"
+        "Tehhään kunnon toto, vaikka köyhä meillon koto"
+        "Yhtää kierrosta vällii ei jiä"
+        "Sitä eei kukkaa pahakseen paa"
+        "Liikoo rahhoo jos kerralla saa"
+        "Sitä kertoo nyt ootan minäkin"
+        "Meen Mossella iltaraveihin"
+        "Ylämäki, alamäki"
+        "Oottaa raviväki"
+        "Lähtöä toista jo haikaillaan"
+        "No elä tykkee pahhoo"
+        "Kohta suahaan paljon rahhoo"
+        "Köyhinä kuollaan jos aikaillaan"
+        "Taskut ympäri nyt kiännetään"
+        "Kohta rikkaina pois viännetään"
+        "Tunnen varsasta mustan hevosen"
+        "Jota ohjoo Toivo Ryynänen"
+        "Lähtö koittaa kuka voittaa"
+        "Sehän nähhään kohta"
+        "Tyhjätaskuks vieläkkii jiähä minä suan"
+        "Mossen vaihan mersun laitan"
+        "Leivän päälle lohta"
+        "Römppäs Veikon varmat kun pitäsivät vuan"
+        "Takasuoralla Ryynänen jää"
+        "Veikko vihjeineen joukkoon häviää"
+        "Viikon piästä no niinpä tietenkin"
+        "Tuun nikitalla iltaraveihin",
+        "Tässä on tekstiä, joka kertoo lisää tilauksesta"
+        "Tilauksessa on asioita joita haluan kertoa teille"
+        "Tällä tekstillä kerron mitä ne asiat joita haluan kertoa on",
+    ]
+    for user in users:
+        order_obj = Order(
+            user=user,
+            status=random.choice(statuses),
+            delivery_address=random.choice(
+                UserAddress.objects.filter(linked_user=user)
+            ).address,
+            contact=user.email,
+            order_info=random.choice(order_infos),
+            delivery_date=datetime.now(tz=timezone.utc),
+        )
+        order_obj.save()
+        for product_id in product_availibility_check(user.id):
+            order_obj.products.add(product_id)
+
+
 def create_bulletins():
     bulletins = [
         {
@@ -431,6 +533,7 @@ def run_seed(self, mode):
     for _ in range(6):
         create_picture()
     create_products()
+    create_shopping_carts()
+    create_orders()
     create_bulletins()
     create_contacts()
-    create_shopping_carts()

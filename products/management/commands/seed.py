@@ -388,12 +388,9 @@ def create_shopping_carts():
         cart_obj = ShoppingCart(user=user)
         cart_obj.save()
     queryset = ShoppingCart.objects.all()
+    products = list(Product.objects.filter(available=True))
     for query in queryset:
-        query.products.set(
-            random.sample(
-                list(Product.objects.filter(available=True)), random.randint(1, 6)
-            )
-        )
+        query.products.set(random.sample(products, random.randint(1, 6)))
 
 
 def create_orders():
@@ -483,12 +480,13 @@ def create_bulletins():
         )
         bulletin_object.save()
     queryset = Bulletin.objects.all()
+    bulletin_subjects = BulletinSubject.objects.all()
     for query in queryset:
         query.subject.set(
             [
-                random.choice(BulletinSubject.objects.all()),
-                random.choice(BulletinSubject.objects.all()),
-                random.choice(BulletinSubject.objects.all()),
+                random.choice(bulletin_subjects),
+                random.choice(bulletin_subjects),
+                random.choice(bulletin_subjects),
             ]
         )
 

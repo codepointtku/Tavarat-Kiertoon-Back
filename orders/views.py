@@ -67,7 +67,11 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
         serializer = ShoppingCartSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        updatedinstance = ShoppingCart.objects.get(user=request.user)
+        detailserializer = ShoppingCartDetailSerializer(updatedinstance)
+        for product in detailserializer.data["products"]:
+            product["pictures"] = pic_ids_as_address_list(product["pictures"])
+        return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
 
 class OrderListView(ListCreateAPIView):

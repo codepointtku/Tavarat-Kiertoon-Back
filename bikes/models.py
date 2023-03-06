@@ -102,7 +102,7 @@ class BikeRental(models.Model):
     extra_info = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self) -> str:
-        return f"Bike rental: {self.user.name}({self.id})"
+        return f"Bike rental: {self.user}({self.id})"
 
 
 class BikePackage(models.Model):

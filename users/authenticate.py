@@ -5,11 +5,15 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 def enforce_csrf(request):
-    check = CSRFCheck()
+    # all examples show that CSRFCheck should not require parameters to work but it doesnt work and igves error
+    check = CSRFCheck(
+        request
+    )  # <-- this line is said problem, someone could look and understand it. but it works with this parameter right
     check.process_request(request)
+
     reason = check.process_view(request, None, (), {})
     if reason:
-        raise exceptions.PermissionDenied("CSRF Failed: %s" % reason)
+        raise PermissionDenied("CSRF Failed: %s" % reason)
 
 
 class CustomJWTAuthentication(JWTAuthentication):

@@ -19,6 +19,8 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .authenticate import CustomJWTAuthentication
+
 # from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission, is_in_group
@@ -53,33 +55,6 @@ def get_tokens_for_user(user):
         "refresh": str(refresh),
         "access": str(refresh.access_token),
     }
-
-
-def enforce_csrf(request):
-    # all examples show that CSRFCheck should not require parameters to work but it doesnt work and igves error
-    check = CSRFCheck(
-        request
-    )  # <-- this line is said problem, someone could look and understand it. but it works with this parameter right
-    check.process_request(request)
-
-    reason = check.process_view(request, None, (), {})
-    if reason:
-        raise PermissionDenied("CSRF Failed: %s" % reason)
-
-
-class CustomJWTAuthentication(JWTAuthentication):
-    def authenticate(self, request):
-        header = self.get_header(request)
-        if header is None:
-            raw_token = request.COOKIES.get(settings.SIMPLE_JWT["AUTH_COOKIE"]) or None
-        else:
-            raw_token = self.get_raw_token(header)
-        if raw_token is None:
-            return None
-
-        validated_token = self.get_validated_token(raw_token)
-        enforce_csrf(request)
-        return self.get_user(validated_token), validated_token
 
 
 # Create your views here.

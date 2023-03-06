@@ -40,7 +40,7 @@ def clear_data():
     BulletinSubject.objects.all().delete()
     Bulletin.objects.all().delete()
     Category.objects.all().delete()
-    # ContactForm
+    ContactForm.objects.all().delete()
     Contact.objects.all().delete()
     ShoppingCart.objects.all().delete()
     # Order
@@ -51,6 +51,38 @@ def clear_data():
     CustomUser.objects.all().delete()
     UserAddress.objects.all().delete()
     Group.objects.all().delete()
+
+
+def create_contact_forms():
+    """Creates contanct_forms"""
+    c_forms = [
+        {
+            "name": "Billy Herrington",
+            "email": "testi@turku.fi",
+            "subject": "Yöpöytä tilaus",
+            "message": "Tilasin yöpöydän, mutta sain tonttutaulun sen sijasta. :(",
+            "order_id": 10,
+            "status": "Read",
+        },
+        {
+            "name": "Sami Imas",
+            "email": "kavhila@turku.fi",
+            "subject": "Rikkinäinen pelituoli",
+            "message": "Se on rikki",
+            "order_id": 7,
+            "status": "Ignored",
+        },
+    ]
+    for c_form in c_forms:
+        c_form_obj = ContactForm(
+            name=c_form["name"],
+            email=c_form["email"],
+            subject=c_form["subject"],
+            message=c_form["message"],
+            order_id=c_form["order_id"],
+            status=c_form["status"],
+        )
+        c_form_obj.save()
 
 
 def create_bulletin_subjects():
@@ -391,6 +423,7 @@ def run_seed(self, mode):
     if mode == MODE_CLEAR:
         return
 
+    create_contact_forms()
     create_bulletin_subjects()
     create_colors()
     create_groups()
@@ -398,7 +431,7 @@ def run_seed(self, mode):
     create_categories()
     create_users()
     create_useraddress()
-    for i in range(6):
+    for _ in range(6):
         create_picture()
     create_products()
     create_bulletins()

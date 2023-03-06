@@ -34,7 +34,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("Seeding data...")
         run_seed(self, options["mode"])
-        self.stdout.write("Done. Superuser name is super and password is super")
+        self.stdout.write("Done. Superuser name is super and password is super. ")
 
 
 def clear_data():
@@ -224,7 +224,6 @@ def create_users():
             "joint_user": True,
         },
     ]
-    # creating test super user
     CustomUser.objects.create_superuser(user_name="super", password="super")
     for user in users:
         CustomUser.objects.create_user(
@@ -366,7 +365,7 @@ def create_products():
         )
         for _ in range(
             random.choices(
-                range(1, 11), cum_weights=[10, 13, 15, 16, 17, 18, 19, 20, 21, 22]
+                range(1, 11), cum_weights=[10, 15, 18, 20, 21, 22, 23, 24, 25, 26]
             )[0]
         ):
             same_products.append(copy(product_object))
@@ -401,36 +400,36 @@ def create_orders():
     users = CustomUser.objects.filter(is_admin=False)
     statuses = ["Waiting", "Delivery", "Finished"]
     order_infos = [
-        "Ethän tamma laukkoo, elä heinee vällii haakkoo"
-        "Ravirata tuolla jo pilikistää"
-        "Tehhään kunnon toto, vaikka köyhä meillon koto"
-        "Yhtää kierrosta vällii ei jiä"
-        "Sitä eei kukkaa pahakseen paa"
-        "Liikoo rahhoo jos kerralla saa"
-        "Sitä kertoo nyt ootan minäkin"
-        "Meen Mossella iltaraveihin"
-        "Ylämäki, alamäki"
-        "Oottaa raviväki"
-        "Lähtöä toista jo haikaillaan"
-        "No elä tykkee pahhoo"
-        "Kohta suahaan paljon rahhoo"
-        "Köyhinä kuollaan jos aikaillaan"
-        "Taskut ympäri nyt kiännetään"
-        "Kohta rikkaina pois viännetään"
-        "Tunnen varsasta mustan hevosen"
-        "Jota ohjoo Toivo Ryynänen"
-        "Lähtö koittaa kuka voittaa"
-        "Sehän nähhään kohta"
-        "Tyhjätaskuks vieläkkii jiähä minä suan"
-        "Mossen vaihan mersun laitan"
-        "Leivän päälle lohta"
-        "Römppäs Veikon varmat kun pitäsivät vuan"
-        "Takasuoralla Ryynänen jää"
-        "Veikko vihjeineen joukkoon häviää"
-        "Viikon piästä no niinpä tietenkin"
+        "Ethän tamma laukkoo, elä heinee vällii haakkoo "
+        "Ravirata tuolla jo pilikistää "
+        "Tehhään kunnon toto, vaikka köyhä meillon koto "
+        "Yhtää kierrosta vällii ei jiä "
+        "Sitä eei kukkaa pahakseen paa "
+        "Liikoo rahhoo jos kerralla saa "
+        "Sitä kertoo nyt ootan minäkin "
+        "Meen Mossella iltaraveihin "
+        "Ylämäki, alamäki "
+        "Oottaa raviväki "
+        "Lähtöä toista jo haikaillaan "
+        "No elä tykkee pahhoo "
+        "Kohta suahaan paljon rahhoo "
+        "Köyhinä kuollaan jos aikaillaan "
+        "Taskut ympäri nyt kiännetään "
+        "Kohta rikkaina pois viännetään "
+        "Tunnen varsasta mustan hevosen "
+        "Jota ohjoo Toivo Ryynänen "
+        "Lähtö koittaa kuka voittaa "
+        "Sehän nähhään kohta "
+        "Tyhjätaskuks vieläkkii jiähä minä suan "
+        "Mossen vaihan mersun laitan "
+        "Leivän päälle lohta "
+        "Römppäs Veikon varmat kun pitäsivät vuan "
+        "Takasuoralla Ryynänen jää "
+        "Veikko vihjeineen joukkoon häviää "
+        "Viikon piästä no niinpä tietenkin "
         "Tuun nikitalla iltaraveihin",
-        "Tässä on tekstiä, joka kertoo lisää tilauksesta"
-        "Tilauksessa on asioita joita haluan kertoa teille"
+        "Tässä on tekstiä, joka kertoo lisää tilauksesta "
+        "Tilauksessa on asioita joita haluan kertoa teille "
         "Tällä tekstillä kerron mitä ne asiat joita haluan kertoa on",
     ]
     for user in users:

@@ -9,15 +9,17 @@ from rest_framework import generics, permissions, status
 from rest_framework.authentication import (
     BaseAuthentication,
     BasicAuthentication,
+    CSRFCheck,
     SessionAuthentication,
 )
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission, is_in_group
 from .serializers import (
@@ -148,30 +150,117 @@ class UserCreateListView(APIView):
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# leaving session and basic auth for easing testing purposes, remove them once deplayed to use only JWT?
-
-
-class UserViewLogin(APIView):
+class UserLoginView(APIView):
     """
-    GET the current logged in user and returns it. used for checking logged in user
-    use jwt-api for actuaal login
-
+    Login with jwt token and as http only cookie
     """
 
     serializer_class = UserSerializerPassword
 
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-    ]
+    def post(self, request, format=None):
+        data = request.data
+        response = Response()
+        user_name = data.get("user_name", None)
+        password = data.get("password", None)
+        user = authenticate(username=user_name, password=password)
 
-    def get(self, request, format=None):
+        if user is not None:
+            if user.is_active:
+                data = get_tokens_for_user(user)
+                # KSYTÄÄN ARNOLTA VIHJHETTÄ TÄHÄN!!!!!!!!! tokenien käytöön ja halintaan, poistan kommenting kun varmistanut pari asiaa
+                response.set_cookie(
+                    key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+                    value=data["access"],
+                    expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+                    secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                    httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                    samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                    path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+                )
+                response.set_cookie(
+                    key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
+                    value=data["refresh"],
+                    expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+                    secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                    httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                    samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                    path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+                )
+
+                serializer_group = UserSerializerLimited(user)
+
+                csrf.get_token(request)
+                response.status_code = status.HTTP_200_OK
+                response.data = {
+                    "Success": "Login successfully",
+                    "user_name": serializer_group.data["user_name"],
+                    "groups": serializer_group.data["groups"],
+                }
+                return response
+            else:
+                return Response(
+                    {"No active": "This account is not active!!"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        else:
+            return Response(
+                {"Invalid": "Invalid username or password!!"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+class UserLoginTestView(APIView):
+    """
+    this view is mainly used for testing purposes
+    will be removed later.
+    """
+
+    authentication_classes = [
+        #     #SessionAuthentication,
+        #     #BasicAuthentication,
+        #     #JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+        "POST": ["user_group"],
+        "PUT": ["user_group"],
+        "PATCH": ["user_group"],
+    }
+
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializerPassword
+
+    def get(self, request):
+        print("testing things, on the page now GET")
+        print(request.COOKIES)
         content = {
             "user": str(request.user),  # `django.contrib.auth.User` instance.
             "auth": str(request.auth),  # None
         }
-        return Response(content)
+        print(content)
+        serializer_group = UserSerializerLimited(request.user)
+
+        return Response(
+            {
+                "cookies": request.COOKIES,
+                "user": content,
+                "groups": serializer_group.data["groups"],
+            }
+        )
+
+    def post(self, request):
+        print("testing things POST")
+        print(request.COOKIES)
+        content = {
+            "user": str(request.user),  # `django.contrib.auth.User` instance.
+            "auth": str(request.auth),  # None
+        }
+        print(content)
+        serializer_class = UserSerializerPassword
+
+        return Response(request.COOKIES)
 
 
 class UserViewLogout(APIView):

@@ -12,6 +12,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from products.models import Picture, Product
 from products.views import pic_ids_as_address_list
+from users.views import CustomJWTAuthentication
 
 from .models import Order, ShoppingCart
 from .serializers import (
@@ -45,6 +46,7 @@ class ShoppingCartDetailView(RetrieveDestroyAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     def retrieve(self, request, *args, **kwargs):

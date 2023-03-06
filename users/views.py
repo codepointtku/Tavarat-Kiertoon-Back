@@ -195,33 +195,7 @@ class UserCreateListView(APIView):
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# leaving session and basic auth for easing testing purposes, remove them once deplayed to use only JWT?
-
-
-class UserViewLogin(APIView):
-    """
-    GET the current logged in user and returns it. used for checking logged in user
-    use jwt-api for actuaal login
-
-    """
-
-    serializer_class = UserSerializerPassword
-
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-    ]
-
-    def get(self, request, format=None):
-        content = {
-            "user": str(request.user),  # `django.contrib.auth.User` instance.
-            "auth": str(request.auth),  # None
-        }
-        return Response(content)
-
-
-class UserLogin2View(APIView):
+class UserLoginView(APIView):
     """
     Login with jwt token and as http only cookie
     """

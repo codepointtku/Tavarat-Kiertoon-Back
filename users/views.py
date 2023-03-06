@@ -56,24 +56,11 @@ def get_tokens_for_user(user):
 
 
 def enforce_csrf(request):
-    print("enforce CRF now")
     # all examples show that CSRFCheck should not require parameters to work but it doesnt work and igves error
     check = CSRFCheck(
         request
     )  # <-- this line is said problem, someone could look and understand it. but it works with this parameter right
-    print("next up check")
     check.process_request(request)
-    print(
-        "csrf: ",
-        request.META["CSRF_COOKIE"],
-    )
-    # print("HEADERS:   ", request.META)
-    test = "HTTP_ORIGIN" in request.META
-    print("http origin state: ", test)
-    if test:
-        print("origin: ", request.META["HTTP_ORIGIN"])
-        print("host: ", request.get_host())
-        # print(request.META)
 
     reason = check.process_view(request, None, (), {})
     if reason:
@@ -82,20 +69,15 @@ def enforce_csrf(request):
 
 class CustomJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
-        print("-----------------------STARTING JWT custom auth------------")
         header = self.get_header(request)
-        print("header: ", header)
-        print("cookies??????????????????: ", request.COOKIES)
         if header is None:
             raw_token = request.COOKIES.get(settings.SIMPLE_JWT["AUTH_COOKIE"]) or None
         else:
             raw_token = self.get_raw_token(header)
-        print("RAW TOKEN-------------: ", raw_token)
         if raw_token is None:
             return None
 
         validated_token = self.get_validated_token(raw_token)
-        print("before CSRF")
         enforce_csrf(request)
         return self.get_user(validated_token), validated_token
 
@@ -203,9 +185,7 @@ class UserLoginView(APIView):
     serializer_class = UserSerializerPassword
 
     def post(self, request, format=None):
-        print("am I here")
         data = request.data
-        print(data)
         response = Response()
         user_name = data.get("user_name", None)
         password = data.get("password", None)
@@ -213,10 +193,8 @@ class UserLoginView(APIView):
 
         if user is not None:
             if user.is_active:
-                print("do magic")
-                print(request.COOKIES)
                 data = get_tokens_for_user(user)
-                # KSYTÄÄN ARNOLTA VIHJHETTÄ TÄHÄN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! tokenien käytöön ja halintaan
+                # KSYTÄÄN ARNOLTA VIHJHETTÄ TÄHÄN!!!!!!!!! tokenien käytöön ja halintaan, poistan kommenting kun varmistanut pari asiaa
                 response.set_cookie(
                     key=settings.SIMPLE_JWT["AUTH_COOKIE"],
                     value=data["access"],
@@ -245,8 +223,6 @@ class UserLoginView(APIView):
                     "user_name": serializer_group.data["user_name"],
                     "groups": serializer_group.data["groups"],
                 }
-                print(response)
-                print(response.data)
                 return response
             else:
                 return Response(
@@ -263,6 +239,7 @@ class UserLoginView(APIView):
 class UserLoginTestView(APIView):
     """
     this view is mainly used for testing purposes
+    will be removed later.
     """
 
     authentication_classes = [

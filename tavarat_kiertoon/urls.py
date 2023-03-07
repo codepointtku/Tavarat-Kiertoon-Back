@@ -68,6 +68,7 @@ from users.views import (
     UserLoginTestView,
     UserLoginView,
     UserSingleGetView,
+    UserTokenRefreshView,
     UserViewLogout,
     UserViewPassword,
     UserViewUpdateInfo,
@@ -121,7 +122,8 @@ urlpatterns = [
     path("users/login2/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("users/login/", UserLoginView.as_view(), name="token_obtain_pair_http"),
     path("users/login/test/", UserLoginTestView.as_view(), name="token_obtain_pair"),
-    path("users/login/refresh/", TokenRefreshView.as_view(), name="token_refrest"),
+    path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refrest"),
+    path("users/login/refresh2/", TokenRefreshView.as_view(), name="token_refrest"),
     path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT

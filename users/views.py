@@ -17,7 +17,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenViewBase
 
 from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
@@ -209,6 +212,47 @@ class UserLoginView(APIView):
             )
 
 
+class UserTokenRefreshView(TokenViewBase):
+    # class UserTokenRefreshView(APIView):
+    """
+    Takes refresh token from cookies and if its valid sets new access token to cookies
+    """
+
+    _serializer_class = api_settings.TOKEN_REFRESH_SERIALIZER
+
+    def post(self, request, *args, **kwargs):
+        if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
+            return Response(
+                "refresh token not found", status=status.HTTP_400_BAD_REQUEST
+            )
+
+        refresh_token = {}
+        refresh_token["refresh"] = request.COOKIES["refresh_token"]
+        serializer = self.get_serializer(data=refresh_token)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+
+        response = Response()
+        response.set_cookie(
+            key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+            value=serializer.validated_data["access"],
+            expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+            secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+            httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+            samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+            path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+        )
+        response.status_code = status.HTTP_200_OK
+        response.data = {
+            "Success": "refresh success",
+        }
+
+        return response
+
+
 class UserLoginTestView(APIView):
     """
     this view is mainly used for testing purposes
@@ -270,10 +314,18 @@ class UserViewLogout(APIView):
 
     def get(self, request):
         logout(request)
-        return Response(
-            "Logged Out, remember to clear stuff(JWT-token (access_token and refresh_token)) at the front ends local storage.",
-            status=status.HTTP_200_OK,
-        )
+        response = Response()
+        if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] in request.COOKIES:
+            response.delete_cookie(settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"])
+
+        if settings.SIMPLE_JWT["AUTH_COOKIE"] in request.COOKIES:
+            response.delete_cookie(settings.SIMPLE_JWT["AUTH_COOKIE"])
+
+        response.status_code = status.HTTP_200_OK
+        response.data = {
+            "Success": "log out done here, do the front stuff",
+        }
+        return response
 
 
 # should not be used as returns non-necessary things, use the limited views instead as they are used to return nexessary things.

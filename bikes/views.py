@@ -34,6 +34,10 @@ class MainBikeList(generics.ListAPIView):
                 for rental in bike["rental"]:
                     start_date = datetime.datetime.fromisoformat(rental["start_date"])
                     end_date = datetime.datetime.fromisoformat(rental["end_date"])
+                    # We want to give the warehouse workers a business day to maintain the bikes, after the rental has ended
+                    end_date += datetime.timedelta(days=1)
+                    while end_date.weekday() >= 5:
+                        end_date += datetime.timedelta(days=1)
                     date = start_date
                     while date <= end_date:
                         date_str = date.strftime("%d.%m.%Y")

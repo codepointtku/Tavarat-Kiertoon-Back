@@ -40,6 +40,15 @@ class TestProduct(TestCase):
             color=cls.test_color, storages=cls.test_storage
         )
 
+        queryset = Product.objects.all()
+        for query in queryset:
+            query.pictures.set(
+                [
+                    Picture.objects.get(id=cls.test_picture.id),
+                    Picture.objects.get(id=cls.test_picture.id),
+                ],
+            )
+
     def test_get_colors(self):
         url = "/colors/"
         response = self.client.get(url)
@@ -57,6 +66,16 @@ class TestProduct(TestCase):
 
     def test_get_products(self):
         url = "/products/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_products_search(self):
+        url = "/products/?search=sohva"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_products_paginate(self):
+        url = "/products/?page=1"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 

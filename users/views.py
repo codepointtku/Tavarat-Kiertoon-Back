@@ -212,7 +212,6 @@ class UserLoginView(APIView):
 
 
 class UserTokenRefreshView(TokenViewBase):
-    # class UserTokenRefreshView(APIView):
     """
     Takes refresh token from cookies and if its valid sets new access token to cookies
     """
@@ -346,6 +345,7 @@ class UserDetailsListView(generics.ListAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
 
@@ -371,6 +371,7 @@ class UserSingleGetView(APIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
 
@@ -406,6 +407,7 @@ class GroupListView(generics.ListCreateAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
@@ -431,6 +433,7 @@ class GroupNameView(generics.RetrieveUpdateAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
@@ -454,6 +457,7 @@ class GroupPermissionCheck(APIView):
         JWTAuthentication,
         BasicAuthentication,
         SessionAuthentication,
+        CustomJWTAuthentication,
     ]
     serializer_class = GroupNameCheckSerializer
     permission_classes = [HasGroupPermission]
@@ -484,6 +488,7 @@ class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     # required_groups = {
@@ -513,6 +518,7 @@ class UserDetailsListViewLimited(APIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
@@ -537,6 +543,7 @@ class UserDetailsSingleViewLimited(APIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
@@ -568,6 +575,7 @@ class UserViewUpdateInfo(APIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
@@ -611,6 +619,7 @@ class UserViewUpdateSingle(generics.RetrieveUpdateAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
@@ -634,6 +643,7 @@ class UserAddressListView(generics.ListAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
@@ -657,6 +667,7 @@ class UserAddressAddView(APIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
@@ -699,6 +710,7 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
@@ -728,6 +740,7 @@ class UserViewPassword(APIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]

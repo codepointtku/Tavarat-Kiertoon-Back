@@ -352,6 +352,10 @@ def create_products():
         },
     ]
     true_false = [1, 1, 1, 0]
+    categories = Category.objects.filter(level=2)
+    colors = Color.objects.all()
+    storages = Storage.objects.all()
+    pictures = Picture.objects.all()
     for product in products:
         same_products = []
         product_object = Product(
@@ -359,9 +363,9 @@ def create_products():
             group_id=product["group_id"],
             barcode=product["barcode"],
             free_description=product["free_description"],
-            category=random.choice(Category.objects.filter(level=2)),
-            color=random.choice(Color.objects.all()),
-            storages=random.choice(Storage.objects.all()),
+            category=random.choice(categories),
+            color=random.choice(colors),
+            storages=random.choice(storages),
         )
         for _ in range(
             random.choices(
@@ -375,9 +379,9 @@ def create_products():
     for query in queryset:
         query.pictures.set(
             [
-                random.choice(Picture.objects.all()),
-                random.choice(Picture.objects.all()),
-                random.choice(Picture.objects.all()),
+                random.choice(pictures),
+                random.choice(pictures),
+                random.choice(pictures),
             ],
         )
 
@@ -472,11 +476,12 @@ def create_bulletins():
             "content": "Toimituksia aletaan taas tekemään ja tuotteita voi nyt taas tilata järjestelmästä. Päivitimme myös järjestelmän palvelimen joten palvelun pitäisi toimia entistä nopeammin. Jos kuitenkin ilmenee ongelmia niin ota ihmeessä yhteyttä !",
         },
     ]
+    authors = CustomUser.objects.filter(is_admin=False)
     for bulletin in bulletins:
         bulletin_object = Bulletin(
             title=bulletin["title"],
             content=bulletin["content"],
-            author=random.choice(CustomUser.objects.all()),
+            author=random.choice(authors),
         )
         bulletin_object.save()
     queryset = Bulletin.objects.all()

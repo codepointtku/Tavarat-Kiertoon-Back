@@ -226,7 +226,6 @@ def create_users():
     ]
     super = CustomUser.objects.create_superuser(user_name="super", password="super")
     Group.objects.get(name="storage_group").user_set.add(super)
-    print(dir(Group.objects.get(name="storage_group")))
     for user in users:
         CustomUser.objects.create_user(
             first_name=user["first_name"],

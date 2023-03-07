@@ -7,7 +7,6 @@ from users.models import CustomUser
 
 # Create your models here.
 class ShoppingCart(models.Model):
-
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     products = models.ManyToManyField(Product)
@@ -30,6 +29,7 @@ class Order(models.Model):
     contact = models.CharField(max_length=255, null=True, default=None, blank=True)
     order_info = models.TextField(null=True, default=None, blank=True)
     delivery_date = models.DateTimeField(null=True, default=None, blank=True)
+    phone_number = models.CharField(max_length=255)
 
     def __str__(self) -> str:
         return f"{self.user}'s Order({self.id})"

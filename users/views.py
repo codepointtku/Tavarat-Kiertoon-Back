@@ -307,7 +307,7 @@ class UserLoginTestView(APIView):
 
 class UserViewLogout(APIView):
     """
-    Logs out the user and flush session  (just in case)
+    Logs out the user and flush session  (just in case, mainly for use in testing at back)
     """
 
     def jwt_logout(self, request):

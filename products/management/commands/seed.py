@@ -1,5 +1,6 @@
 import random
 import urllib.request
+import uuid
 from copy import copy
 from datetime import datetime
 
@@ -8,6 +9,15 @@ from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from bikes.models import (
+    Bike,
+    BikeAmount,
+    BikeBrand,
+    BikePackage,
+    BikeSize,
+    BikeStock,
+    BikeType,
+)
 from bulletins.models import Bulletin, BulletinSubject
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
@@ -52,6 +62,13 @@ def clear_data():
     Product.objects.all().delete()
     CustomUser.objects.all().delete()
     UserAddress.objects.all().delete()
+    Bike.objects.all().delete()
+    BikeAmount.objects.all().delete()
+    BikeBrand.objects.all().delete()
+    BikePackage.objects.all().delete()
+    BikeSize.objects.all().delete()
+    BikeStock.objects.all().delete()
+    BikeType.objects.all().delete()
     Group.objects.all().delete()
 
 
@@ -97,7 +114,7 @@ def create_bulletin_subjects():
 
 def create_colors():
     """Creates color objects from the list."""
-    colors = ["Punainen", "Sininen", "Vihreä"]
+    colors = ["Punainen", "Sininen", "Vihreä", "Musta", "Valkoinen", "Ruskea"]
     for color in colors:
         color_object = Color(name=color)
         color_object.save()
@@ -224,7 +241,8 @@ def create_users():
             "joint_user": True,
         },
     ]
-    CustomUser.objects.create_superuser(user_name="super", password="super")
+    super = CustomUser.objects.create_superuser(user_name="super", password="super")
+    Group.objects.get(name="storage_group").user_set.add(super)
     for user in users:
         CustomUser.objects.create_user(
             first_name=user["first_name"],
@@ -376,6 +394,7 @@ def create_products():
             same_products[-1].available = random.choice(true_false)
         Product.objects.bulk_create(same_products)
     queryset = Product.objects.all()
+    pictures = Picture.objects.all()
     for query in queryset:
         query.pictures.set(
             [
@@ -443,6 +462,7 @@ def create_orders():
             contact=user.email,
             order_info=random.choice(order_infos),
             delivery_date=datetime.now(tz=timezone.utc),
+            phone_number=user.phone_number,
         )
         order_obj.save()
         for product_id in product_availibility_check(user.id):
@@ -515,6 +535,98 @@ def create_contacts():
         contact_object.save()
 
 
+def create_bike_brands():
+    brands = ["Cannondale", "Woom"]
+    for bike_brand in brands:
+        brand_object = BikeBrand(name=bike_brand)
+        brand_object.save()
+
+
+def create_bike_size():
+    sizes = ["14″", "16″", "20″", "24″"]
+    for bike_size in sizes:
+        size_object = BikeSize(name=bike_size)
+        size_object.save()
+
+
+def create_bike_types():
+    types = ["BMX", "City", "Muksubussi", "Sähkö"]
+    for bike_type in types:
+        bike_object = BikeType(name=bike_type)
+        bike_object.save()
+
+
+def create_bikes():
+    bikes = [
+        {
+            "name": "Todella hieno pyörä",
+            "description": "Hyväkuntonen hieno pyörä suoraa 80-luvulta",
+            "size": "14″",
+        },
+        {"name": "Ihmisten pyörä", "description": "Ihmisille", "size": "16″"},
+        {"name": "Wow pyörä", "description": "Se ajaa", "size": "20″"},
+        {
+            "name": "Ruosteinen pyörä",
+            "description": "En suosittele tätä",
+            "size": "24″",
+        },
+    ]
+    types = BikeType.objects.all()
+    brands = BikeBrand.objects.all()
+    colors = Color.objects.all()
+    for bike in bikes:
+        bike_object = Bike(
+            name=bike["name"],
+            description=bike["description"],
+            size=BikeSize.objects.get(name=bike["size"]),
+            brand=random.choice(brands),
+            type=random.choice(types),
+            color=random.choice(colors),
+        )
+        bike_object.save()
+
+
+def create_bike_stock():
+    storages = Storage.objects.all()
+    bikes = Bike.objects.all()
+    for bike in bikes:
+        for i in range(random.randint(3, 9)):
+            stock_object = BikeStock(
+                number=uuid.uuid4(),
+                frame_number=uuid.uuid4(),
+                bike=bike,
+                storage=random.choice(storages),
+            )
+            stock_object.save()
+
+
+def create_bike_package():
+    packages = [
+        {
+            "name": "Päiväkoti -paketti",
+            "description": "16″ pyöriä 7 kpl, 14″ pyöriä 3 kpl, potkupyöriä 10 kpl, pyöräilykypäriä 20 kpl, käsipumppu, jalkapumppu, monitoimityökalu",
+            "bikes": [{"size": "14″", "amount": 3}, {"size": "16″", "amount": 7}],
+        },
+        {
+            "name": "Koulu -paketti",
+            "description": "20″ pyöriä 6 kpl, 24″ pyöriä 6 kpl, pyöräilykypäriä 13 kpl, käsipumppu, jalkapumppu, monitoimityökalu, molempia pyöriä olemassa 7 kpl, mutta tällä määrällä peräkärry on helppo lastata",
+            "bikes": [{"size": "20″", "amount": 6}, {"size": "24″", "amount": 6}],
+        },
+    ]
+    for package in packages:
+        package_object = BikePackage(
+            name=package["name"], description=package["description"]
+        )
+        package_object.save()
+        package_object = BikePackage.objects.get(name=package["name"])
+        for bike in package["bikes"]:
+            bike_object = Bike.objects.get(size=BikeSize.objects.get(name=bike["size"]))
+            amount_object = BikeAmount(
+                bike=bike_object, amount=bike["amount"], package=package_object
+            )
+            amount_object.save()
+
+
 def run_seed(self, mode):
     """Seed database based on mode.
 
@@ -539,3 +651,9 @@ def run_seed(self, mode):
     create_orders()
     create_bulletins()
     create_contacts()
+    create_bike_brands()
+    create_bike_size()
+    create_bike_types()
+    create_bikes()
+    create_bike_stock()
+    create_bike_package()

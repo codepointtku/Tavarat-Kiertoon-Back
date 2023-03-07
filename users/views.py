@@ -312,7 +312,7 @@ class UserViewLogout(APIView):
     Logs out the user and flush session
     """
 
-    def get(self, request):
+    def post(self, request):
         logout(request)
         response = Response()
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] in request.COOKIES:

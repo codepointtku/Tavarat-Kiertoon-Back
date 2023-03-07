@@ -18,7 +18,7 @@ class BikeStockList(generics.ListAPIView):
 
 
 class MainBikeList(generics.ListAPIView):
-    def list(self, request):
+    def list(self, request, *args, **kwargs):
         today = datetime.date.today()
         available_from = today + datetime.timedelta(days=7)
         available_to = today + datetime.timedelta(days=183)

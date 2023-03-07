@@ -3,11 +3,15 @@ from django.db.models import Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from rest_framework import generics, status
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from categories.models import Category
+from users.permissions import is_in_group
+from users.views import CustomJWTAuthentication
 
 from .models import Color, Picture, Product, Storage
 from .serializers import (
@@ -71,6 +75,12 @@ class ProductFilter(filters.FilterSet):
 
 class ProductListView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
     pagination_class = ProductListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
@@ -80,8 +90,8 @@ class ProductListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Product.objects.all()
-        a = self.request.query_params.get("a")
-        if a is None:
+        all_products = self.request.query_params.get("all")
+        if not is_in_group(self.request.user, "storage_group") or all_products is None:
             queryset = queryset.filter(available=True)
         return queryset
 
@@ -93,7 +103,6 @@ class ProductListView(generics.ListCreateAPIView):
             for product in serializer.data:
                 product["pictures"] = pic_ids_as_address_list(product["pictures"])
             return self.get_paginated_response(serializer.data)
-
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 

@@ -1,10 +1,10 @@
 """The bike rental views."""
 
 import datetime
-
-from rest_framework import generics
+import math
 
 # from rest_framework.permissions import IsAdminUser
+from rest_framework import generics
 from rest_framework.response import Response
 
 from bikes.models import Bike, BikePackage, BikeStock
@@ -53,9 +53,9 @@ class MainBikeList(generics.ListAPIView):
             serializer_package = bike_package_serializer.data[index]
             serializer_package["type"] = "Paketti"
             serializer_package["unavailable"] = {}
-            serializer_package["max_available"] = 1
             serializer_package["brand"] = None
             serializer_package["color"] = None
+            max_available = None
             for bike in package["bikes"]:
                 bike_object = Bike.objects.get(id=bike["bike"])
                 if "size" in serializer_package:
@@ -64,6 +64,15 @@ class MainBikeList(generics.ListAPIView):
                     ] = f"{serializer_package['size']} & {bike_object.size.name}"
                 else:
                     serializer_package["size"] = bike_object.size.name
+                bike_object_serializer = BikeSerializer(bike_object)
+                bike_max_available = math.floor(
+                    bike_object_serializer.data["max_available"] / bike["amount"]
+                )
+                if max_available is None:
+                    max_available = bike_max_available
+                else:
+                    max_available = min(max_available, bike_max_available)
+            serializer_package["max_available"] = max_available
 
         return Response(
             {

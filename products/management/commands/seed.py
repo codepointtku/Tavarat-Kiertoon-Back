@@ -241,7 +241,8 @@ def create_users():
             "joint_user": True,
         },
     ]
-    CustomUser.objects.create_superuser(user_name="super", password="super")
+    super = CustomUser.objects.create_superuser(user_name="super", password="super")
+    Group.objects.get(name="storage_group").user_set.add(super)
     for user in users:
         CustomUser.objects.create_user(
             first_name=user["first_name"],
@@ -461,6 +462,7 @@ def create_orders():
             contact=user.email,
             order_info=random.choice(order_infos),
             delivery_date=datetime.now(tz=timezone.utc),
+            phone_number=user.phone_number,
         )
         order_obj.save()
         for product_id in product_availibility_check(user.id):

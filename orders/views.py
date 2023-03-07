@@ -82,9 +82,12 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
             instance = ShoppingCart.objects.get(user=request.user)
         except ObjectDoesNotExist:
             return Response("Shopping cart for this user does not exist")
-        serializer = ShoppingCartSerializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+
+        cartproduct = Product.objects.get(id=request.data["products"])
+        if cartproduct in instance.products.all():
+            instance.products.remove(cartproduct)
+        else:
+            instance.products.add(cartproduct)
         updatedinstance = ShoppingCart.objects.get(user=request.user)
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)
         for product in detailserializer.data["products"]:

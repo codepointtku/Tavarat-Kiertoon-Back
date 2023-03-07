@@ -170,7 +170,6 @@ class UserLoginView(APIView):
         if user is not None:
             if user.is_active:
                 data = get_tokens_for_user(user)
-                # KSYTÄÄN ARNOLTA VIHJHETTÄ TÄHÄN!!!!!!!!! tokenien käytöön ja halintaan, poistan kommenting kun varmistanut pari asiaa
                 response.set_cookie(
                     key=settings.SIMPLE_JWT["AUTH_COOKIE"],
                     value=data["access"],
@@ -309,10 +308,10 @@ class UserLoginTestView(APIView):
 
 class UserViewLogout(APIView):
     """
-    Logs out the user and flush session
+    Logs out the user and flush session  (just in case)
     """
 
-    def post(self, request):
+    def jwt_logout(self, request):
         logout(request)
         response = Response()
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] in request.COOKIES:
@@ -325,6 +324,14 @@ class UserViewLogout(APIView):
         response.data = {
             "Success": "log out done here, do the front stuff",
         }
+        return response
+
+    def post(self, request):
+        response = self.jwt_logout(request)
+        return response
+
+    def get(self, request):
+        response = self.jwt_logout(request)
         return response
 
 

@@ -538,7 +538,6 @@ def create_bike_brands():
     for bike_brand in brands:
         brand_object = BikeBrand(name=bike_brand)
         brand_object.save()
-    return
 
 
 def create_bike_size():
@@ -546,7 +545,6 @@ def create_bike_size():
     for bike_size in sizes:
         size_object = BikeSize(name=bike_size)
         size_object.save()
-    return
 
 
 def create_bike_types():
@@ -554,7 +552,6 @@ def create_bike_types():
     for bike_type in types:
         bike_object = BikeType(name=bike_type)
         bike_object.save()
-    return
 
 
 def create_bikes():
@@ -585,7 +582,6 @@ def create_bikes():
             color=random.choice(colors),
         )
         bike_object.save()
-    return
 
 
 def create_bike_stock():
@@ -600,7 +596,6 @@ def create_bike_stock():
                 storage=random.choice(storages),
             )
             stock_object.save()
-    return
 
 
 def create_bike_package():
@@ -628,7 +623,6 @@ def create_bike_package():
                 bike=bike_object, amount=bike["amount"], package=package_object
             )
             amount_object.save()
-    return
 
 
 def run_seed(self, mode):

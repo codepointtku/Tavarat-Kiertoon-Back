@@ -33,19 +33,24 @@ class TestProduct(TestCase):
         )
         cls.test_product = Product.objects.create(
             name="nahkasohva", price=0, category=cls.test_category,
-            color=cls.test_color, storages=cls.test_storage
+            color=cls.test_color, storages=cls.test_storage, available=True
         )
         cls.test_product1 = Product.objects.create(
             name="sohvanahka", price=0, category=cls.test_category,
-            color=cls.test_color, storages=cls.test_storage
+            color=cls.test_color, storages=cls.test_storage, available=True
         )
+        # for _ in range(90):
+        #     Product.objects.create(
+        #         name="kahvimassa", price=0, category=cls.test_category,
+        #         color=cls.test_color, storages=cls.test_storage, group_id=1, available=True
+        #     ) 
 
         queryset = Product.objects.all()
         for query in queryset:
             query.pictures.set(
                 [
                     Picture.objects.get(id=cls.test_picture.id),
-                    Picture.objects.get(id=cls.test_picture.id),
+                    Picture.objects.get(id=cls.test_picture1.id),
                 ],
             )
 
@@ -92,7 +97,7 @@ class TestProduct(TestCase):
     def test_post_picture(self):
         picture = urllib.request.urlretrieve(
             url="https://picsum.photos/200.jpg",
-            filename="media/pictures/testpicture.jpg"
+            filename="media/pictures/testpicture.jpeg"
         )
         url = "/pictures/"
         data = {"file": open(picture[0], "rb")}
@@ -107,6 +112,20 @@ class TestProduct(TestCase):
             "pictures": [self.test_picture.id, self.test_picture1.id]
         }
         response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 201)
+
+    def test_post_product_with_new_picture(self):
+        picture = urllib.request.urlretrieve(
+            url="https://picsum.photos/200.jpg",
+            filename="media/pictures/testpicture1.jpeg"
+        )
+        url = "/products/"
+        data = {
+            "name": "tuolinahka", "price": 0, "category": self.test_category.id,
+            "color": self.test_color.id, "storages": self.test_storage.id, "amount": 1,
+            "pictures[]": {"file": open(picture[0], "rb")}
+        }
+        response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, 201)
 
     def test_post_product_color_as_string(self):

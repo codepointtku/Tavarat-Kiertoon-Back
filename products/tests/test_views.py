@@ -74,6 +74,11 @@ class TestProduct(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
+    def test_get_products_search_multiple_parameters(self):
+        url = f"/products/?search=sohva&color={self.test_color.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
     def test_get_products_paginate(self):
         url = "/products/?page=1"
         response = self.client.get(url)
@@ -131,7 +136,7 @@ class TestProduct(TestCase):
             "color": colorstr, "storages": self.test_storage.id, "amount": 1,
             "pictures": [self.test_picture.id]
         }
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
     def test_post_product_existing_color_as_string(self):
@@ -142,16 +147,15 @@ class TestProduct(TestCase):
             "color": colorstr, "storages": self.test_storage.id, "amount": 1,
             "pictures": [self.test_picture.id]
         }
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
     
     def test_update_product(self):
         url = f"/products/{self.test_product.id}/"
-        print(self.test_product)
         data = {
             "name": "kahvisohva"
         }
-        response = self.client.put(url, data, content_type='application/json')
+        response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
     def test_self_color_string(self):

@@ -7,12 +7,10 @@ from django.middleware import csrf
 from django.shortcuts import render
 from rest_framework import generics, permissions, status
 from rest_framework.authentication import (
-    BaseAuthentication,
     BasicAuthentication,
-    CSRFCheck,
     SessionAuthentication,
 )
-from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -24,7 +22,7 @@ from rest_framework_simplejwt.views import TokenViewBase
 
 from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
-from .permissions import HasGroupPermission, is_in_group
+from .permissions import HasGroupPermission
 from .serializers import (
     GroupNameCheckSerializer,
     GroupNameSerializer,
@@ -38,12 +36,13 @@ from .serializers import (
     UserSerializerNames,
     UserSerializerPassword,
     UserSerializerUpdate,
+    BooleanValidatorSerializer
 )
 
 User = get_user_model()
 
 
-def Validate_email_domain(email_domain):
+def validate_email_domain(email_domain):
     # print("email domain: ", email_domain, "valid email domains: " , settings.VALID_EMAIL_DOMAINS)
     if email_domain in settings.VALID_EMAIL_DOMAINS:
         return True
@@ -69,17 +68,23 @@ class UserCreateListView(APIView):
     # queryset = CustomUser.objects.all()
     serializer_class = UserSerializerCreate
 
-    # need to make this so that only ppl inside turku/customers intra can access this, cehcks?,  only admins?
-
     def get(self, request, format=None):
         users = CustomUser.objects.all()
         serializer = UserSerializerNames(users, many=True)
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        if request.data["user_name"] is None:
-            request.data["user_name"] = request.data["email"]
-        serialized_values = UserSerializerCreate(data=request.data)
+        boolval = BooleanValidatorSerializer(data=request.data)
+        if boolval.is_valid():
+            if not boolval.data["joint_user"]:
+                copy_of_request = request.data.copy()
+                copy_of_request["user_name"] = request.data["email"]
+            else: 
+                copy_of_request = request.data.copy()
+        else:
+            copy_of_request = request.data.copy()
+
+        serialized_values = UserSerializerCreate(data=copy_of_request)
 
         if serialized_values.is_valid():
             # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
@@ -121,12 +126,12 @@ class UserCreateListView(APIView):
                     "Not a valid email address",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            else:
-                email_split = email_post.split("@")
-                if not Validate_email_domain(email_split[1]):
-                    return Response(
-                        "invalid email domain", status=status.HTTP_400_BAD_REQUEST
-                    )
+            
+            email_split = email_post.split("@")
+            if not validate_email_domain(email_split[1]):
+                return Response(
+                    "invalid email domain", status=status.HTTP_400_BAD_REQUEST
+                )
 
             return_serializer = UserSerializerCreateReturn(data=serialized_values.data)
             return_serializer.is_valid()
@@ -305,7 +310,7 @@ class UserLoginTestView(APIView):
         return Response(request.COOKIES)
 
 
-class UserViewLogout(APIView):
+class UserLogoutView(APIView):
     """
     Logs out the user and flush session  (just in case, mainly for use in testing at back)
     """
@@ -447,7 +452,7 @@ class GroupNameView(generics.RetrieveUpdateAPIView):
     serializer_class = GroupNameSerializer
 
 
-class GroupPermissionCheck(APIView):
+class GroupPermissionCheckView(APIView):
     """
     check the groups user belongs to and return them
     kinda redutant? can be gotten from another views, users too
@@ -479,7 +484,7 @@ class GroupPermissionCheck(APIView):
         return Response(request_serializer.data)
 
 
-class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
+class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
     Update users permissions, should be only allowed to admins, on testing phase allowing fo users
     """
@@ -509,7 +514,7 @@ class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
     serializer_class = GroupPermissionsSerializer
 
 
-class UserDetailsListViewLimited(APIView):
+class UserDetailsListLimitedView(APIView):
     """
     Get Users with revelant fields
     """
@@ -534,7 +539,7 @@ class UserDetailsListViewLimited(APIView):
         return Response(serializer.data)
 
 
-class UserDetailsSingleViewLimited(APIView):
+class UserDetailLimitedView(APIView):
     """
     Get single user with revelant fields
     """
@@ -566,7 +571,7 @@ class UserDetailsSingleViewLimited(APIView):
         return Response(serializer.data)
 
 
-class UserViewUpdateInfo(APIView):
+class UserUpdateInfoView(APIView):
     """
     Get logged in users information and update it
     """
@@ -610,7 +615,7 @@ class UserViewUpdateInfo(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UserViewUpdateSingle(generics.RetrieveUpdateAPIView):
+class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     """
     Get specific users info for updating
     """
@@ -726,7 +731,7 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserAddress.objects.all()
 
 
-class UserViewPassword(APIView):
+class UserPasswordView(APIView):
     """
     DO NOT USE RIGHT NOW
     Get single user, and try to check password (OLD tests)

@@ -3,6 +3,13 @@ from rest_framework import serializers
 
 from .models import CustomUser, UserAddress
 
+class BooleanValidatorSerializer(serializers.ModelSerializer):
+
+    joint_user = serializers.BooleanField(default=False)
+    class Meta:
+        model = CustomUser
+        fields = ["joint_user"]
+
 
 class UserSerializerPassword(serializers.ModelSerializer):
     """

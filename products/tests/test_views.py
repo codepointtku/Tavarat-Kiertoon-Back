@@ -123,7 +123,7 @@ class TestProduct(TestCase):
         data = {
             "name": "tuolinahka", "price": 0, "category": self.test_category.id,
             "color": self.test_color.id, "storages": self.test_storage.id, "amount": 1,
-            "pictures[]": {"file": open(picture[0], "rb")}
+            "pictures[]": {open(picture[0], "rb")}
         }
         response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, 201)
@@ -132,7 +132,7 @@ class TestProduct(TestCase):
         url = "/products/"
         colorstr = str("värikäs")
         data = {
-            "name": "nahkanahka", "price": 0, "category": self.test_category.id,
+            "name": "puusohva", "price": 0, "category": self.test_category.id,
             "color": colorstr, "storages": self.test_storage.id, "amount": 1,
             "pictures": [self.test_picture.id]
         }
@@ -143,12 +143,21 @@ class TestProduct(TestCase):
         url = "/products/"
         colorstr = str("punainen")
         data = {
-            "name": "nahkasika", "price": 0, "category": self.test_category.id,
+            "name": "puutuoli", "price": 0, "category": self.test_category.id,
             "color": colorstr, "storages": self.test_storage.id, "amount": 1,
             "pictures": [self.test_picture.id]
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 201)
+    
+    def test_update_product(self):
+        url = f"/products/{self.test_product.id}/"
+        print(self.test_product)
+        data = {
+            "name": "kahvisohva"
+        }
+        response = self.client.put(url, data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
 
     def test_self_color_string(self):
         self.assertEqual(str(self.test_color),

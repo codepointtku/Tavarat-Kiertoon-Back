@@ -1,8 +1,9 @@
 import urllib.request
+import shutil
 
 from os.path import basename
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.core.files.base import ContentFile
 from django.utils import timezone
@@ -10,9 +11,11 @@ from django.utils import timezone
 from products.models import Product, Picture, Color, Storage
 from categories.models import Category
 
+TEST_DIR = "testmedia/"
 
 class TestProduct(TestCase):
     @classmethod
+    @override_settings(MEDIA_ROOT=TEST_DIR) 
     def setUpTestData(cls):
         cls.test_color = Color.objects.create(name="punainen")
         cls.test_storage = Storage.objects.create(name="mokkavarasto")
@@ -23,12 +26,12 @@ class TestProduct(TestCase):
         result = urllib.request.urlretrieve("https://picsum.photos/200")
         cls.test_picture = Picture.objects.create(picture_address=ContentFile(
                 open(result[0], "rb").read(),
-                name=f"{timezone.now().timestamp()}.jpg"
+                name=f"{timezone.now().timestamp()}.jpeg"
             )
         )
         cls.test_picture1 = Picture.objects.create(picture_address=ContentFile(
                 open(result[0], "rb").read(),
-                name=f"{timezone.now().timestamp()}.jpg"
+                name=f"{timezone.now().timestamp()}.jpeg"
             )
         )
         cls.test_product = Product.objects.create(
@@ -94,10 +97,11 @@ class TestProduct(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
+    @override_settings(MEDIA_ROOT=TEST_DIR) 
     def test_post_picture(self):
         picture = urllib.request.urlretrieve(
             url="https://picsum.photos/200.jpg",
-            filename="media/pictures/testpicture.jpeg"
+            filename="testmedia/pictures/testpicture.jpeg"
         )
         url = "/pictures/"
         data = {"file": open(picture[0], "rb")}
@@ -114,10 +118,11 @@ class TestProduct(TestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 201)
 
+    @override_settings(MEDIA_ROOT=TEST_DIR) 
     def test_post_product_with_new_picture(self):
         picture = urllib.request.urlretrieve(
             url="https://picsum.photos/200.jpg",
-            filename="media/pictures/testpicture1.jpeg"
+            filename="testmedia/pictures/testpicture1.jpeg"
         )
         url = "/products/"
         data = {
@@ -162,15 +167,25 @@ class TestProduct(TestCase):
         self.assertEqual(str(self.test_color),
             f"Color: {self.test_color.name}({self.test_color.id})"
         )
+
     def test_self_storage_string(self):
         self.assertEqual(str(self.test_storage),
             f"Storage: {self.test_storage.name}({self.test_storage.id})"
         )
+
     def test_self_product_string(self):
         self.assertEqual(str(self.test_product),
             f"Product: {self.test_product.name}({self.test_product.id})"
         )
+
     def test_self_picture_string(self):
         self.assertEqual(str(self.test_picture),
             f"Picture: {basename(self.test_picture.picture_address.name)}({self.test_picture.id})"
         )
+
+    def tearDownClass():
+        print("\nDeleting temporary files...\n")
+        try:
+            shutil.rmtree(TEST_DIR)
+        except OSError:
+            pass

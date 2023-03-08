@@ -39,11 +39,6 @@ class TestProduct(TestCase):
             name="sohvanahka", price=0, category=cls.test_category,
             color=cls.test_color, storages=cls.test_storage, available=True
         )
-        # for _ in range(90):
-        #     Product.objects.create(
-        #         name="kahvimassa", price=0, category=cls.test_category,
-        #         color=cls.test_color, storages=cls.test_storage, group_id=1, available=True
-        #     ) 
 
         queryset = Product.objects.all()
         for query in queryset:

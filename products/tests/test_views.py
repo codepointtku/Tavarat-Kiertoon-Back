@@ -97,7 +97,7 @@ class TestProduct(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
-    @override_settings(MEDIA_ROOT=TEST_DIR) 
+    @override_settings(MEDIA_ROOT=TEST_DIR)
     def test_post_picture(self):
         picture = urllib.request.urlretrieve(
             url="https://picsum.photos/200.jpg",
@@ -113,9 +113,9 @@ class TestProduct(TestCase):
         data = {
             "name": "nahkatuoli", "price": 0, "category": self.test_category.id,
             "color": self.test_color.id, "storages": self.test_storage.id, "amount": 3,
-            "pictures": [self.test_picture.id, self.test_picture1.id]
+            "pictures": [self.test_picture.id, self.test_picture1.id], "available": True
         }
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
     @override_settings(MEDIA_ROOT=TEST_DIR) 
@@ -128,7 +128,7 @@ class TestProduct(TestCase):
         data = {
             "name": "tuolinahka", "price": 0, "category": self.test_category.id,
             "color": self.test_color.id, "storages": self.test_storage.id, "amount": 1,
-            "pictures[]": {open(picture[0], "rb")}
+            "pictures[]": {open(picture[0], "rb")}, "available": False
         }
         response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, 201)

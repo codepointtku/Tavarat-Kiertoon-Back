@@ -55,6 +55,14 @@ class UserSerializerCreate(serializers.ModelSerializer):
     zip_code = serializers.CharField(max_length=10)
     city = serializers.CharField(max_length=100)
 
+    def validate(self, attrs):
+        print("fuck validators")
+        print(attrs)
+        if not attrs["joint_user"] :
+            attrs["user_name"] = attrs["email"]
+        print(attrs)
+        return attrs
+
     class Meta:
         model = CustomUser
         fields = [

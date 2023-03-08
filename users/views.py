@@ -74,17 +74,18 @@ class UserCreateListView(APIView):
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        boolval = BooleanValidatorSerializer(data=request.data)
-        if boolval.is_valid():
-            if not boolval.data["joint_user"]:
-                copy_of_request = request.data.copy()
-                copy_of_request["user_name"] = request.data["email"]
-            else: 
-                copy_of_request = request.data.copy()
-        else:
-            copy_of_request = request.data.copy()
+        # boolval = BooleanValidatorSerializer(data=request.data)
+        # if boolval.is_valid():
+        #     if not boolval.data["joint_user"]:
+        #         copy_of_request = request.data.copy()
+        #         copy_of_request["user_name"] = request.data["email"]
+        #     else: 
+        #         copy_of_request = request.data.copy()
+        # else:
+        #     copy_of_request = request.data.copy()
 
-        serialized_values = UserSerializerCreate(data=copy_of_request)
+        #serialized_values = UserSerializerCreate(data=copy_of_request)
+        serialized_values = UserSerializerCreate(data=request.data)
 
         if serialized_values.is_valid():
             # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else

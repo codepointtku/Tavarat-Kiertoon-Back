@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.conf import settings
+from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
@@ -68,6 +69,7 @@ from users.views import (
     UserLoginTestView,
     UserLoginView,
     UserSingleGetView,
+    UserTokenRefreshView,
     UserViewLogout,
     UserViewPassword,
     UserViewUpdateInfo,
@@ -84,7 +86,6 @@ urlpatterns = [
     path("colors/<int:pk>/", ColorDetailView.as_view()),
     path("shopping_carts/", ShoppingCartListView.as_view()),
     path("shopping_cart/", ShoppingCartDetailView.as_view()),
-    # path("users/login/test/", ShoppingCartDetailView.as_view()),
     path("orders/", OrderListView.as_view()),
     path("orders/<int:pk>/", OrderDetailView.as_view()),
     path("products/", ProductListView.as_view()),
@@ -115,13 +116,15 @@ urlpatterns = [
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),
     path("bulletin_subjects/", BulletinSubjectListView.as_view()),
     path("bulletin_subjects/<int:pk>", BulletinSubjectDetailView.as_view()),
+    path("bikes/", include("bikes.urls")),
     path("contacts/", ContactListView.as_view()),
     path("contacts/<int:pk>", ContactDetailView.as_view()),
     path("api-auth/", include("rest_framework.urls")),
-    path("users/login2/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    # path("users/login2/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("users/login/", UserLoginView.as_view(), name="token_obtain_pair_http"),
     path("users/login/test/", UserLoginTestView.as_view(), name="token_obtain_pair"),
-    path("users/login/refresh/", TokenRefreshView.as_view(), name="token_refrest"),
+    path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refrest"),
+    # path("users/login/refresh2/", TokenRefreshView.as_view(), name="token_refrest"),
     path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT

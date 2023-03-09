@@ -4,7 +4,6 @@ import shutil
 from os.path import basename
 
 from django.test import TestCase, override_settings
-from django.urls import reverse
 from django.core.files.base import ContentFile
 from django.utils import timezone
 
@@ -36,11 +35,13 @@ class TestProduct(TestCase):
         )
         cls.test_product = Product.objects.create(
             name="nahkasohva", price=0, category=cls.test_category,
-            color=cls.test_color, storages=cls.test_storage, available=True
+            color=cls.test_color, storages=cls.test_storage, available=True,
+            free_description="tämä sohva on nahkainen", weight=50
         )
         cls.test_product1 = Product.objects.create(
             name="sohvanahka", price=0, category=cls.test_category,
-            color=cls.test_color, storages=cls.test_storage, available=True
+            color=cls.test_color, storages=cls.test_storage, available=True,
+            free_description="tämä nahka on sohvainen", weight=50
         )
 
         queryset = Product.objects.all()
@@ -128,7 +129,8 @@ class TestProduct(TestCase):
         data = {
             "name": "tuolinahka", "price": 0, "category": self.test_category.id,
             "color": self.test_color.id, "storages": self.test_storage.id, "amount": 1,
-            "pictures[]": {open(picture[0], "rb")}, "available": False
+            "pictures[]": {open(picture[0], "rb")}, "available": False, "weight": 15,
+            "free_description": "tämä tuoli on hieno"
         }
         response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, 201)
@@ -139,7 +141,8 @@ class TestProduct(TestCase):
         data = {
             "name": "puusohva", "price": 0, "category": self.test_category.id,
             "color": colorstr, "storages": self.test_storage.id, "amount": 1,
-            "pictures": [self.test_picture.id]
+            "pictures": [self.test_picture.id], "weight": 100,
+            "free_description": "umpipuinen sohva"
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
@@ -150,7 +153,8 @@ class TestProduct(TestCase):
         data = {
             "name": "puutuoli", "price": 0, "category": self.test_category.id,
             "color": colorstr, "storages": self.test_storage.id, "amount": 1,
-            "pictures": [self.test_picture.id]
+            "pictures": [self.test_picture.id], "weight": 40,
+            "free_description": "kova puinen tuoli"
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)

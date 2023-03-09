@@ -91,8 +91,8 @@ class UserCreateListView(APIView):
             if not boolval.data["joint_user"]:
                 copy_of_request["user_name"] = request.data["email"]
 
-        #serialized_values = UserSerializerCreate(data=copy_of_request)
-        serialized_values = UserSerializerCreate(data=request.data)
+        serialized_values = UserSerializerCreate(data=copy_of_request)
+        #serialized_values = UserSerializerCreate(data=request.data)
 
         if serialized_values.is_valid():
             # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else

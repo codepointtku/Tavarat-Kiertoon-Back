@@ -56,9 +56,13 @@ class UserSerializerCreate(serializers.ModelSerializer):
     #     print("test data 2: ", data)
     #     return data
 
-    def validate(self, attrs):
-        print("testing stuff:", attrs)
-        return attrs
+    # def validate(self, attrs):
+    #     print("testing stuff in serialzier:", attrs)
+    #     if not attrs["joint_user"]:
+    #         print("joint user IS NOT this guy")
+    #         attrs["user_name"] = attrs["email"]
+    #         print("after swap: ", attrs)
+    #     return attrs
 
 
     first_name = serializers.CharField(max_length=100)

@@ -27,15 +27,15 @@ from .serializers import (
     GroupNameCheckSerializer,
     GroupNameSerializer,
     GroupPermissionsSerializer,
-    GroupPermissionsSerializerNames,
+    GroupPermissionsNamesSerializer,
     UserAddressSerializer,
-    UserSerializerCreate,
-    UserSerializerCreateReturn,
-    UserSerializerFull,
-    UserSerializerLimited,
-    UserSerializerNames,
-    UserSerializerPassword,
-    UserSerializerUpdate,
+    UserCreateSerializer,
+    UserCreateReturnSerializer,
+    UserFullSerializer,
+    UserLimitedSerializer,
+    UserNamesSerializer,
+    UserPasswordSerializer,
+    UserUpdateSerializer,
     BooleanValidatorSerializer
 )
 
@@ -66,11 +66,11 @@ class UserCreateListView(APIView):
     """
 
     # queryset = CustomUser.objects.all()
-    serializer_class = UserSerializerCreate
+    serializer_class = UserCreateSerializer
 
     def get(self, request, format=None):
         users = CustomUser.objects.all()
-        serializer = UserSerializerNames(users, many=True)
+        serializer = UserNamesSerializer(users, many=True)
         return Response(serializer.data)
 
     def post(self, request, format=None):
@@ -91,8 +91,8 @@ class UserCreateListView(APIView):
             if not boolval.data["joint_user"]:
                 copy_of_request["user_name"] = request.data["email"]
 
-        serialized_values = UserSerializerCreate(data=copy_of_request)
-        #serialized_values = UserSerializerCreate(data=request.data)
+        serialized_values = UserCreateSerializer(data=copy_of_request)
+        #serialized_values = UserCreateSerializer(data=request.data)
 
         if serialized_values.is_valid():
             # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
@@ -141,7 +141,7 @@ class UserCreateListView(APIView):
                     "invalid email domain", status=status.HTTP_400_BAD_REQUEST
                 )
 
-            return_serializer = UserSerializerCreateReturn(data=serialized_values.data)
+            return_serializer = UserCreateReturnSerializer(data=serialized_values.data)
             return_serializer.is_valid()
 
             # create email verification for user creation  /// FOR LATER WHO EVER DOES IT
@@ -171,7 +171,7 @@ class UserLoginView(APIView):
     Login with jwt token and as http only cookie
     """
 
-    serializer_class = UserSerializerPassword
+    serializer_class = UserPasswordSerializer
 
     def post(self, request, format=None):
         data = request.data
@@ -202,7 +202,7 @@ class UserLoginView(APIView):
                     path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
                 )
 
-                serializer_group = UserSerializerLimited(user)
+                serializer_group = UserLimitedSerializer(user)
 
                 csrf.get_token(request)
                 response.status_code = status.HTTP_200_OK
@@ -285,7 +285,7 @@ class UserLoginTestView(APIView):
     }
 
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializerPassword
+    serializer_class = UserPasswordSerializer
 
     def get(self, request):
         print("testing things, on the page now GET")
@@ -295,7 +295,7 @@ class UserLoginTestView(APIView):
             "auth": str(request.auth),  # None
         }
         print(content)
-        serializer_group = UserSerializerLimited(request.user)
+        serializer_group = UserLimitedSerializer(request.user)
 
         return Response(
             {
@@ -313,7 +313,7 @@ class UserLoginTestView(APIView):
             "auth": str(request.auth),  # None
         }
         print(content)
-        serializer_class = UserSerializerPassword
+        serializer_class = UserPasswordSerializer
 
         return Response(request.COOKIES)
 
@@ -369,7 +369,7 @@ class UserDetailsListView(generics.ListAPIView):
     }
 
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializerFull
+    serializer_class = UserFullSerializer
 
 
 # should not be used as returns non-necessary things, use the limited views instead as they are used to return necessary things.
@@ -395,7 +395,7 @@ class UserSingleGetView(APIView):
     }
 
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializerFull
+    serializer_class = UserFullSerializer
 
     def get_object(self, pk):
         try:
@@ -405,7 +405,7 @@ class UserSingleGetView(APIView):
 
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
-        serializer = UserSerializerFull(user)
+        serializer = UserFullSerializer(user)
 
         return Response(serializer.data)
 
@@ -482,7 +482,7 @@ class GroupPermissionCheckView(APIView):
     }
 
     def get(self, request, format=None):
-        serializer = GroupPermissionsSerializerNames(request.user)
+        serializer = GroupPermissionsNamesSerializer(request.user)
         return Response(serializer.data)
 
     def post(self, request, format=None):
@@ -543,7 +543,7 @@ class UserDetailsListLimitedView(APIView):
 
     def get(self, request, format=None):
         users = CustomUser.objects.all()
-        serializer = UserSerializerLimited(users, many=True)
+        serializer = UserLimitedSerializer(users, many=True)
         return Response(serializer.data)
 
 
@@ -575,7 +575,7 @@ class UserDetailLimitedView(APIView):
 
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
-        serializer = UserSerializerLimited(user)
+        serializer = UserLimitedSerializer(user)
         return Response(serializer.data)
 
 
@@ -599,7 +599,7 @@ class UserUpdateInfoView(APIView):
         "PATCH": ["user_group"],
     }
 
-    serializer_class = UserSerializerUpdate
+    serializer_class = UserUpdateSerializer
     queryset = User.objects.all()
 
     def get(self, request, format=None):
@@ -611,8 +611,8 @@ class UserUpdateInfoView(APIView):
             return Response(message)
         else:
             queryset = User.objects.filter(id=request.user.id)
-            serialized_data_full = UserSerializerFull(queryset, many=True)
-            return Response(UserSerializerLimited(request.user).data)
+            serialized_data_full = UserFullSerializer(queryset, many=True)
+            return Response(UserLimitedSerializer(request.user).data)
 
     def put(self, request, format=None):
         serializer = self.serializer_class(
@@ -643,7 +643,7 @@ class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
         "PATCH": ["admin_group"],
     }
 
-    serializer_class = UserSerializerUpdate
+    serializer_class = UserUpdateSerializer
     queryset = User.objects.all()
 
 
@@ -772,14 +772,14 @@ class UserPasswordView(APIView):
 
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
-        serializer = UserSerializerPassword(user)
+        serializer = UserPasswordSerializer(user)
         return Response(serializer.data)
 
     def post(self, request, pk, format=None):
         print("test POST")
         user = self.get_object(pk)
-        serializer = UserSerializerPassword(user)
-        serialized_values_request = UserSerializerPassword(data=request.data)
+        serializer = UserPasswordSerializer(user)
+        serialized_values_request = UserPasswordSerializer(data=request.data)
         print(serialized_values_request)
         print("-------------------------------------------")
         print(serializer, "\n -------------------")
@@ -824,4 +824,4 @@ class UserPasswordView(APIView):
 
         return Response(data_serializer)
 
-    serializer_class = UserSerializerPassword
+    serializer_class = UserPasswordSerializer

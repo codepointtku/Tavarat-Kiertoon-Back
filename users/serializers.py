@@ -11,7 +11,7 @@ class BooleanValidatorSerializer(serializers.ModelSerializer):
         fields = ["joint_user"]
 
 
-class UserSerializerPassword(serializers.ModelSerializer):
+class UserPasswordSerializer(serializers.ModelSerializer):
     """
     Serializer for users, checking password fields
     """
@@ -42,7 +42,7 @@ class UserAddressSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class UserSerializerCreate(serializers.ModelSerializer):
+class UserCreateSerializer(serializers.ModelSerializer):
     """
     Serializer for users, in specific format for user creation
     """
@@ -89,7 +89,7 @@ class UserSerializerCreate(serializers.ModelSerializer):
         ]
 
 
-class UserSerializerCreateReturn(serializers.ModelSerializer):
+class UserCreateReturnSerializer(serializers.ModelSerializer):
     """
     Serializer for users, in specific format for user creation
     """
@@ -108,7 +108,7 @@ class UserSerializerCreateReturn(serializers.ModelSerializer):
         ]
 
 
-class UserSerializerUpdate(serializers.ModelSerializer):
+class UserUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer for users, for updating user information
     """
@@ -128,7 +128,7 @@ class SubSerializerForGroups(serializers.ModelSerializer):
         fields = ["name"]
 
 
-class UserSerializerFull(serializers.ModelSerializer):
+class UserFullSerializer(serializers.ModelSerializer):
     """
     Serializer for users, all database fields
     """
@@ -141,7 +141,7 @@ class UserSerializerFull(serializers.ModelSerializer):
         depth = 1
 
 
-class UserSerializerLimited(serializers.ModelSerializer):
+class UserLimitedSerializer(serializers.ModelSerializer):
     """
     Serializer for users, getting the revelant fields
     """
@@ -168,7 +168,7 @@ class UserSerializerLimited(serializers.ModelSerializer):
         ]
 
 
-class UserSerializerNames(serializers.ModelSerializer):
+class UserNamesSerializer(serializers.ModelSerializer):
     """
     Serializer for users, name and email
     """
@@ -215,7 +215,7 @@ class GroupPermissionsSerializer(serializers.ModelSerializer):
         ]
 
 
-class GroupPermissionsSerializerNames(serializers.ModelSerializer):
+class GroupPermissionsNamesSerializer(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
 
     class Meta:

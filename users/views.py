@@ -76,26 +76,23 @@ class UserCreateListView(APIView):
     def post(self, request, format=None):
         #extremely uglu validation stuff
         #if some one can make this better it would be good
-        #problem is user_name validation so it passes the real validator
+        #problem is user_name validation so it passes the real validator (allowed to be empty for normal users)
         #need to swap the email addreess to user_name before validator for normal users
         #the joint user bool field isnt properly converted to values before its run thoough serialzier
         #if its done in same validator it fucks up the user_name = email change
         #this works buit is uugly as is this poem too
-        #if you want to see hte probelm jsut throw requwat data straight to serializer and validate
-        #when creating normal user and have mepty user name field
-        #and yes I know this has typoes
+        #if you want to see the probelm jsut throw request data straight to serializer and validate
+        #when creating normal user and have empty user name field
+
+        #so that bool value can be read properly
         boolval = BooleanValidatorSerializer(data=request.data)
+        copy_of_request = request.data.copy()
         if boolval.is_valid():
             if not boolval.data["joint_user"]:
-                copy_of_request = request.data.copy()
                 copy_of_request["user_name"] = request.data["email"]
-            else: 
-                copy_of_request = request.data.copy()
-        else:
-            copy_of_request = request.data.copy()
 
-        serialized_values = UserSerializerCreate(data=copy_of_request)
-        #serialized_values = UserSerializerCreate(data=request.data)
+        #serialized_values = UserSerializerCreate(data=copy_of_request)
+        serialized_values = UserSerializerCreate(data=request.data)
 
         if serialized_values.is_valid():
             # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else

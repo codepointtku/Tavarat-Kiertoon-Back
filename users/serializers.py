@@ -47,6 +47,20 @@ class UserSerializerCreate(serializers.ModelSerializer):
     Serializer for users, in specific format for user creation
     """
 
+    # def to_representation(self, instance):
+    #     data = super().to_representation(instance)
+    #     print("testi data: ", data)
+    #     if not data["joint_user"] :
+    #         data["user_name"] = data["email"]
+
+    #     print("test data 2: ", data)
+    #     return data
+
+    def validate(self, attrs):
+        print("testing stuff:", attrs)
+        return attrs
+
+
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=155)
     joint_user = serializers.BooleanField(default=False)
@@ -54,14 +68,6 @@ class UserSerializerCreate(serializers.ModelSerializer):
     address = serializers.CharField(max_length=255)
     zip_code = serializers.CharField(max_length=10)
     city = serializers.CharField(max_length=100)
-
-    # def validate(self, attrs):
-    #     print("fuck validators")
-    #     print(attrs)
-    #     if not attrs["joint_user"] :
-    #         attrs["user_name"] = attrs["email"]
-    #     print(attrs)
-    #     return attrs
 
     class Meta:
         model = CustomUser

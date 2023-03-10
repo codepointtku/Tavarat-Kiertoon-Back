@@ -100,10 +100,8 @@ class ProductListView(generics.ListCreateAPIView):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            for i in range(len(serializer.data)):
-                serializer.data[i]["pictures"] = pic_ids_as_address_list(
-                    serializer.data[i]["pictures"]
-                )
+            for product in serializer.data:
+                product["pictures"] = pic_ids_as_address_list(product["pictures"])
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -180,12 +178,20 @@ class CategoryProductListView(generics.ListAPIView):
     ordering = ["date", "name", "color"]
 
     def get_queryset(self):
-        category = self.kwargs["category_id"]
-        categoryset = [category]
-        categories = Category.objects.filter(parent=category).values("id")
-        for i in categories:
-            categoryset.append(i["id"])
-        return Product.objects.filter(category__in=categoryset)
+        category = Category.objects.get(id=self.kwargs["category_id"])
+        categories = category.get_descendants(include_self=True)
+        return Product.objects.filter(category__in=categories)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            for product in serializer.data:
+                product["pictures"] = pic_ids_as_address_list(product["pictures"])
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class ColorListView(generics.ListCreateAPIView):

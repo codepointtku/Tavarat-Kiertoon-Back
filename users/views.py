@@ -17,7 +17,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenViewBase
 
 from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
@@ -167,7 +170,6 @@ class UserLoginView(APIView):
         if user is not None:
             if user.is_active:
                 data = get_tokens_for_user(user)
-                # KSYTÄÄN ARNOLTA VIHJHETTÄ TÄHÄN!!!!!!!!! tokenien käytöön ja halintaan, poistan kommenting kun varmistanut pari asiaa
                 response.set_cookie(
                     key=settings.SIMPLE_JWT["AUTH_COOKIE"],
                     value=data["access"],
@@ -207,6 +209,46 @@ class UserLoginView(APIView):
                 {"Invalid": "Invalid username or password!!"},
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+
+class UserTokenRefreshView(TokenViewBase):
+    """
+    Takes refresh token from cookies and if its valid sets new access token to cookies
+    """
+
+    _serializer_class = api_settings.TOKEN_REFRESH_SERIALIZER
+
+    def post(self, request, *args, **kwargs):
+        if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
+            return Response(
+                "refresh token not found", status=status.HTTP_400_BAD_REQUEST
+            )
+
+        refresh_token = {}
+        refresh_token["refresh"] = request.COOKIES["refresh_token"]
+        serializer = self.get_serializer(data=refresh_token)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+
+        response = Response()
+        response.set_cookie(
+            key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+            value=serializer.validated_data["access"],
+            expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+            secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+            httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+            samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+            path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+        )
+        response.status_code = status.HTTP_200_OK
+        response.data = {
+            "Success": "refresh success",
+        }
+
+        return response
 
 
 class UserLoginTestView(APIView):
@@ -265,15 +307,31 @@ class UserLoginTestView(APIView):
 
 class UserViewLogout(APIView):
     """
-    Logs out the user and flush session
+    Logs out the user and flush session  (just in case, mainly for use in testing at back)
     """
 
-    def get(self, request):
+    def jwt_logout(self, request):
         logout(request)
-        return Response(
-            "Logged Out, remember to clear stuff(JWT-token (access_token and refresh_token)) at the front ends local storage.",
-            status=status.HTTP_200_OK,
-        )
+        response = Response()
+        if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] in request.COOKIES:
+            response.delete_cookie(settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"])
+
+        if settings.SIMPLE_JWT["AUTH_COOKIE"] in request.COOKIES:
+            response.delete_cookie(settings.SIMPLE_JWT["AUTH_COOKIE"])
+
+        response.status_code = status.HTTP_200_OK
+        response.data = {
+            "Success": "log out done here, do the front stuff",
+        }
+        return response
+
+    def post(self, request):
+        response = self.jwt_logout(request)
+        return response
+
+    def get(self, request):
+        response = self.jwt_logout(request)
+        return response
 
 
 # should not be used as returns non-necessary things, use the limited views instead as they are used to return nexessary things.
@@ -287,6 +345,7 @@ class UserDetailsListView(generics.ListAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
 
@@ -312,6 +371,7 @@ class UserSingleGetView(APIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
 
@@ -347,6 +407,7 @@ class GroupListView(generics.ListCreateAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
@@ -372,6 +433,7 @@ class GroupNameView(generics.RetrieveUpdateAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
@@ -395,6 +457,7 @@ class GroupPermissionCheck(APIView):
         JWTAuthentication,
         BasicAuthentication,
         SessionAuthentication,
+        CustomJWTAuthentication,
     ]
     serializer_class = GroupNameCheckSerializer
     permission_classes = [HasGroupPermission]
@@ -425,6 +488,7 @@ class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     # required_groups = {
@@ -454,6 +518,7 @@ class UserDetailsListViewLimited(APIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
@@ -478,6 +543,7 @@ class UserDetailsSingleViewLimited(APIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
@@ -509,6 +575,7 @@ class UserViewUpdateInfo(APIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
@@ -552,6 +619,7 @@ class UserViewUpdateSingle(generics.RetrieveUpdateAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
@@ -575,6 +643,7 @@ class UserAddressListView(generics.ListAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
@@ -598,6 +667,7 @@ class UserAddressAddView(APIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
@@ -640,6 +710,7 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
@@ -669,6 +740,7 @@ class UserViewPassword(APIView):
         SessionAuthentication,
         BasicAuthentication,
         JWTAuthentication,
+        CustomJWTAuthentication,
     ]
 
     permission_classes = [IsAuthenticated, HasGroupPermission]

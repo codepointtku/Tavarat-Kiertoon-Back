@@ -592,7 +592,7 @@ def create_bike_stock():
     storages = Storage.objects.all()
     bikes = Bike.objects.all()
     for bike in bikes:
-        for i in range(random.randint(3, 9)):
+        for _ in range(random.randint(7, 12)):
             stock_object = BikeStock(
                 number=uuid.uuid4(),
                 frame_number=uuid.uuid4(),

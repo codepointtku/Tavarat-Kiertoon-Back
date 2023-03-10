@@ -59,7 +59,7 @@ class ShoppingCartListView(ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ShoppingCartDetailView(RetrieveDestroyAPIView):
+class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartDetailSerializer
     authentication_classes = [
@@ -75,11 +75,28 @@ class ShoppingCartDetailView(RetrieveDestroyAPIView):
         try:
             instance = ShoppingCart.objects.get(user=request.user)
         except ObjectDoesNotExist:
-            return Response("Shoppincart for this user doesnt exist")
+            return Response("Shopping cart for this user does not exist")
         serializer = self.get_serializer(instance)
         for product in serializer.data["products"]:
             product["pictures"] = pic_ids_as_address_list(product["pictures"])
         return Response(serializer.data)
+
+    def update(self, request, *args, ** kwargs):
+        try:
+            instance = ShoppingCart.objects.get(user=request.user)
+        except ObjectDoesNotExist:
+            return Response("Shopping cart for this user does not exist")
+
+        cartproduct = Product.objects.get(id=request.data["products"])
+        if cartproduct in instance.products.all():
+            instance.products.remove(cartproduct)
+        else:
+            instance.products.add(cartproduct)
+        updatedinstance = ShoppingCart.objects.get(user=request.user)
+        detailserializer = ShoppingCartDetailSerializer(updatedinstance)
+        for product in detailserializer.data["products"]:
+            product["pictures"] = pic_ids_as_address_list(product["pictures"])
+        return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
 
 class OrderListPagination(PageNumberPagination):

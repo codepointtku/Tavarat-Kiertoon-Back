@@ -1,5 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.shortcuts import render
+from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.generics import (
@@ -7,6 +9,7 @@ from rest_framework.generics import (
     RetrieveDestroyAPIView,
     RetrieveUpdateDestroyAPIView,
 )
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -78,9 +81,34 @@ class ShoppingCartDetailView(RetrieveDestroyAPIView):
         return Response(serializer.data)
 
 
+class OrderListPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = "page_size"
+
+
+class OrderFilter(filters.FilterSet):
+    STATUS_CHOICES = (
+        ("Waiting", "Waiting"),
+        ("Delivery", "Delivery"),
+        ("Finished", "Finished"),
+    )
+    status = filters.ChoiceFilter(method="status_filter", choices=STATUS_CHOICES)
+
+    class Meta:
+        model = Order
+        fields = ["status", "id"]
+
+    def status_filter(self, queryset, name, value):
+        print(self.request.GET)
+        return queryset.filter(Q(status__iexact=value))
+
+
 class OrderListView(ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = OrderFilter
+    pagination_class = OrderListPagination
 
     def post(self, request, *args, **kwargs):
         user_id = request.data["user"]

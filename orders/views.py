@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.filters import OrderingFilter
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveDestroyAPIView,
@@ -96,19 +97,20 @@ class OrderFilter(filters.FilterSet):
 
     class Meta:
         model = Order
-        fields = ["status", "id"]
+        fields = ["status"]
 
     def status_filter(self, queryset, name, value):
-        print(self.request.GET)
         return queryset.filter(Q(status__iexact=value))
 
 
 class OrderListView(ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    filter_backends = [filters.DjangoFilterBackend]
-    filterset_class = OrderFilter
     pagination_class = OrderListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["id"]
+    ordering = ["id"]
+    filterset_class = OrderFilter
 
     def post(self, request, *args, **kwargs):
         user_id = request.data["user"]

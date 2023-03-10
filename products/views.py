@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.db.models import Q
 from django.utils import timezone
@@ -109,6 +110,10 @@ class ProductListView(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         request_data = request.data
         productinstance = color_check_create(request_data)
+        try:
+            productinstance["group_id"] = Product.objects.latest("id").id + 1
+        except ObjectDoesNotExist:
+            productinstance["group_id"] = 1
         modified_request = [productinstance] * int(request.data["amount"])
         serializer = ProductSerializer(data=modified_request, many=True)
         serializer.is_valid(raise_exception=True)

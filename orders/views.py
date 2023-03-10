@@ -1,12 +1,16 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.shortcuts import render
+from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.filters import OrderingFilter
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveDestroyAPIView,
     RetrieveUpdateDestroyAPIView,
 )
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -95,9 +99,35 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
         return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
 
+class OrderListPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = "page_size"
+
+
+class OrderFilter(filters.FilterSet):
+    STATUS_CHOICES = (
+        ("Waiting", "Waiting"),
+        ("Delivery", "Delivery"),
+        ("Finished", "Finished"),
+    )
+    status = filters.ChoiceFilter(method="status_filter", choices=STATUS_CHOICES)
+
+    class Meta:
+        model = Order
+        fields = ["status"]
+
+    def status_filter(self, queryset, name, value):
+        return queryset.filter(Q(status__iexact=value))
+
+
 class OrderListView(ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    pagination_class = OrderListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["id"]
+    ordering = ["id"]
+    filterset_class = OrderFilter
 
     def post(self, request, *args, **kwargs):
         user_id = request.data["user"]

@@ -7,12 +7,10 @@ from django.middleware import csrf
 from django.shortcuts import render
 from rest_framework import generics, permissions, status
 from rest_framework.authentication import (
-    BaseAuthentication,
     BasicAuthentication,
-    CSRFCheck,
     SessionAuthentication,
 )
-from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -24,26 +22,27 @@ from rest_framework_simplejwt.views import TokenViewBase
 
 from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
-from .permissions import HasGroupPermission, is_in_group
+from .permissions import HasGroupPermission
 from .serializers import (
     GroupNameCheckSerializer,
     GroupNameSerializer,
     GroupPermissionsSerializer,
-    GroupPermissionsSerializerNames,
+    GroupPermissionsNamesSerializer,
     UserAddressSerializer,
-    UserSerializerCreate,
-    UserSerializerCreateReturn,
-    UserSerializerFull,
-    UserSerializerLimited,
-    UserSerializerNames,
-    UserSerializerPassword,
-    UserSerializerUpdate,
+    UserCreateSerializer,
+    UserCreateReturnSerializer,
+    UserFullSerializer,
+    UserLimitedSerializer,
+    UserNamesSerializer,
+    UserPasswordSerializer,
+    UserUpdateSerializer,
+    BooleanValidatorSerializer
 )
 
 User = get_user_model()
 
 
-def Validate_email_domain(email_domain):
+def validate_email_domain(email_domain):
     # print("email domain: ", email_domain, "valid email domains: " , settings.VALID_EMAIL_DOMAINS)
     if email_domain in settings.VALID_EMAIL_DOMAINS:
         return True
@@ -67,19 +66,33 @@ class UserCreateListView(APIView):
     """
 
     # queryset = CustomUser.objects.all()
-    serializer_class = UserSerializerCreate
-
-    # need to make this so that only ppl inside turku/customers intra can access this, cehcks?,  only admins?
+    serializer_class = UserCreateSerializer
 
     def get(self, request, format=None):
         users = CustomUser.objects.all()
-        serializer = UserSerializerNames(users, many=True)
+        serializer = UserNamesSerializer(users, many=True)
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        if request.data["user_name"] is None:
-            request.data["user_name"] = request.data["email"]
-        serialized_values = UserSerializerCreate(data=request.data)
+        #extremely uglu validation stuff
+        #if some one can make this better it would be good
+        #problem is user_name validation so it passes the real validator (allowed to be empty for normal users)
+        #need to swap the email addreess to user_name before validator for normal users
+        #the joint user bool field isnt properly converted to values before its run thoough serialzier
+        #if its done in same validator it fucks up the user_name = email change
+        #this works buit is uugly as is this poem too
+        #if you want to see the probelm jsut throw request data straight to serializer and validate
+        #when creating normal user and have empty user name field
+
+        #so that bool value can be read properly
+        boolval = BooleanValidatorSerializer(data=request.data)
+        copy_of_request = request.data.copy()
+        if boolval.is_valid():
+            if not boolval.data["joint_user"]:
+                copy_of_request["user_name"] = request.data["email"]
+
+        serialized_values = UserCreateSerializer(data=copy_of_request)
+        #serialized_values = UserCreateSerializer(data=request.data)
 
         if serialized_values.is_valid():
             # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
@@ -121,14 +134,14 @@ class UserCreateListView(APIView):
                     "Not a valid email address",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            else:
-                email_split = email_post.split("@")
-                if not Validate_email_domain(email_split[1]):
-                    return Response(
-                        "invalid email domain", status=status.HTTP_400_BAD_REQUEST
-                    )
+            
+            email_split = email_post.split("@")
+            if not validate_email_domain(email_split[1]):
+                return Response(
+                    "invalid email domain", status=status.HTTP_400_BAD_REQUEST
+                )
 
-            return_serializer = UserSerializerCreateReturn(data=serialized_values.data)
+            return_serializer = UserCreateReturnSerializer(data=serialized_values.data)
             return_serializer.is_valid()
 
             # create email verification for user creation  /// FOR LATER WHO EVER DOES IT
@@ -158,7 +171,7 @@ class UserLoginView(APIView):
     Login with jwt token and as http only cookie
     """
 
-    serializer_class = UserSerializerPassword
+    serializer_class = UserPasswordSerializer
 
     def post(self, request, format=None):
         data = request.data
@@ -189,7 +202,7 @@ class UserLoginView(APIView):
                     path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
                 )
 
-                serializer_group = UserSerializerLimited(user)
+                serializer_group = UserLimitedSerializer(user)
 
                 csrf.get_token(request)
                 response.status_code = status.HTTP_200_OK
@@ -272,7 +285,7 @@ class UserLoginTestView(APIView):
     }
 
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializerPassword
+    serializer_class = UserPasswordSerializer
 
     def get(self, request):
         print("testing things, on the page now GET")
@@ -282,7 +295,7 @@ class UserLoginTestView(APIView):
             "auth": str(request.auth),  # None
         }
         print(content)
-        serializer_group = UserSerializerLimited(request.user)
+        serializer_group = UserLimitedSerializer(request.user)
 
         return Response(
             {
@@ -300,12 +313,12 @@ class UserLoginTestView(APIView):
             "auth": str(request.auth),  # None
         }
         print(content)
-        serializer_class = UserSerializerPassword
+        serializer_class = UserPasswordSerializer
 
         return Response(request.COOKIES)
 
 
-class UserViewLogout(APIView):
+class UserLogoutView(APIView):
     """
     Logs out the user and flush session  (just in case, mainly for use in testing at back)
     """
@@ -356,7 +369,7 @@ class UserDetailsListView(generics.ListAPIView):
     }
 
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializerFull
+    serializer_class = UserFullSerializer
 
 
 # should not be used as returns non-necessary things, use the limited views instead as they are used to return necessary things.
@@ -382,7 +395,7 @@ class UserSingleGetView(APIView):
     }
 
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializerFull
+    serializer_class = UserFullSerializer
 
     def get_object(self, pk):
         try:
@@ -392,7 +405,7 @@ class UserSingleGetView(APIView):
 
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
-        serializer = UserSerializerFull(user)
+        serializer = UserFullSerializer(user)
 
         return Response(serializer.data)
 
@@ -447,7 +460,7 @@ class GroupNameView(generics.RetrieveUpdateAPIView):
     serializer_class = GroupNameSerializer
 
 
-class GroupPermissionCheck(APIView):
+class GroupPermissionCheckView(APIView):
     """
     check the groups user belongs to and return them
     kinda redutant? can be gotten from another views, users too
@@ -469,7 +482,7 @@ class GroupPermissionCheck(APIView):
     }
 
     def get(self, request, format=None):
-        serializer = GroupPermissionsSerializerNames(request.user)
+        serializer = GroupPermissionsNamesSerializer(request.user)
         return Response(serializer.data)
 
     def post(self, request, format=None):
@@ -479,7 +492,7 @@ class GroupPermissionCheck(APIView):
         return Response(request_serializer.data)
 
 
-class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
+class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
     Update users permissions, should be only allowed to admins, on testing phase allowing fo users
     """
@@ -509,7 +522,7 @@ class GroupPermissionUpdate(generics.RetrieveUpdateAPIView):
     serializer_class = GroupPermissionsSerializer
 
 
-class UserDetailsListViewLimited(APIView):
+class UserDetailsListLimitedView(APIView):
     """
     Get Users with revelant fields
     """
@@ -530,11 +543,11 @@ class UserDetailsListViewLimited(APIView):
 
     def get(self, request, format=None):
         users = CustomUser.objects.all()
-        serializer = UserSerializerLimited(users, many=True)
+        serializer = UserLimitedSerializer(users, many=True)
         return Response(serializer.data)
 
 
-class UserDetailsSingleViewLimited(APIView):
+class UserDetailLimitedView(APIView):
     """
     Get single user with revelant fields
     """
@@ -562,11 +575,11 @@ class UserDetailsSingleViewLimited(APIView):
 
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
-        serializer = UserSerializerLimited(user)
+        serializer = UserLimitedSerializer(user)
         return Response(serializer.data)
 
 
-class UserViewUpdateInfo(APIView):
+class UserUpdateInfoView(APIView):
     """
     Get logged in users information and update it
     """
@@ -586,7 +599,7 @@ class UserViewUpdateInfo(APIView):
         "PATCH": ["user_group"],
     }
 
-    serializer_class = UserSerializerUpdate
+    serializer_class = UserUpdateSerializer
     queryset = User.objects.all()
 
     def get(self, request, format=None):
@@ -598,8 +611,8 @@ class UserViewUpdateInfo(APIView):
             return Response(message)
         else:
             queryset = User.objects.filter(id=request.user.id)
-            serialized_data_full = UserSerializerFull(queryset, many=True)
-            return Response(UserSerializerLimited(request.user).data)
+            serialized_data_full = UserFullSerializer(queryset, many=True)
+            return Response(UserLimitedSerializer(request.user).data)
 
     def put(self, request, format=None):
         serializer = self.serializer_class(
@@ -610,7 +623,7 @@ class UserViewUpdateInfo(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UserViewUpdateSingle(generics.RetrieveUpdateAPIView):
+class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     """
     Get specific users info for updating
     """
@@ -630,7 +643,7 @@ class UserViewUpdateSingle(generics.RetrieveUpdateAPIView):
         "PATCH": ["admin_group"],
     }
 
-    serializer_class = UserSerializerUpdate
+    serializer_class = UserUpdateSerializer
     queryset = User.objects.all()
 
 
@@ -726,7 +739,7 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserAddress.objects.all()
 
 
-class UserViewPassword(APIView):
+class UserPasswordView(APIView):
     """
     DO NOT USE RIGHT NOW
     Get single user, and try to check password (OLD tests)
@@ -759,14 +772,14 @@ class UserViewPassword(APIView):
 
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
-        serializer = UserSerializerPassword(user)
+        serializer = UserPasswordSerializer(user)
         return Response(serializer.data)
 
     def post(self, request, pk, format=None):
         print("test POST")
         user = self.get_object(pk)
-        serializer = UserSerializerPassword(user)
-        serialized_values_request = UserSerializerPassword(data=request.data)
+        serializer = UserPasswordSerializer(user)
+        serialized_values_request = UserPasswordSerializer(data=request.data)
         print(serialized_values_request)
         print("-------------------------------------------")
         print(serializer, "\n -------------------")
@@ -811,4 +824,4 @@ class UserViewPassword(APIView):
 
         return Response(data_serializer)
 
-    serializer_class = UserSerializerPassword
+    serializer_class = UserPasswordSerializer

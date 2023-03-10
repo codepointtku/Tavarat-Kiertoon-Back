@@ -5,6 +5,7 @@ from copy import copy
 from datetime import datetime
 
 from django.contrib.auth.models import Group
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -275,97 +276,81 @@ def create_products():
         {
             "name": "Piirtoheitin",
             "free_description": "Hyväkuntone piirtoheitin suoraa 80-luvulta",
-            "group_id": "1",
             "barcode": "1234",
         },
         {
             "name": "Jakkara",
             "free_description": "Eläköityneen rehtorin luotettava jakkara",
-            "group_id": "2",
             "barcode": "1235",
         },
         {
             "name": "Bob Rossin pensselit",
             "free_description": "5 kpl setti eri paksusia, jouhet ok, vähän maalinjämiä",
-            "group_id": "3",
             "barcode": "1236",
         },
         {
             "name": "Vichy-pullo",
             "free_description": "Tyhjä",
-            "group_id": "4",
             "barcode": "1237",
         },
         {
             "name": "Kahvinkeitin",
             "free_description": "Alalemun koulu osti opehuoneeseen uuden mokkamasterin, tää wanha jäi ylimääräseks",
-            "group_id": "5",
             "barcode": "1238",
         },
         {
             "name": "Joku missä on överipitkä teksti",
             "free_description": "Katotaas mitä tapahtuu kun tähän kirjoittaa ihan älyttömän mällin tekstiä, jos joku vaikka innostuu copypasteemaan tähän free_descriptioniin vahingossa koko users manualin viidellä eri kielellä ja silleenspäin pois ja tuolleen noin ja siitä ja puita!",
-            "group_id": "6",
             "barcode": "1239",
         },
         {
             "name": "Työtuoli",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto. ",
-            "group_id": "7",
             "barcode": "1240",
         },
         {
             "name": "Kahvikuppi",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "8",
             "barcode": "1241",
         },
         {
             "name": "Kahvipaketti",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "9",
             "barcode": "1242",
         },
         {
             "name": "Kahvimylly",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "10",
             "barcode": "1243",
         },
         {
             "name": "Kahvipapu",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "11",
             "barcode": "1244",
         },
         {
             "name": "Tonipal_kahville",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "12",
             "barcode": "1245",
         },
         {
             "name": "Kahvipannu",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "13",
             "barcode": "1246",
         },
         {
             "name": "Termoskannu",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "14",
             "barcode": "1247",
         },
         {
             "name": "Kahvilautanen",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "15",
             "barcode": "1248",
         },
         {
             "name": "Kahviaddiktio",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "group_id": "16",
             "barcode": "1249",
         },
     ]
@@ -376,9 +361,13 @@ def create_products():
     pictures = Picture.objects.all()
     for product in products:
         same_products = []
+        try:
+            group_id = Product.objects.latest("id").id + 1
+        except ObjectDoesNotExist:
+            group_id = 1
         product_object = Product(
             name=product["name"],
-            group_id=product["group_id"],
+            group_id=group_id,
             barcode=product["barcode"],
             free_description=product["free_description"],
             category=random.choice(categories),

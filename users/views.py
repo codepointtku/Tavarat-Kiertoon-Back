@@ -691,7 +691,7 @@ class UserAddressAddView(APIView):
     queryset = UserAddress.objects.all()
 
     def get(self, request, format=None):
-        qs = UserAddress.objects.filter(linked_user=request.user.id)
+        qs = UserAddress.objects.filter(user_id=request.user.id)
         print(qs)
         serialized_info = UserAddressSerializer(qs, many=True)
         print(serialized_info.data)
@@ -705,7 +705,7 @@ class UserAddressAddView(APIView):
             address=serializer.data["address"],
             zip_code=serializer.data["zip_code"],
             city=serializer.data["city"],
-            linked_user=request.user,
+            user_id=request.user,
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 

@@ -3,9 +3,10 @@ from rest_framework import serializers
 
 from .models import CustomUser, UserAddress
 
-class BooleanValidatorSerializer(serializers.ModelSerializer):
 
+class BooleanValidatorSerializer(serializers.ModelSerializer):
     joint_user = serializers.BooleanField(default=False)
+
     class Meta:
         model = CustomUser
         fields = ["joint_user"]
@@ -26,7 +27,7 @@ class UserPasswordSerializer(serializers.ModelSerializer):
         fields = [
             "email",
             "password",
-            "user_name",
+            "username",
             "password_correct",
             "message_for_user",
         ]
@@ -51,7 +52,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     #     data = super().to_representation(instance)
     #     print("testi data: ", data)
     #     if not data["joint_user"] :
-    #         data["user_name"] = data["email"]
+    #         data["username"] = data["email"]
 
     #     print("test data 2: ", data)
     #     return data
@@ -60,10 +61,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
     #     print("testing stuff in serialzier:", attrs)
     #     if not attrs["joint_user"]:
     #         print("joint user IS NOT this guy")
-    #         attrs["user_name"] = attrs["email"]
+    #         attrs["username"] = attrs["email"]
     #         print("after swap: ", attrs)
     #     return attrs
-
 
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=155)
@@ -82,7 +82,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "phone_number",
             "password",
             "joint_user",
-            "user_name",
+            "username",
             "address",
             "zip_code",
             "city",
@@ -164,7 +164,7 @@ class UserLimitedSerializer(serializers.ModelSerializer):
             "phone_number",
             "groups",
             "address_list",
-            "user_name",
+            "username",
         ]
 
 

@@ -38,8 +38,6 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Users must have zip_code")
         if not city:
             raise ValueError("Users must have city")
-        if not phone_number and joint_user:
-            raise ValueError("Users must have user name")
         if not joint_user:
             user_name = email
 

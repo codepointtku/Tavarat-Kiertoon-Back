@@ -6,11 +6,7 @@ from django.http import Http404
 from django.middleware import csrf
 from django.shortcuts import render
 from rest_framework import generics, permissions, status
-from rest_framework.authentication import (
-    BasicAuthentication,
-    SessionAuthentication,
-)
-
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -24,19 +20,19 @@ from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
 from .serializers import (
+    BooleanValidatorSerializer,
     GroupNameCheckSerializer,
     GroupNameSerializer,
-    GroupPermissionsSerializer,
     GroupPermissionsNamesSerializer,
+    GroupPermissionsSerializer,
     UserAddressSerializer,
-    UserCreateSerializer,
     UserCreateReturnSerializer,
+    UserCreateSerializer,
     UserFullSerializer,
     UserLimitedSerializer,
     UserNamesSerializer,
     UserPasswordSerializer,
     UserUpdateSerializer,
-    BooleanValidatorSerializer
 )
 
 User = get_user_model()
@@ -74,17 +70,17 @@ class UserCreateListView(APIView):
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        #extremely uglu validation stuff
-        #if some one can make this better it would be good
-        #problem is user_name validation so it passes the real validator (allowed to be empty for normal users)
-        #need to swap the email addreess to user_name before validator for normal users
-        #the joint user bool field isnt properly converted to values before its run thoough serialzier
-        #if its done in same validator it fucks up the user_name = email change
-        #this works buit is uugly as is this poem too
-        #if you want to see the probelm jsut throw request data straight to serializer and validate
-        #when creating normal user and have empty user name field
+        # extremely uglu validation stuff
+        # if some one can make this better it would be good
+        # problem is user_name validation so it passes the real validator (allowed to be empty for normal users)
+        # need to swap the email addreess to user_name before validator for normal users
+        # the joint user bool field isnt properly converted to values before its run thoough serialzier
+        # if its done in same validator it fucks up the user_name = email change
+        # this works buit is uugly as is this poem too
+        # if you want to see the probelm jsut throw request data straight to serializer and validate
+        # when creating normal user and have empty user name field
 
-        #so that bool value can be read properly
+        # so that bool value can be read properly
         boolval = BooleanValidatorSerializer(data=request.data)
         copy_of_request = request.data.copy()
         if boolval.is_valid():
@@ -92,7 +88,7 @@ class UserCreateListView(APIView):
                 copy_of_request["user_name"] = request.data["email"]
 
         serialized_values = UserCreateSerializer(data=copy_of_request)
-        #serialized_values = UserCreateSerializer(data=request.data)
+        # serialized_values = UserCreateSerializer(data=request.data)
 
         if serialized_values.is_valid():
             # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
@@ -134,7 +130,7 @@ class UserCreateListView(APIView):
                     "Not a valid email address",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            
+
             email_split = email_post.split("@")
             if not validate_email_domain(email_split[1]):
                 return Response(
@@ -737,91 +733,3 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
-
-
-class UserPasswordView(APIView):
-    """
-    DO NOT USE RIGHT NOW
-    Get single user, and try to check password (OLD tests)
-    also used for resetting password, but this functionality still not done
-    needs more resarching so ignore this spaghetti for now
-    currently this was just made to test/practise things WILL BE CHANGED
-    more info from spsantam
-    """
-
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-    }
-
-    def get_object(self, pk):
-        try:
-            return CustomUser.objects.get(pk=pk)
-        except CustomUser.DoesNotExist:
-            raise Http404
-
-    def get(self, request, pk, format=None):
-        user = self.get_object(pk)
-        serializer = UserPasswordSerializer(user)
-        return Response(serializer.data)
-
-    def post(self, request, pk, format=None):
-        print("test POST")
-        user = self.get_object(pk)
-        serializer = UserPasswordSerializer(user)
-        serialized_values_request = UserPasswordSerializer(data=request.data)
-        print(serialized_values_request)
-        print("-------------------------------------------")
-        print(serializer, "\n -------------------")
-
-        pw_request = serialized_values_request.initial_data["password"]
-        pw_database = serializer.data["password"]
-        data_serializer = serializer.data
-
-        check_word_for_hash = "pbkdf2_sha256"  # remove once in deplayment??
-
-        print(
-            "values to be checked: ENTERERD password:",
-            pw_request,
-            "DATABASE password: ",
-            pw_database,
-        )
-        password_checked = False
-        if check_word_for_hash in pw_database:
-            password_checked = check_password(pw_request, pw_database)
-        else:
-            print("stored password is faulty but chekcing anyway without hashing")
-            if pw_request == pw_database:
-                print("correct pasword without hashing")
-                password_checked = True
-
-        if password_checked:
-            print(
-                "salasana oikein, password_correct STATUS on: ",
-                data_serializer["password_correct"],
-            )
-            data_serializer["password_correct"] = True
-            data_serializer["message_for_user"] = "Your password was CORRECT"
-            print("STATUS: ", data_serializer["password_correct"])
-        else:
-            print(
-                "salasana väärin, password_correct STATUS on: ",
-                data_serializer["password_correct"],
-            )
-            data_serializer["password_correct"] = False
-            data_serializer["message_for_user"] = "Your password was WRONG"
-            print("STATUS: ", data_serializer["password_correct"])
-
-        return Response(data_serializer)
-
-    serializer_class = UserPasswordSerializer

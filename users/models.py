@@ -39,25 +39,17 @@ class CustomUserManager(BaseUserManager):
         if not city:
             raise ValueError("Users must have city")
         if not joint_user:
-            user_name = email
+            user_name = self.normalize_email(email=email)
 
         if not user_name:
             raise ValueError("Users must have user name")
 
-        if joint_user:
-            user = self.model(
-                email=self.normalize_email(email=email),
-                phone_number=phone_number,
-                name=(first_name + " " + last_name).title(),
-                user_name=user_name,
-            )
-        else:
-            user = self.model(
-                email=self.normalize_email(email=email),
-                phone_number=phone_number,
-                name=(first_name + " " + last_name).title(),
-                user_name=self.normalize_email(email=email),
-            )
+        user = self.model(
+            email=self.normalize_email(email=email),
+            phone_number=phone_number,
+            name=(first_name + " " + last_name).title(),
+            user_name=user_name,
+        )
 
         user.set_password(raw_password=password)
         user.save(using=self._db)

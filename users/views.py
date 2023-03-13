@@ -103,7 +103,6 @@ class UserCreateListView(APIView):
             # getting the data form serializer for user creation and necessary checks
             first_name_post = serialized_values["first_name"].value
             last_name_post = serialized_values["last_name"].value
-            name_post = first_name_post + " " + last_name_post
             email_post = serialized_values["email"].value
             phone_number_post = serialized_values["phone_number"].value
             password_post = serialized_values["password"].value

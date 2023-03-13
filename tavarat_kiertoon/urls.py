@@ -52,6 +52,7 @@ from products.views import (
     PictureListView,
     ProductDetailView,
     ProductListView,
+    ProductStorageTransferView,
     StorageDetailView,
     StorageListView,
 )
@@ -92,6 +93,7 @@ urlpatterns = [
     path("products/", ProductListView.as_view()),
     path("categories/<int:category_id>/products/", CategoryProductListView.as_view()),
     path("products/<int:pk>/", ProductDetailView.as_view()),
+    path("products/transfer/", ProductStorageTransferView.as_view()),
     path("contact_forms/", ContactFormListView.as_view()),
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
     path("categories/", CategoryListView.as_view()),

@@ -56,7 +56,7 @@ class CustomUserManager(BaseUserManager):
 
         # creating the address for user
         UserAddress.objects.create(
-            address=address, zip_code=zip_code, city=city, user_id=user
+            address=address, zip_code=zip_code, city=city, user=user
         )
 
         if not Group.objects.filter(name="user_group").exists():
@@ -110,7 +110,7 @@ class UserAddress(models.Model):
     address = models.CharField(max_length=255)
     zip_code = models.CharField(max_length=10)
     city = models.CharField(max_length=100)
-    user_id = models.ForeignKey(
+    user = models.ForeignKey(
         CustomUser, related_name="address_list", on_delete=models.CASCADE
     )
 

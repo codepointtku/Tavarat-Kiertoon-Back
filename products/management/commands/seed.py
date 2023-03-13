@@ -448,7 +448,7 @@ def create_orders():
             user=user,
             status=random.choice(statuses),
             delivery_address=random.choice(
-                UserAddress.objects.filter(user_id=user)
+                UserAddress.objects.filter(user=user)
             ).address,
             contact=user.email,
             order_info=random.choice(order_infos),

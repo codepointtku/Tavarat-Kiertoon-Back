@@ -40,6 +40,7 @@ from contact_forms.views import (
 from orders.views import (
     OrderDetailView,
     OrderListView,
+    OrderSelfListView,
     ShoppingCartDetailView,
     ShoppingCartListView,
 )
@@ -88,6 +89,7 @@ urlpatterns = [
     path("shopping_cart/", ShoppingCartDetailView.as_view()),
     path("orders/", OrderListView.as_view()),
     path("orders/<int:pk>/", OrderDetailView.as_view()),
+    path("orders/user/", OrderSelfListView.as_view()),
     path("products/", ProductListView.as_view()),
     path("categories/<int:category_id>/products/", CategoryProductListView.as_view()),
     path("products/<int:pk>/", ProductDetailView.as_view()),

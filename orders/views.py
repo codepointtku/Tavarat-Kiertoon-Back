@@ -6,8 +6,8 @@ from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import (
+    ListAPIView,
     ListCreateAPIView,
-    RetrieveDestroyAPIView,
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.pagination import PageNumberPagination
@@ -81,7 +81,7 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
             product["pictures"] = pic_ids_as_address_list(product["pictures"])
         return Response(serializer.data)
 
-    def update(self, request, *args, ** kwargs):
+    def update(self, request, *args, **kwargs):
         try:
             instance = ShoppingCart.objects.get(user=request.user)
         except ObjectDoesNotExist:
@@ -167,3 +167,20 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
+
+
+class OrderSelfListView(ListAPIView):
+    """View for returning logged in users own orders"""
+
+    serializer_class = OrderSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    def get_queryset(self):
+        if self.request.user.is_anonymous:
+            return
+        return Order.objects.filter(user=self.request.user)

@@ -118,11 +118,9 @@ urlpatterns = [
     path("contacts/", ContactListView.as_view()),
     path("contacts/<int:pk>", ContactDetailView.as_view()),
     path("api-auth/", include("rest_framework.urls")),
-    # path("users/login2/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("users/login/", UserLoginView.as_view(), name="token_obtain_pair_http"),
     path("users/login/test/", UserLoginTestView.as_view(), name="token_obtain_pair"),
     path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refrest"),
-    # path("users/login/refresh2/", TokenRefreshView.as_view(), name="token_refrest"),
     path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT

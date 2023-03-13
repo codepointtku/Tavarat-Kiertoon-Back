@@ -90,10 +90,6 @@ class UserCreateListView(APIView):
         serialized_values = UserCreateSerializer(data=copy_of_request)
         # serialized_values = UserCreateSerializer(data=request.data)
 
-        print("request data: ", request.data)
-        print("request cookies: ", request.COOKIES)
-        print("reqest meta: ", request.META)
-
         if serialized_values.is_valid():
             # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
             if not Group.objects.filter(name="user_group").exists():
@@ -173,10 +169,6 @@ class UserLoginView(APIView):
     serializer_class = UserPasswordSerializer
 
     def post(self, request, format=None):
-        print("request data: ", request.data)
-        print("request cookies: ", request.COOKIES)
-        print("reqest meta: ", request.META)
-
         data = request.data
         response = Response()
         username = data.get("username", None)

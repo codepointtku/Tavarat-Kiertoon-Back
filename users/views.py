@@ -182,6 +182,7 @@ class UserLoginView(APIView):
                     key=settings.SIMPLE_JWT["AUTH_COOKIE"],
                     value=data["access"],
                     expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+                    max_age=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
                     secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
                     httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
                     samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
@@ -191,6 +192,7 @@ class UserLoginView(APIView):
                     key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
                     value=data["refresh"],
                     expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+                    max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
                     secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
                     httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
                     samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
@@ -246,14 +248,22 @@ class UserTokenRefreshView(TokenViewBase):
             key=settings.SIMPLE_JWT["AUTH_COOKIE"],
             value=serializer.validated_data["access"],
             expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+            max_age=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
             secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
             httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
             samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
             path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
         )
+
+        refresh_token_obj = RefreshToken(refresh_token["refresh"])
+        user_id = refresh_token_obj["user_id"]
+        user = User.objects.get(id=user_id)
+        serializer_group = UserLimitedSerializer(user)
+
         response.status_code = status.HTTP_200_OK
         response.data = {
             "Success": "refresh success",
+            "groups": serializer_group.data["groups"],
         }
 
         return response

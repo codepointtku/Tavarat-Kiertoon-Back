@@ -8,6 +8,7 @@ from rest_framework.authentication import BasicAuthentication, SessionAuthentica
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from categories.models import Category
@@ -244,3 +245,13 @@ class PictureListView(generics.ListCreateAPIView):
 class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Picture.objects.all()
     serializer_class = PictureSerializer
+
+
+class ProductStorageTransferView(APIView):
+    def put(self, request, *args, **kwargs):
+        products = Product.objects.filter(id__in=request.data["products"])
+        storage = Storage.objects.get(id=request.data["storage"])
+        for product in products:
+            product.storages = storage
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)

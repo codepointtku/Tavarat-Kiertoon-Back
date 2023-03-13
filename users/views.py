@@ -72,10 +72,10 @@ class UserCreateListView(APIView):
     def post(self, request, format=None):
         # extremely uglu validation stuff
         # if some one can make this better it would be good
-        # problem is user_name validation so it passes the real validator (allowed to be empty for normal users)
-        # need to swap the email addreess to user_name before validator for normal users
+        # problem is username validation so it passes the real validator (allowed to be empty for normal users)
+        # need to swap the email addreess to username before validator for normal users
         # the joint user bool field isnt properly converted to values before its run thoough serialzier
-        # if its done in same validator it fucks up the user_name = email change
+        # if its done in same validator it fucks up the username = email change
         # this works buit is uugly as is this poem too
         # if you want to see the probelm jsut throw request data straight to serializer and validate
         # when creating normal user and have empty user name field
@@ -85,10 +85,14 @@ class UserCreateListView(APIView):
         copy_of_request = request.data.copy()
         if boolval.is_valid():
             if not boolval.data["joint_user"]:
-                copy_of_request["user_name"] = request.data["email"]
+                copy_of_request["username"] = request.data["email"]
 
         serialized_values = UserCreateSerializer(data=copy_of_request)
         # serialized_values = UserCreateSerializer(data=request.data)
+
+        print("request data: ", request.data)
+        print("request cookies: ", request.COOKIES)
+        print("reqest meta: ", request.META)
 
         if serialized_values.is_valid():
             # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
@@ -112,11 +116,11 @@ class UserCreateListView(APIView):
             zip_code_post = serialized_values["zip_code"].value
             city_post = serialized_values["city"].value
 
-            user_name_post = serialized_values["user_name"].value
+            username_post = serialized_values["username"].value
 
             if not joint_user_post:
-                user_name_post = email_post
-                if User.objects.filter(user_name=user_name_post).exists():
+                username_post = email_post
+                if User.objects.filter(username=username_post).exists():
                     response_message = email_post + ". already exists"
                     return Response(
                         response_message, status=status.HTTP_400_BAD_REQUEST
@@ -151,7 +155,7 @@ class UserCreateListView(APIView):
                 address=address_post,
                 zip_code=zip_code_post,
                 city=city_post,
-                user_name=user_name_post,
+                username=username_post,
                 joint_user=joint_user_post,
             )
 
@@ -169,11 +173,15 @@ class UserLoginView(APIView):
     serializer_class = UserPasswordSerializer
 
     def post(self, request, format=None):
+        print("request data: ", request.data)
+        print("request cookies: ", request.COOKIES)
+        print("reqest meta: ", request.META)
+
         data = request.data
         response = Response()
-        user_name = data.get("user_name", None)
+        username = data.get("username", None)
         password = data.get("password", None)
-        user = authenticate(username=user_name, password=password)
+        user = authenticate(username=username, password=password)
 
         if user is not None:
             if user.is_active:
@@ -203,7 +211,7 @@ class UserLoginView(APIView):
                 response.status_code = status.HTTP_200_OK
                 response.data = {
                     "Success": "Login successfully",
-                    "user_name": serializer_group.data["user_name"],
+                    "username": serializer_group.data["username"],
                     "groups": serializer_group.data["groups"],
                 }
                 return response

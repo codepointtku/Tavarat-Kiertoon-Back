@@ -178,7 +178,7 @@ def create_users():
             "address": "Katulantiekuja 22",
             "zip_code": "20100",
             "city": "Turku",
-            "user_name": "",
+            "username": "",
             "joint_user": False,
         },
         {
@@ -190,7 +190,7 @@ def create_users():
             "address": "Pizza on hyvää polku",
             "zip_code": "80085",
             "city": "Rauma",
-            "user_name": "Samin mashausopisto",
+            "username": "Samin mashausopisto",
             "joint_user": True,
         },
         {
@@ -202,7 +202,7 @@ def create_users():
             "address": "Pythosentie 12",
             "zip_code": "22222",
             "city": "Lohja",
-            "user_name": "",
+            "username": "",
             "joint_user": False,
         },
         {
@@ -214,7 +214,7 @@ def create_users():
             "address": "Pythosentie 12",
             "zip_code": "22222",
             "city": "Lohja",
-            "user_name": "",
+            "username": "",
             "joint_user": False,
         },
         {
@@ -226,7 +226,7 @@ def create_users():
             "address": "TzHaar Fight Cave",
             "zip_code": "Wave 63",
             "city": "Brimhaven",
-            "user_name": "",
+            "username": "",
             "joint_user": False,
         },
         {
@@ -238,11 +238,11 @@ def create_users():
             "address": "kavhilantie 1",
             "zip_code": "20100",
             "city": "Turku",
-            "user_name": "Kavhila",
+            "username": "Kavhila",
             "joint_user": True,
         },
     ]
-    super = CustomUser.objects.create_superuser(user_name="super", password="super")
+    super = CustomUser.objects.create_superuser(username="super", password="super")
     for group in Group.objects.all():
         group.user_set.add(super)
 
@@ -256,7 +256,7 @@ def create_users():
             address=user["address"],
             zip_code=user["zip_code"],
             city=user["city"],
-            user_name=user["user_name"],
+            username=user["username"],
             joint_user=user["joint_user"],
         )
 

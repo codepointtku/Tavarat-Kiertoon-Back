@@ -20,7 +20,7 @@ class CustomUserManager(BaseUserManager):
         address,
         zip_code,
         city,
-        user_name,
+        username,
         joint_user,
     ):
         """function for creating a user"""
@@ -39,16 +39,16 @@ class CustomUserManager(BaseUserManager):
         if not city:
             raise ValueError("Users must have city")
         if not joint_user:
-            user_name = self.normalize_email(email=email)
+            username = self.normalize_email(email=email)
 
-        if not user_name:
+        if not username:
             raise ValueError("Users must have user name")
 
         user = self.model(
             email=self.normalize_email(email=email),
             phone_number=phone_number,
             name=(first_name + " " + last_name).title(),
-            user_name=user_name,
+            username=username,
         )
 
         user.set_password(raw_password=password)
@@ -67,9 +67,9 @@ class CustomUserManager(BaseUserManager):
 
         return user
 
-    def create_superuser(self, user_name, password):
+    def create_superuser(self, username, password):
         """function for creating a superuser"""
-        user = self.model(user_name=user_name, email=user_name)
+        user = self.model(username=username, email=username)
         user.set_password(raw_password=password)
         user.is_admin = True
         user.is_staff = True
@@ -90,17 +90,17 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     creation_date = models.DateTimeField(auto_now_add=True)
     phone_number = models.CharField(max_length=255, null=True)
-    user_name = models.CharField(max_length=255, unique=True)
+    username = models.CharField(max_length=255, unique=True)
 
     objects = CustomUserManager()
 
     REQUIRED_FIELDS = []
 
-    USERNAME_FIELD = "user_name"
+    USERNAME_FIELD = "username"
     EMAIL_FIELD = "email"
 
     def __str__(self) -> str:
-        return f"User: {self.user_name}({self.id})"
+        return f"User: {self.username}({self.id})"
 
 
 class UserAddress(models.Model):

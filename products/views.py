@@ -248,6 +248,8 @@ class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ProductStorageTransferView(APIView):
+    """View for transfering list of products to different storage"""
+
     def put(self, request, *args, **kwargs):
         products = Product.objects.filter(id__in=request.data["products"])
         storage = Storage.objects.get(id=request.data["storage"])

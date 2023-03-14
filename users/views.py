@@ -786,6 +786,11 @@ class UserPasswordEditView(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         print(serializer.data)
+
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            pass
+            #serializer = ChildUserSerializer(data=request.DATA,context={'request':request})
         
         return Response(serializer.data, status=status.HTTP_200_OK)
 

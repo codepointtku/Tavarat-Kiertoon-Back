@@ -43,6 +43,15 @@ class UserPasswordChangeSerializer(serializers.Serializer):
     new_password = serializers.CharField(max_length=128)
     new_password_again = serializers.CharField(max_length=128)
 
+    def validate(self, data):
+        """
+        Check that the start is before the stop.
+        """
+        # Get authenticated user for raise hit limit validation
+        user = self.context['request'].user
+        print(user)
+        # do something with the user here
+
     class Meta:
         fields = [
             "username",

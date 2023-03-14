@@ -30,6 +30,25 @@ class UserPasswordSerializer(serializers.ModelSerializer):
             "username",
             "password_correct",
             "message_for_user",
+            "new_password",
+            "new_password_again"
+        ]
+
+class UserPasswordChangeSerializer(serializers.Serializer):
+    """
+    Serializer for users, checking password fields
+    """
+    username = serializers.CharField(max_length=255)
+    old_password = serializers.CharField(max_length=128)
+    new_password = serializers.CharField(max_length=128)
+    new_password_again = serializers.CharField(max_length=128)
+
+    class Meta:
+        fields = [
+            "username",
+            "old_password",
+            "new_password",
+            "new_password_again"
         ]
 
 

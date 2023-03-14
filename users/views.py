@@ -33,6 +33,7 @@ from .serializers import (
     UserNamesSerializer,
     UserPasswordSerializer,
     UserUpdateSerializer,
+    UserPasswordChangeSerializer,
 )
 
 User = get_user_model()
@@ -742,3 +743,54 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
+
+class UserPasswordEditView(APIView):
+    """
+    update users password, requires knowledge of old password.
+    """
+
+    authentication_classes = [
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+        "POST": ["user_group"],
+        "PUT": ["user_group"],
+        "PATCH": ["user_group"],
+    }
+
+    def get(self, request, format=None):
+
+
+        print("testing things, on the page now GET")
+        print(request.COOKIES)
+        content = {
+            "user": str(request.user),  # `django.contrib.auth.User` instance.
+            "auth": str(request.auth),  # None
+        }
+        print(content)
+
+        return Response(
+            {
+                "user": content,
+            }
+        )
+        # serialized_info = UserPasswordSerializer(qs, many=True, partial=True)
+        # print(serialized_info.data)
+        return Response(request.user.id)
+
+    def post(self, request, format=None):
+        print(request.data)
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        print(serializer.data)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    serializer_class = UserPasswordChangeSerializer
+    #queryset = User.objects.get()
+
+    # queryset = User.objects.filter(id=request.user.id)
+    # serialized_data_full = UserFullSerializer(queryset, many=True)

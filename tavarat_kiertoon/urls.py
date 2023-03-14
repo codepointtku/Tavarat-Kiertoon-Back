@@ -75,6 +75,7 @@ from users.views import (
     UserTokenRefreshView,
     UserUpdateInfoView,
     UserUpdateSingleView,
+    UserPasswordEditView,
 )
 
 urlpatterns = [
@@ -126,6 +127,7 @@ urlpatterns = [
     path("users/login/test/", UserLoginTestView.as_view(), name="token_obtain_pair"),
     path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refrest"),
     path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    path("users/password/", UserPasswordEditView.as_view()),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

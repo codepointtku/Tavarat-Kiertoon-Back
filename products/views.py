@@ -51,7 +51,7 @@ def color_check_create(instance):
 
 # Create your views here.
 class ProductListPagination(PageNumberPagination):
-    page_size = 100
+    page_size = 5
     page_size_query_param = "page_size"
 
 
@@ -73,6 +73,45 @@ class ProductFilter(filters.FilterSet):
         return queryset.filter(
             Q(name__icontains=value) | Q(free_description__icontains=value)
         )
+
+
+class ProductListGroupView(generics.ListCreateAPIView):
+    serializer_class = ProductSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    pagination_class = ProductListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    search_fields = ["name", "free_description"]
+    ordering_fields = ["id"]
+    ordering = ["id"]
+    filterset_class = ProductFilter
+
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        all_products = self.request.query_params.get("all")
+        if not is_in_group(self.request.user, "storage_group") or all_products is None:
+            queryset = queryset.filter(available=True)
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        unique_groupids = queryset.values_list("id").order_by("group_id").distinct("group_id")
+        # print(queryset.values_list("group_id").order_by("group_id"))
+        grouped_queryset = queryset.filter(id__in=unique_groupids)
+        grup = queryset.filter()
+        page = self.paginate_queryset(grouped_queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            for product in serializer.data:
+                product["pictures"] = pic_ids_as_address_list(product["pictures"])
+                # product["amount"] = 100
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(grouped_queryset, many=True)
+        return Response(serializer.data)
 
 
 class ProductListView(generics.ListCreateAPIView):

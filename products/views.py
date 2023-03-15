@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from rest_framework import generics, status
@@ -51,7 +51,7 @@ def color_check_create(instance):
 
 # Create your views here.
 class ProductListPagination(PageNumberPagination):
-    page_size = 5
+    page_size = 10
     page_size_query_param = "page_size"
 
 
@@ -100,15 +100,14 @@ class ProductListGroupView(generics.ListCreateAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         unique_groupids = queryset.values_list("id").order_by("group_id").distinct("group_id")
-        # print(queryset.values_list("group_id").order_by("group_id"))
         grouped_queryset = queryset.filter(id__in=unique_groupids)
-        grup = queryset.filter()
+        amounts = queryset.values("group_id").order_by("group_id").annotate(amount = Count("group_id"))
         page = self.paginate_queryset(grouped_queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             for product in serializer.data:
                 product["pictures"] = pic_ids_as_address_list(product["pictures"])
-                # product["amount"] = 100
+                product["amount"] = amounts.filter(group_id=product["group_id"])[0]["amount"]
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(grouped_queryset, many=True)
         return Response(serializer.data)

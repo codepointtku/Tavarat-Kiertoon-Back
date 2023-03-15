@@ -125,7 +125,7 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
     path("users/login/", UserLoginView.as_view(), name="token_obtain_pair_http"),
     path("users/login/test/", UserLoginTestView.as_view(), name="token_obtain_pair"),
-    path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refrest"),
+    path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refresh"),
     path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("users/password/", UserPasswordEditView.as_view()),
 ] + static(

@@ -1,8 +1,8 @@
 from django.contrib.auth.models import Group
-from rest_framework import serializers
+from rest_framework import serializers, status
+from django.contrib.auth import authenticate
 
 from .models import CustomUser, UserAddress
-
 
 class BooleanValidatorSerializer(serializers.ModelSerializer):
     joint_user = serializers.BooleanField(default=False)
@@ -37,7 +37,7 @@ class UserPasswordChangeSerializer(serializers.Serializer):
     Serializer for users, checking password fields
     """
     username = serializers.CharField(max_length=255)
-    old_password = serializers.CharField(max_length=128)
+    old_password = serializers.CharField(max_length=128, style={'input_type': 'password'})
     new_password = serializers.CharField(max_length=128)
     new_password_again = serializers.CharField(max_length=128)
 
@@ -45,10 +45,40 @@ class UserPasswordChangeSerializer(serializers.Serializer):
         """
         Check that the start is before the stop.
         """
-        # Get authenticated user for raise hit limit validation
-        user = self.context['request'].user
-        print(user)
-        # do something with the user here
+        print("in ser validator now")
+        print(data)
+
+        try:
+            user = self.context['request'].user
+            print(user)
+            print(user.username)
+            if user.username != data["username"]:
+                msg = "given user name and logged in user are different"
+                print(msg)
+                raise serializers.ValidationError(msg, code='authorization')
+        
+        except KeyError:
+            print("no request passed")
+
+        print(data["username"],data["old_password"] )
+
+        second_user = authenticate(username=data["username"], password=data["old_password"])
+        if second_user is not None:
+            print("user authent succ")
+            if data["new_password"] == data["new_password_again"] :
+                print("lotto voitto")
+            else:
+                msg = "the new password werent same DANG"
+                print(msg)
+                raise serializers.ValidationError(msg, code='authorization')
+
+        else :
+            print("user NOT succ")
+            msg = "wrong user namae and old password"
+            print(msg)
+            raise serializers.ValidationError(msg, code='authorization')
+
+        return data
 
     class Meta:
         fields = [

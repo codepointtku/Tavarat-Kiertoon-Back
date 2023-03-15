@@ -810,3 +810,42 @@ class UserPasswordEditView(APIView):
     # queryset = User.objects.filter(id=request.user.id)
     # serialized_data_full = UserFullSerializer(queryset, many=True)
 
+class UserPasswordEditAdminView(generics.RetrieveAPIView):
+    """
+    update users password, requires knowledge of old password.
+    """
+
+    authentication_classes = [
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+    }
+    serializer_class = UserPasswordChangeSerializer
+    queryset = User.objects.all()
+
+    def post(self, request, format=None):
+        print(request.data)
+        serializer = UserPasswordChangeSerializer(data=request.data)
+        #serializer.is_valid(raise_exception=True)
+        print(serializer.initial_data)
+        print("TEST")
+        if serializer.is_valid():
+            print("are valid, new password: ", serializer.data["new_password"])
+            request.user.set_password(serializer.data["new_password"])
+            request.user.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        
+        # user = authenticate(username=username, password=password)
+        # if user is not None:
+        #     pass
+        #     #serializer = ChildUserSerializer(data=request.DATA,context={'request':request})
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        #return Response(serializer.initial_data, status=status.HTTP_400_BAD_REQUEST)

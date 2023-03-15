@@ -76,6 +76,7 @@ from users.views import (
     UserUpdateInfoView,
     UserUpdateSingleView,
     UserPasswordEditView,
+    UserPasswordEditAdminView,
 )
 
 urlpatterns = [
@@ -103,10 +104,10 @@ urlpatterns = [
     path("users/create/", UserCreateListView.as_view()),
     path("users/<int:pk>/", UserSingleGetView.as_view()),
     path("users/address/", UserAddressListView.as_view()),
-    path("users/address/add", UserAddressAddView.as_view()),
-    path("users/address/<int:pk>", UserAddressEditView.as_view()),
+    path("users/address/add/", UserAddressAddView.as_view()),
+    path("users/address/<int:pk>/", UserAddressEditView.as_view()),
     path("users/limited/", UserDetailsListLimitedView.as_view()),
-    path("users/limited/<int:pk>", UserDetailLimitedView.as_view()),
+    path("users/limited/<int:pk>/", UserDetailLimitedView.as_view()),
     path("users/groups/", GroupListView.as_view()),
     path("users/groups/<int:pk>/", GroupNameView.as_view()),
     path("users/groups/permission/", GroupPermissionCheckView.as_view()),
@@ -128,6 +129,7 @@ urlpatterns = [
     path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refresh"),
     path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("users/password/", UserPasswordEditView.as_view()),
+    path("users/password/<int:pk>/", UserPasswordEditAdminView.as_view()),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

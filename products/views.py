@@ -99,7 +99,7 @@ class ProductListGroupView(generics.ListCreateAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        unique_groupids = queryset.values_list("id").order_by("group_id").distinct("group_id")
+        unique_groupids = queryset.values("id").order_by("group_id").distinct("group_id")
         grouped_queryset = queryset.filter(id__in=unique_groupids)
         amounts = queryset.values("group_id").order_by("group_id").annotate(amount = Count("group_id"))
         page = self.paginate_queryset(grouped_queryset)

@@ -30,8 +30,6 @@ class UserPasswordSerializer(serializers.ModelSerializer):
             "username",
             "password_correct",
             "message_for_user",
-            "new_password",
-            "new_password_again"
         ]
 
 class UserPasswordChangeSerializer(serializers.Serializer):

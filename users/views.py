@@ -259,10 +259,9 @@ class UserTokenRefreshView(TokenViewBase):
         user_id = refresh_token_obj["user_id"]
         user = User.objects.get(id=user_id)
         serializer_group = UserLimitedSerializer(user)
-        user_username = user.get_username()
         response.status_code = status.HTTP_200_OK
         response.data = {
-            "username": user_username,
+            "username": user.get_username(),
             "Success": "refresh success",
             "groups": serializer_group.data["groups"],
         }

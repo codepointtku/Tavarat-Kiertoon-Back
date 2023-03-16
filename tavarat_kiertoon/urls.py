@@ -17,6 +17,7 @@ from django.conf import settings
 from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth import views
 from django.urls import include, path
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -71,12 +72,12 @@ from users.views import (
     UserLoginTestView,
     UserLoginView,
     UserLogoutView,
+    UserPasswordEditAdminView,
+    UserPasswordEditView,
     UserSingleGetView,
     UserTokenRefreshView,
     UserUpdateInfoView,
     UserUpdateSingleView,
-    UserPasswordEditView,
-    UserPasswordEditAdminView,
 )
 
 urlpatterns = [
@@ -130,6 +131,12 @@ urlpatterns = [
     path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("users/password/", UserPasswordEditView.as_view()),
     path("users/password/<int:pk>/", UserPasswordEditAdminView.as_view()),
+    path("users/password/reset/", views.PasswordResetView.as_view()),
+    path("users/password/reset/done", views.PasswordResetCompleteView.as_view()),
+    path("users/password/reset/confirm", views.PasswordResetConfirmView.as_view()),
+    path(
+        "users/password/reset/confirm/done", views.PasswordResetCompleteView.as_view()
+    ),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

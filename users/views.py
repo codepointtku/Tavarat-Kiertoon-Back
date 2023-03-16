@@ -232,7 +232,7 @@ class UserTokenRefreshView(TokenViewBase):
     def post(self, request, *args, **kwargs):
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
             return Response(
-                "refresh token not found", status=status.HTTP_400_BAD_REQUEST
+                "refresh token not found", status=status.HTTP_204_NO_CONTENT
             )
 
         refresh_token = {}
@@ -260,9 +260,9 @@ class UserTokenRefreshView(TokenViewBase):
         user_id = refresh_token_obj["user_id"]
         user = User.objects.get(id=user_id)
         serializer_group = UserLimitedSerializer(user)
-
         response.status_code = status.HTTP_200_OK
         response.data = {
+            "username": user.get_username(),
             "Success": "refresh success",
             "groups": serializer_group.data["groups"],
         }

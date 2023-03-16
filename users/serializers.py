@@ -48,23 +48,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
     Serializer for users, in specific format for user creation
     """
 
-    # def to_representation(self, instance):
-    #     data = super().to_representation(instance)
-    #     print("testi data: ", data)
-    #     if not data["joint_user"] :
-    #         data["username"] = data["email"]
-
-    #     print("test data 2: ", data)
-    #     return data
-
-    # def validate(self, attrs):
-    #     print("testing stuff in serialzier:", attrs)
-    #     if not attrs["joint_user"]:
-    #         print("joint user IS NOT this guy")
-    #         attrs["username"] = attrs["email"]
-    #         print("after swap: ", attrs)
-    #     return attrs
-
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=155)
     joint_user = serializers.BooleanField(default=False)
@@ -137,7 +120,8 @@ class UserFullSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = "__all__"
+        # fields = "__all__"
+        exclude = ["password", "is_admin", "is_staff", "is_superuser"]
         depth = 1
 
 

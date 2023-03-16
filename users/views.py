@@ -231,7 +231,7 @@ class UserTokenRefreshView(TokenViewBase):
     def post(self, request, *args, **kwargs):
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
             return Response(
-                "refresh token not found", status=status.HTTP_400_BAD_REQUEST
+                "refresh token not found", status=status.HTTP_204_NO_CONTENT
             )
 
         refresh_token = {}

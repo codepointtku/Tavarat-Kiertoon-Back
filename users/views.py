@@ -6,8 +6,7 @@ from django.http import Http404
 from django.middleware import csrf
 from django.shortcuts import render
 from rest_framework import generics, permissions, status
-from rest_framework.authentication import (BasicAuthentication,
-                                           SessionAuthentication)
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,13 +19,21 @@ from rest_framework_simplejwt.views import TokenViewBase
 from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
-from .serializers import (BooleanValidatorSerializer, GroupNameCheckSerializer,
-                          GroupNameSerializer, GroupPermissionsNamesSerializer,
-                          GroupPermissionsSerializer, UserAddressSerializer,
-                          UserCreateReturnSerializer, UserCreateSerializer,
-                          UserFullSerializer, UserLimitedSerializer,
-                          UserNamesSerializer, UserPasswordSerializer,
-                          UserUpdateSerializer)
+from .serializers import (
+    BooleanValidatorSerializer,
+    GroupNameCheckSerializer,
+    GroupNameSerializer,
+    GroupPermissionsNamesSerializer,
+    GroupPermissionsSerializer,
+    UserAddressSerializer,
+    UserCreateReturnSerializer,
+    UserCreateSerializer,
+    UserFullSerializer,
+    UserLimitedSerializer,
+    UserNamesSerializer,
+    UserPasswordSerializer,
+    UserUpdateSerializer,
+)
 
 User = get_user_model()
 

@@ -415,6 +415,32 @@ class UserSingleGetView(APIView):
         return Response(serializer.data)
 
 
+class UserLoggedInDetailView(APIView):
+    """
+    List all users with all database fields, no POST here
+    """
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+
+    required_groups = {
+        "GET": ["user_group"],
+        "POST": ["user_group"],
+        "PUT": ["user_group"],
+    }
+    queryset = CustomUser.objects.all()
+    serializer_class = UserFullSerializer
+
+    def get(self, request, format=None):
+        serializer = self.serializer_class(request.user)
+        return Response(serializer.data)
+
+
 # getting all groups and their names
 class GroupListView(generics.ListCreateAPIView):
     """

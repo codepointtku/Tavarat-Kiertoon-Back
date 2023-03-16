@@ -6,7 +6,8 @@ from django.http import Http404
 from django.middleware import csrf
 from django.shortcuts import render
 from rest_framework import generics, permissions, status
-from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.authentication import (BasicAuthentication,
+                                           SessionAuthentication)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,21 +20,13 @@ from rest_framework_simplejwt.views import TokenViewBase
 from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
-from .serializers import (
-    BooleanValidatorSerializer,
-    GroupNameCheckSerializer,
-    GroupNameSerializer,
-    GroupPermissionsNamesSerializer,
-    GroupPermissionsSerializer,
-    UserAddressSerializer,
-    UserCreateReturnSerializer,
-    UserCreateSerializer,
-    UserFullSerializer,
-    UserLimitedSerializer,
-    UserNamesSerializer,
-    UserPasswordSerializer,
-    UserUpdateSerializer,
-)
+from .serializers import (BooleanValidatorSerializer, GroupNameCheckSerializer,
+                          GroupNameSerializer, GroupPermissionsNamesSerializer,
+                          GroupPermissionsSerializer, UserAddressSerializer,
+                          UserCreateReturnSerializer, UserCreateSerializer,
+                          UserFullSerializer, UserLimitedSerializer,
+                          UserNamesSerializer, UserPasswordSerializer,
+                          UserUpdateSerializer)
 
 User = get_user_model()
 
@@ -231,7 +224,7 @@ class UserTokenRefreshView(TokenViewBase):
     def post(self, request, *args, **kwargs):
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
             return Response(
-                "refresh token not found", status=status.HTTP_400_BAD_REQUEST
+                "refresh token not found", status=status.HTTP_204_NO_CONTENT
             )
 
         refresh_token = {}

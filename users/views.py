@@ -16,6 +16,8 @@ from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenViewBase
 
+from orders.models import ShoppingCart
+
 from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
@@ -142,7 +144,7 @@ class UserCreateListView(APIView):
             # create email verification for user creation  /// FOR LATER WHO EVER DOES IT
 
             # actually creating the user
-            User.objects.create_user(
+            user = User.objects.create_user(
                 first_name=first_name_post,
                 last_name=last_name_post,
                 email=email_post,
@@ -154,7 +156,8 @@ class UserCreateListView(APIView):
                 username=username_post,
                 joint_user=joint_user_post,
             )
-
+            cart_obj = ShoppingCart(user=user)
+            cart_obj.save()
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)
 
         print(serialized_values.errors)

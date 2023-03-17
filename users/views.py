@@ -31,9 +31,9 @@ from .serializers import (
     UserFullSerializer,
     UserLimitedSerializer,
     UserNamesSerializer,
+    UserPasswordChangeSerializer,
     UserPasswordSerializer,
     UserUpdateSerializer,
-    UserPasswordChangeSerializer,
 )
 
 User = get_user_model()
@@ -770,6 +770,7 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
 
+
 class UserPasswordEditView(APIView):
     """
     update users password, requires knowledge of old password.
@@ -789,8 +790,6 @@ class UserPasswordEditView(APIView):
     serializer_class = UserPasswordChangeSerializer
 
     def get(self, request, format=None):
-
-
         print("testing things, on the page now GET")
         print(request.COOKIES)
         content = {
@@ -810,9 +809,13 @@ class UserPasswordEditView(APIView):
 
     def post(self, request, format=None):
         print(request.data)
-        serializer = self.serializer_class(data=request.data, context={'request':request})
-        #serializer = self.serializer_class(data=request.data)
-        #serializer.is_valid(raise_exception=True)
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+        # serializer = self.serializer_class(data=request.data)
+        print("before")
+        # serializer.is_valid(raise_exception=True)
+        print("after")
         print(serializer.initial_data)
         print("TEST")
         if serializer.is_valid():
@@ -820,21 +823,20 @@ class UserPasswordEditView(APIView):
             request.user.set_password(serializer.data["new_password"])
             request.user.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        
-        
+
         # user = authenticate(username=username, password=password)
         # if user is not None:
         #     pass
         #     #serializer = ChildUserSerializer(data=request.DATA,context={'request':request})
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        #return Response(serializer.initial_data, status=status.HTTP_400_BAD_REQUEST)
+        # return Response(serializer.initial_data, status=status.HTTP_400_BAD_REQUEST)
 
-    
-    #queryset = User.objects.get()
+    # queryset = User.objects.get()
 
     # queryset = User.objects.filter(id=request.user.id)
     # serialized_data_full = UserFullSerializer(queryset, many=True)
+
 
 class UserPasswordEditAdminView(generics.RetrieveAPIView):
     """
@@ -858,7 +860,7 @@ class UserPasswordEditAdminView(generics.RetrieveAPIView):
     def post(self, request, format=None):
         print(request.data)
         serializer = UserPasswordChangeSerializer(data=request.data)
-        #serializer.is_valid(raise_exception=True)
+        # serializer.is_valid(raise_exception=True)
         print(serializer.initial_data)
         print("TEST")
         if serializer.is_valid():
@@ -866,12 +868,11 @@ class UserPasswordEditAdminView(generics.RetrieveAPIView):
             request.user.set_password(serializer.data["new_password"])
             request.user.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        
-        
+
         # user = authenticate(username=username, password=password)
         # if user is not None:
         #     pass
         #     #serializer = ChildUserSerializer(data=request.DATA,context={'request':request})
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        #return Response(serializer.initial_data, status=status.HTTP_400_BAD_REQUEST)
+        # return Response(serializer.initial_data, status=status.HTTP_400_BAD_REQUEST)

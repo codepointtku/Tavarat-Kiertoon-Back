@@ -16,6 +16,8 @@ from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenViewBase
 
+from orders.models import ShoppingCart
+
 from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
@@ -142,7 +144,7 @@ class UserCreateListView(APIView):
             # create email verification for user creation  /// FOR LATER WHO EVER DOES IT
 
             # actually creating the user
-            User.objects.create_user(
+            user = User.objects.create_user(
                 first_name=first_name_post,
                 last_name=last_name_post,
                 email=email_post,
@@ -154,7 +156,8 @@ class UserCreateListView(APIView):
                 username=username_post,
                 joint_user=joint_user_post,
             )
-
+            cart_obj = ShoppingCart(user=user)
+            cart_obj.save()
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)
 
         print(serialized_values.errors)
@@ -231,7 +234,7 @@ class UserTokenRefreshView(TokenViewBase):
     def post(self, request, *args, **kwargs):
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
             return Response(
-                "refresh token not found", status=status.HTTP_400_BAD_REQUEST
+                "refresh token not found", status=status.HTTP_204_NO_CONTENT
             )
 
         refresh_token = {}
@@ -412,6 +415,32 @@ class UserSingleGetView(APIView):
         user = self.get_object(pk)
         serializer = UserFullSerializer(user)
 
+        return Response(serializer.data)
+
+
+class UserLoggedInDetailView(APIView):
+    """
+    List all users with all database fields, no POST here
+    """
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+
+    required_groups = {
+        "GET": ["user_group"],
+        "POST": ["user_group"],
+        "PUT": ["user_group"],
+    }
+    queryset = CustomUser.objects.all()
+    serializer_class = UserFullSerializer
+
+    def get(self, request, format=None):
+        serializer = self.serializer_class(request.user)
         return Response(serializer.data)
 
 

@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
+from django.core.mail import send_mail
 from django.http import Http404
 from django.middleware import csrf
 from django.shortcuts import render
@@ -774,6 +775,20 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserAddress.objects.all()
 
 
+class UserPasswordResetMailView(APIView):
+    serializer_class = UserPasswordChangeSerializer
+
+    def get(self, request, format=None):
+        print(request.data)
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}, partial=True
+        )
+
+        serializer.is_valid(raise_exception=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class UserPasswordEditView(APIView):
     """
     update users password, requires knowledge of old password.
@@ -815,6 +830,15 @@ class UserPasswordEditView(APIView):
         serializer = self.serializer_class(
             data=request.data, context={"request": request}
         )
+        print("testing sending mail")
+        send_mail(
+            "subject goes here",
+            "message",
+            "from@testi.fi",
+            ["sami.santamaa@turku.fi"],
+            fail_silently=False,
+        )
+
         # serializer = self.serializer_class(data=request.data)
         print("before")
         # serializer.is_valid(raise_exception=True)

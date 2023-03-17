@@ -1,8 +1,10 @@
-from django.contrib.auth.models import Group
-from rest_framework import serializers, status
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import Group
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework import serializers, status
 
 from .models import CustomUser, UserAddress
+
 
 class BooleanValidatorSerializer(serializers.ModelSerializer):
     joint_user = serializers.BooleanField(default=False)
@@ -32,14 +34,32 @@ class UserPasswordSerializer(serializers.ModelSerializer):
             "message_for_user",
         ]
 
+
 class UserPasswordChangeSerializer(serializers.Serializer):
     """
     Serializer for users, checking password fields
     """
+
     username = serializers.CharField(max_length=255)
-    old_password = serializers.CharField(max_length=128, style={'input_type': 'password'})
+    old_password = serializers.CharField(
+        max_length=128, style={"input_type": "password"}
+    )
     new_password = serializers.CharField(max_length=128)
     new_password_again = serializers.CharField(max_length=128)
+
+    def validate_username(self, value):
+        """
+        Check if username exists
+        """
+        print("test am I in field validator and value is: ", value)
+        try:
+            user = CustomUser.objects.get(username=value)
+            print("user exists: ", user)
+        except ObjectDoesNotExist:
+            print("user does not exist, ,:", value)
+            raise serializers.ValidationError("User does not existss")
+
+        return value
 
     def validate(self, data):
         """
@@ -49,44 +69,41 @@ class UserPasswordChangeSerializer(serializers.Serializer):
         print(data)
 
         try:
-            user = self.context['request'].user
+            user = self.context["request"].user
             print(user)
             print(user.username)
             if user.username != data["username"]:
                 msg = "given user name and logged in user are different"
                 print(msg)
-                raise serializers.ValidationError(msg, code='authorization')
-        
+                raise serializers.ValidationError(msg, code="authorization")
+
         except KeyError:
             print("no request passed")
 
-        print(data["username"],data["old_password"] )
+        print(data["username"], data["old_password"])
 
-        second_user = authenticate(username=data["username"], password=data["old_password"])
+        second_user = authenticate(
+            username=data["username"], password=data["old_password"]
+        )
         if second_user is not None:
             print("user authent succ")
-            if data["new_password"] == data["new_password_again"] :
+            if data["new_password"] == data["new_password_again"]:
                 print("lotto voitto")
             else:
                 msg = "the new password werent same DANG"
                 print(msg)
-                raise serializers.ValidationError(msg, code='authorization')
+                raise serializers.ValidationError(msg, code="authorization")
 
-        else :
+        else:
             print("user NOT succ")
             msg = "wrong user namae and old password"
             print(msg)
-            raise serializers.ValidationError(msg, code='authorization')
+            raise serializers.ValidationError(msg, code="authorization")
 
         return data
 
     class Meta:
-        fields = [
-            "username",
-            "old_password",
-            "new_password",
-            "new_password_again"
-        ]
+        fields = ["username", "old_password", "new_password", "new_password_again"]
 
 
 class UserAddressSerializer(serializers.ModelSerializer):

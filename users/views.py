@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth import authenticate, forms, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
@@ -778,13 +778,16 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
 class UserPasswordResetMailView(APIView):
     serializer_class = UserPasswordChangeSerializer
 
-    def get(self, request, format=None):
-        print(request.data)
+    pw_reset_form = forms.PasswordResetForm
+
+    def post(self, request, format=None):
+        print("im in POST now: ", request.data)
         serializer = self.serializer_class(
             data=request.data, context={"request": request}, partial=True
         )
 
         serializer.is_valid(raise_exception=True)
+        print("test aftert valid call")
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 

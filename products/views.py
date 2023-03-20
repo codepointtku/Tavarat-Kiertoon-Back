@@ -183,7 +183,7 @@ class CategoriesByIdListView(APIView):
     def get_queryset(self):
         category = Category.objects.get(id=self.kwargs["category_id"])
         categories = category.get_descendants(include_self=True)
-        return Category.objects.filter(id__in=categories)
+        return categories.filter(level=2)
 
     def get(self, request, *args, **kwargs):
         category_ids = [category.id for category in self.get_queryset()]

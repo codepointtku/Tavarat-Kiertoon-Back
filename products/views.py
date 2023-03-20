@@ -75,7 +75,7 @@ class ProductFilter(filters.FilterSet):
         )
 
 
-class ProductListView(generics.ListCreateAPIView):
+class ProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
     authentication_classes = [
         SessionAuthentication,

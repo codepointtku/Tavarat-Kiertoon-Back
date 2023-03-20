@@ -815,8 +815,18 @@ class UserPasswordResetMailView(APIView):
         print("context: ", context)
 
         reset_url = f"http://127.0.0.1:8000/users/password/reset/confirm/{uid}/{token_for_user}/"
+        test_message = "heres the password reset link you requyested: " + reset_url
         print("reset url: ", reset_url)
-        return Response(reset_url, status=status.HTTP_200_OK)
+
+        send_mail(
+            "password reset link",
+            test_message,
+            "tavaratkiertoon_backend@testi.fi",
+            ["testi@turku.fi"],
+            fail_silently=False,
+        )
+
+        return Response(test_message, status=status.HTTP_200_OK)
         # return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -866,7 +876,7 @@ class UserPasswordEditView(APIView):
             "subject goes here",
             "message",
             "from@testi.fi",
-            ["sami.santamaa@turku.fi"],
+            ["testi@turku.fi"],
             fail_silently=False,
         )
 

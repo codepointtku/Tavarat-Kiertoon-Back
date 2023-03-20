@@ -7,8 +7,11 @@ from django.core.mail import send_mail
 from django.http import Http404
 from django.middleware import csrf
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from django.views.decorators.cache import never_cache
+from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework import generics, permissions, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -834,13 +837,15 @@ class UserPasswordResetMailView(APIView):
 class UserPasswordResetMailValidationView(APIView):
     serializer_class = UserPasswordChangeEmailValidationSerializer
 
+    # @method_decorator(sensitive_post_parameters())
+    @method_decorator(never_cache)
     def post(self, request, format=None):
         print("im in POST now: ", request.data)
         serializer = self.serializer_class(
             data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
-
+        print("after validaiton data in ser: ", serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

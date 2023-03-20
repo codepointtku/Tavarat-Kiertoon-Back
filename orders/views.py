@@ -92,12 +92,12 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
         available_itemset = itemset.exclude(id__in=instance.products.values("id"))
         removable_itemset = instance.products.filter(group_id=cartproduct.group_id)
         amount = request.data["amount"]
+        
         if amount >= 0:
             if len(available_itemset) < amount:
                 amount = len(available_itemset)
             for i in range(amount):
                 instance.products.add(available_itemset[i])
-
         else:
             amount *= -1
             if amount > len(removable_itemset):

@@ -116,3 +116,6 @@ class UserAddress(models.Model):
 
     def __str__(self) -> str:
         return f"Address: {self.address} {self.zip_code} {self.city} ({self.id})"
+
+    class Meta:
+        verbose_name_plural = "User addresses"

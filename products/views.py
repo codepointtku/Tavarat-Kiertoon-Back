@@ -190,6 +190,17 @@ class CategoriesByIdListView(APIView):
         return Response(category_ids)
 
 
+class CategoryTreeView(APIView):
+    queryset = Category.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        dict = {
+            a.id: [id.id for id in a.get_descendants(include_self=True).filter(level=2)]
+            for a in self.queryset.all()
+        }
+        return Response(dict)
+
+
 class ColorListView(generics.ListCreateAPIView):
     queryset = Color.objects.all()
     serializer_class = ColorSerializer

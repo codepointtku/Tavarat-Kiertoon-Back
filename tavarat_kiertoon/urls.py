@@ -46,6 +46,7 @@ from orders.views import (
 )
 from products.views import (
     CategoriesByIdListView,
+    CategoryTreeView,
     ColorDetailView,
     ColorListView,
     PictureDetailView,
@@ -99,6 +100,7 @@ urlpatterns = [
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
     path("categories/", CategoryListView.as_view()),
     path("categories/<int:pk>/", CategoryDetailView.as_view()),
+    path("categories/tree/", CategoryTreeView.as_view()),
     path("users/", UserDetailsListView.as_view()),
     path("user/", UserLoggedInDetailView.as_view()),
     path("users/create/", UserCreateListView.as_view()),

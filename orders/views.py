@@ -92,18 +92,18 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
         available_itemset = itemset.exclude(id__in=instance.products.values("id"))
         removable_itemset = instance.products.filter(group_id=cartproduct.group_id)
         amount = request.data["amount"]
-        if request.data["remove"] == "false":
+        if amount >= 0:
             if len(available_itemset) < amount:
                 amount = len(available_itemset)
-            while amount > 0:
-                instance.products.add(itemset[amount-1])
-                amount -= 1
+            for i in range(amount):
+                instance.products.add(available_itemset[i])
+
         else:
+            amount *= -1
             if amount > len(removable_itemset):
                 amount = len(removable_itemset)
-            while amount > 0:
-                instance.products.remove(removable_itemset[amount-1])
-                amount -= 1
+            for i in range(amount):
+                instance.products.remove(removable_itemset[i])
 
         updatedinstance = ShoppingCart.objects.get(user=request.user)
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)

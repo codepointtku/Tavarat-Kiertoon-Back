@@ -124,6 +124,13 @@ class UserPasswordChangeEmailSerializer(serializers.Serializer):
         return value
 
 
+class UserPasswordChangeEmailValidationSerializer(serializers.Serializer):
+    uid = serializers.IntegerField()
+    token = serializers.CharField(max_length=255)
+    new_password = serializers.CharField(max_length=255)
+    new_password_again = serializers.CharField(max_length=255)
+
+
 class UserAddressSerializer(serializers.ModelSerializer):
     """
     Serializer for user address

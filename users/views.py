@@ -38,6 +38,7 @@ from .serializers import (
     UserLimitedSerializer,
     UserNamesSerializer,
     UserPasswordChangeEmailSerializer,
+    UserPasswordChangeEmailValidationSerializer,
     UserPasswordChangeSerializer,
     UserPasswordSerializer,
     UserUpdateSerializer,
@@ -828,6 +829,19 @@ class UserPasswordResetMailView(APIView):
 
         return Response(test_message, status=status.HTTP_200_OK)
         # return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserPasswordResetMailValidationView(APIView):
+    serializer_class = UserPasswordChangeEmailValidationSerializer
+
+    def post(self, request, format=None):
+        print("im in POST now: ", request.data)
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserPasswordEditView(APIView):

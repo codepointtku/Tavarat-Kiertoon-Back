@@ -75,6 +75,7 @@ from users.views import (
     UserLogoutView,
     UserPasswordEditAdminView,
     UserPasswordEditView,
+    UserPasswordResetMailValidationView,
     UserPasswordResetMailView,
     UserSingleGetView,
     UserTokenRefreshView,
@@ -144,6 +145,10 @@ urlpatterns = [
     path(
         "users/password/reset/confirm/<uidb64>/<token>/",
         views.PasswordResetConfirmView.as_view(),
+    ),
+    path(
+        "users/password/reset/confirm/test/",
+        UserPasswordResetMailValidationView.as_view(),
     ),
     path(
         "users/password/reset/confirm/done", views.PasswordResetCompleteView.as_view()

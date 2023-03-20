@@ -2,10 +2,13 @@ from django.conf import settings
 from django.contrib.auth import authenticate, forms, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.http import Http404
 from django.middleware import csrf
 from django.shortcuts import render
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from rest_framework import generics, permissions, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -34,6 +37,7 @@ from .serializers import (
     UserFullSerializer,
     UserLimitedSerializer,
     UserNamesSerializer,
+    UserPasswordChangeEmailSerializer,
     UserPasswordChangeSerializer,
     UserPasswordSerializer,
     UserUpdateSerializer,
@@ -776,7 +780,7 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class UserPasswordResetMailView(APIView):
-    serializer_class = UserPasswordChangeSerializer
+    serializer_class = UserPasswordChangeEmailSerializer
 
     pw_reset_form = forms.PasswordResetForm
 
@@ -788,8 +792,32 @@ class UserPasswordResetMailView(APIView):
 
         serializer.is_valid(raise_exception=True)
         print("test aftert valid call")
+        user = User.objects.get(username=serializer.data["username"])
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        print("user that ghets teh topken: ", user)
+
+        token_generator = default_token_generator
+
+        token_for_user = token_generator.make_token(user=user)
+        # user2 = User.objects.get(id=2)
+        print("token: ", token_for_user)
+        print(
+            "chekcing the token: ",
+            token_generator.check_token(user=user, token=token_for_user),
+        )
+        print("enodicng the uid")
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        context = {
+            "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+            "user": user,
+            "token": token_generator.make_token(user),
+        }
+        print("context: ", context)
+
+        reset_url = f"http://127.0.0.1:8000/users/password/reset/confirm/{uid}/{token_for_user}/"
+        print("reset url: ", reset_url)
+        return Response(reset_url, status=status.HTTP_200_OK)
+        # return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserPasswordEditView(APIView):

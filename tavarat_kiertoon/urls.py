@@ -136,8 +136,15 @@ urlpatterns = [
     path("users/password/reset_mail/", UserPasswordResetMailView.as_view()),
     path("users/password/<int:pk>/", UserPasswordEditAdminView.as_view()),
     path("users/password/reset/", views.PasswordResetView.as_view()),
-    path("users/password/reset/done", views.PasswordResetCompleteView.as_view()),
-    path("users/password/reset/confirm", views.PasswordResetConfirmView.as_view()),
+    path(
+        "users/password/reset/done",
+        views.PasswordResetCompleteView.as_view(),
+        name="password_reset_complete",
+    ),
+    path(
+        "users/password/reset/confirm/<uidb64>/<token>/",
+        views.PasswordResetConfirmView.as_view(),
+    ),
     path(
         "users/password/reset/confirm/done", views.PasswordResetCompleteView.as_view()
     ),

@@ -106,6 +106,24 @@ class UserPasswordChangeSerializer(serializers.Serializer):
         fields = ["username", "old_password", "new_password", "new_password_again"]
 
 
+class UserPasswordChangeEmailSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=255)
+
+    def validate_username(self, value):
+        """
+        Check if username exists
+        """
+        print("test am I in field validator and value is: ", value)
+        try:
+            user = CustomUser.objects.get(username=value)
+            print("user exists: ", user)
+        except ObjectDoesNotExist:
+            print("user does not exist, ,:", value)
+            raise serializers.ValidationError("User does not existss")
+
+        return value
+
+
 class UserAddressSerializer(serializers.ModelSerializer):
     """
     Serializer for user address

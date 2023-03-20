@@ -177,30 +177,17 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response(data)
 
 
-class CategoriesByIdListView(APIView):
-    """View that returns self and child categories with given id in url"""
-
-    def get_queryset(self):
-        category = Category.objects.get(id=self.kwargs["category_id"])
-        categories = category.get_descendants(include_self=True)
-        return categories.filter(level=2)
-
-    def get(self, request, *args, **kwargs):
-        category_ids = [category.id for category in self.get_queryset()]
-        return Response(category_ids)
-
-
 class CategoryTreeView(APIView):
     """Returns all category ids as keys and all level 2 child categories of that category as list"""
 
     queryset = Category.objects.all()
 
     def get(self, request, *args, **kwargs):
-        dict = {
+        category_tree = {
             c.id: [c.id for c in c.get_descendants(include_self=True).filter(level=2)]
             for c in self.queryset.all()
         }
-        return Response(dict)
+        return Response(category_tree)
 
 
 class ColorListView(generics.ListCreateAPIView):

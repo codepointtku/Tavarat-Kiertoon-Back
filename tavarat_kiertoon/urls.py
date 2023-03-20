@@ -45,7 +45,6 @@ from orders.views import (
     ShoppingCartListView,
 )
 from products.views import (
-    CategoriesByIdListView,
     CategoryTreeView,
     ColorDetailView,
     ColorListView,
@@ -93,7 +92,6 @@ urlpatterns = [
     path("orders/<int:pk>/", OrderDetailView.as_view()),
     path("orders/user/", OrderSelfListView.as_view()),
     path("products/", ProductListView.as_view()),
-    path("categories/<int:category_id>/categories/", CategoriesByIdListView.as_view()),
     path("products/<int:pk>/", ProductDetailView.as_view()),
     path("products/transfer/", ProductStorageTransferView.as_view()),
     path("contact_forms/", ContactFormListView.as_view()),

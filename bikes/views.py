@@ -7,8 +7,8 @@ import math
 from rest_framework import generics
 from rest_framework.response import Response
 
-from bikes.models import Bike, BikePackage, BikeStock
-from bikes.serializers import BikePackageSerializer, BikeSerializer, BikeStockSerializer
+from bikes.models import Bike, BikePackage, BikeStock, BikeRental
+from bikes.serializers import BikePackageSerializer, BikeSerializer, BikeStockSerializer, BikeRentalSerializer
 
 
 class BikeStockList(generics.ListAPIView):
@@ -84,3 +84,13 @@ class MainBikeList(generics.ListAPIView):
                 "packages": bike_package_serializer.data,
             }
         )
+
+
+class RentalListView(generics.ListCreateAPIView):
+    queryset = BikeRental.objects.all()
+    serializer_class = BikeRentalSerializer
+
+
+class RentalDetailView(generics.RetrieveAPIView):
+    queryset = BikeRental.objects.all()
+    serializer_class = BikeRentalSerializer

@@ -6,11 +6,7 @@ from .models import Bike, BikeAmount, BikePackage, BikeRental, BikeStock
 class BikeRentalSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeRental
-        fields = [
-            "id",
-            "start_date",
-            "end_date",
-        ]
+        fields = "__all__"
 
 
 class BikeStockSerializer(serializers.ModelSerializer):

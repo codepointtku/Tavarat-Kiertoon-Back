@@ -124,7 +124,7 @@ class TestProduct(TestCase):
         self.assertEqual(response.status_code, 201)
 
     def test_post_multiple_products_multiple_pictures(self):
-        url = "/products/"
+        url = "/storage/products/"
         data = {
             "name": "nahkatuoli",
             "price": 0,
@@ -136,8 +136,7 @@ class TestProduct(TestCase):
             "available": True,
         }
         response = self.client.post(url, data, content_type="application/json")
-        # self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, 201)
 
     @override_settings(MEDIA_ROOT=TEST_DIR)
     def test_post_product_with_new_picture(self):
@@ -145,7 +144,7 @@ class TestProduct(TestCase):
             url="https://picsum.photos/200.jpg",
             filename="testmedia/pictures/testpicture1.jpeg",
         )
-        url = "/products/"
+        url = "/storage/products/"
         data = {
             "name": "tuolinahka",
             "price": 0,
@@ -159,11 +158,10 @@ class TestProduct(TestCase):
             "free_description": "tämä tuoli on hieno",
         }
         response = self.client.post(url, data, format="multipart")
-        # self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, 201)
 
     def test_post_product_color_as_string(self):
-        url = "/products/"
+        url = "/storage/products/"
         colorstr = str("värikäs")
         data = {
             "name": "puusohva",
@@ -177,11 +175,10 @@ class TestProduct(TestCase):
             "free_description": "umpipuinen sohva",
         }
         response = self.client.post(url, data, content_type="application/json")
-        # self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, 201)
 
     def test_post_product_existing_color_as_string(self):
-        url = "/products/"
+        url = "/storage/products/"
         colorstr = str("punainen")
         data = {
             "name": "puutuoli",
@@ -195,8 +192,7 @@ class TestProduct(TestCase):
             "free_description": "kova puinen tuoli",
         }
         response = self.client.post(url, data, content_type="application/json")
-        # self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, 201)
 
     def test_update_product(self):
         url = f"/products/{self.test_product.id}/"

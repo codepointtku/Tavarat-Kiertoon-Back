@@ -785,61 +785,39 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
 class UserPasswordResetMailView(APIView):
     serializer_class = UserPasswordCheckEmailSerializer
 
-    pw_reset_form = forms.PasswordResetForm
-
     def post(self, request, format=None):
-        print("im in POST now: ", request.data)
         serializer = self.serializer_class(
             data=request.data, context={"request": request}, partial=True
         )
 
         serializer.is_valid(raise_exception=True)
-        print("test aftert valid call")
+        # creating token for user for pw reset and encoding the uid
         user = User.objects.get(username=serializer.data["username"])
-
-        print("user that ghets teh topken: ", user)
-
         token_generator = default_token_generator
-
         token_for_user = token_generator.make_token(user=user)
-        # user2 = User.objects.get(id=2)
-        print("token: ", token_for_user)
-        print(
-            "chekcing the token: ",
-            token_generator.check_token(user=user, token=token_for_user),
-        )
-        print("enodicng the uid")
         uid = urlsafe_base64_encode(force_bytes(user.pk))
-        context = {
-            "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-            "user": user,
-            "token": token_generator.make_token(user),
-        }
-        print("context: ", context)
 
         reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
-        test_message = "heres the password reset link you requyested: " + reset_url
-        print("reset url: ", reset_url)
+        message = "heres the password reset link you requested: " + reset_url
 
         send_mail(
             "password reset link",
-            test_message,
+            message,
             "tavaratkiertoon_backend@testi.fi",
             ["testi@turku.fi"],
             fail_silently=False,
         )
 
         response = Response()
-
         response.status_code = status.HTTP_200_OK
+        # return the values for testing purpose, remove in deployment
         response.data = {
-            "message": test_message,
+            "message": message,
             "crypt": uid,
             "token": token_for_user,
         }
 
         return response
-        # return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserPasswordResetMailValidationView(APIView):

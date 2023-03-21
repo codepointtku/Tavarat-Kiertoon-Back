@@ -138,7 +138,7 @@ urlpatterns = [
         UserPasswordResetMailValidationView.as_view(),
     ),
     path(
-        "users/password/reset/test/",
+        "users/password/reset/",
         UserPasswordResetMailValidationView.as_view(),
     ),
 ] + static(

@@ -825,13 +825,11 @@ class UserPasswordResetMailValidationView(APIView):
 
     # @method_decorator(sensitive_post_parameters())
     @method_decorator(never_cache)
-    def post(self, request, format=None):
-        print("im in POST now: ", request.data)
+    def post(self, request, format=None, *args, **kwargs):
         serializer = self.serializer_class(
             data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
-        print("after validaiton data in ser: ", serializer.data)
 
         user = User.objects.get(id=serializer.data["uid"])
         user.set_password(serializer.data["new_password"])
@@ -840,7 +838,6 @@ class UserPasswordResetMailValidationView(APIView):
         response = Response()
         response.status_code = status.HTTP_200_OK
         response.data = {"data": serializer.data, "messsage": "pw updatred"}
-        print(response)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -857,5 +854,5 @@ class UserPasswordResetMailValidationView(APIView):
             "token": kwargs["token"],
         }
         response.status_code = status.HTTP_200_OK
-        print(response)
+
         return response

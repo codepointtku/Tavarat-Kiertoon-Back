@@ -53,9 +53,9 @@ from products.views import (
     ProductDetailView,
     ProductListView,
     ProductStorageTransferView,
-    StorageProductListView,
     StorageDetailView,
     StorageListView,
+    StorageProductListView,
 )
 from users.views import (
     GroupListView,
@@ -73,6 +73,8 @@ from users.views import (
     UserLoginTestView,
     UserLoginView,
     UserLogoutView,
+    UserPasswordResetMailValidationView,
+    UserPasswordResetMailView,
     UserSingleGetView,
     UserTokenRefreshView,
     UserUpdateInfoView,
@@ -106,10 +108,10 @@ urlpatterns = [
     path("users/create/", UserCreateListView.as_view()),
     path("users/<int:pk>/", UserSingleGetView.as_view()),
     path("users/address/", UserAddressListView.as_view()),
-    path("users/address/add", UserAddressAddView.as_view()),
-    path("users/address/<int:pk>", UserAddressEditView.as_view()),
+    path("users/address/add/", UserAddressAddView.as_view()),
+    path("users/address/<int:pk>/", UserAddressEditView.as_view()),
     path("users/limited/", UserDetailsListLimitedView.as_view()),
-    path("users/limited/<int:pk>", UserDetailLimitedView.as_view()),
+    path("users/limited/<int:pk>/", UserDetailLimitedView.as_view()),
     path("users/groups/", GroupListView.as_view()),
     path("users/groups/<int:pk>/", GroupNameView.as_view()),
     path("users/groups/permission/", GroupPermissionCheckView.as_view()),
@@ -128,8 +130,17 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
     path("users/login/", UserLoginView.as_view(), name="token_obtain_pair_http"),
     path("users/login/test/", UserLoginTestView.as_view(), name="token_obtain_pair"),
-    path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refrest"),
+    path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refresh"),
     path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    path("users/password/resetemail/", UserPasswordResetMailView.as_view()),
+    path(
+        "users/password/reset/<uidb64>/<token>/",
+        UserPasswordResetMailValidationView.as_view(),
+    ),
+    path(
+        "users/password/reset/",
+        UserPasswordResetMailValidationView.as_view(),
+    ),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

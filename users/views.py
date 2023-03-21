@@ -42,7 +42,6 @@ from .serializers import (
     UserNamesSerializer,
     UserPasswordChangeEmailSerializer,
     UserPasswordChangeEmailValidationSerializer,
-    UserPasswordChangeSerializer,
     UserPasswordSerializer,
     UserUpdateSerializer,
 )

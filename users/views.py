@@ -818,7 +818,7 @@ class UserPasswordResetMailView(APIView):
         }
         print("context: ", context)
 
-        reset_url = f"http://127.0.0.1:8000/users/password/reset/confirm/{uid}/{token_for_user}/"
+        reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
         test_message = "heres the password reset link you requyested: " + reset_url
         print("reset url: ", reset_url)
 
@@ -866,6 +866,22 @@ class UserPasswordResetMailValidationView(APIView):
         print(response)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get(self, request, *args, **kwargs):
+        if "uidb64" not in kwargs or "token" not in kwargs:
+            return Response(
+                "The URL path must contain 'uidb64' and 'token' parameters."
+            )
+
+        response = Response()
+        response.data = {
+            "msg: ": "MAGICC!!!!",
+            "uid": kwargs["uidb64"],
+            "token": kwargs["token"],
+        }
+        response.status_code = status.HTTP_200_OK
+        print(response)
+        return response
 
 
 class UserPasswordEditView(APIView):

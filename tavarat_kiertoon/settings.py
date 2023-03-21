@@ -208,4 +208,5 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 
-PASSWORD_RESET_TIMEOUT = 900  # ( 60 * 15 (sekuntia))
+PASSWORD_RESET_URL_FRONT = "http://127.0.0.1:8000/users/password/reset/confirm/"
+PASSWORD_RESET_TIMEOUT = 900  # ( 60 * 15 = 900 (sekuntia))

@@ -17,7 +17,6 @@ from django.conf import settings
 from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.auth import views
 from django.urls import include, path
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -54,9 +53,9 @@ from products.views import (
     ProductDetailView,
     ProductListView,
     ProductStorageTransferView,
-    StorageProductListView,
     StorageDetailView,
     StorageListView,
+    StorageProductListView,
 )
 from users.views import (
     GroupListView,
@@ -138,16 +137,6 @@ urlpatterns = [
     path("users/password/", UserPasswordEditView.as_view()),
     path("users/password/reset_mail/", UserPasswordResetMailView.as_view()),
     path("users/password/<int:pk>/", UserPasswordEditAdminView.as_view()),
-    path("users/password/reset/", views.PasswordResetView.as_view()),
-    path(
-        "users/password/reset/done",
-        views.PasswordResetCompleteView.as_view(),
-        name="password_reset_complete",
-    ),
-    # path(
-    #     "users/password/reset/confirm/<uidb64>/<token>/",
-    #     views.PasswordResetConfirmView.as_view(),
-    # ),
     path(
         "users/password/reset/confirm/<uidb64>/<token>/",
         UserPasswordResetMailValidationView.as_view(),
@@ -155,9 +144,6 @@ urlpatterns = [
     path(
         "users/password/reset/confirm/test/",
         UserPasswordResetMailValidationView.as_view(),
-    ),
-    path(
-        "users/password/reset/confirm/done", views.PasswordResetCompleteView.as_view()
     ),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT

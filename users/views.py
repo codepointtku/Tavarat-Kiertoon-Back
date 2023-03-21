@@ -40,8 +40,8 @@ from .serializers import (
     UserFullSerializer,
     UserLimitedSerializer,
     UserNamesSerializer,
-    UserPasswordChangeEmailSerializer,
     UserPasswordChangeEmailValidationSerializer,
+    UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
     UserUpdateSerializer,
 )
@@ -783,7 +783,7 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class UserPasswordResetMailView(APIView):
-    serializer_class = UserPasswordChangeEmailSerializer
+    serializer_class = UserPasswordCheckEmailSerializer
 
     pw_reset_form = forms.PasswordResetForm
 

@@ -39,19 +39,16 @@ class UserPasswordSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserPasswordChangeEmailSerializer(serializers.Serializer):
+class UserPasswordCheckEmailSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=255)
 
     def validate_username(self, value):
         """
-        Check if username exists
+        Check if username exists serializer
         """
-        print("test am I in field validator and value is: ", value)
         try:
             user = CustomUser.objects.get(username=value)
-            print("user exists: ", user)
         except ObjectDoesNotExist:
-            print("user does not exist, ,:", value)
             raise serializers.ValidationError("User does not existss")
 
         return value

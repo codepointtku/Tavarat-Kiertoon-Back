@@ -64,43 +64,34 @@ class UserPasswordChangeEmailValidationSerializer(serializers.Serializer):
         """
         check the correctness  of token and same password, future password validation?
         """
-        print("in ser validator now")
-        print(data)
 
         if data["new_password"] == data["new_password_again"]:
             print("lotto voitto")
         else:
-            msg = "the new password werent same DANG"
-            print(msg)
+            msg = "the new password weren't same DANG"
             raise serializers.ValidationError(msg, code="authorization")
+
+        # decoding uid and chekcing that token is valid
         token_generator = default_token_generator
         try:
             uid = urlsafe_base64_decode(data["uid"]).decode()
         except ValueError:
-            msg = "stuff went wrong in decoding or something"
-            print(msg)
+            msg = "stuff went wrong in decoding uid or something"
             raise serializers.ValidationError(msg)
 
-        print("decoded uid :", uid, "  :non decoded uid: ", data["uid"])
         try:
             user = User.objects.get(id=uid)
         except (ValueError, ObjectDoesNotExist):
             msg = "something doesnt feel right about user"
-            print(msg)
             raise serializers.ValidationError(msg)
 
-        print(
-            "chekcing the token: ",
-            token_generator.check_token(user=user, token=data["token"]),
-        )
         if not token_generator.check_token(user=user, token=data["token"]):
             msg = "something went wrong confirming email link, get now one"
-            print(msg)
             raise serializers.ValidationError(msg)
 
-        print("jamign that decoded uid into data insted of coded one, old: ", data)
+        # print("jammign that decoded uid into data insted of coded one, old: ", data)
         data["uid"] = uid
-        print("to be returned data, new: ", data)
+
         return data
 
 

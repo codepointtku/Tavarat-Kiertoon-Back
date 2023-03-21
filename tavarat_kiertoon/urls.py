@@ -54,6 +54,7 @@ from products.views import (
     ProductDetailView,
     ProductListView,
     ProductStorageTransferView,
+    StorageProductListView,
     StorageDetailView,
     StorageListView,
 )
@@ -85,6 +86,7 @@ from users.views import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("storage/products/", StorageProductListView.as_view()),
     path("storages/", StorageListView.as_view()),
     path("storages/<int:pk>/", StorageDetailView.as_view()),
     path("pictures/", PictureListView.as_view()),

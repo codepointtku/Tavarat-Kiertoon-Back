@@ -75,7 +75,7 @@ class ProductFilter(filters.FilterSet):
         )
 
 
-class ProductListView(generics.ListCreateAPIView):
+class ProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
     authentication_classes = [
         SessionAuthentication,
@@ -89,6 +89,42 @@ class ProductListView(generics.ListCreateAPIView):
     ordering_fields = ["id"]
     ordering = ["id"]
     filterset_class = ProductFilter
+
+
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        all_products = self.request.query_params.get("all")
+        if not is_in_group(self.request.user, "storage_group") or all_products is None:
+            queryset = queryset.filter(available=True)
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            for product in serializer.data:
+                product["pictures"] = pic_ids_as_address_list(product["pictures"])
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class StorageProductListView(generics.ListCreateAPIView):
+    serializer_class = ProductSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    pagination_class = ProductListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    search_fields = ["name", "free_description"]
+    ordering_fields = ["id"]
+    ordering = ["id"]
+    filterset_class = ProductFilter
+
 
     def get_queryset(self):
         queryset = Product.objects.all()

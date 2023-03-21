@@ -65,9 +65,7 @@ class UserPasswordChangeEmailValidationSerializer(serializers.Serializer):
         check the correctness  of token and same password, future password validation?
         """
 
-        if data["new_password"] == data["new_password_again"]:
-            print("lotto voitto")
-        else:
+        if data["new_password"] != data["new_password_again"]:
             msg = "the new password weren't same DANG"
             raise serializers.ValidationError(msg, code="authorization")
 

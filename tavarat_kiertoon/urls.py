@@ -134,11 +134,11 @@ urlpatterns = [
     path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("users/password/reset_mail/", UserPasswordResetMailView.as_view()),
     path(
-        "users/password/reset/confirm/<uidb64>/<token>/",
+        "users/password/reset/<uidb64>/<token>/",
         UserPasswordResetMailValidationView.as_view(),
     ),
     path(
-        "users/password/reset/confirm/test/",
+        "users/password/reset/test/",
         UserPasswordResetMailValidationView.as_view(),
     ),
 ] + static(

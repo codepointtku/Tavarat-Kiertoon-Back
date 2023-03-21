@@ -207,3 +207,5 @@ VALID_EMAIL_DOMAINS = ["turku.fi", "edu.turku.fi"]
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
+
+PASSWORD_RESET_TIMEOUT = 900  # ( 60 * 15 (sekuntia))

@@ -830,7 +830,16 @@ class UserPasswordResetMailView(APIView):
             fail_silently=False,
         )
 
-        return Response(test_message, status=status.HTTP_200_OK)
+        response = Response()
+
+        response.status_code = status.HTTP_200_OK
+        response.data = {
+            "message": test_message,
+            "crypt": uid,
+            "token": token_for_user,
+        }
+
+        return response
         # return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -846,6 +855,16 @@ class UserPasswordResetMailValidationView(APIView):
         )
         serializer.is_valid(raise_exception=True)
         print("after validaiton data in ser: ", serializer.data)
+
+        user = User.objects.get(id=serializer.data["uid"])
+        user.set_password(serializer.data["new_password"])
+        user.save()
+
+        response = Response()
+        response.status_code = status.HTTP_200_OK
+        response.data = {"data": serializer.data, "messsage": "pw updatred"}
+        print(response)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

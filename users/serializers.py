@@ -232,20 +232,20 @@ class GroupNameSerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
-class GroupNameCheckSerializer(serializers.ModelSerializer):
-    group_name = serializers.CharField(max_length=150)
-    test_message = serializers.CharField(max_length=150)
-    test_boolean_check_email = serializers.BooleanField(default=False)
+# class GroupNameCheckSerializer(serializers.ModelSerializer):
+#     group_name = serializers.CharField(max_length=150)
+#     test_message = serializers.CharField(max_length=150)
+#     test_boolean_check_email = serializers.BooleanField(default=False)
 
-    class Meta:
-        model = CustomUser
-        fields = [
-            "email",
-            "groups",
-            "group_name",
-            "test_message",
-            "test_boolean_check_email",
-        ]
+#     class Meta:
+#         model = CustomUser
+#         fields = [
+#             "email",
+#             "groups",
+#             "group_name",
+#             "test_message",
+#             "test_boolean_check_email",
+#         ]
 
 
 class GroupPermissionsSerializer(serializers.ModelSerializer):
@@ -259,14 +259,14 @@ class GroupPermissionsSerializer(serializers.ModelSerializer):
         ]
 
 
-class GroupPermissionsNamesSerializer(serializers.ModelSerializer):
-    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
+# class GroupPermissionsNamesSerializer(serializers.ModelSerializer):
+#     groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
 
-    class Meta:
-        model = CustomUser
-        fields = [
-            "id",
-            "name",
-            "email",
-            "groups",
-        ]
+#     class Meta:
+#         model = CustomUser
+#         fields = [
+#             "id",
+#             "name",
+#             "email",
+#             "groups",
+#         ]

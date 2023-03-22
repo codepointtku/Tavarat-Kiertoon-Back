@@ -30,9 +30,9 @@ from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
 from .serializers import (
     BooleanValidatorSerializer,
-    GroupNameCheckSerializer,
+    #GroupNameCheckSerializer,
     GroupNameSerializer,
-    GroupPermissionsNamesSerializer,
+    #GroupPermissionsNamesSerializer,
     GroupPermissionsSerializer,
     UserAddressSerializer,
     UserCreateReturnSerializer,

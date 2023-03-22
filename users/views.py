@@ -39,7 +39,7 @@ from .serializers import (
     UserCreateSerializer,
     UserFullSerializer,
     UserLimitedSerializer,
-    UserNamesSerializer,
+    #UserNamesSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
@@ -75,10 +75,10 @@ class UserCreateListView(APIView):
     # queryset = CustomUser.objects.all()
     serializer_class = UserCreateSerializer
 
-    def get(self, request, format=None):
-        users = CustomUser.objects.all()
-        serializer = UserNamesSerializer(users, many=True)
-        return Response(serializer.data)
+    # def get(self, request, format=None):
+    #     users = CustomUser.objects.all()
+    #     serializer = UserNamesSerializer(users, many=True)
+    #     return Response(serializer.data)
 
     def post(self, request, format=None):
         # extremely uglu validation stuff
@@ -454,7 +454,7 @@ class UserLoggedInDetailView(APIView):
 
 
 # getting all groups and their names
-class GroupListView(generics.ListCreateAPIView):
+class GroupListView(generics.ListAPIView):
     """
     Get group names in list
     """
@@ -477,62 +477,62 @@ class GroupListView(generics.ListCreateAPIView):
 
 
 # getting single  group name and update it
-class GroupNameView(generics.RetrieveUpdateAPIView):
-    # class GroupNameView(APIView):
-    """
-    THIS SHOULD NOT BE USED, DELETE NOT ALLOWED HERE
-    Get single group name and allow updating its name
-    could be dangerous for functionality refer to other ppl should this be done if really needed
-    """
+# class GroupNameView(generics.RetrieveUpdateAPIView):
+#     # class GroupNameView(APIView):
+#     """
+#     THIS SHOULD NOT BE USED, DELETE NOT ALLOWED HERE
+#     Get single group name and allow updating its name
+#     could be dangerous for functionality refer to other ppl should this be done if really needed
+#     """
 
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-    }
+#     authentication_classes = [
+#         SessionAuthentication,
+#         BasicAuthentication,
+#         JWTAuthentication,
+#         CustomJWTAuthentication,
+#     ]
+#     permission_classes = [IsAuthenticated, HasGroupPermission]
+#     required_groups = {
+#         "GET": ["admin_group"],
+#         "POST": ["admin_group"],
+#         "PUT": ["admin_group"],
+#         "PATCH": ["admin_group"],
+#     }
 
-    queryset = Group.objects.all()
-    serializer_class = GroupNameSerializer
+#     queryset = Group.objects.all()
+#     serializer_class = GroupNameSerializer
 
 
-class GroupPermissionCheckView(APIView):
-    """
-    check the groups user belongs to and return them
-    kinda redutant? can be gotten from another views, users too
-    """
+# class GroupPermissionCheckView(APIView):
+#     """
+#     check the groups user belongs to and return them
+#     kinda redutant? can be gotten from another views, users too
+#     """
 
-    authentication_classes = [
-        JWTAuthentication,
-        BasicAuthentication,
-        SessionAuthentication,
-        CustomJWTAuthentication,
-    ]
-    serializer_class = GroupNameCheckSerializer
-    permission_classes = [HasGroupPermission]
-    required_groups = {
-        "GET": ["user_group"],
-        # "GET": ["__all__"],
-        "POST": ["user_group"],
-        "PUT": ["user_group"],
-    }
+#     authentication_classes = [
+#         JWTAuthentication,
+#         BasicAuthentication,
+#         SessionAuthentication,
+#         CustomJWTAuthentication,
+#     ]
+#     serializer_class = GroupNameCheckSerializer
+#     permission_classes = [HasGroupPermission]
+#     required_groups = {
+#         "GET": ["user_group"],
+#         # "GET": ["__all__"],
+#         "POST": ["user_group"],
+#         "PUT": ["user_group"],
+#     }
 
-    def get(self, request, format=None):
-        serializer = GroupPermissionsNamesSerializer(request.user)
-        return Response(serializer.data)
+#     def get(self, request, format=None):
+#         serializer = GroupPermissionsNamesSerializer(request.user)
+#         return Response(serializer.data)
 
-    def post(self, request, format=None):
-        request_serializer = GroupNameCheckSerializer(data=request.data)
-        request_serializer.is_valid(raise_exception=True)
+#     def post(self, request, format=None):
+#         request_serializer = GroupNameCheckSerializer(data=request.data)
+#         request_serializer.is_valid(raise_exception=True)
 
-        return Response(request_serializer.data)
+#         return Response(request_serializer.data)
 
 
 class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
@@ -565,61 +565,61 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = GroupPermissionsSerializer
 
 
-class UserDetailsListLimitedView(APIView):
-    """
-    Get Users with revelant fields
-    """
+# class UserDetailsListLimitedView(APIView):
+#     """
+#     Get Users with revelant fields
+#     """
 
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-    }
+#     authentication_classes = [
+#         SessionAuthentication,
+#         BasicAuthentication,
+#         JWTAuthentication,
+#         CustomJWTAuthentication,
+#     ]
+#     permission_classes = [IsAuthenticated, HasGroupPermission]
+#     required_groups = {
+#         "GET": ["admin_group"],
+#         "POST": ["admin_group"],
+#         "PUT": ["admin_group"],
+#         "PATCH": ["admin_group"],
+#     }
 
-    def get(self, request, format=None):
-        users = CustomUser.objects.all()
-        serializer = UserLimitedSerializer(users, many=True)
-        return Response(serializer.data)
+#     def get(self, request, format=None):
+#         users = CustomUser.objects.all()
+#         serializer = UserLimitedSerializer(users, many=True)
+#         return Response(serializer.data)
 
 
-class UserDetailLimitedView(APIView):
-    """
-    Get single user with revelant fields
-    """
+# class UserDetailLimitedView(APIView):
+#     """
+#     Get single user with revelant fields
+#     """
 
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
+#     authentication_classes = [
+#         SessionAuthentication,
+#         BasicAuthentication,
+#         JWTAuthentication,
+#         CustomJWTAuthentication,
+#     ]
 
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-    }
+#     permission_classes = [IsAuthenticated, HasGroupPermission]
+#     required_groups = {
+#         "GET": ["admin_group"],
+#         "POST": ["admin_group"],
+#         "PUT": ["admin_group"],
+#         "PATCH": ["admin_group"],
+#     }
 
-    def get_object(self, pk):
-        try:
-            return CustomUser.objects.get(pk=pk)
-        except CustomUser.DoesNotExist:
-            raise Http404
+#     def get_object(self, pk):
+#         try:
+#             return CustomUser.objects.get(pk=pk)
+#         except CustomUser.DoesNotExist:
+#             raise Http404
 
-    def get(self, request, pk, format=None):
-        user = self.get_object(pk)
-        serializer = UserLimitedSerializer(user)
-        return Response(serializer.data)
+#     def get(self, request, pk, format=None):
+#         user = self.get_object(pk)
+#         serializer = UserLimitedSerializer(user)
+#         return Response(serializer.data)
 
 
 class UserUpdateInfoView(APIView):

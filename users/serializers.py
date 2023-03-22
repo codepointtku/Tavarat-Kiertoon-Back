@@ -212,14 +212,14 @@ class UserLimitedSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserNamesSerializer(serializers.ModelSerializer):
-    """
-    Serializer for users, name and email
-    """
+# class UserNamesSerializer(serializers.ModelSerializer):
+#     """
+#     Serializer for users, name and email
+#     """
 
-    class Meta:
-        model = CustomUser
-        fields = ["name", "email"]
+#     class Meta:
+#         model = CustomUser
+#         fields = ["name", "email"]
 
 
 class GroupNameSerializer(serializers.ModelSerializer):

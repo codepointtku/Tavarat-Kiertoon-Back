@@ -12,7 +12,7 @@ from products.models import Color, Picture, Product, Storage
 TEST_DIR = "testmedia/"
 
 
-class TestProduct(TestCase):
+class TestProducts(TestCase):
     @classmethod
     @override_settings(MEDIA_ROOT=TEST_DIR)
     def setUpTestData(cls):

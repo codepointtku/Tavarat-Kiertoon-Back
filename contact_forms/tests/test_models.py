@@ -15,5 +15,5 @@ class TestContactForms(TestCase):
     def test_self_contactform_string(self):
         self.assertEqual(
             str(self.test_contactform),
-            f"{self.test_contactform.email}'s ContactForm({self.test_contanctform.id})"
+            f"{self.test_contactform.email}'s ContactForm({self.test_contactform.id})"
         )

@@ -1,10 +1,17 @@
 from django.conf import settings
-from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth import authenticate, forms, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.http import Http404
 from django.middleware import csrf
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.views.decorators.cache import never_cache
+from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework import generics, permissions, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -15,6 +22,8 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenViewBase
+
+from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
@@ -31,6 +40,8 @@ from .serializers import (
     UserFullSerializer,
     UserLimitedSerializer,
     UserNamesSerializer,
+    UserPasswordChangeEmailValidationSerializer,
+    UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
     UserUpdateSerializer,
 )
@@ -142,7 +153,7 @@ class UserCreateListView(APIView):
             # create email verification for user creation  /// FOR LATER WHO EVER DOES IT
 
             # actually creating the user
-            User.objects.create_user(
+            user = User.objects.create_user(
                 first_name=first_name_post,
                 last_name=last_name_post,
                 email=email_post,
@@ -154,7 +165,8 @@ class UserCreateListView(APIView):
                 username=username_post,
                 joint_user=joint_user_post,
             )
-
+            cart_obj = ShoppingCart(user=user)
+            cart_obj.save()
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)
 
         print(serialized_values.errors)
@@ -231,7 +243,7 @@ class UserTokenRefreshView(TokenViewBase):
     def post(self, request, *args, **kwargs):
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
             return Response(
-                "refresh token not found", status=status.HTTP_400_BAD_REQUEST
+                "refresh token not found", status=status.HTTP_204_NO_CONTENT
             )
 
         refresh_token = {}
@@ -259,9 +271,9 @@ class UserTokenRefreshView(TokenViewBase):
         user_id = refresh_token_obj["user_id"]
         user = User.objects.get(id=user_id)
         serializer_group = UserLimitedSerializer(user)
-
         response.status_code = status.HTTP_200_OK
         response.data = {
+            "username": user.get_username(),
             "Success": "refresh success",
             "groups": serializer_group.data["groups"],
         }
@@ -412,6 +424,32 @@ class UserSingleGetView(APIView):
         user = self.get_object(pk)
         serializer = UserFullSerializer(user)
 
+        return Response(serializer.data)
+
+
+class UserLoggedInDetailView(APIView):
+    """
+    List all users with all database fields, no POST here
+    """
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+
+    required_groups = {
+        "GET": ["user_group"],
+        "POST": ["user_group"],
+        "PUT": ["user_group"],
+    }
+    queryset = CustomUser.objects.all()
+    serializer_class = UserFullSerializer
+
+    def get(self, request, format=None):
+        serializer = self.serializer_class(request.user)
         return Response(serializer.data)
 
 
@@ -742,3 +780,79 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
+
+
+class UserPasswordResetMailView(APIView):
+    serializer_class = UserPasswordCheckEmailSerializer
+
+    def post(self, request, format=None):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}, partial=True
+        )
+
+        serializer.is_valid(raise_exception=True)
+        # creating token for user for pw reset and encoding the uid
+        user = User.objects.get(username=serializer.data["username"])
+        token_generator = default_token_generator
+        token_for_user = token_generator.make_token(user=user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
+        message = "heres the password reset link you requested: " + reset_url
+
+        send_mail(
+            "password reset link",
+            message,
+            "tavaratkiertoon_backend@testi.fi",
+            ["testi@turku.fi"],
+            fail_silently=False,
+        )
+
+        response = Response()
+        response.status_code = status.HTTP_200_OK
+        # return the values for testing purpose, remove in deployment
+        response.data = {
+            "message": message,
+            "crypt": uid,
+            "token": token_for_user,
+        }
+
+        return response
+
+
+class UserPasswordResetMailValidationView(APIView):
+    serializer_class = UserPasswordChangeEmailValidationSerializer
+
+    # @method_decorator(sensitive_post_parameters())
+    @method_decorator(never_cache)
+    def post(self, request, format=None, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        user = User.objects.get(id=serializer.data["uid"])
+        user.set_password(serializer.data["new_password"])
+        user.save()
+
+        response = Response()
+        response.status_code = status.HTTP_200_OK
+        response.data = {"data": serializer.data, "messsage": "pw updatred"}
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get(self, request, *args, **kwargs):
+        if "uidb64" not in kwargs or "token" not in kwargs:
+            return Response(
+                "The URL path must contain 'uidb64' and 'token' parameters."
+            )
+
+        response = Response()
+        response.data = {
+            "msg: ": "MAGICC!!!!",
+            "uid": kwargs["uidb64"],
+            "token": kwargs["token"],
+        }
+        response.status_code = status.HTTP_200_OK
+
+        return response

@@ -143,9 +143,8 @@ REST_FRAMEWORK = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
-    # "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(hours=12),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
@@ -163,8 +162,8 @@ SIMPLE_JWT = {
     "TOKEN_TYPE_CLAIM": "token_type",
     "JTI_CLAIM": "jti",
     "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
-    "SLIDING_TOKEN_LIFETIME": timedelta(hours=8),
-    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=7),
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
     # custom
     "AUTH_COOKIE": "access_token",  # Cookie name. Enables cookies if value is set.
     "AUTH_COOKIE_REFRESH": "refresh_token",
@@ -205,3 +204,11 @@ AUTH_USER_MODEL = "users.CustomUser"
 
 # setting for allowed domains in email to be used elsewhere in program
 VALID_EMAIL_DOMAINS = ["turku.fi", "edu.turku.fi"]
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
+
+# swap this to the fornts reset view when done
+PASSWORD_RESET_URL_FRONT = "http://127.0.0.1:8000/users/password/reset/"
+
+PASSWORD_RESET_TIMEOUT = 900  # ( 60 * 15 = 900 (sekuntia))

@@ -75,7 +75,7 @@ class ProductFilter(filters.FilterSet):
         )
 
 
-class ProductListGroupView(generics.ListCreateAPIView):
+class ProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
     authentication_classes = [
         SessionAuthentication,
@@ -89,6 +89,7 @@ class ProductListGroupView(generics.ListCreateAPIView):
     ordering_fields = ["id"]
     ordering = ["id"]
     filterset_class = ProductFilter
+
 
     def get_queryset(self):
         queryset = Product.objects.all()
@@ -113,7 +114,7 @@ class ProductListGroupView(generics.ListCreateAPIView):
         return Response(serializer.data)
 
 
-class ProductListView(generics.ListCreateAPIView):
+class StorageProductListView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
     authentication_classes = [
         SessionAuthentication,
@@ -127,6 +128,7 @@ class ProductListView(generics.ListCreateAPIView):
     ordering_fields = ["id"]
     ordering = ["id"]
     filterset_class = ProductFilter
+
 
     def get_queryset(self):
         queryset = Product.objects.all()

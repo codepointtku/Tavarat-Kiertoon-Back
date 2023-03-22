@@ -1,0 +1,47 @@
+name: Backend test with PostgreSQL
+
+on:
+  pull_request:
+    branches: [develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      JWT_SECRET_KEY: tonipalkahville
+      ALLOWED_HOSTS: localhost, 127.0.0.1
+      CORS_ALLOWED_ORIGINS: http://localhost:3000, http://localhost, http://127.0.0.1:3000, http://127.0.0.1
+      DATABASE_ENGINE: django.db.backends.postgresql_psycopg2
+      DATABASE_NAME: tavarat_kiertoon
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tavarat_kiertoon
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.11.1
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11.1
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run migrations
+        run: python manage.py migrate
+      - name: Run tests
+        run: |
+          coverage run manage.py test
+          coverage report

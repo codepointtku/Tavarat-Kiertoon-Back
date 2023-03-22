@@ -187,6 +187,23 @@ def create_categories():
         {"name": "Maalit", "parent": "Askartelu"},
         {"name": "Tussit", "parent": "Askartelu"},
         #
+        {"name": "Puuvärikynät", "parent": "Kynät"},
+        {"name": "Lyijykynät", "parent": "Kynät"},
+        {"name": "Hiilitikut", "parent": "Kynät"},
+        {"name": "Paksut pensselit", "parent": "Pensselit"},
+        {"name": "Hyvät pensselit", "parent": "Pensselit"},
+        {"name": "Bob Rossin pensselit", "parent": "Pensselit"},
+        {"name": "Viikset", "parent": "Pensselit"},
+        {"name": "Piirrustuspaperit", "parent": "Paperit"},
+        {"name": "Talouspaperit", "parent": "Paperit"},
+        {"name": "Henkkarit", "parent": "Paperit"},
+        {"name": "Sätkäpaperit", "parent": "Paperit"},
+        {"name": "Akryylimaalit", "parent": "Maalit"},
+        {"name": "Talomaalit", "parent": "Maalit"},
+        {"name": "Vappumaalit", "parent": "Maalit"},
+        {"name": "Faber Castell", "parent": "Tussit"},
+        {"name": "Kuivuneet tussit", "parent": "Tussit"},
+        {"name": "Hyvät tussit", "parent": "Tussit"},
     ]
     for category in categories:
         if "parent" in category:

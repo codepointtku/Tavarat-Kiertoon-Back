@@ -18,6 +18,7 @@ class TestProducts(TestCase):
     def setUpTestData(cls):
         cls.test_color = Color.objects.create(name="punainen")
         cls.test_storage = Storage.objects.create(name="mokkavarasto")
+        cls.test_storage1 = Storage.objects.create(name="italiangoldstorage")
         cls.test_parentcategory = Category.objects.create(name="coffee")
         cls.test_category = Category.objects.create(
             name="subcoffee", parent=cls.test_parentcategory
@@ -199,7 +200,16 @@ class TestProducts(TestCase):
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
-    def test_update_product(self):
+    def test_update_products_storage(self):
+        url = f"/products/transfer/"
+        data = {
+            "products": [self.test_product.id, self.test_picture1.id],
+            "storage": self.test_storage1.id
+        }
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+
+    def test_update_product_name(self):
         url = f"/products/{self.test_product.id}/"
         data = {"name": "kahvisohva"}
         response = self.client.put(url, data, content_type="application/json")

@@ -327,81 +327,43 @@ def create_products():
             "name": "Piirtoheitin",
             "free_description": "Hyväkuntone piirtoheitin suoraa 80-luvulta",
             "barcode": "1234",
+            "category": "1"
         },
         {
             "name": "Jakkara",
             "free_description": "Eläköityneen rehtorin luotettava jakkara",
             "barcode": "1235",
+            "category": "1"
         },
         {
             "name": "Bob Rossin pensselit",
             "free_description": "5 kpl setti eri paksusia, jouhet ok, vähän maalinjämiä",
             "barcode": "1236",
+            "category": "1"
         },
         {
             "name": "Vichy-pullo",
             "free_description": "Tyhjä",
             "barcode": "1237",
+            "category": "1"
         },
         {
             "name": "Kahvinkeitin",
             "free_description": "Alalemun koulu osti opehuoneeseen uuden mokkamasterin, tää wanha jäi ylimääräseks",
             "barcode": "1238",
+            "category": "1"
         },
         {
             "name": "Joku missä on överipitkä teksti",
             "free_description": "Katotaas mitä tapahtuu kun tähän kirjoittaa ihan älyttömän mällin tekstiä, jos joku vaikka innostuu copypasteemaan tähän free_descriptioniin vahingossa koko users manualin viidellä eri kielellä ja silleenspäin pois ja tuolleen noin ja siitä ja puita!",
             "barcode": "1239",
+            "category": "1"
         },
         {
             "name": "Työtuoli",
             "free_description": "Tuotteen tarkempi kuvaus ja kunto. ",
             "barcode": "1240",
-        },
-        {
-            "name": "Kahvikuppi",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "barcode": "1241",
-        },
-        {
-            "name": "Kahvipaketti",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "barcode": "1242",
-        },
-        {
-            "name": "Kahvimylly",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "barcode": "1243",
-        },
-        {
-            "name": "Kahvipapu",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "barcode": "1244",
-        },
-        {
-            "name": "Tonipal_kahville",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "barcode": "1245",
-        },
-        {
-            "name": "Kahvipannu",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "barcode": "1246",
-        },
-        {
-            "name": "Termoskannu",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "barcode": "1247",
-        },
-        {
-            "name": "Kahvilautanen",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "barcode": "1248",
-        },
-        {
-            "name": "Kahviaddiktio",
-            "free_description": "Tuotteen tarkempi kuvaus ja kunto.",
-            "barcode": "1249",
+            "category": "1"
         },
     ]
     true_false = [1, 1, 1, 0]

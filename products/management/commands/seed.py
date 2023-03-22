@@ -148,14 +148,45 @@ def create_categories():
     categories = [
         {"name": "Huonekalut"},
         {"name": "Tuolit", "parent": "Huonekalut"},
+        {"name": "Pöydät", "parent": "Huonekalut"},
+        {"name": "Sohvat", "parent": "Huonekalut"},
+        {"name": "Sängyt", "parent": "Huonekalut"},
+        {"name": "Kaapit", "parent": "Huonekalut"},
+        #
         {"name": "Toimistotuolit", "parent": "Tuolit"},
         {"name": "Jakkarat", "parent": "Tuolit"},
-        {"name": "Pöydät", "parent": "Huonekalut"},
+        {"name": "Pallit", "parent": "Tuolit"},
+        {"name": "Nojatuolit", "parent": "Tuolit"},
+        {"name": "Sikarituolit", "parent": "Tuolit"},
+        #
         {"name": "Yöpöydät", "parent": "Pöydät"},
+        {"name": "Päiväpöydät", "parent": "Pöydät"},
         {"name": "Ruokapöydät", "parent": "Pöydät"},
-        {"name": "Elektroniikka"},
-        {"name": "Keittiölaitteet", "parent": "Elektroniikka"},
+        {"name": "Sohvapöydät", "parent": "Pöydät"},
+        {"name": "Apupöydät", "parent": "Pöydät"},
+        #
+        {"name": "Sähkölaitteet"},
+        {"name": "Kodin elektroniikka", "parent": "Sähkölaitteet"},
+        {"name": "Työkalut", "parent": "Sähkölaitteet"},
+        #
+        {"name": "Keittiölaitteet", "parent": "Kodin elektroniikka"},
         {"name": "Kahvinkeitin", "parent": "Keittiölaitteet"},
+        {"name": "Keitin kahvin", "parent": "Keittiölaitteet"},
+        {"name": "Leivänpaahdin", "parent": "Keittiölaitteet"},
+        {"name": "Mikroaaltouuni", "parent": "Keittiölaitteet"},
+        {"name": "Astianpesukone", "parent": "Keittiölaitteet"},
+        {"name": "Akkuporakone", "parent": "Työkalut"},
+        {"name": "Akkuruuvinväännin", "parent": "Työkalut"},
+        {"name": "Kulmahiomakone", "parent": "Työkalut"},
+        {"name": "Sähköhammasharja", "parent": "Työkalut"},
+        #
+        {"name": "Askartelu"},
+        {"name": "Kynät", "parent": "Askartelu"},
+        {"name": "Pensselit", "parent": "Askartelu"},
+        {"name": "Paperit", "parent": "Askartelu"},
+        {"name": "Maalit", "parent": "Askartelu"},
+        {"name": "Tussit", "parent": "Askartelu"},
+        #
     ]
     for category in categories:
         if "parent" in category:

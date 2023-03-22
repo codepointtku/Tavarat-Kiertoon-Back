@@ -87,6 +87,11 @@ class TestProducts(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
+    def test_get_storageview_products(self):
+        url = "/storage/products/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
     def test_get_products_search(self):
         url = "/products/?search=sohva"
         response = self.client.get(url)

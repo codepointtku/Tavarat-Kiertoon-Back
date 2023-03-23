@@ -108,7 +108,7 @@ class TestProduct(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_get_category_products(self):
-        url = f"/categories/{self.test_parentcategory.id}/products/"
+        url = f"/categories/tree/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 

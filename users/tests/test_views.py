@@ -19,14 +19,27 @@ class TestUsers(TestCase):
         user = CustomUser.objects.create_user(
             first_name="first_name",
             last_name="last_name",
-            email="email",
+            email="testi1@turku.fi",
             phone_number="phone_number",
-            password="password",
+            password="turku",
             address="address",
             zip_code="zip_code",
             city="city",
-            username="username",
-            joint_user="joint_user",
+            username="testi1@turku.fi",
+            joint_user="false",
+        )
+
+        user2 = CustomUser.objects.create_user(
+            first_name="first_name",
+            last_name="last_name",
+            email="testi2@turku.fi",
+            phone_number="phone_number",
+            password="turku",
+            address="address",
+            zip_code="zip_code",
+            city="city",
+            username="testimies",
+            joint_user="true",
         )
 
     def test_setup(self):
@@ -34,7 +47,7 @@ class TestUsers(TestCase):
         # self.assertNotEqual(2, 3)
         self.assertEqual(
             CustomUser.objects.count(),
-            2,
+            3,
             "testing setup, somethigng went wrong with setup",
         )
 
@@ -45,8 +58,8 @@ class TestUsers(TestCase):
         print("TOKA")
         url = "/users/"
         response = self.client.get(url)
-        print("-----------------------------")
-        print("testresponse: ", response)
+        # print("-----------------------------")
+        # print("testresponse: ", response)
         self.assertEqual(response.status_code, 403)
 
     def test_post_user_creation(self):
@@ -98,9 +111,9 @@ class TestUsers(TestCase):
 
         try:
             user = CustomUser.objects.get(username="testingly@turku.fi")
-            print("not derp")
+            # print("not derp")
         except ObjectDoesNotExist:
-            print("derp")
+            # print("derp")
             user = None
 
         self.assertIsNotNone(user, "user was not created with correct data")
@@ -187,9 +200,9 @@ class TestUsers(TestCase):
 
         try:
             user = CustomUser.objects.get(username="testin päiväkoti")
-            print("not derp")
+            # print("not derp")
         except ObjectDoesNotExist:
-            print("derp")
+            # print("derp")
             user = None
 
         self.assertIsNotNone(user, "user was not created with correct data")
@@ -201,6 +214,32 @@ class TestUsers(TestCase):
         )
 
     def test_order(self):
-        print("ENLAJS, count user objs after setup?: ", CustomUser.objects.count())
-        self.assertNotEqual(2, 3)
-        self.assertEqual(CustomUser.objects.count(), 2)
+        print("NELAJS, count user objs after setup?: ", CustomUser.objects.count())
+        self.assertEqual(CustomUser.objects.count(), CustomUser.objects.count())
+
+    def test_user_login(self):
+        # testing user login
+
+        # wrong
+        url = "/users/login/"
+        data = {
+            "username": "kek",
+            "password": "kuk",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "wrong status code when wrong login info",
+        )
+
+        data = {
+            "username": "testi1@turku.fi",
+            "password": "turku",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            200,
+            "wrong status codew coming when data loging data is right",
+        )

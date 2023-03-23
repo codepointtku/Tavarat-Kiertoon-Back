@@ -166,7 +166,7 @@ class UserCreateListView(APIView):
             cart_obj.save()
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)
 
-        print(serialized_values.errors)
+        # print(serialized_values.errors)
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -221,7 +221,7 @@ class UserLoginView(APIView):
             else:
                 return Response(
                     {"No active": "This account is not active!!"},
-                    status=status.HTTP_404_NOT_FOUND,
+                    status=status.HTTP_204_NO_CONTENT,
                 )
         else:
             return Response(

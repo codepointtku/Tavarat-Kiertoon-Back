@@ -28,18 +28,15 @@ from orders.models import ShoppingCart
 from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
-from .serializers import (
+from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSerializer,; UserNamesSerializer,
     BooleanValidatorSerializer,
-    #GroupNameCheckSerializer,
     GroupNameSerializer,
-    #GroupPermissionsNamesSerializer,
     GroupPermissionsSerializer,
     UserAddressSerializer,
     UserCreateReturnSerializer,
     UserCreateSerializer,
     UserFullSerializer,
     UserLimitedSerializer,
-    #UserNamesSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
@@ -229,7 +226,7 @@ class UserLoginView(APIView):
         else:
             return Response(
                 {"Invalid": "Invalid username or password!!"},
-                status=status.HTTP_404_NOT_FOUND,
+                status=status.HTTP_204_NO_CONTENT,
             )
 
 

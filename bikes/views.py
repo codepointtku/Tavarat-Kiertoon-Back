@@ -4,7 +4,7 @@ import datetime
 import math
 
 # from rest_framework.permissions import IsAdminUser
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response
 
 from bikes.models import Bike, BikePackage, BikeStock, BikeRental
@@ -90,6 +90,25 @@ class RentalListView(generics.ListCreateAPIView):
     queryset = BikeRental.objects.all()
     serializer_class = BikeRentalSerializer
 
+    def post(self, request, *args, **kwargs):
+        instance = request.data
+        for i in request.data["bike_stock"]:
+            print(request.data["bike_stock"])
+            print(i)
+        for i in request.data["bike_stock"]:
+            itemset = Bike.objects.filter(i)
+        available_itemset = itemset.exclude(id__in=instance.products.values("id"))
+        removable_itemset = instance.products.filter(group_id=cartproduct.group_id)
+        amount = request.data["amount"]
+
+        for i in range(amount):
+            instance.bike_stock.add(available_itemset[i])
+
+        serializer = BikeRentalSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RentalDetailView(generics.RetrieveAPIView):
     queryset = BikeRental.objects.all()

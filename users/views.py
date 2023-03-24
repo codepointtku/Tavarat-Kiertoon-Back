@@ -184,7 +184,9 @@ class UserLoginView(APIView):
         password = data.get("password", None)
         user = User.objects.get(username=username)
 
-        print("user name view: ", user.username, user.is_active)
+        print(
+            "user name view: ", user.username, user.is_active, "<<----- PROBLEM PLACE"
+        )
         user = authenticate(username=username, password=password)
 
         if user is not None:

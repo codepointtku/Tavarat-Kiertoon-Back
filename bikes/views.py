@@ -93,11 +93,11 @@ class RentalListView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         instance = request.data
         bikes_list = []
-        for i in request.data["bike_stock"]:
-            itemset = BikeStock.objects.filter(bike=i)
-            amount = request.data["bike_stock"][i]
-            for i in range(amount):
-                bikes_list.append(itemset[i].id)
+        for bike in request.data["bike_stock"]:
+            itemset = BikeStock.objects.filter(bike=bike)
+            amount = request.data["bike_stock"][bike]
+            for bike_id in range(amount):
+                bikes_list.append(itemset[bike_id].id)
         instance["bike_stock"] = bikes_list
         serializer = BikeRentalSerializer(data=instance)
         if serializer.is_valid():

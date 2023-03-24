@@ -120,10 +120,10 @@ class ProductListView(generics.ListAPIView):
         all_products = self.request.query_params.get("all")
         if not is_in_group(self.request.user, "storage_group") or all_products is None:
             queryset = queryset.filter(available=True)
-        return self.filter_queryset(queryset)
+        return queryset
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

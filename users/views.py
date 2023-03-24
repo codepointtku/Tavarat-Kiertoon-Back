@@ -188,7 +188,7 @@ class UserLoginView(APIView):
             "user name view: ", user.username, user.is_active, "<<----- PROBLEM PLACE"
         )
         user = authenticate(username=username, password=password)
-
+        print("user printing in view: ", user)
         if user is not None:
             if user.is_active:
                 data = get_tokens_for_user(user)

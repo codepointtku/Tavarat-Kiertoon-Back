@@ -1,3 +1,6 @@
+from functools import reduce
+from operator import and_, or_
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.db.models import Q
@@ -70,10 +73,27 @@ class ProductFilter(filters.FilterSet):
         model = Product
         fields = ["search", "category", "color"]
 
-    def search_filter(self, queryset, name, value):
-        return queryset.filter(
-            Q(name__icontains=value) | Q(free_description__icontains=value)
-        )
+    def search_filter(self, queryset, value, *args, **kwargs):
+        word_list = args[0].split(" ")
+
+        def filter_function(operator):
+            return queryset.filter(
+                reduce(
+                    operator,
+                    (
+                        Q(name__icontains=word) | Q(free_description__icontains=word)
+                        for word in word_list
+                    ),
+                )
+            )
+
+        and_queryset = filter_function(and_)
+        and_queryset._hints["filter"] = "and"
+        if and_queryset.count():
+            return and_queryset
+        or_queryset = filter_function(or_)
+        or_queryset._hints["filter"] = "or"
+        return or_queryset
 
 
 class ProductListView(generics.ListAPIView):
@@ -91,22 +111,23 @@ class ProductListView(generics.ListAPIView):
     ordering = ["id"]
     filterset_class = ProductFilter
 
-
     def get_queryset(self):
         queryset = Product.objects.all()
         all_products = self.request.query_params.get("all")
         if not is_in_group(self.request.user, "storage_group") or all_products is None:
             queryset = queryset.filter(available=True)
-        return queryset
+        return self.filter_queryset(queryset)
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             for product in serializer.data:
                 product["pictures"] = pic_ids_as_address_list(product["pictures"])
-            return self.get_paginated_response(serializer.data)
+            response = self.get_paginated_response(serializer.data)
+            response.data["filter"] = queryset._hints["filter"]
+            return Response(response.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -125,7 +146,6 @@ class StorageProductListView(generics.ListCreateAPIView):
     ordering_fields = ["id"]
     ordering = ["id"]
     filterset_class = ProductFilter
-
 
     def get_queryset(self):
         queryset = Product.objects.all()

@@ -90,6 +90,7 @@ class ProductFilter(filters.FilterSet):
                 )
             )
             qs._hints["filter"] = operator.__name__.strip("_")
+            qs._fields = "abc"
             return qs
 
         """Creates queryset with and_ and if its empty it creates new queryset with or_"""
@@ -101,6 +102,7 @@ class ProductFilter(filters.FilterSet):
 
 
 class ProductListView(generics.ListAPIView):
+    queryset = Product.objects.filter(available=True)
     serializer_class = ProductSerializer
     authentication_classes = [
         SessionAuthentication,
@@ -115,15 +117,12 @@ class ProductListView(generics.ListAPIView):
     ordering = ["id"]
     filterset_class = ProductFilter
 
-    def get_queryset(self):
-        queryset = Product.objects.all()
-        all_products = self.request.query_params.get("all")
-        if not is_in_group(self.request.user, "storage_group") or all_products is None:
-            queryset = queryset.filter(available=True)
-        return queryset
-
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        # queryset._fields = "aa"
+        print(queryset.__dict__)
+        print(queryset._fields)
+        # print(queryset._query)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

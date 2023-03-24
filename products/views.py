@@ -77,7 +77,10 @@ class ProductFilter(filters.FilterSet):
         word_list = args[0].split(" ")
 
         def filter_function(operator):
-            return queryset.filter(
+            """Function that takes operator like 'and_' or 'or_' and returns reduced queryset
+            of products that have word of wordlist contained in name or free_description
+            """
+            qs = queryset.filter(
                 reduce(
                     operator,
                     (
@@ -86,13 +89,14 @@ class ProductFilter(filters.FilterSet):
                     ),
                 )
             )
+            qs._hints["filter"] = operator.__name__.strip("_")
+            return qs
 
+        """Creates queryset with and_ and if its empty it creates new queryset with or_"""
         and_queryset = filter_function(and_)
-        and_queryset._hints["filter"] = "and"
         if and_queryset.count():
             return and_queryset
         or_queryset = filter_function(or_)
-        or_queryset._hints["filter"] = "or"
         return or_queryset
 
 
@@ -126,7 +130,8 @@ class ProductListView(generics.ListAPIView):
             for product in serializer.data:
                 product["pictures"] = pic_ids_as_address_list(product["pictures"])
             response = self.get_paginated_response(serializer.data)
-            response.data["filter"] = queryset._hints["filter"]
+            if queryset._hints:
+                response.data["filter"] = queryset._hints["filter"]
             return Response(response.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

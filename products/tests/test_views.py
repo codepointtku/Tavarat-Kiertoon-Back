@@ -1,47 +1,61 @@
-import urllib.request
 import shutil
-
+import urllib.request
 from os.path import basename
 
-from django.test import TestCase, override_settings
 from django.core.files.base import ContentFile
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
-from products.models import Product, Picture, Color, Storage
 from categories.models import Category
+from products.models import Color, Picture, Product, Storage
 
 TEST_DIR = "testmedia/"
 
+
 class TestProduct(TestCase):
     @classmethod
-    @override_settings(MEDIA_ROOT=TEST_DIR) 
+    @override_settings(MEDIA_ROOT=TEST_DIR)
     def setUpTestData(cls):
         cls.test_color = Color.objects.create(name="punainen")
         cls.test_storage = Storage.objects.create(name="mokkavarasto")
         cls.test_parentcategory = Category.objects.create(name="coffee")
-        cls.test_category = Category.objects.create(name="subcoffee", parent=cls.test_parentcategory)
-        cls.test_category1 = Category.objects.create(name="subcoffee2", parent=cls.test_parentcategory)
-        
+        cls.test_category = Category.objects.create(
+            name="subcoffee", parent=cls.test_parentcategory
+        )
+        cls.test_category1 = Category.objects.create(
+            name="subcoffee2", parent=cls.test_parentcategory
+        )
+
         result = urllib.request.urlretrieve("https://picsum.photos/200")
-        cls.test_picture = Picture.objects.create(picture_address=ContentFile(
-                open(result[0], "rb").read(),
-                name=f"{timezone.now().timestamp()}.jpeg"
+        cls.test_picture = Picture.objects.create(
+            picture_address=ContentFile(
+                open(result[0], "rb").read(), name=f"{timezone.now().timestamp()}.jpeg"
             )
         )
-        cls.test_picture1 = Picture.objects.create(picture_address=ContentFile(
-                open(result[0], "rb").read(),
-                name=f"{timezone.now().timestamp()}.jpeg"
+        cls.test_picture1 = Picture.objects.create(
+            picture_address=ContentFile(
+                open(result[0], "rb").read(), name=f"{timezone.now().timestamp()}.jpeg"
             )
         )
         cls.test_product = Product.objects.create(
-            name="nahkasohva", price=0, category=cls.test_category,
-            color=cls.test_color, storages=cls.test_storage, available=True,
-            free_description="tämä sohva on nahkainen", weight=50
+            name="nahkasohva",
+            price=0,
+            category=cls.test_category,
+            color=cls.test_color,
+            storages=cls.test_storage,
+            available=True,
+            free_description="tämä sohva on nahkainen",
+            weight=50,
         )
         cls.test_product1 = Product.objects.create(
-            name="sohvanahka", price=0, category=cls.test_category,
-            color=cls.test_color, storages=cls.test_storage, available=True,
-            free_description="tämä nahka on sohvainen", weight=50
+            name="sohvanahka",
+            price=0,
+            category=cls.test_category,
+            color=cls.test_color,
+            storages=cls.test_storage,
+            available=True,
+            free_description="tämä nahka on sohvainen",
+            weight=50,
         )
 
         queryset = Product.objects.all()
@@ -94,7 +108,7 @@ class TestProduct(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_get_category_products(self):
-        url = f"/categories/{self.test_parentcategory.id}/products/"
+        url = f"/categories/tree/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
@@ -102,7 +116,7 @@ class TestProduct(TestCase):
     def test_post_picture(self):
         picture = urllib.request.urlretrieve(
             url="https://picsum.photos/200.jpg",
-            filename="testmedia/pictures/testpicture.jpeg"
+            filename="testmedia/pictures/testpicture.jpeg",
         )
         url = "/pictures/"
         data = {"file": open(picture[0], "rb")}
@@ -110,81 +124,103 @@ class TestProduct(TestCase):
         self.assertEqual(response.status_code, 201)
 
     def test_post_multiple_products_multiple_pictures(self):
-        url = "/products/"
+        url = "/storage/products/"
         data = {
-            "name": "nahkatuoli", "price": 0, "category": self.test_category.id,
-            "color": self.test_color.id, "storages": self.test_storage.id, "amount": 3,
-            "pictures": [self.test_picture.id, self.test_picture1.id], "available": True
+            "name": "nahkatuoli",
+            "price": 0,
+            "category": self.test_category.id,
+            "color": self.test_color.id,
+            "storages": self.test_storage.id,
+            "amount": 3,
+            "pictures": [self.test_picture.id, self.test_picture1.id],
+            "available": True,
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
-    @override_settings(MEDIA_ROOT=TEST_DIR) 
+    @override_settings(MEDIA_ROOT=TEST_DIR)
     def test_post_product_with_new_picture(self):
         picture = urllib.request.urlretrieve(
             url="https://picsum.photos/200.jpg",
-            filename="testmedia/pictures/testpicture1.jpeg"
+            filename="testmedia/pictures/testpicture1.jpeg",
         )
-        url = "/products/"
+        url = "/storage/products/"
         data = {
-            "name": "tuolinahka", "price": 0, "category": self.test_category.id,
-            "color": self.test_color.id, "storages": self.test_storage.id, "amount": 1,
-            "pictures[]": {open(picture[0], "rb")}, "available": False, "weight": 15,
-            "free_description": "tämä tuoli on hieno"
+            "name": "tuolinahka",
+            "price": 0,
+            "category": self.test_category.id,
+            "color": self.test_color.id,
+            "storages": self.test_storage.id,
+            "amount": 1,
+            "pictures[]": {open(picture[0], "rb")},
+            "available": False,
+            "weight": 15,
+            "free_description": "tämä tuoli on hieno",
         }
         response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, 201)
 
     def test_post_product_color_as_string(self):
-        url = "/products/"
+        url = "/storage/products/"
         colorstr = str("värikäs")
         data = {
-            "name": "puusohva", "price": 0, "category": self.test_category.id,
-            "color": colorstr, "storages": self.test_storage.id, "amount": 1,
-            "pictures": [self.test_picture.id], "weight": 100,
-            "free_description": "umpipuinen sohva"
+            "name": "puusohva",
+            "price": 0,
+            "category": self.test_category.id,
+            "color": colorstr,
+            "storages": self.test_storage.id,
+            "amount": 1,
+            "pictures": [self.test_picture.id],
+            "weight": 100,
+            "free_description": "umpipuinen sohva",
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
     def test_post_product_existing_color_as_string(self):
-        url = "/products/"
+        url = "/storage/products/"
         colorstr = str("punainen")
         data = {
-            "name": "puutuoli", "price": 0, "category": self.test_category.id,
-            "color": colorstr, "storages": self.test_storage.id, "amount": 1,
-            "pictures": [self.test_picture.id], "weight": 40,
-            "free_description": "kova puinen tuoli"
+            "name": "puutuoli",
+            "price": 0,
+            "category": self.test_category.id,
+            "color": colorstr,
+            "storages": self.test_storage.id,
+            "amount": 1,
+            "pictures": [self.test_picture.id],
+            "weight": 40,
+            "free_description": "kova puinen tuoli",
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
-    
+
     def test_update_product(self):
         url = f"/products/{self.test_product.id}/"
-        data = {
-            "name": "kahvisohva"
-        }
+        data = {"name": "kahvisohva"}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
     def test_self_color_string(self):
-        self.assertEqual(str(self.test_color),
-            f"Color: {self.test_color.name}({self.test_color.id})"
+        self.assertEqual(
+            str(self.test_color), f"Color: {self.test_color.name}({self.test_color.id})"
         )
 
     def test_self_storage_string(self):
-        self.assertEqual(str(self.test_storage),
-            f"Storage: {self.test_storage.name}({self.test_storage.id})"
+        self.assertEqual(
+            str(self.test_storage),
+            f"Storage: {self.test_storage.name}({self.test_storage.id})",
         )
 
     def test_self_product_string(self):
-        self.assertEqual(str(self.test_product),
-            f"Product: {self.test_product.name}({self.test_product.id})"
+        self.assertEqual(
+            str(self.test_product),
+            f"Product: {self.test_product.name}({self.test_product.id})",
         )
 
     def test_self_picture_string(self):
-        self.assertEqual(str(self.test_picture),
-            f"Picture: {basename(self.test_picture.picture_address.name)}({self.test_picture.id})"
+        self.assertEqual(
+            str(self.test_picture),
+            f"Picture: {basename(self.test_picture.picture_address.name)}({self.test_picture.id})",
         )
 
     def tearDownClass():

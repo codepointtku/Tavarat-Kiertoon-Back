@@ -1,10 +1,17 @@
 from django.conf import settings
-from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth import authenticate, forms, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.http import Http404
 from django.middleware import csrf
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.views.decorators.cache import never_cache
+from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework import generics, permissions, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -33,6 +40,8 @@ from .serializers import (
     UserFullSerializer,
     UserLimitedSerializer,
     UserNamesSerializer,
+    UserPasswordChangeEmailValidationSerializer,
+    UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
     UserUpdateSerializer,
 )
@@ -771,3 +780,79 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
+
+
+class UserPasswordResetMailView(APIView):
+    serializer_class = UserPasswordCheckEmailSerializer
+
+    def post(self, request, format=None):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}, partial=True
+        )
+
+        serializer.is_valid(raise_exception=True)
+        # creating token for user for pw reset and encoding the uid
+        user = User.objects.get(username=serializer.data["username"])
+        token_generator = default_token_generator
+        token_for_user = token_generator.make_token(user=user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
+        message = "heres the password reset link you requested: " + reset_url
+
+        send_mail(
+            "password reset link",
+            message,
+            "tavaratkiertoon_backend@testi.fi",
+            ["testi@turku.fi"],
+            fail_silently=False,
+        )
+
+        response = Response()
+        response.status_code = status.HTTP_200_OK
+        # return the values for testing purpose, remove in deployment
+        response.data = {
+            "message": message,
+            "crypt": uid,
+            "token": token_for_user,
+        }
+
+        return response
+
+
+class UserPasswordResetMailValidationView(APIView):
+    serializer_class = UserPasswordChangeEmailValidationSerializer
+
+    # @method_decorator(sensitive_post_parameters())
+    @method_decorator(never_cache)
+    def post(self, request, format=None, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        user = User.objects.get(id=serializer.data["uid"])
+        user.set_password(serializer.data["new_password"])
+        user.save()
+
+        response = Response()
+        response.status_code = status.HTTP_200_OK
+        response.data = {"data": serializer.data, "messsage": "pw updatred"}
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get(self, request, *args, **kwargs):
+        if "uidb64" not in kwargs or "token" not in kwargs:
+            return Response(
+                "The URL path must contain 'uidb64' and 'token' parameters."
+            )
+
+        response = Response()
+        response.data = {
+            "msg: ": "MAGICC!!!!",
+            "uid": kwargs["uidb64"],
+            "token": kwargs["token"],
+        }
+        response.status_code = status.HTTP_200_OK
+
+        return response

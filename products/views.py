@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from categories.models import Category
+from categories.serializers import CategorySerializer
 from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
@@ -212,28 +213,17 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response(data)
 
 
-class CategoryProductListView(generics.ListAPIView):
-    serializer_class = ProductSerializer
-    pagination_class = CategoryProductListPagination
-    filter_backends = [OrderingFilter]
-    ordering_fields = ["date", "name", "color"]
-    ordering = ["date", "name", "color"]
+class CategoryTreeView(APIView):
+    """Returns all category ids as keys and all level 2 child categories of that category as list"""
 
-    def get_queryset(self):
-        category = Category.objects.get(id=self.kwargs["category_id"])
-        categories = category.get_descendants(include_self=True)
-        return Product.objects.filter(category__in=categories)
+    queryset = Category.objects.all()
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            for product in serializer.data:
-                product["pictures"] = pic_ids_as_address_list(product["pictures"])
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    def get(self, request, *args, **kwargs):
+        category_tree = {
+            c.id: [c.id for c in c.get_descendants(include_self=True).filter(level=2)]
+            for c in self.queryset.all()
+        }
+        return Response(category_tree)
 
 
 class ColorListView(generics.ListCreateAPIView):

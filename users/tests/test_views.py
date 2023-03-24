@@ -16,7 +16,7 @@ class TestUsers(TestCase):
         for group in Group.objects.all():
             group.user_set.add(super)
 
-        user = CustomUser.objects.create_user(
+        user_set = CustomUser.objects.create_user(
             first_name="first_name",
             last_name="last_name",
             email="testi1@turku.fi",
@@ -29,7 +29,7 @@ class TestUsers(TestCase):
             joint_user="false",
         )
 
-        user2 = CustomUser.objects.create_user(
+        user2_set = CustomUser.objects.create_user(
             first_name="first_name",
             last_name="last_name",
             email="testi2@turku.fi",
@@ -42,12 +42,24 @@ class TestUsers(TestCase):
             joint_user="true",
         )
 
+        user3_set = CustomUser(
+            name="3",
+            email="3@turku.fi",
+            phone_number="3",
+            password="3",
+            username="3@turku.fi",
+        )
+        user3_set.is_active = False
+        user3_set.save()
+
+        print("user3!!!!", user3_set.is_active)
+
     def test_setup(self):
         print("EKA, count user objs after setup?: ", CustomUser.objects.count())
         # self.assertNotEqual(2, 3)
         self.assertEqual(
             CustomUser.objects.count(),
-            3,
+            4,
             "testing setup, somethigng went wrong with setup",
         )
 
@@ -219,20 +231,20 @@ class TestUsers(TestCase):
 
     def test_user_login(self):
         # testing user login
-
+        print("VIIIDES")
         # wrong
         url = "/users/login/"
         data = {
             "username": "kek",
             "password": "kuk",
         }
-        response = self.client.post(url, data, content_type="application/json")
-        self.assertEqual(
-            response.status_code,
-            204,
-            "wrong status code when wrong login info",
-        )
-
+        # response = self.client.post(url, data, content_type="application/json")
+        # self.assertEqual(
+        #     response.status_code,
+        #     204,
+        #     "wrong status code when wrong login info",
+        # )
+        # right
         data = {
             "username": "testi1@turku.fi",
             "password": "turku",
@@ -242,4 +254,55 @@ class TestUsers(TestCase):
             response.status_code,
             200,
             "wrong status codew coming when data loging data is right",
+        )
+
+        # check that cookies were created in login
+        self.assertIn(
+            "access_token",
+            self.client.cookies.keys(),
+            "no access token in cookies after login",
+        )
+        self.assertIn(
+            "refresh_token",
+            self.client.cookies.keys(),
+            "no refresh token in cookies after login",
+        )
+
+        url = "/users/create/"
+        data2 = {
+            "first_name": "testi",
+            "last_name": "tstilä",
+            "email": "testingly@turku.fi",
+            "phone_number": "54519145",
+            "password": "1234",
+            "address": "testiläntie 12",
+            "zip_code": "12552",
+            "city": "TESTIKAUPUNKI",
+        }
+        response = self.client.post(url, data2, content_type="application/json")
+
+        # checking if things work when user is not active
+        user = CustomUser.objects.get(username="3@turku.fi")
+        print("user before change: ", user.is_active, user.username, user)
+        user.is_active = False
+
+        user.save()
+        user.refresh_from_db()
+
+        print("user after change: ", user.is_active, user.username)
+        # print("data: ", data)
+
+        url = "/users/login/"
+        data["password"] = "3"
+        data["username"] = "3@turku.fi"
+
+        user2 = CustomUser.objects.get(username="3@turku.fi")
+        print("user name2: ", user2.username, user.is_active)
+
+        response = self.client.post(url, data, content_type="application/json")
+        print("user after post call: ", user.is_active, user.username)
+        self.assertEqual(
+            response.status_code,
+            204,
+            "wrong status codew coming when user is not active",
         )

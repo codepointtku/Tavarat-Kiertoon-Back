@@ -182,6 +182,9 @@ class UserLoginView(APIView):
         response = Response()
         username = data.get("username", None)
         password = data.get("password", None)
+        user = User.objects.get(username=username)
+
+        print("user name view: ", user.username, user.is_active)
         user = authenticate(username=username, password=password)
 
         if user is not None:
@@ -219,6 +222,7 @@ class UserLoginView(APIView):
                 }
                 return response
             else:
+                print("print am I in in activyt!!!!!!!!!!!!!!!")
                 return Response(
                     {"No active": "This account is not active!!"},
                     status=status.HTTP_204_NO_CONTENT,

@@ -42,12 +42,17 @@ class TestUsers(TestCase):
             joint_user="true",
         )
 
-        user3_set = CustomUser(
-            name="3",
+        user3_set = CustomUser.objects.create_user(
+            first_name="3",
+            last_name="3",
             email="3@turku.fi",
             phone_number="3",
             password="3",
+            address="3",
+            zip_code="3",
+            city="3",
             username="3@turku.fi",
+            joint_user="false",
         )
         user3_set.is_active = False
         user3_set.save()

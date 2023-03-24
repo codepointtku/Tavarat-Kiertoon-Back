@@ -21,6 +21,7 @@ class BikeStockSerializer(serializers.ModelSerializer):
             "frame_number",
             "created_at",
             "state",
+            "package_only",
             "storage",
             "rental",
         ]

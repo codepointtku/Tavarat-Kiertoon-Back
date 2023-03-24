@@ -45,7 +45,7 @@ from orders.views import (
     ShoppingCartListView,
 )
 from products.views import (
-    CategoryProductListView,
+    CategoryTreeView,
     ColorDetailView,
     ColorListView,
     PictureDetailView,
@@ -55,6 +55,7 @@ from products.views import (
     ProductStorageTransferView,
     StorageDetailView,
     StorageListView,
+    StorageProductListView,
 )
 from users.views import (
     GroupListView,
@@ -72,6 +73,8 @@ from users.views import (
     UserLoginTestView,
     UserLoginView,
     UserLogoutView,
+    UserPasswordResetMailValidationView,
+    UserPasswordResetMailView,
     UserSingleGetView,
     UserTokenRefreshView,
     UserUpdateInfoView,
@@ -80,6 +83,7 @@ from users.views import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("storage/products/", StorageProductListView.as_view()),
     path("storages/", StorageListView.as_view()),
     path("storages/<int:pk>/", StorageDetailView.as_view()),
     path("pictures/", PictureListView.as_view()),
@@ -92,22 +96,22 @@ urlpatterns = [
     path("orders/<int:pk>/", OrderDetailView.as_view()),
     path("orders/user/", OrderSelfListView.as_view()),
     path("products/", ProductListView.as_view()),
-    path("categories/<int:category_id>/products/", CategoryProductListView.as_view()),
     path("products/<int:pk>/", ProductDetailView.as_view()),
     path("products/transfer/", ProductStorageTransferView.as_view()),
     path("contact_forms/", ContactFormListView.as_view()),
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
     path("categories/", CategoryListView.as_view()),
     path("categories/<int:pk>/", CategoryDetailView.as_view()),
+    path("categories/tree/", CategoryTreeView.as_view()),
     path("users/", UserDetailsListView.as_view()),
     path("user/", UserLoggedInDetailView.as_view()),
     path("users/create/", UserCreateListView.as_view()),
     path("users/<int:pk>/", UserSingleGetView.as_view()),
     path("users/address/", UserAddressListView.as_view()),
-    path("users/address/add", UserAddressAddView.as_view()),
-    path("users/address/<int:pk>", UserAddressEditView.as_view()),
+    path("users/address/add/", UserAddressAddView.as_view()),
+    path("users/address/<int:pk>/", UserAddressEditView.as_view()),
     path("users/limited/", UserDetailsListLimitedView.as_view()),
-    path("users/limited/<int:pk>", UserDetailLimitedView.as_view()),
+    path("users/limited/<int:pk>/", UserDetailLimitedView.as_view()),
     path("users/groups/", GroupListView.as_view()),
     path("users/groups/<int:pk>/", GroupNameView.as_view()),
     path("users/groups/permission/", GroupPermissionCheckView.as_view()),
@@ -126,8 +130,17 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
     path("users/login/", UserLoginView.as_view(), name="token_obtain_pair_http"),
     path("users/login/test/", UserLoginTestView.as_view(), name="token_obtain_pair"),
-    path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refrest"),
+    path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refresh"),
     path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    path("users/password/resetemail/", UserPasswordResetMailView.as_view()),
+    path(
+        "users/password/reset/<uidb64>/<token>/",
+        UserPasswordResetMailValidationView.as_view(),
+    ),
+    path(
+        "users/password/reset/",
+        UserPasswordResetMailValidationView.as_view(),
+    ),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

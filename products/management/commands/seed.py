@@ -925,6 +925,7 @@ def create_bike_stock():
                 frame_number=uuid.uuid4(),
                 bike=bike,
                 storage=random.choice(storages),
+                package_only=random.choice([True, False]),
             )
             stock_object.save()
 

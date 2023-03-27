@@ -3,9 +3,11 @@ from django.test import TestCase
 
 from orders.models import ShoppingCart
 from users.models import CustomUser, Group, UserAddress
+from users.permissions import is_in_group
 
 
 class TestUsers(TestCase):
+    # for logging in test user to get cookeis to test auth
     def login_test_user(self):
         url = "/users/login/"
         data = {
@@ -147,6 +149,11 @@ class TestUsers(TestCase):
             "sometghing wrong with shopping cart creation for user",
         )
 
+        self.assertTrue(
+            is_in_group(user, "user_group"),
+            "user isnt part of user group after creation",
+        )
+
         # test taht not allowed webdomain doesnt go thru
         data["email"] = "thisiswrongemaildomain@wrong_email_domain.fi"
         response = self.client.post(url, data, content_type="application/json")
@@ -268,6 +275,46 @@ class TestUsers(TestCase):
 
     def test_user_refresh(self):
         print("KUUDES")
-        print("cookies: ", self.client.cookies.keys())
+        # print("cookies: ", self.client.cookies.keys())
+
+        # testing the return value without cookies
+        url = "/users/login/refresh/"
+        data = {}
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "wrong status code coming when no cookies",
+        )
+
+        # testing that access token refreshes goes thorugh
         self.login_test_user()
-        print("cookies: ", self.client.cookies.keys())
+        # print("cookies: ", self.client.cookies.keys())
+        access_token_before = self.client.cookies["access_token"].value
+        # print("access: ", access_token_before)
+
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            200,
+            "wrong status code coming when cookies are send",
+        )
+
+        access_token_after = self.client.cookies["access_token"].value
+
+        # testing taht access token was refreshes
+        self.assertNotEqual(
+            access_token_before,
+            access_token_after,
+            "accesss token same afer refresh",
+        )
+
+        # testing invalid refresh token
+        self.client.cookies.__setitem__("refresh_token", "ffffffffff")
+        # print("refresh token : ", self.client.cookies["refresh_token"].value)
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            401,
+            "wrong status code coming when invalid refresh token",
+        )

@@ -191,45 +191,38 @@ class UserLoginView(APIView):
         user = authenticate(username=username, password=password)
         print("user printing in view: ", user)
         if user is not None:
-            if user.is_active:
-                data = get_tokens_for_user(user)
-                response.set_cookie(
-                    key=settings.SIMPLE_JWT["AUTH_COOKIE"],
-                    value=data["access"],
-                    expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-                    max_age=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-                    secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                    httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                    samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-                    path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
-                )
-                response.set_cookie(
-                    key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
-                    value=data["refresh"],
-                    expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
-                    max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
-                    secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                    httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                    samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-                    path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
-                )
+            data = get_tokens_for_user(user)
+            response.set_cookie(
+                key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+                value=data["access"],
+                expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+                max_age=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+                secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+            )
+            response.set_cookie(
+                key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
+                value=data["refresh"],
+                expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+                max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+                secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+            )
 
-                serializer_group = UserLimitedSerializer(user)
+            serializer_group = UserLimitedSerializer(user)
 
-                csrf.get_token(request)
-                response.status_code = status.HTTP_200_OK
-                response.data = {
-                    "Success": "Login successfully",
-                    "username": serializer_group.data["username"],
-                    "groups": serializer_group.data["groups"],
-                }
-                return response
-            else:
-                print("print am I in in activyt!!!!!!!!!!!!!!!")
-                return Response(
-                    {"No active": "This account is not active!!"},
-                    status=status.HTTP_204_NO_CONTENT,
-                )
+            csrf.get_token(request)
+            response.status_code = status.HTTP_200_OK
+            response.data = {
+                "Success": "Login successfully",
+                "username": serializer_group.data["username"],
+                "groups": serializer_group.data["groups"],
+            }
+            return response
         else:
             return Response(
                 {"Invalid": "Invalid username or password!!"},

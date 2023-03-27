@@ -124,11 +124,12 @@ class UserCreateListView(APIView):
 
             if not joint_user_post:
                 username_post = email_post
-                if User.objects.filter(username=username_post).exists():
-                    response_message = email_post + ". already exists"
-                    return Response(
-                        response_message, status=status.HTTP_400_BAD_REQUEST
-                    )
+                # redudant check removng
+                # if User.objects.filter(username=username_post).exists():
+                #     response_message = email_post + ". already exists"
+                #     return Response(
+                #         response_message, status=status.HTTP_400_BAD_REQUEST
+                #     )
 
             # checking that email domain is valid
             # checking email domain
@@ -182,14 +183,8 @@ class UserLoginView(APIView):
         response = Response()
         username = data.get("username", None)
         password = data.get("password", None)
-        user = User.objects.get(username=username)
 
-        print(
-            "user name view: ", user.username, user.is_active, "<<----- PROBLEM PLACE"
-        )
-        print("password: ", password)
         user = authenticate(username=username, password=password)
-        print("user printing in view: ", user)
         if user is not None:
             data = get_tokens_for_user(user)
             response.set_cookie(

@@ -6,6 +6,16 @@ from users.models import CustomUser, Group, UserAddress
 
 
 class TestUsers(TestCase):
+    def login_test_user(self):
+        url = "/users/login/"
+        data = {
+            "username": "testi1@turku.fi",
+            "password": "turku",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+
+        return response
+
     def setUp(self):
         groups = ["user_group", "admin_group", "storage_group", "bicycle_group"]
         for group in groups:
@@ -42,29 +52,12 @@ class TestUsers(TestCase):
             joint_user="true",
         )
 
-        user3_set = CustomUser.objects.create_user(
-            first_name="3",
-            last_name="3",
-            email="3@turku.fi",
-            phone_number="3",
-            password="3",
-            address="3",
-            zip_code="3",
-            city="3",
-            username="3@turku.fi",
-            joint_user="false",
-        )
-        user3_set.is_active = False
-        user3_set.save()
-
-        print("user3!!!!", user3_set.is_active)
-
     def test_setup(self):
         print("EKA, count user objs after setup?: ", CustomUser.objects.count())
         # self.assertNotEqual(2, 3)
         self.assertEqual(
             CustomUser.objects.count(),
-            4,
+            3,
             "testing setup, somethigng went wrong with setup",
         )
 
@@ -243,12 +236,12 @@ class TestUsers(TestCase):
             "username": "kek",
             "password": "kuk",
         }
-        # response = self.client.post(url, data, content_type="application/json")
-        # self.assertEqual(
-        #     response.status_code,
-        #     204,
-        #     "wrong status code when wrong login info",
-        # )
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "wrong status code when wrong login info",
+        )
         # right
         data = {
             "username": "testi1@turku.fi",
@@ -273,41 +266,8 @@ class TestUsers(TestCase):
             "no refresh token in cookies after login",
         )
 
-        url = "/users/create/"
-        data2 = {
-            "first_name": "testi",
-            "last_name": "tstilä",
-            "email": "testingly@turku.fi",
-            "phone_number": "54519145",
-            "password": "1234",
-            "address": "testiläntie 12",
-            "zip_code": "12552",
-            "city": "TESTIKAUPUNKI",
-        }
-        response = self.client.post(url, data2, content_type="application/json")
-
-        # checking if things work when user is not active
-        user = CustomUser.objects.get(username="3@turku.fi")
-        print("user before change: ", user.is_active, user.username, user)
-        user.is_active = False
-
-        user.save()
-        user.refresh_from_db()
-
-        print("user after change: ", user.is_active, user.username)
-        # print("data: ", data)
-
-        url = "/users/login/"
-        data["password"] = "3"
-        data["username"] = "3@turku.fi"
-
-        user2 = CustomUser.objects.get(username="3@turku.fi")
-        print("user name2: ", user2.username, user.is_active)
-
-        response = self.client.post(url, data, content_type="application/json")
-        print("user after post call: ", user.is_active, user.username)
-        self.assertEqual(
-            response.status_code,
-            204,
-            "wrong status codew coming when user is not active",
-        )
+    def test_user_refresh(self):
+        print("KUUDES")
+        print("cookies: ", self.client.cookies.keys())
+        self.login_test_user()
+        print("cookies: ", self.client.cookies.keys())

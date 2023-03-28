@@ -419,7 +419,7 @@ class UserSingleGetView(APIView):
 
 class UserLoggedInDetailView(APIView):
     """
-    List all users with all database fields, no POST here
+    Get logged in users info
     """
 
     authentication_classes = [
@@ -432,7 +432,7 @@ class UserLoggedInDetailView(APIView):
 
     required_groups = {
         "GET": ["user_group"],
-        "POST": ["user_group"],
+        # "POST": ["user_group"],
         "PUT": ["user_group"],
     }
     queryset = CustomUser.objects.all()

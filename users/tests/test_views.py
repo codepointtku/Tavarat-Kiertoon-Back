@@ -15,8 +15,8 @@ class TestUsers(TestCase):
             "password": "turku",
         }
         response = self.client.post(url, data, content_type="application/json")
-
-        return response
+        user = CustomUser.objects.get(username="testi1@turku.fi")
+        return user
 
     def login_test_admin(self):
         url = "/users/login/"
@@ -25,8 +25,8 @@ class TestUsers(TestCase):
             "password": "admin",
         }
         response = self.client.post(url, data, content_type="application/json")
-
-        return response
+        user = CustomUser.objects.get(username="admin")
+        return user
 
     def setUp(self):
         groups = ["user_group", "admin_group", "storage_group", "bicycle_group"]
@@ -386,31 +386,90 @@ class TestUsers(TestCase):
             "refresh token same afer logout, should be gone/empty",
         )
 
-    def test_user_info(self):
+    def test_user_detail(self):
         # testing getting user information and allowed groups working for view
         print("KAHDEKSASS")
         url = "/users/"
-        data = {}
         # anonymous
-        response = self.client.get(url, data, content_type="application/json")
+        response = self.client.get(url, content_type="application/json")
         self.assertEqual(
             response.status_code, 403, "wihtout logging in should be forbidden"
         )
-        response = self.client.post(url, data, content_type="application/json")
+        response = self.client.post(url, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 403, "wihtout logging in should be forbidden"
+        )
+        url = "/users/1/"
+        response = self.client.get(url, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 403, "wihtout logging in should be forbidden"
+        )
+        url = "/users/52165445764567467668745983495834956349856394568934659834659834698596516/"
+        response = self.client.get(url, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 403, "wihtout logging in should be forbidden"
+        )
+
+        url = "/users/"
+        # normal user
+        self.login_test_user()
+        response = self.client.get(url, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 403, "normal user should not  be allowed"
+        )
+        url = "/users/1/"
+        response = self.client.get(url, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 403, "wihtout logging in should be forbidden"
+        )
+        url = "/users/52165445764567467668745983495834956349856394568934659834659834698596516/"
+        response = self.client.get(url, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 403, "wihtout logging in should be forbidden"
+        )
+
+        url = "/users/"
+        # admin suer
+        self.login_test_admin()
+        response = self.client.get(url, content_type="application/json")
+        self.assertEqual(response.status_code, 200, "admin user should go thorugh")
+        response = self.client.post(url, content_type="application/json")
+        self.assertEqual(response.status_code, 405, "POST should not exist/alllowed")
+
+        # print("test user id: ", CustomUser.objects.get(username="testi1@turku.fi").id)
+        test_user_id = CustomUser.objects.get(username="testi1@turku.fi").id
+        url = f"/users/{test_user_id}/"
+        response = self.client.get(url, content_type="application/json")
+        self.assertEqual(response.status_code, 200, "admin user should go thorugh")
+        url = "/users/52165445764567467668745983495834956349856394568934659834659834698596516/"
+        response = self.client.get(url, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "admin user should go thorugh with 204 on non existant user",
+        )
+
+    def test_user_detail_loggedin(self):
+        print("YSIIIIiiii")
+        url = "/user/"
+        # anonymous
+        response = self.client.get(url, content_type="application/json")
+        # print(response.status_code)
         self.assertEqual(
             response.status_code, 403, "wihtout logging in should be forbidden"
         )
 
         # normal user
-        self.login_test_user()
-        response = self.client.get(url, data, content_type="application/json")
+        user = self.login_test_user()
+        # print(self.client.cookies.keys(), self.client.cookies["access_token"])
+        response = self.client.get(url, content_type="application/json")
         self.assertEqual(
-            response.status_code, 403, "normal user should not  be allowed"
+            response.status_code, 200, "when user is logged should go thorugh"
         )
-
-        # admin suer
-        self.login_test_admin()
-        response = self.client.get(url, data, content_type="application/json")
-        self.assertEqual(response.status_code, 200, "admin user should go thorugh")
-        response = self.client.post(url, data, content_type="application/json")
-        self.assertEqual(response.status_code, 405, "POST should not exist/alllowed")
+        response_json = response.json()
+        print("vastauksen id: ", response_json["id"], "  , id databasesta: ", user.id)
+        self.assertEqual(
+            response_json["id"],
+            user.id,
+            "user id in resposne should be same as logged in user",
+        )

@@ -128,22 +128,20 @@ class RentalListView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         instance = request.data
         bikes_list = []
-        for bike in request.data["bike_stock"]:
-            if bike.startswith("Package"):
-                package = BikePackage.objects.get(id=bike.split("-",1)[1]).bikes.values("id")
-                amount = request.data["bike_stock"][bike]
+        for rental_item in request.data["bike_stock"]:
+            if rental_item.startswith("package"):
+                package = BikePackage.objects.get(id=rental_item.split("-",1)[1]).bikes.values("id")
+                amount = request.data["bike_stock"][rental_item]
                 for packageitem in package:
-                    itemset = BikeStock.objects.filter(bike=packageitem["id"])
-                    for bike_id in range(amount):
-                        bikes_list.append(itemset[bike_id].id)
+                    available_bikes = BikeStock.objects.filter(bike=packageitem["id"]).order_by("-package_only", "id")
+                    for bike in range(amount):
+                        bikes_list.append(available_bikes[bike].id)
             else:
-                itemset = BikeStock.objects.filter(bike=bike, package_only=False)
-                amount = request.data["bike_stock"][bike]
-                for bike_id in range(amount):
-                    bikes_list.append(itemset[bike_id].id)
+                available_bikes = BikeStock.objects.filter(bike=rental_item, package_only=False)
+                amount = request.data["bike_stock"][rental_item]
+                for bike in range(amount):
+                    bikes_list.append(available_bikes[bike].id)
         instance["bike_stock"] = bikes_list
-        print(len(bikes_list))
-        print(bikes_list)
         serializer = BikeRentalSerializer(data=instance)
         if serializer.is_valid():
             serializer.save()

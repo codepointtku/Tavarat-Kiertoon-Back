@@ -414,5 +414,3 @@ class TestUsers(TestCase):
         self.assertEqual(response.status_code, 200, "admin user should go thorugh")
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 405, "POST should not exist/alllowed")
-
-    # def test_user_info(self):

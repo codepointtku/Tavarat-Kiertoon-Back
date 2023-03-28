@@ -406,14 +406,12 @@ class UserSingleGetView(APIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserFullSerializer
 
-    def get_object(self, pk):
-        try:
-            return CustomUser.objects.get(pk=pk)
-        except CustomUser.DoesNotExist:
-            raise Http404
-
     def get(self, request, pk, format=None):
-        user = self.get_object(pk)
+        try:
+            user = CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist:
+            return Response("no such user", status=status.HTTP_204_NO_CONTENT)
+
         serializer = UserFullSerializer(user)
 
         return Response(serializer.data)

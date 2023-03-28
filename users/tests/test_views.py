@@ -73,6 +73,7 @@ class TestUsers(TestCase):
             "/users/create/",
             "/users/login/",
             "/users/login/refresh/",
+            "/users/logout/",
         ]
 
         for url in url_list:
@@ -324,4 +325,35 @@ class TestUsers(TestCase):
             response.status_code,
             401,
             "wrong status code coming when invalid refresh token",
+        )
+
+    def test_user_logout(self):
+        print("SEITSEMÄAS")
+        url = "/users/logout/"
+        data = {}
+        self.login_test_user()
+        print("cookies: ", self.client.cookies.keys())
+        refresh_token_before = self.client.cookies["refresh_token"].value
+        access_token_before = self.client.cookies["access_token"].value
+        print("refresh token : ", self.client.cookies["refresh_token"].value)
+        print("access token : ", self.client.cookies["access_token"].value)
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 200, "not getting right http status code on success"
+        )
+        print("cookies: ", self.client.cookies.keys())
+        print("refresh token : ", self.client.cookies["refresh_token"].value)
+        print("access token : ", self.client.cookies["access_token"].value)
+        refresh_token_after = self.client.cookies["refresh_token"].value
+        access_token_after = self.client.cookies["access_token"].value
+
+        self.assertNotEqual(
+            access_token_before,
+            access_token_after,
+            "accesss token same after logout, should be gone/empty",
+        )
+        self.assertNotEqual(
+            refresh_token_before,
+            refresh_token_after,
+            "refresh token same afer logout, should be gone/empty",
         )

@@ -18,6 +18,16 @@ class TestUsers(TestCase):
 
         return response
 
+    def login_test_admin(self):
+        url = "/users/login/"
+        data = {
+            "username": "admin",
+            "password": "admin",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+
+        return response
+
     def setUp(self):
         groups = ["user_group", "admin_group", "storage_group", "bicycle_group"]
         for group in groups:
@@ -54,12 +64,27 @@ class TestUsers(TestCase):
             joint_user="true",
         )
 
+        user3_set = CustomUser.objects.create_user(
+            first_name="admin",
+            last_name="adming",
+            email="admin@turku.fi",
+            phone_number="admin",
+            password="admin",
+            address="admin",
+            zip_code="admin",
+            city="admin",
+            username="admin",
+            joint_user="true",
+        )
+        for group in Group.objects.all():
+            group.user_set.add(user3_set)
+
     def test_setup(self):
         print("EKA, count user objs after setup?: ", CustomUser.objects.count())
         # self.assertNotEqual(2, 3)
         self.assertEqual(
             CustomUser.objects.count(),
-            3,
+            4,
             "testing setup, somethigng went wrong with setup",
         )
 
@@ -69,11 +94,11 @@ class TestUsers(TestCase):
         """
         print("TOKA")
         url_list = [
-            "/users/",
             "/users/create/",
             "/users/login/",
             "/users/login/refresh/",
             "/users/logout/",
+            "/users/",
         ]
 
         for url in url_list:
@@ -331,19 +356,22 @@ class TestUsers(TestCase):
         print("SEITSEMÄAS")
         url = "/users/logout/"
         data = {}
+        # grabbing the jwt tokens (logging in)
         self.login_test_user()
-        print("cookies: ", self.client.cookies.keys())
+        # print("cookies: ", self.client.cookies.keys())
         refresh_token_before = self.client.cookies["refresh_token"].value
         access_token_before = self.client.cookies["access_token"].value
-        print("refresh token : ", self.client.cookies["refresh_token"].value)
-        print("access token : ", self.client.cookies["access_token"].value)
+        # print("refresh token : ", self.client.cookies["refresh_token"].value)
+        # print("access token : ", self.client.cookies["access_token"].value)
+
+        # logging out and hten checking tokens are empty/gone
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(
             response.status_code, 200, "not getting right http status code on success"
         )
-        print("cookies: ", self.client.cookies.keys())
-        print("refresh token : ", self.client.cookies["refresh_token"].value)
-        print("access token : ", self.client.cookies["access_token"].value)
+        # print("cookies: ", self.client.cookies.keys())
+        # print("refresh token : ", self.client.cookies["refresh_token"].value)
+        # print("access token : ", self.client.cookies["access_token"].value)
         refresh_token_after = self.client.cookies["refresh_token"].value
         access_token_after = self.client.cookies["access_token"].value
 
@@ -357,3 +385,34 @@ class TestUsers(TestCase):
             refresh_token_after,
             "refresh token same afer logout, should be gone/empty",
         )
+
+    def test_user_info(self):
+        # testing getting user information and allowed groups working for view
+        print("KAHDEKSASS")
+        url = "/users/"
+        data = {}
+        # anonymous
+        response = self.client.get(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 403, "wihtout logging in should be forbidden"
+        )
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 403, "wihtout logging in should be forbidden"
+        )
+
+        # normal user
+        self.login_test_user()
+        response = self.client.get(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 403, "normal user should not  be allowed"
+        )
+
+        # admin suer
+        self.login_test_admin()
+        response = self.client.get(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200, "admin user should go thorugh")
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 405, "POST should not exist/alllowed")
+
+    # def test_user_info(self):

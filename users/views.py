@@ -373,7 +373,7 @@ class UserDetailsListView(generics.ListAPIView):
 
     required_groups = {
         "GET": ["admin_group"],
-        "POST": ["admin_group"],
+        # "POST": ["admin_group"],
         "PUT": ["admin_group"],
     }
 

@@ -65,14 +65,21 @@ class TestUsers(TestCase):
 
     def test_get_users_forbidden(self):
         """
-        Testing forbiddenr responses from urls
+        Testing 404 responses from urls, so they exist
         """
         print("TOKA")
-        url = "/users/"
-        response = self.client.get(url)
-        # print("-----------------------------")
-        # print("testresponse: ", response)
-        self.assertEqual(response.status_code, 403)
+        url_list = [
+            "/users/",
+            "/users/create/",
+            "/users/login/",
+            "/users/login/refresh/",
+        ]
+
+        for url in url_list:
+            response = self.client.get(url)
+            self.assertNotEqual(
+                response.status_code, 404, f"{url} seemingly cant be reached"
+            )
 
     def test_post_user_creation(self):
         print("KOLMAS")

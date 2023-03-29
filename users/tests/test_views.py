@@ -490,10 +490,10 @@ class TestUsers(TestCase):
 
     def test_group_permission(self):
         #test taht permission change is working
-        print("YKSITOISTAAAaaaa")
+        #print("YKSITOISTAAAaaaa")
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
         first = GroupPermissionsSerializer(user_for_testing)
-        print("aluksi griuo ID mihin kuuluu: ", first.data["groups"])
+        #print("aluksi griuo ID mihin kuuluu: ", first.data["groups"]) #<<<-----------------------
         url = f"/users/groups/permission/{user_for_testing.id}/"
         self.login_test_user()
         response = self.client.get(url, content_type="application/json")
@@ -512,26 +512,49 @@ class TestUsers(TestCase):
         admin_group_id = Group.objects.get(name="admin_group")
         user_group_id = Group.objects.get(name="user_group")
         first_response_json = response.json()
-        print(first_response_json,  first_response_json["groups"])
+        #print(first_response_json,  first_response_json["groups"])
         data = {
             "groups": [
                 admin_group_id.id,
                 user_group_id.id,
             ]
         }
-        print(data)
         response = self.client.patch(url, data, content_type="application/json")
         self.assertEqual(
             response.status_code, 200, "admin should able to change succesfully permissions"
         )
         second_response_json = response.json()
-        print(second_response_json["groups"])
-
+        #print(second_response_json["groups"])
         self.assertNotEqual(first_response_json["groups"],second_response_json["groups"], "admin should able to change permissions")
 
-        user2 = CustomUser.objects.get(username="testi1@turku.fi")
-        
+        user2 = CustomUser.objects.get(username="testi1@turku.fi")      
         second = GroupPermissionsSerializer(user2)
-        print("toinen muutoksen jälkee mihin kuuluu: ", second.data["groups"])
+        # print("toinen muutoksen jälkee mihin kuuluu: ", second.data["groups"])
         print("eka: ", first.data["groups"] , "toka: ", second.data["groups"])
         self.assertNotEqual(first.data["groups"],second.data["groups"],"group permissions in database shoudl change")
+
+    def test_updating_user_info_with_user(self):
+        #test updating own user info as user        
+        print("KAKSTOISTAA!!!!")
+        url = "/users/update/"
+
+        response = self.client.put(url,)
+        self.assertEqual(
+            response.status_code, 401, "should not have access if not user"
+        )
+        user = self.login_test_user()
+        print("user: ",user, "name: ", user.name , " phone : ", user.phone_number)
+        data = {
+            "name": "Kinkku Kinkku!222",
+            "phone_number": "kinkku!2222"
+        }
+        print(data)
+        response = self.client.put(url,data,content_type="application/json")
+        user2 = CustomUser.objects.get(id=user.id)
+        print("user: ",user, "name: ", user.name , " phone : ", user.phone_number)
+        print("user: ",user2, "name: ", user2.name , " phone : ", user2.phone_number)
+        
+
+    # def test_updating_user_info_with_admin(self):
+    #     #test updating other user info as admin
+    #     pass

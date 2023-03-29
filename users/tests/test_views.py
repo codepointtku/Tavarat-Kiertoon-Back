@@ -473,3 +473,16 @@ class TestUsers(TestCase):
             user.id,
             "user id in resposne should be same as logged in user",
         )
+
+    def test_group_names(self):
+        #testing that you can get the groups
+        print("KYMMMPPPIIIII")
+        url = "/users/groups/"
+        self.login_test_user()
+        response = self.client.get(url, content_type="application/json")
+        response_JSON = response.json()
+        print(response_JSON)
+        self.assertTrue(any("user_group" in dict.values() for dict in response_JSON),"user_group ei löydy")
+        self.assertTrue(any("admin_group" in dict.values() for dict in response_JSON),"admin_group ei löydy")
+        self.assertTrue(any("storage_group" in dict.values() for dict in response_JSON),"storage_group ei löydy")
+        self.assertTrue(any("bicycle_group" in dict.values() for dict in response_JSON),"bicycle_group ei löydy")

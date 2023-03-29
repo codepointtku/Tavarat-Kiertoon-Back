@@ -637,15 +637,15 @@ class UserUpdateInfoView(APIView):
 
     def get(self, request, format=None):
         # redutant probably
-        if str(request.user) == "AnonymousUser":
-            message = "Please log in you are: " + str(request.user)
-            print(message)
+        # if str(request.user) == "AnonymousUser":
+        #     message = "Please log in you are: " + str(request.user)
+        #     print(message)
 
-            return Response(message)
-        else:
-            queryset = User.objects.filter(id=request.user.id)
-            serialized_data_full = UserFullSerializer(queryset, many=True)
-            return Response(UserLimitedSerializer(request.user).data)
+        #     return Response(message)
+        # else:
+        queryset = User.objects.filter(id=request.user.id)
+        serialized_data_full = UserFullSerializer(queryset, many=True)
+        return Response(UserLimitedSerializer(request.user).data)
 
     def put(self, request, format=None):
         serializer = self.serializer_class(

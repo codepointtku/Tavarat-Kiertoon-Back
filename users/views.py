@@ -537,19 +537,19 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
         CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
-    # required_groups = {
-    #     "GET": ["admin_group"],
-    #     "POST": ["admin_group"],
-    #     "PUT": ["admin_group"],
-    #     "PATCH": ["admin_group"],
-    # }
-    # use adming_group later, for testing purpose this is on user_group
     required_groups = {
-        "GET": ["user_group"],
-        "POST": ["user_group"],
-        "PUT": ["user_group"],
-        "PATCH": ["user_group"],
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
     }
+    # use adming_group later, for testing purpose this is on user_group
+    # required_groups = {
+    #     "GET": ["user_group"],
+    #     "POST": ["user_group"],
+    #     "PUT": ["user_group"],
+    #     "PATCH": ["user_group"],
+    # }
 
     queryset = User.objects.all()
     serializer_class = GroupPermissionsSerializer

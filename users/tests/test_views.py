@@ -4,7 +4,8 @@ from django.test import TestCase
 from orders.models import ShoppingCart
 from users.models import CustomUser, Group, UserAddress
 from users.permissions import is_in_group
-
+from django.contrib.auth.models import Group
+from users.serializers import GroupPermissionsSerializer
 
 class TestUsers(TestCase):
     # for logging in test user to get cookeis to test auth
@@ -481,8 +482,56 @@ class TestUsers(TestCase):
         self.login_test_user()
         response = self.client.get(url, content_type="application/json")
         response_JSON = response.json()
-        print(response_JSON)
+        #print(response_JSON)
         self.assertTrue(any("user_group" in dict.values() for dict in response_JSON),"user_group ei löydy")
         self.assertTrue(any("admin_group" in dict.values() for dict in response_JSON),"admin_group ei löydy")
         self.assertTrue(any("storage_group" in dict.values() for dict in response_JSON),"storage_group ei löydy")
         self.assertTrue(any("bicycle_group" in dict.values() for dict in response_JSON),"bicycle_group ei löydy")
+
+    def test_group_permission(self):
+        #test taht permission change is working
+        print("YKSITOISTAAAaaaa")
+        user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
+        first = GroupPermissionsSerializer(user_for_testing)
+        print("aluksi griuo ID mihin kuuluu: ", first.data["groups"])
+        url = f"/users/groups/permission/{user_for_testing.id}/"
+        self.login_test_user()
+        response = self.client.get(url, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 403, "should be forbidden for normal user"
+        )
+        response = self.client.put(url, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 403, "should be forbidden for normal user"
+        )
+        self.login_test_admin()
+        response = self.client.get(url, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 200, "admin should pass through"
+        )
+        admin_group_id = Group.objects.get(name="admin_group")
+        user_group_id = Group.objects.get(name="user_group")
+        first_response_json = response.json()
+        print(first_response_json,  first_response_json["groups"])
+        data = {
+            "groups": [
+                admin_group_id.id,
+                user_group_id.id,
+            ]
+        }
+        print(data)
+        response = self.client.patch(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 200, "admin should able to change succesfully permissions"
+        )
+        second_response_json = response.json()
+        print(second_response_json["groups"])
+
+        self.assertNotEqual(first_response_json["groups"],second_response_json["groups"], "admin should able to change permissions")
+
+        user2 = CustomUser.objects.get(username="testi1@turku.fi")
+        
+        second = GroupPermissionsSerializer(user2)
+        print("toinen muutoksen jälkee mihin kuuluu: ", second.data["groups"])
+        print("eka: ", first.data["groups"] , "toka: ", second.data["groups"])
+        self.assertNotEqual(first.data["groups"],second.data["groups"],"group permissions in database shoudl change")

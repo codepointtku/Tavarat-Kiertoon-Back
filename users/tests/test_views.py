@@ -557,7 +557,7 @@ class TestUsers(TestCase):
         #     second.data["groups"],
         #     "group permissions in database shoudl change",
         # )
-        print("groups are before and after: ", groups_before, "     ", groups_after)
+        # print("groups are before and after: ", groups_before, "     ", groups_after)
         self.assertNotEqual(
             groups_before,
             groups_after,

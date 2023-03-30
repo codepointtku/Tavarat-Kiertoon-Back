@@ -644,8 +644,8 @@ class UserUpdateInfoView(APIView):
         #     return Response(message)
         # else:
         queryset = User.objects.filter(id=request.user.id)
-        serialized_data_full = UserFullSerializer(queryset, many=True)
-        return Response(UserLimitedSerializer(request.user).data)
+        serialized_data = self.serializer_class(queryset, many=True)
+        return Response(serialized_data.data)
 
     def put(self, request, format=None):
         serializer = self.serializer_class(

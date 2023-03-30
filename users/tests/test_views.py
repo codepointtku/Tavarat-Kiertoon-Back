@@ -578,13 +578,13 @@ class TestUsers(TestCase):
         print("KAKSTOISTAA!!!!")
         url = "/users/update/"
 
-        response = self.client.put(
-            url,
-        )
+        response = self.client.put(url)
         self.assertEqual(
             response.status_code, 401, "should not have access if not user"
         )
         user = self.login_test_user()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200, "should have access user")
         # print("user: ", user, "name: ", user.name, " phone : ", user.phone_number)
         data = {"name": "Kinkku Kinkku!222", "phone_number": "kinkku!2222"}
         # print(data)

@@ -95,12 +95,21 @@ class TestUsers(TestCase):
         Testing 404 responses from urls, so they exist
         """
         print("TOKA")
+        user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
+        # url = f"/users/update/{user_for_testing.id}/"
+
         url_list = [
             "/users/create/",
             "/users/login/",
             "/users/login/refresh/",
             "/users/logout/",
             "/users/",
+            f"/users/{user_for_testing.id}/",
+            "/user/",
+            "/users/groups/",
+            f"/users/groups/permission/{user_for_testing.id}/",
+            "/users/update/",
+            f"/users/update/{user_for_testing.id}/",
         ]
 
         for url in url_list:
@@ -503,7 +512,7 @@ class TestUsers(TestCase):
 
     def test_group_permission(self):
         # test taht permission change is working
-        # print("YKSITOISTAAAaaaa")
+        print("YKSITOISTAAAaaaa")
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
         first = GroupPermissionsSerializer(user_for_testing)
         groups_before = first.data["groups"]
@@ -576,14 +585,55 @@ class TestUsers(TestCase):
             response.status_code, 401, "should not have access if not user"
         )
         user = self.login_test_user()
-        print("user: ", user, "name: ", user.name, " phone : ", user.phone_number)
+        # print("user: ", user, "name: ", user.name, " phone : ", user.phone_number)
         data = {"name": "Kinkku Kinkku!222", "phone_number": "kinkku!2222"}
-        print(data)
+        # print(data)
         response = self.client.put(url, data, content_type="application/json")
         user2 = CustomUser.objects.get(id=user.id)
-        print("user: ", user, "name: ", user.name, " phone : ", user.phone_number)
-        print("user: ", user2, "name: ", user2.name, " phone : ", user2.phone_number)
+        # print("user: ", user, "name: ", user.name, " phone : ", user.phone_number)
+        # print("user: ", user2, "name: ", user2.name, " phone : ", user2.phone_number)
 
-    # def test_updating_user_info_with_admin(self):
-    #     #test updating other user info as admin
-    #     pass
+        self.assertNotEqual(user.name, user2.name, "user name should ahve changed")
+        self.assertNotEqual(
+            user.phone_number,
+            user2.phone_number,
+            "user phone number should ahve changed",
+        )
+
+    def test_updating_user_info_with_admin(self):
+        # test updating other user info as admin
+        print("KOLMETOISTA!!!!")
+        user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
+        url = f"/users/update/{user_for_testing.id}/"
+
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            401,
+            "should not have access if not user or admin user",
+        )
+        user = self.login_test_user()
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            403,
+            "should not have access if not user or admin user",
+        )
+
+        user = self.login_test_admin()
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            200,
+            "should not have access if not user or admin user",
+        )
+
+        user1 = CustomUser.objects.get(username="testi1@turku.fi")
+        user1_info = [user1.name, user1.phone_number]
+        data = {"name": "Kinkku Kinkku!222", "phone_number": "kinkku!2222"}
+        response = self.client.put(url, data, content_type="application/json")
+        user2 = CustomUser.objects.get(username="testi1@turku.fi")
+        user2_info = [user2.name, user2.phone_number]
+        print(user1_info, user2_info)
+
+        self.assertNotEqual(user1_info, user2_info, "users info should have cahnged")

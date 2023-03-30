@@ -662,9 +662,9 @@ class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     """
 
     authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
+        # SessionAuthentication,
+        # BasicAuthentication,
+        # JWTAuthentication,
         CustomJWTAuthentication,
     ]
 

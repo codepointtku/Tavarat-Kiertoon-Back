@@ -213,6 +213,8 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         data = serializer.data
+        amount = self.queryset.filter(group_id=data["group_id"], available=True).count()
+        data["amount"] = amount
         data["pictures"] = pic_ids_as_address_list(data["pictures"])
         return Response(data)
 

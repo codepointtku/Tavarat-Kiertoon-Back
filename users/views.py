@@ -680,28 +680,28 @@ class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
 
 
-class UserAddressListView(generics.ListAPIView):
-    """
-    Get list of all addresss users have
-    """
+# class UserAddressListView(generics.ListAPIView):
+#     """
+#     Get list of all addresss users have
+#     """
 
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
+#     authentication_classes = [
+#         SessionAuthentication,
+#         BasicAuthentication,
+#         JWTAuthentication,
+#         CustomJWTAuthentication,
+#     ]
 
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-    }
+#     permission_classes = [IsAuthenticated, HasGroupPermission]
+#     required_groups = {
+#         "GET": ["admin_group"],
+#         "POST": ["admin_group"],
+#         "PUT": ["admin_group"],
+#         "PATCH": ["admin_group"],
+#     }
 
-    serializer_class = UserAddressSerializer
-    queryset = UserAddress.objects.all()
+#     serializer_class = UserAddressSerializer
+#     queryset = UserAddress.objects.all()
 
 
 class UserAddressAddView(APIView):

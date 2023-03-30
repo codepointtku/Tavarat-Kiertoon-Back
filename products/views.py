@@ -101,7 +101,7 @@ class ProductListView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        unique_groupids = queryset.values("id").order_by("group_id").distinct("group_id")
+        unique_groupids = queryset.values("id").order_by("group_id", "id").distinct("group_id")
         grouped_queryset = queryset.filter(id__in=unique_groupids)
         amounts = queryset.values("group_id").order_by("group_id").annotate(amount = Count("group_id"))
         page = self.paginate_queryset(grouped_queryset)
@@ -213,6 +213,8 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         data = serializer.data
+        amount = self.queryset.filter(group_id=data["group_id"], available=True).count()
+        data["amount"] = amount
         data["pictures"] = pic_ids_as_address_list(data["pictures"])
         return Response(data)
 

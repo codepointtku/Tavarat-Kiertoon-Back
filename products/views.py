@@ -113,7 +113,7 @@ class ProductListView(generics.ListAPIView):
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
     ordering_fields = ["id"]
-    ordering = ["id"]
+    ordering = ["-id"]
     filterset_class = ProductFilter
 
     def list(self, request, *args, **kwargs):
@@ -155,7 +155,7 @@ class StorageProductListView(generics.ListCreateAPIView):
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
     ordering_fields = ["id"]
-    ordering = ["id"]
+    ordering = ["-id"]
     filterset_class = ProductFilter
 
     def get_queryset(self):

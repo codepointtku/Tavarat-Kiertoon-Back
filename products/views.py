@@ -90,7 +90,6 @@ class ProductFilter(filters.FilterSet):
                 )
             )
             qs._hints["filter"] = operator.__name__.strip("_")
-            qs._fields = "abc"
             return qs
 
         """Creates queryset with and_ and if its empty it creates new queryset with or_"""

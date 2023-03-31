@@ -3,7 +3,7 @@ from operator import and_, or_
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from rest_framework import generics, status
@@ -55,7 +55,7 @@ def color_check_create(instance):
 
 # Create your views here.
 class ProductListPagination(PageNumberPagination):
-    page_size = 100
+    page_size = 30
     page_size_query_param = "page_size"
 
 
@@ -119,20 +119,28 @@ class ProductListView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        # queryset._fields = "aa"
-        print(queryset.__dict__)
-        print(queryset._fields)
-        # print(queryset._query)
-        page = self.paginate_queryset(queryset)
+        unique_groupids = (
+            queryset.values("id").order_by("group_id", "id").distinct("group_id")
+        )
+        grouped_queryset = queryset.filter(id__in=unique_groupids)
+        amounts = (
+            queryset.values("group_id")
+            .order_by("group_id")
+            .annotate(amount=Count("group_id"))
+        )
+        page = self.paginate_queryset(grouped_queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             for product in serializer.data:
                 product["pictures"] = pic_ids_as_address_list(product["pictures"])
+                product["amount"] = amounts.filter(group_id=product["group_id"])[0][
+                    "amount"
+                ]
             response = self.get_paginated_response(serializer.data)
             if queryset._hints:
                 response.data["filter"] = queryset._hints["filter"]
             return Response(response.data)
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(grouped_queryset, many=True)
         return Response(serializer.data)
 
 
@@ -233,6 +241,8 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         data = serializer.data
+        amount = self.queryset.filter(group_id=data["group_id"], available=True).count()
+        data["amount"] = amount
         data["pictures"] = pic_ids_as_address_list(data["pictures"])
         return Response(data)
 

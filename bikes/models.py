@@ -56,11 +56,11 @@ class BikeStock(models.Model):
         """Choices for the state of the bike."""
 
         AVAILABLE = "AVAILABLE"
-        PACKAGE_ONLY = "PACKAGE_ONLY"
         MAINTENANCE = "MAINTENANCE"
         RENTED = "RENTED"
         RETIRED = "RETIRED"
 
+    package_only = models.BooleanField(default=False)
     number = models.CharField(max_length=255)
     frame_number = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)

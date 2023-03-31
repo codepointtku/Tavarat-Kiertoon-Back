@@ -710,9 +710,9 @@ class UserAddressAddView(APIView):
     """
 
     authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
+        # SessionAuthentication,
+        # BasicAuthentication,
+        # JWTAuthentication,
         CustomJWTAuthentication,
     ]
 
@@ -785,9 +785,9 @@ class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
     """
 
     authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
+        # SessionAuthentication,
+        # BasicAuthentication,
+        # JWTAuthentication,
         CustomJWTAuthentication,
     ]
 

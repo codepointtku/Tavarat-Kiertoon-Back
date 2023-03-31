@@ -103,7 +103,7 @@ urlpatterns = [
     path("users/create/", UserCreateListView.as_view()),
     path("users/<int:pk>/", UserSingleGetView.as_view()),
     # path("users/address/", UserAddressListView.as_view()),
-    path("users/address/add/", UserAddressAddView.as_view()),
+    path("users/address/edit/", UserAddressAddView.as_view()),
     path("users/address/<int:pk>/", UserAddressEditView.as_view()),
     # path("users/limited/", UserDetailsListLimitedView.as_view()),
     # path("users/limited/<int:pk>/", UserDetailLimitedView.as_view()),

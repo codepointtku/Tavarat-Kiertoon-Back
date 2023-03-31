@@ -706,7 +706,7 @@ class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
 
 class UserAddressAddView(APIView):
     """
-    Get list of all addresss logged in user has, and add new one
+    Get list of all addresss logged in user has, and edit them new one
     """
 
     authentication_classes = [
@@ -744,6 +744,38 @@ class UserAddressAddView(APIView):
             city=serializer.data["city"],
             user=request.user,
         )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, format=None):
+        if "id" not in request.data:
+            msg = "no id for adress updating"
+            return Response(msg, status=status.HTTP_204_NO_CONTENT)
+
+        copy_of_request = request.data.copy()
+        address1 = UserAddress.objects.get(id=copy_of_request["id"])
+
+        # checking that only users themselves can chnage their adressess
+        if address1.user.id != request.user.id:
+            msg = "address owner and loggerdin user need to match"
+            return Response(msg, status=status.HTTP_204_NO_CONTENT)
+
+        # temp_dict = [str(request.user.id)]
+        copy_of_request["user"] = str(request.user.id)
+        # copy_of_request["user"] = temp_dict
+
+        # print(copy_of_request, temp_dict)
+        serializer = self.serializer_class(address1, data=copy_of_request, partial=True)
+
+        serializer.is_valid(raise_exception=True)
+        # print(serializer)
+        serializer.save()
+
+        # address1 = UserAddress.objects.get(id=11)
+        # print(address1, address1.id, address1.user, address1.address)
+        # if "address" in serializer
+        # ser2 = self.serializer_class(address1)
+
+        # return Response("derp", status=status.HTTP_200_OK)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

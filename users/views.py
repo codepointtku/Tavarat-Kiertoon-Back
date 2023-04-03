@@ -704,7 +704,7 @@ class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
 #     queryset = UserAddress.objects.all()
 
 
-class UserAddressAddView(APIView):
+class UserAddressEditView(APIView):
     """
     Get list of all addresss logged in user has, and edit them new one
     """
@@ -779,7 +779,7 @@ class UserAddressAddView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UserAddressEditView(generics.RetrieveUpdateDestroyAPIView):
+class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
     """
     Get specific address by id and do update/destroy/ to it
     """

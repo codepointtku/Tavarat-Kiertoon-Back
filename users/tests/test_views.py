@@ -110,6 +110,7 @@ class TestUsers(TestCase):
             f"/users/groups/permission/{user_for_testing.id}/",
             "/users/update/",
             f"/users/update/{user_for_testing.id}/",
+            "/users/address/edit/",
         ]
 
         for url in url_list:
@@ -639,3 +640,49 @@ class TestUsers(TestCase):
         self.assertNotEqual(user1_info, user2_info, "users info should have cahnged")
         self.assertEqual(user2.name, "Kinkku Kinkku!222", "user info changeed wrongly")
         self.assertEqual(user2.phone_number, "2222222", "user info changeed wrongly")
+
+    def test_user_adress(self):
+        # testing that useraddress fnctions are working
+        url = "/users/address/edit/"
+        print("NELJÄTOSITA")
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            401,
+            "should not have access if not user",
+        )
+        user = self.login_test_user()
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            200,
+            "should have access if user",
+        )
+        address_count = UserAddress.objects.filter(user=user).count()
+        print("address count: ", address_count)
+
+        data = {
+            "address": "testikatula 1818",
+            "zip_code": "10101",
+            "city": "testi_1",
+            "user": user.id,
+        }
+
+        response = self.client.post(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            200,
+            "should go through as user",
+        )
+        address_count_2 = UserAddress.objects.filter(user=user).count()
+        print("address 21 coutn: ", address_count_2)
+        self.assertNotEqual(
+            address_count,
+            address_count_2,
+            "shold have different number of addresses after adding address for same user",
+        )
+
+    def test_user_adress_as_admin(self):
+        # testing that useraddress fnctions are working
+        url = "/users/address/<int:pk>/"
+        print("VIISITOISTAaaaaaaaa")

@@ -729,9 +729,9 @@ class UserAddressEditView(APIView):
 
     def get(self, request, format=None):
         qs = UserAddress.objects.filter(user=request.user.id)
-        print(qs)
+        # print(qs)
         serialized_info = UserAddressSerializer(qs, many=True)
-        print(serialized_info.data)
+        # print(serialized_info.data)
         return Response(serialized_info.data)
 
     def post(self, request, format=None):
@@ -748,7 +748,7 @@ class UserAddressEditView(APIView):
 
     def put(self, request, format=None):
         if "id" not in request.data:
-            msg = "no id for adress updating"
+            msg = "no address id for adress updating"
             return Response(msg, status=status.HTTP_204_NO_CONTENT)
 
         copy_of_request = request.data.copy()
@@ -777,6 +777,26 @@ class UserAddressEditView(APIView):
 
         # return Response("derp", status=status.HTTP_200_OK)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, format=None):
+        print("am I in delte")
+        if "id" not in request.data:
+            msg = "no address id for adress deletion"
+            return Response(msg, status=status.HTTP_204_NO_CONTENT)
+
+        address = UserAddress.objects.get(id=request.data["id"])
+        address_msg = address.address + " " + address.zip_code + " " + address.city
+
+        # checking that only users themselves can chnage their adressess
+        if address.user.id != request.user.id:
+            msg = "address owner and loggerdin user need to match"
+            return Response(msg, status=status.HTTP_204_NO_CONTENT)
+
+        address.delete()
+
+        return Response(
+            f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
+        )
 
 
 class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):

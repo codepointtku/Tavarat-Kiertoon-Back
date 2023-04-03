@@ -661,6 +661,29 @@ class TestUsers(TestCase):
         address_count = UserAddress.objects.filter(user=user).count()
         print("address count: ", address_count)
 
+        address1 = UserAddress.objects.filter(user=user).first()
+        data = {
+            "zip_code": "6666666666",
+            "id": address1.id,
+        }
+        zip_before_update = address1.zip_code
+        print("zip code 1: ", zip_before_update)
+        response = self.client.put(url, data=data, content_type="application/json")
+        print(response.content)
+        self.assertEqual(
+            response.status_code,
+            200,
+            "put/update should go through as user",
+        )
+        address1 = UserAddress.objects.filter(user=user).first()
+        zip_after_update = address1.zip_code
+        print("zip after: ", zip_after_update)
+        self.assertNotEqual(
+            zip_before_update,
+            zip_after_update,
+            "if updaye goes tyhrough the alue should have changed",
+        )
+
         data = {
             "address": "testikatula 1818",
             "zip_code": "10101",
@@ -680,6 +703,30 @@ class TestUsers(TestCase):
             address_count,
             address_count_2,
             "shold have different number of addresses after adding address for same user",
+        )
+
+        data = {
+            "id": address1.id,
+        }
+
+        # testing that non owner of address hsouldnt go through
+        self.login_test_admin()
+        response = self.client.delete(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "should not go through as user adn adreess owner is different",
+        )
+        self.login_test_user()
+        response = self.client.delete(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            200,
+            "should go through as user adn adreess owner is same",
+        )
+        address_count_3 = UserAddress.objects.filter(user=user).count()
+        self.assertNotEqual(
+            address_count_2, address_count_3, "after deletion count should be different"
         )
 
     def test_user_adress_as_admin(self):

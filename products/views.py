@@ -1,6 +1,9 @@
+from functools import reduce
+from operator import and_, or_
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
-from django.db.models import Q, Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from rest_framework import generics, status
@@ -70,13 +73,35 @@ class ProductFilter(filters.FilterSet):
         model = Product
         fields = ["search", "category", "color"]
 
-    def search_filter(self, queryset, name, value):
-        return queryset.filter(
-            Q(name__icontains=value) | Q(free_description__icontains=value)
-        )
+    def search_filter(self, queryset, value, *args, **kwargs):
+        word_list = args[0].split(" ")
+
+        def filter_function(operator):
+            """Function that takes operator like 'and_' or 'or_' and returns reduced queryset
+            of products that have word of wordlist contained in name or free_description
+            """
+            qs = queryset.filter(
+                reduce(
+                    operator,
+                    (
+                        Q(name__icontains=word) | Q(free_description__icontains=word)
+                        for word in word_list
+                    ),
+                )
+            )
+            qs._hints["filter"] = operator.__name__.strip("_")
+            return qs
+
+        """Creates queryset with and_ and if its empty it creates new queryset with or_"""
+        and_queryset = filter_function(and_)
+        if and_queryset.count():
+            return and_queryset
+        or_queryset = filter_function(or_)
+        return or_queryset
 
 
 class ProductListView(generics.ListAPIView):
+    queryset = Product.objects.filter(available=True)
     serializer_class = ProductSerializer
     authentication_classes = [
         SessionAuthentication,
@@ -88,29 +113,32 @@ class ProductListView(generics.ListAPIView):
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
     ordering_fields = ["id"]
-    ordering = ["id"]
+    ordering = ["-id"]
     filterset_class = ProductFilter
-
-
-    def get_queryset(self):
-        queryset = Product.objects.all()
-        all_products = self.request.query_params.get("all")
-        if not is_in_group(self.request.user, "storage_group") or all_products is None:
-            queryset = queryset.filter(available=True)
-        return queryset
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        unique_groupids = queryset.values("id").order_by("group_id").distinct("group_id")
+        unique_groupids = (
+            queryset.values("id").order_by("group_id", "id").distinct("group_id")
+        )
         grouped_queryset = queryset.filter(id__in=unique_groupids)
-        amounts = queryset.values("group_id").order_by("group_id").annotate(amount = Count("group_id"))
+        amounts = (
+            queryset.values("group_id")
+            .order_by("group_id")
+            .annotate(amount=Count("group_id"))
+        )
         page = self.paginate_queryset(grouped_queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             for product in serializer.data:
                 product["pictures"] = pic_ids_as_address_list(product["pictures"])
-                product["amount"] = amounts.filter(group_id=product["group_id"])[0]["amount"]
-            return self.get_paginated_response(serializer.data)
+                product["amount"] = amounts.filter(group_id=product["group_id"])[0][
+                    "amount"
+                ]
+            response = self.get_paginated_response(serializer.data)
+            if queryset._hints:
+                response.data["filter"] = queryset._hints["filter"]
+            return Response(response.data)
         serializer = self.get_serializer(grouped_queryset, many=True)
         return Response(serializer.data)
 
@@ -127,9 +155,8 @@ class StorageProductListView(generics.ListCreateAPIView):
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
     ordering_fields = ["id"]
-    ordering = ["id"]
+    ordering = ["-id"]
     filterset_class = ProductFilter
-
 
     def get_queryset(self):
         queryset = Product.objects.all()
@@ -169,7 +196,7 @@ class StorageProductListView(generics.ListCreateAPIView):
                         file.read(), name=f"{timezone.now().timestamp()}.{ext}"
                     )
                 }
-            )  # use creation date as name?
+            )
             pic_serializer.is_valid(raise_exception=True)
             self.perform_create(pic_serializer)
             picture_ids.append(pic_serializer.data["id"])
@@ -213,6 +240,8 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         data = serializer.data
+        amount = self.queryset.filter(group_id=data["group_id"], available=True).count()
+        data["amount"] = amount
         data["pictures"] = pic_ids_as_address_list(data["pictures"])
         return Response(data)
 

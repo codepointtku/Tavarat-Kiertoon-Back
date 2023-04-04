@@ -16,9 +16,11 @@ class TestOrdersModels(TestCase):
             zip_code="100500",
             city="Puuhamaa",
             username="kahvimaesto",
-            joint_user=False,
+            joint_user=False
         )
-        self.test_shoppingcart = ShoppingCart.objects.create(user=self.test_user)
+        self.test_shoppingcart = ShoppingCart.objects.create(
+            user=self.test_user
+        )
         self.test_order = Order.objects.create(
             user=self.test_user, phone_number="1234567890"
         )

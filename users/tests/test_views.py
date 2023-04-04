@@ -96,6 +96,7 @@ class TestUsers(TestCase):
         """
         print("TOKA")
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
+        address_for_testing = UserAddress.objects.get(address="admin")
         # url = f"/users/update/{user_for_testing.id}/"
 
         url_list = [
@@ -111,6 +112,7 @@ class TestUsers(TestCase):
             "/users/update/",
             f"/users/update/{user_for_testing.id}/",
             "/users/address/edit/",
+            f"/users/address/{address_for_testing.id}",
         ]
 
         for url in url_list:
@@ -675,6 +677,7 @@ class TestUsers(TestCase):
             200,
             "put/update should go through as user",
         )
+
         address1 = UserAddress.objects.filter(user=user).first()
         zip_after_update = address1.zip_code
         print("zip after: ", zip_after_update)
@@ -682,6 +685,28 @@ class TestUsers(TestCase):
             zip_before_update,
             zip_after_update,
             "if updaye goes tyhrough the alue should have changed",
+        )
+
+        # testing taht if user and owner dont match things shouldnt go thorugh
+        self.login_test_admin()
+        response = self.client.put(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "put/update should not go through as different user",
+        )
+        self.login_test_user()
+
+        # testing that things should not go thorugh without id
+        data = {
+            "zip_code": "77777777",
+        }
+        response = self.client.put(url, data=data, content_type="application/json")
+        print(response.content)
+        self.assertEqual(
+            response.status_code,
+            204,
+            "put/update should not go through without id",
         )
 
         data = {
@@ -709,7 +734,7 @@ class TestUsers(TestCase):
             "id": address1.id,
         }
 
-        # testing that non owner of address hsouldnt go through
+        # testing that non owner of address delete shouldnt go through
         self.login_test_admin()
         response = self.client.delete(url, data=data, content_type="application/json")
         self.assertEqual(
@@ -717,19 +742,56 @@ class TestUsers(TestCase):
             204,
             "should not go through as user adn adreess owner is different",
         )
+
         self.login_test_user()
         response = self.client.delete(url, data=data, content_type="application/json")
         self.assertEqual(
             response.status_code,
             200,
-            "should go through as user adn adreess owner is same",
+            "should go through as user adn adreess owner is same in delete",
         )
         address_count_3 = UserAddress.objects.filter(user=user).count()
         self.assertNotEqual(
             address_count_2, address_count_3, "after deletion count should be different"
         )
 
+        # testing taht no id shouldnt go thorugh with anything
+        data = {"nothing": "nothing"}
+        response = self.client.delete(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "should not go through as no id in delete",
+        )
+
     def test_user_adress_as_admin(self):
         # testing that useraddress fnctions are working
-        url = "/users/address/<int:pk>/"
+        address_for_testing = UserAddress.objects.get(address="admin")
+        url = f"/users/address/{address_for_testing.id}/"
         print("VIISITOISTAaaaaaaaa")
+
+        # testing non user
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            401,
+            "should not have access if not user",
+        )
+
+        # testing non admin
+        self.login_test_user()
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            403,
+            "should not have access if not admin",
+        )
+
+        # testing admin
+        self.login_test_admin()
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            200,
+            "should have access if admin",
+        )

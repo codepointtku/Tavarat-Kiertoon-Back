@@ -1,6 +1,11 @@
+from django.conf import settings
 from django.contrib.auth.models import Group
+from django.contrib.auth.tokens import default_token_generator
+from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 from orders.models import ShoppingCart
 from users.models import CustomUser, Group, UserAddress
@@ -837,10 +842,40 @@ class TestUsers(TestCase):
             test = UserAddress.objects.get(id=address_id)
 
     def test_password_reset(self):
+        print("KKUUUSIIIIITOISTAAAAaaaaaaa!!!!!")
         url = "/users/password/resetemail/"
         url2 = "/users/password/reset/"
         url3 = "/users/password/reset/1/1/"
 
-        data = {""}
+        data = {"username": "tottally not should existt user name"}
         # testing invalid user, still should get 200 for security reasons but shoudl go thorugh
-        # response = self.client.post(url, data=data, content_type="application/json")
+        response = self.client.post(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 200, "should get 200 even on on existing username"
+        )
+        # mail outbox before testing reset
+        mail_sent_before_test = len(mail.outbox)
+        mail_sent_after_test = 0
+        print("mail outbox nro: ", mail_sent_before_test)
+        data = {"username": "testimies"}
+        response = self.client.post(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code, 200, "should go thorugh with existing username"
+        )
+        print("response json: ", response.json()["url"])
+        split_url = response.json()["url"].split("reset/")
+        print("end point of spolit: ", split_url[1])
+        url3 = "/users/password/reset/" + split_url[1]
+        print("full new url: ", url3)
+
+        # checing if mail was send
+        mail_sent_after_test = len(mail.outbox)
+        print("mail outbox nro after sent: ", mail_sent_after_test)
+        # recreating the pw resetlink for ease of testing
+        user = CustomUser.objects.get(username="testimies")
+        token_generator = default_token_generator
+        token_for_user = token_generator.make_token(user=user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
+        print(reset_url)

@@ -834,34 +834,41 @@ class UserPasswordResetMailView(APIView):
             data=request.data, context={"request": request}, partial=True
         )
 
-        serializer.is_valid(raise_exception=True)
-        # creating token for user for pw reset and encoding the uid
-        user = User.objects.get(username=serializer.data["username"])
-        token_generator = default_token_generator
-        token_for_user = token_generator.make_token(user=user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        if serializer.is_valid():
+            # serializer.is_valid(raise_exception=True)
+            # creating token for user for pw reset and encoding the uid
+            user = User.objects.get(username=serializer.data["username"])
+            token_generator = default_token_generator
+            token_for_user = token_generator.make_token(user=user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
 
-        reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
-        message = "heres the password reset link you requested: " + reset_url
+            reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
+            message = "heres the password reset link you requested: " + reset_url
 
-        send_mail(
-            "password reset link",
-            message,
-            "tavaratkiertoon_backend@testi.fi",
-            ["testi@turku.fi"],
-            fail_silently=False,
+            send_mail(
+                "password reset link",
+                message,
+                "tavaratkiertoon_backend@testi.fi",
+                ["testi@turku.fi"],
+                fail_silently=False,
+            )
+
+            response = Response()
+            response.status_code = status.HTTP_200_OK
+            # return the values for testing purpose, remove in deployment
+            response.data = {
+                "message": message,
+                "url": reset_url,
+                "crypt": uid,
+                "token": token_for_user,
+            }
+
+            return response
+
+        return Response(
+            "password was send to your user accounts email address",
+            status=status.HTTP_200_OK,
         )
-
-        response = Response()
-        response.status_code = status.HTTP_200_OK
-        # return the values for testing purpose, remove in deployment
-        response.data = {
-            "message": message,
-            "crypt": uid,
-            "token": token_for_user,
-        }
-
-        return response
 
 
 class UserPasswordResetMailValidationView(APIView):

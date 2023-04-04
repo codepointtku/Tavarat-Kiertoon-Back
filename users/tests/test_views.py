@@ -59,9 +59,9 @@ class TestUsers(TestCase):
             email="testi2@turku.fi",
             phone_number="phone_number",
             password="turku",
-            address="address",
-            zip_code="zip_code",
-            city="city",
+            address="testi",
+            zip_code="testi",
+            city="tessti",
             username="testimies",
             joint_user="true",
         )
@@ -113,6 +113,9 @@ class TestUsers(TestCase):
             f"/users/update/{user_for_testing.id}/",
             "/users/address/edit/",
             f"/users/address/{address_for_testing.id}",
+            "/users/password/resetemail/",
+            "/users/password/reset/",
+            "/users/password/reset/1/1/",
         ]
 
         for url in url_list:
@@ -766,8 +769,9 @@ class TestUsers(TestCase):
 
     def test_user_adress_as_admin(self):
         # testing that useraddress fnctions are working
-        address_for_testing = UserAddress.objects.get(address="admin")
-        url = f"/users/address/{address_for_testing.id}/"
+        address_for_testing = UserAddress.objects.get(address="testi")
+        address_id = address_for_testing.id
+        url = f"/users/address/{address_id}/"
         print("VIISITOISTAaaaaaaaa")
 
         # testing non user
@@ -795,3 +799,48 @@ class TestUsers(TestCase):
             200,
             "should have access if admin",
         )
+        data_before = {
+            "address": address_for_testing.address,
+            "zip_code": address_for_testing.zip_code,
+            "city": address_for_testing.city,
+        }
+
+        data = {
+            "address": "muutos",
+            "zip_code": "muutos",
+            "city": "muutos",
+        }
+        response = self.client.patch(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            200,
+            "update patch should go thourgh",
+        )
+        address_for_testing = UserAddress.objects.get(id=address_id)
+        data_after = {
+            "address": address_for_testing.address,
+            "zip_code": address_for_testing.zip_code,
+            "city": address_for_testing.city,
+        }
+        print("data: ", data_before, data_after)
+
+        self.assertEqual(data_before, data_before)
+        self.assertNotEqual(
+            data_before, data_after, "the data should have been updated"
+        )
+
+        response = self.client.delete(url, content_type="application/json")
+
+        with self.assertRaises(
+            ObjectDoesNotExist, msg="adress was not deleted correctly"
+        ):
+            test = UserAddress.objects.get(id=address_id)
+
+    def test_password_reset(self):
+        url = "/users/password/resetemail/"
+        url2 = "/users/password/reset/"
+        url3 = "/users/password/reset/1/1/"
+
+        data = {""}
+        # testing invalid user, still should get 200 for security reasons but shoudl go thorugh
+        # response = self.client.post(url, data=data, content_type="application/json")

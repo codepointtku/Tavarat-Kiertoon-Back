@@ -737,7 +737,7 @@ class UserAddressEditView(APIView):
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        print(serializer.data["address"])
+        # print(serializer.data["address"])
         UserAddress.objects.create(
             address=serializer.data["address"],
             zip_code=serializer.data["zip_code"],
@@ -749,7 +749,7 @@ class UserAddressEditView(APIView):
     def put(self, request, format=None):
         if "id" not in request.data:
             msg = "no address id for adress updating"
-            print(msg)
+            # print(msg)
             return Response(msg, status=status.HTTP_204_NO_CONTENT)
 
         copy_of_request = request.data.copy()
@@ -758,7 +758,7 @@ class UserAddressEditView(APIView):
         # checking that only users themselves can chnage their adressess
         if address1.user.id != request.user.id:
             msg = "address owner and loggerdin user need to match"
-            print(msg)
+            # print(msg)
             return Response(msg, status=status.HTTP_204_NO_CONTENT)
 
         # temp_dict = [str(request.user.id)]
@@ -781,7 +781,7 @@ class UserAddressEditView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, format=None):
-        print("am I in delte")
+        # print("am I in delte")
         if "id" not in request.data:
             msg = "no address id for adress deletion"
             return Response(msg, status=status.HTTP_204_NO_CONTENT)

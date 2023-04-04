@@ -871,11 +871,143 @@ class TestUsers(TestCase):
         # checing if mail was send
         mail_sent_after_test = len(mail.outbox)
         print("mail outbox nro after sent: ", mail_sent_after_test)
-        # recreating the pw resetlink for ease of testing
-        user = CustomUser.objects.get(username="testimies")
-        token_generator = default_token_generator
-        token_for_user = token_generator.make_token(user=user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        print("outbox body: ", mail.outbox[0].body)
+        # grabbing the link from the email
+        end_part_of_email_link = mail.outbox[0].body.split(url2)
+        print("end part: ", end_part_of_email_link[1])
+        the_parameters = end_part_of_email_link[1].split("/")
+        print("the paramerters: ", the_parameters)
+        the_change_url = (
+            f"/users/password/reset/{the_parameters[0]}/{the_parameters[1]}/"
+        )
+        print("change url: ", the_change_url)
 
-        reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
-        print(reset_url)
+        response = self.client.get(url2)
+        print("responssi ilman mitään get: ", response.json(), response.status_code)
+        self.assertEqual(
+            response.status_code, 200, "should go thorugh without thigns happening"
+        )
+        response = self.client.get(the_change_url)
+        print("responssi ilman mitään get: ", response.json(), response.status_code)
+        self.assertEqual(
+            response.status_code,
+            200,
+            "should go thorugh without thigns happening with params",
+        )
+
+        # recreating the pw resetlink for ease of testing
+        # user = CustomUser.objects.get(username="testimies")
+        # token_generator = default_token_generator
+        # token_for_user = token_generator.make_token(user=user)
+        # uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        # reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
+        # print(reset_url)
+        data = {
+            "new_password": "a",
+            "new_password_again": "b",
+            "uid": "a",
+            "token": "a",
+        }
+        response = self.client.post(url2, data, content_type="application/json")
+        print("responssi ilman mitään post: ", response.json(), response.status_code)
+        print("empty data response: ", response.status_code)
+        print("wronf pw response: ", response.json())
+        self.assertEqual(
+            response.status_code,
+            400,
+            "should get wrongly stuff with wrong pw",
+        )
+
+        data = {
+            "new_password": "a",
+            "new_password_again": "a",
+            "uid": "a",
+            "token": "a",
+        }
+        response = self.client.post(url2, data, content_type="application/json")
+        print("responssi oikeella PWllä: ", response.json(), response.status_code)
+        print("crrect pw, wrong uid: ", response.status_code)
+        print("wronf uid response: ", response.json())
+        self.assertEqual(
+            response.status_code,
+            400,
+            "should get wrongly stuff with wrong uid",
+        )
+
+        # testataan oi oieaklla uidllä
+        uid = urlsafe_base64_encode(force_bytes(999999999999999999999999))
+        data = {
+            "new_password": "a",
+            "new_password_again": "a",
+            "uid": uid,
+            "token": "a",
+        }
+        response = self.client.post(url2, data, content_type="application/json")
+        print("wrong non existan uid uid response: ", response.json())
+        self.assertEqual(
+            response.status_code,
+            400,
+            "should get wrongly stuff with wrong uid",
+        )
+
+        data = {
+            "new_password": "a",
+            "new_password_again": "a",
+            "uid": the_parameters[0],
+            "token": "a",
+        }
+        response = self.client.post(url2, data, content_type="application/json")
+        print("responssi vääräl token: ", response.json(), response.status_code)
+        print("crrect uid, wrong token: ", response.status_code)
+        print("wronf token response: ", response.json())
+        self.assertEqual(
+            response.status_code,
+            400,
+            "should get wrongly stuff with wrong token",
+        )
+
+        data = {
+            "new_password": "a",
+            "new_password_again": "a",
+            "uid": the_parameters[0],
+            "token": the_parameters[1],
+        }
+        response = self.client.post(url2, data, content_type="application/json")
+        print("responssi ilman mitään post: ", response.json(), response.status_code)
+        print("crrect  ", response.status_code)
+        self.assertEqual(
+            response.status_code,
+            200,
+            "should go thorugh with correct info",
+        )
+
+        response = self.client.post(url2, data, content_type="application/json")
+        print("statyus code at end: ", response.status_code)
+        self.assertEqual(
+            response.status_code,
+            400,
+            "should not go thorugh as token is used",
+        )
+
+        url = "/users/login/"
+        data = {
+            "username": "testimies",
+            "password": "turku",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "should not be able to login with old pw",
+        )
+        data = {
+            "username": "testimies",
+            "password": "a",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            200,
+            "shouldto login with new pw",
+        )

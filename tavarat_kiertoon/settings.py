@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 from decouple import Csv, config
 
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     "users",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_swagger",    
     "orders",
     "bikes",
     "corsheaders",
@@ -77,7 +79,7 @@ ROOT_URLCONF = "tavarat_kiertoon.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

@@ -337,6 +337,8 @@ class TestUsers(TestCase):
             "no refresh token in cookies after login",
         )
 
+        #####/(////////////////)Need to add test checkign that the user groups come back to front here, ocntinuie form here tomorrow
+
     def test_user_refresh(self):
         """
         test to test token refreshing functionality
@@ -381,6 +383,8 @@ class TestUsers(TestCase):
             401,
             "wrong status code coming when invalid refresh token",
         )
+
+        #####/(////////////////)Need to add test checkign that the user groups come back to front here, ocntinuie form here tomorrow
 
     def test_user_logout(self):
         """
@@ -695,8 +699,9 @@ class TestUsers(TestCase):
             200,
             "should have access if user",
         )
+
+        #remember the address count at start
         address_count = UserAddress.objects.filter(user=user).count()
-        #print("address count: ", address_count)
 
         address1 = UserAddress.objects.filter(user=user).first()
         data = {
@@ -704,25 +709,24 @@ class TestUsers(TestCase):
             "id": address1.id,
         }
         zip_before_update = address1.zip_code
-        #print("zip code 1: ", zip_before_update)
+        #checkign response is right
         response = self.client.put(url, data=data, content_type="application/json")
-        #print(response.content)
         self.assertEqual(
             response.status_code,
             200,
             "put/update should go through as user",
         )
 
+        #checking that values have changed in database
         address1 = UserAddress.objects.filter(user=user).first()
         zip_after_update = address1.zip_code
-        #print("zip after: ", zip_after_update)
         self.assertNotEqual(
             zip_before_update,
             zip_after_update,
-            "if updaye goes tyhrough the alue should have changed",
+            "if update goes through zip code should have changed",
         )
 
-        # testing taht if user and owner dont match things shouldnt go thorugh
+        # testing that if user and owner of adress dont match things shouldnt go thorugh
         self.login_test_admin()
         response = self.client.put(url, data=data, content_type="application/json")
         self.assertEqual(
@@ -732,7 +736,7 @@ class TestUsers(TestCase):
         )
         self.login_test_user()
 
-        # testing that things should not go thorugh without id
+        # testing that things should not go thorugh without address id to update
         data = {
             "zip_code": "77777777",
         }
@@ -741,9 +745,10 @@ class TestUsers(TestCase):
         self.assertEqual(
             response.status_code,
             204,
-            "put/update should not go through without id",
+            "put/update should not go through without address id for update",
         )
 
+        #testing new address additions
         data = {
             "address": "testikatula 1818",
             "zip_code": "10101",
@@ -758,7 +763,8 @@ class TestUsers(TestCase):
             "should go through as user",
         )
         address_count_2 = UserAddress.objects.filter(user=user).count()
-        #print("address 21 coutn: ", address_count_2)
+
+        #testign taht the new address is in database
         self.assertNotEqual(
             address_count,
             address_count_2,
@@ -769,7 +775,7 @@ class TestUsers(TestCase):
             "id": address1.id,
         }
 
-        # testing that non owner of address delete shouldnt go through
+        # testing that non owner of address delete should not go through
         self.login_test_admin()
         response = self.client.delete(url, data=data, content_type="application/json")
         self.assertEqual(
@@ -778,35 +784,40 @@ class TestUsers(TestCase):
             "should not go through as user adn adreess owner is different",
         )
 
+        #testing that user can delete his own address
         self.login_test_user()
         response = self.client.delete(url, data=data, content_type="application/json")
         self.assertEqual(
             response.status_code,
             200,
-            "should go through as user adn adreess owner is same in delete",
+            "should go through as user and adress owner is same in delete",
         )
+        #checkign that database was updated
         address_count_3 = UserAddress.objects.filter(user=user).count()
         self.assertNotEqual(
             address_count_2, address_count_3, "after deletion count should be different"
         )
 
-        # testing taht no id shouldnt go thorugh with anything
+        # testing that no id what to delete shouldnt go through with anything
         data = {"nothing": "nothing"}
         response = self.client.delete(url, data=data, content_type="application/json")
         self.assertEqual(
             response.status_code,
             204,
-            "should not go through as no id in delete",
+            "should not go through as no id in waht to delete",
         )
 
     def test_user_adress_as_admin(self):
-        # testing that useraddress fnctions are working
+        """
+        Test for testing admins rights to change adressess
+        """
+        # tgettign address to test
         address_for_testing = UserAddress.objects.get(address="testi")
         address_id = address_for_testing.id
         url = f"/users/address/{address_id}/"
-        print("VIISITOISTAaaaaaaaa")
+        #print("VIISITOISTAaaaaaaaa")
 
-        # testing non user
+        # testing response for anons
         response = self.client.get(url)
         self.assertEqual(
             response.status_code,
@@ -814,7 +825,7 @@ class TestUsers(TestCase):
             "should not have access if not user",
         )
 
-        # testing non admin
+        # testing response as non admin
         self.login_test_user()
         response = self.client.get(url)
         self.assertEqual(
@@ -823,7 +834,7 @@ class TestUsers(TestCase):
             "should not have access if not admin",
         )
 
-        # testing admin
+        # testing response as admin
         self.login_test_admin()
         response = self.client.get(url)
         self.assertEqual(
@@ -831,12 +842,15 @@ class TestUsers(TestCase):
             200,
             "should have access if admin",
         )
+
+        #saving data at first for comparison later
         data_before = {
             "address": address_for_testing.address,
             "zip_code": address_for_testing.zip_code,
             "city": address_for_testing.city,
         }
 
+        #testing changing data
         data = {
             "address": "muutos",
             "zip_code": "muutos",
@@ -854,92 +868,73 @@ class TestUsers(TestCase):
             "zip_code": address_for_testing.zip_code,
             "city": address_for_testing.city,
         }
-        print("data: ", data_before, data_after)
 
+        #checking data has changed in database after update
         self.assertEqual(data_before, data_before)
         self.assertNotEqual(
-            data_before, data_after, "the data should have been updated"
+            data_before, data_after, "the data should have been updated in database"
         )
 
+        #testing that deleting user address works
         response = self.client.delete(url, content_type="application/json")
-
         with self.assertRaises(
-            ObjectDoesNotExist, msg="adress was not deleted correctly"
+            ObjectDoesNotExist, msg="adress was not deleted"
         ):
             test = UserAddress.objects.get(id=address_id)
 
     def test_password_reset(self):
-        print("KKUUUSIIIIITOISTAAAAaaaaaaa!!!!!")
+        """
+        Test for testing password reset functionality
+        """
+        #print("KKUUUSIIIIITOISTAAAAaaaaaaa!!!!!")
+        #urls required for tests
         url = "/users/password/resetemail/"
         url2 = "/users/password/reset/"
-        url3 = "/users/password/reset/1/1/"
 
-        data = {"username": "tottally not should existt user name"}
-        # testing invalid user, still should get 200 for security reasons but shoudl go thorugh
+        data = {"username": "tottally not should exist user name"}
+        # testing invalid user, still should get 200 for security reasons but mail shoudnt be sent as user doesnt exist
         response = self.client.post(url, data=data, content_type="application/json")
         self.assertEqual(
-            response.status_code, 200, "should get 200 even on on existing username"
+            response.status_code, 200, "should get 200 even on non existing username"
         )
-        # mail outbox before testing reset
-        mail_sent_before_test = len(mail.outbox)
-        mail_sent_after_test = 0
-        print("mail outbox nro: ", mail_sent_before_test)
+
         data = {"username": "testimies"}
         response = self.client.post(url, data=data, content_type="application/json")
         self.assertEqual(
             response.status_code, 200, "should go thorugh with existing username"
         )
-        print("response json: ", response.json()["url"])
-        split_url = response.json()["url"].split("reset/")
-        print("end point of spolit: ", split_url[1])
-        url3 = "/users/password/reset/" + split_url[1]
-        print("full new url: ", url3)
 
-        # checing if mail was send
-        mail_sent_after_test = len(mail.outbox)
-        print("mail outbox nro after sent: ", mail_sent_after_test)
-        print("outbox body: ", mail.outbox[0].body)
-        # grabbing the link from the email
+        # grabbing the link from the email that was sent, and putting it into form that can be used with test
         end_part_of_email_link = mail.outbox[0].body.split(url2)
-        print("end part: ", end_part_of_email_link[1])
         the_parameters = end_part_of_email_link[1].split("/")
-        print("the paramerters: ", the_parameters)
+        #par 0 should be encoded uid, par 1 the token for reset
         the_change_url = (
             f"/users/password/reset/{the_parameters[0]}/{the_parameters[1]}/"
         )
-        print("change url: ", the_change_url)
 
+        #test that can get ok reponse from the reset url
         response = self.client.get(url2)
-        print("responssi ilman mitään get: ", response.json(), response.status_code)
         self.assertEqual(
             response.status_code, 200, "should go thorugh without thigns happening"
         )
+
+        #testing response 
         response = self.client.get(the_change_url)
-        print("responssi ilman mitään get: ", response.json(), response.status_code)
         self.assertEqual(
             response.status_code,
             200,
             "should go thorugh without thigns happening with params",
         )
 
-        # recreating the pw resetlink for ease of testing
-        # user = CustomUser.objects.get(username="testimies")
-        # token_generator = default_token_generator
-        # token_for_user = token_generator.make_token(user=user)
-        # uid = urlsafe_base64_encode(force_bytes(user.pk))
-
-        # reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
-        # print(reset_url)
+        #testing reponse with various non valid parameters
         data = {
             "new_password": "a",
             "new_password_again": "b",
             "uid": "a",
             "token": "a",
         }
+        #non matching pws
         response = self.client.post(url2, data, content_type="application/json")
-        print("responssi ilman mitään post: ", response.json(), response.status_code)
-        print("empty data response: ", response.status_code)
-        print("wronf pw response: ", response.json())
         self.assertEqual(
             response.status_code,
             400,
@@ -952,18 +947,17 @@ class TestUsers(TestCase):
             "uid": "a",
             "token": "a",
         }
+
+        #wrong kind of encoded uid
         response = self.client.post(url2, data, content_type="application/json")
-        print("responssi oikeella PWllä: ", response.json(), response.status_code)
-        print("crrect pw, wrong uid: ", response.status_code)
-        print("wronf uid response: ", response.json())
         self.assertEqual(
             response.status_code,
             400,
             "should get wrongly stuff with wrong uid",
         )
 
-        # testataan oi oieaklla uidllä
-        uid = urlsafe_base64_encode(force_bytes(999999999999999999999999))
+        # testataan ei oikealla uidllä jota ei olemassa
+        uid = urlsafe_base64_encode(force_bytes(9999999999999999999999999))
         data = {
             "new_password": "a",
             "new_password_again": "a",
@@ -971,11 +965,10 @@ class TestUsers(TestCase):
             "token": "a",
         }
         response = self.client.post(url2, data, content_type="application/json")
-        print("wrong non existan uid uid response: ", response.json())
         self.assertEqual(
             response.status_code,
             400,
-            "should get wrongly stuff with wrong uid",
+            "should get wrongly stuff with non existant uid",
         )
 
         data = {
@@ -984,10 +977,8 @@ class TestUsers(TestCase):
             "uid": the_parameters[0],
             "token": "a",
         }
+        #testing response with non  valid token
         response = self.client.post(url2, data, content_type="application/json")
-        print("responssi vääräl token: ", response.json(), response.status_code)
-        print("crrect uid, wrong token: ", response.status_code)
-        print("wronf token response: ", response.json())
         self.assertEqual(
             response.status_code,
             400,
@@ -1000,23 +991,23 @@ class TestUsers(TestCase):
             "uid": the_parameters[0],
             "token": the_parameters[1],
         }
+        #testing response with correct paramateres (should go though)
         response = self.client.post(url2, data, content_type="application/json")
-        print("responssi ilman mitään post: ", response.json(), response.status_code)
-        print("crrect  ", response.status_code)
         self.assertEqual(
             response.status_code,
             200,
-            "should go thorugh with correct info",
+            "should go thorugh with correct parameters",
         )
 
+        #testing that token get properly used and cant be used anymore
         response = self.client.post(url2, data, content_type="application/json")
-        print("statyus code at end: ", response.status_code)
         self.assertEqual(
             response.status_code,
             400,
-            "should not go thorugh as token is used",
+            "should not go thorugh as token should be used",
         )
 
+        #testing login with old pw
         url = "/users/login/"
         data = {
             "username": "testimies",
@@ -1028,6 +1019,8 @@ class TestUsers(TestCase):
             204,
             "should not be able to login with old pw",
         )
+
+        #testing login with new pw
         data = {
             "username": "testimies",
             "password": "a",
@@ -1036,5 +1029,5 @@ class TestUsers(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            "shouldto login with new pw",
+            "should be able to login with new pw",
         )

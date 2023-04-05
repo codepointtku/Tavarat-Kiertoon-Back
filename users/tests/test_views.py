@@ -14,7 +14,7 @@ from users.serializers import GroupPermissionsSerializer
 
 
 class TestUsers(TestCase):
-    # for logging in test user to get cookeis to test auth
+    # function for logging in test user to get cookeis to test normal user
     def login_test_user(self):
         url = "/users/login/"
         data = {
@@ -24,7 +24,8 @@ class TestUsers(TestCase):
         response = self.client.post(url, data, content_type="application/json")
         user = CustomUser.objects.get(username="testi1@turku.fi")
         return user
-
+    
+    # function for logging in test admin user to get cookeis to test admin user
     def login_test_admin(self):
         url = "/users/login/"
         data = {
@@ -87,8 +88,8 @@ class TestUsers(TestCase):
             group.user_set.add(user3_set)
 
     def test_setup(self):
-        print("EKA, count user objs after setup?: ", CustomUser.objects.count())
-        # self.assertNotEqual(2, 3)
+        #print("EKA, count user objs after setup?: ", CustomUser.objects.count())
+        #testing that setup went rhough and created correct ammount of users for testing
         self.assertEqual(
             CustomUser.objects.count(),
             4,
@@ -99,11 +100,12 @@ class TestUsers(TestCase):
         """
         Testing 404 responses from urls, so they exist
         """
-        print("TOKA")
+        #print("TOKA")
+        #getting objects which id's get used in urls
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
         address_for_testing = UserAddress.objects.get(address="admin")
-        # url = f"/users/update/{user_for_testing.id}/"
 
+        #list of urls that need to be checked that they exist
         url_list = [
             "/users/create/",
             "/users/login/",
@@ -123,6 +125,7 @@ class TestUsers(TestCase):
             "/users/password/reset/1/1/",
         ]
 
+        #goign thorugh the urls
         for url in url_list:
             response = self.client.get(url)
             self.assertNotEqual(
@@ -130,7 +133,10 @@ class TestUsers(TestCase):
             )
 
     def test_post_user_creation(self):
-        print("KOLMAS")
+        #print("KOLMAS")
+        """
+        Test for testing user creation
+        """
         current_user_number = CustomUser.objects.count()
         url = "/users/create/"
 
@@ -167,7 +173,8 @@ class TestUsers(TestCase):
         self.assertEqual(
             response.status_code, 201, "user creation was not succesfull with POST"
         )
-        # print("luonnin jälkee: ", CustomUser.objects.count())
+
+        #checking from database taht the user was created by comapring user count
         after_creation = CustomUser.objects.count()
         self.assertNotEqual(
             current_user_number,
@@ -176,20 +183,18 @@ class TestUsers(TestCase):
         )
         current_user_number = CustomUser.objects.count()
 
+        #testing that the users info is rihgt after creation
         try:
             user = CustomUser.objects.get(username="testingly@turku.fi")
-            # print("not derp")
         except ObjectDoesNotExist:
-            # print("derp")
             user = None
 
         self.assertIsNotNone(user, "user was not created with correct data")
-        # print("username: ", user.username)
         self.assertEqual(
             user.email, user.username, "normal user should have same username and email"
         )
 
-        # testing that same user creation
+        # testing user creation with already existing user info
         response = self.client.post(url, data, content_type="application/json")
         self.assertNotEqual(
             response.status_code,
@@ -204,19 +209,20 @@ class TestUsers(TestCase):
             "sometghing wrong with shopping cart creation for user",
         )
 
+        #testing that user was correctly added to user_group
         self.assertTrue(
             is_in_group(user, "user_group"),
             "user isnt part of user group after creation",
         )
 
-        # test taht not allowed webdomain doesnt go thru
+        # test that not allowed webdomain doesn't go through
         data["email"] = "thisiswrongemaildomain@wrong_email_domain.fi"
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(
             response.status_code, 400, "should get bad request with wrong email domain"
         )
 
-        # test taht not allowed webdomain doesnt go thru
+        # non email adress test
         data["email"] = "thisiswrongemaildomain"
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(
@@ -224,6 +230,7 @@ class TestUsers(TestCase):
         )
 
         # test response with correct data for joint user creation wrongly and then correct
+        #wrong data
         data = {
             "first_name": "testi",
             "last_name": "tstilä",
@@ -242,7 +249,7 @@ class TestUsers(TestCase):
             400,
             "Joint user creation not working, username check fails, empty should not go through",
         )
-
+        #right data
         data = {
             "first_name": "testi",
             "last_name": "tstilä",
@@ -262,6 +269,7 @@ class TestUsers(TestCase):
             "Joint user creation not working with correct data",
         )
 
+        #checking that user wascreated in database sucesfully
         after_creation = CustomUser.objects.count()
         self.assertNotEqual(
             current_user_number,
@@ -272,22 +280,21 @@ class TestUsers(TestCase):
 
         try:
             user = CustomUser.objects.get(username="testin päiväkoti")
-            # print("not derp")
         except ObjectDoesNotExist:
-            # print("derp")
             user = None
 
         self.assertIsNotNone(user, "user was not created with correct data")
 
+        #checkign hat joint user user name and email is correctly set, as in has user anem instead of email
         self.assertNotEqual(
             user.email,
             user.username,
             "joint user should have not same username and email",
         )
 
-    def test_order(self):
-        print("NELAJS, count user objs after setup?: ", CustomUser.objects.count())
-        self.assertEqual(CustomUser.objects.count(), CustomUser.objects.count())
+    # def test_order(self):
+    #     print("NELAJS, count user objs after setup?: ", CustomUser.objects.count())
+    #     self.assertEqual(CustomUser.objects.count(), CustomUser.objects.count())
 
     def test_user_login(self):
         # testing user login

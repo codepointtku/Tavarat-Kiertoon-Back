@@ -212,16 +212,6 @@ class UserLimitedSerializer(serializers.ModelSerializer):
         ]
 
 
-# class UserNamesSerializer(serializers.ModelSerializer):
-#     """
-#     Serializer for users, name and email
-#     """
-
-#     class Meta:
-#         model = CustomUser
-#         fields = ["name", "email"]
-
-
 class GroupNameSerializer(serializers.ModelSerializer):
     """
     Serializer for Groups
@@ -230,22 +220,6 @@ class GroupNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ["id", "name"]
-
-
-# class GroupNameCheckSerializer(serializers.ModelSerializer):
-#     group_name = serializers.CharField(max_length=150)
-#     test_message = serializers.CharField(max_length=150)
-#     test_boolean_check_email = serializers.BooleanField(default=False)
-
-#     class Meta:
-#         model = CustomUser
-#         fields = [
-#             "email",
-#             "groups",
-#             "group_name",
-#             "test_message",
-#             "test_boolean_check_email",
-#         ]
 
 
 class GroupPermissionsSerializer(serializers.ModelSerializer):
@@ -257,16 +231,3 @@ class GroupPermissionsSerializer(serializers.ModelSerializer):
             "email",
             "groups",
         ]
-
-
-# class GroupPermissionsNamesSerializer(serializers.ModelSerializer):
-#     groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
-
-#     class Meta:
-#         model = CustomUser
-#         fields = [
-#             "id",
-#             "name",
-#             "email",
-#             "groups",
-#         ]

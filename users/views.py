@@ -72,11 +72,6 @@ class UserCreateListView(APIView):
     # queryset = CustomUser.objects.all()
     serializer_class = UserCreateSerializer
 
-    # def get(self, request, format=None):
-    #     users = CustomUser.objects.all()
-    #     serializer = UserNamesSerializer(users, many=True)
-    #     return Response(serializer.data)
-
     def post(self, request, format=None):
         # extremely uglu validation stuff
         # if some one can make this better it would be good
@@ -124,12 +119,6 @@ class UserCreateListView(APIView):
 
             if not joint_user_post:
                 username_post = email_post
-                # redudant check removng
-                # if User.objects.filter(username=username_post).exists():
-                #     response_message = email_post + ". already exists"
-                #     return Response(
-                #         response_message, status=status.HTTP_400_BAD_REQUEST
-                #     )
 
             # checking that email domain is valid
             # checking email domain
@@ -167,7 +156,6 @@ class UserCreateListView(APIView):
             cart_obj.save()
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)
 
-        # print(serialized_values.errors)
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -469,65 +457,6 @@ class GroupListView(generics.ListAPIView):
     serializer_class = GroupNameSerializer
 
 
-# getting single  group name and update it
-# class GroupNameView(generics.RetrieveUpdateAPIView):
-#     # class GroupNameView(APIView):
-#     """
-#     THIS SHOULD NOT BE USED, DELETE NOT ALLOWED HERE
-#     Get single group name and allow updating its name
-#     could be dangerous for functionality refer to other ppl should this be done if really needed
-#     """
-
-#     authentication_classes = [
-#         SessionAuthentication,
-#         BasicAuthentication,
-#         JWTAuthentication,
-#         CustomJWTAuthentication,
-#     ]
-#     permission_classes = [IsAuthenticated, HasGroupPermission]
-#     required_groups = {
-#         "GET": ["admin_group"],
-#         "POST": ["admin_group"],
-#         "PUT": ["admin_group"],
-#         "PATCH": ["admin_group"],
-#     }
-
-#     queryset = Group.objects.all()
-#     serializer_class = GroupNameSerializer
-
-
-# class GroupPermissionCheckView(APIView):
-#     """
-#     check the groups user belongs to and return them
-#     kinda redutant? can be gotten from another views, users too
-#     """
-
-#     authentication_classes = [
-#         JWTAuthentication,
-#         BasicAuthentication,
-#         SessionAuthentication,
-#         CustomJWTAuthentication,
-#     ]
-#     serializer_class = GroupNameCheckSerializer
-#     permission_classes = [HasGroupPermission]
-#     required_groups = {
-#         "GET": ["user_group"],
-#         # "GET": ["__all__"],
-#         "POST": ["user_group"],
-#         "PUT": ["user_group"],
-#     }
-
-#     def get(self, request, format=None):
-#         serializer = GroupPermissionsNamesSerializer(request.user)
-#         return Response(serializer.data)
-
-#     def post(self, request, format=None):
-#         request_serializer = GroupNameCheckSerializer(data=request.data)
-#         request_serializer.is_valid(raise_exception=True)
-
-#         return Response(request_serializer.data)
-
-
 class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
     Update users permissions, should be only allowed to admins, on testing phase allowing fo users
@@ -546,73 +475,9 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
         "PUT": ["admin_group"],
         "PATCH": ["admin_group"],
     }
-    # use adming_group later, for testing purpose this is on user_group
-    # required_groups = {
-    #     "GET": ["user_group"],
-    #     "POST": ["user_group"],
-    #     "PUT": ["user_group"],
-    #     "PATCH": ["user_group"],
-    # }
 
     queryset = User.objects.all()
     serializer_class = GroupPermissionsSerializer
-
-
-# class UserDetailsListLimitedView(APIView):
-#     """
-#     Get Users with revelant fields
-#     """
-
-#     authentication_classes = [
-#         SessionAuthentication,
-#         BasicAuthentication,
-#         JWTAuthentication,
-#         CustomJWTAuthentication,
-#     ]
-#     permission_classes = [IsAuthenticated, HasGroupPermission]
-#     required_groups = {
-#         "GET": ["admin_group"],
-#         "POST": ["admin_group"],
-#         "PUT": ["admin_group"],
-#         "PATCH": ["admin_group"],
-#     }
-
-#     def get(self, request, format=None):
-#         users = CustomUser.objects.all()
-#         serializer = UserLimitedSerializer(users, many=True)
-#         return Response(serializer.data)
-
-
-# class UserDetailLimitedView(APIView):
-#     """
-#     Get single user with revelant fields
-#     """
-
-#     authentication_classes = [
-#         SessionAuthentication,
-#         BasicAuthentication,
-#         JWTAuthentication,
-#         CustomJWTAuthentication,
-#     ]
-
-#     permission_classes = [IsAuthenticated, HasGroupPermission]
-#     required_groups = {
-#         "GET": ["admin_group"],
-#         "POST": ["admin_group"],
-#         "PUT": ["admin_group"],
-#         "PATCH": ["admin_group"],
-#     }
-
-#     def get_object(self, pk):
-#         try:
-#             return CustomUser.objects.get(pk=pk)
-#         except CustomUser.DoesNotExist:
-#             raise Http404
-
-#     def get(self, request, pk, format=None):
-#         user = self.get_object(pk)
-#         serializer = UserLimitedSerializer(user)
-#         return Response(serializer.data)
 
 
 class UserUpdateInfoView(APIView):
@@ -639,13 +504,6 @@ class UserUpdateInfoView(APIView):
     queryset = User.objects.all()
 
     def get(self, request, format=None):
-        # redutant probably
-        # if str(request.user) == "AnonymousUser":
-        #     message = "Please log in you are: " + str(request.user)
-        #     print(message)
-
-        #     return Response(message)
-        # else:
         queryset = User.objects.filter(id=request.user.id)
         serialized_data = self.serializer_class(queryset, many=True)
         return Response(serialized_data.data)
@@ -683,30 +541,6 @@ class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
 
 
-# class UserAddressListView(generics.ListAPIView):
-#     """
-#     Get list of all addresss users have
-#     """
-
-#     authentication_classes = [
-#         SessionAuthentication,
-#         BasicAuthentication,
-#         JWTAuthentication,
-#         CustomJWTAuthentication,
-#     ]
-
-#     permission_classes = [IsAuthenticated, HasGroupPermission]
-#     required_groups = {
-#         "GET": ["admin_group"],
-#         "POST": ["admin_group"],
-#         "PUT": ["admin_group"],
-#         "PATCH": ["admin_group"],
-#     }
-
-#     serializer_class = UserAddressSerializer
-#     queryset = UserAddress.objects.all()
-
-
 class UserAddressEditView(APIView):
     """
     Get list of all addresss logged in user has, and edit them new one
@@ -732,16 +566,13 @@ class UserAddressEditView(APIView):
 
     def get(self, request, format=None):
         qs = UserAddress.objects.filter(user=request.user.id)
-        # print(qs)
         serialized_info = UserAddressSerializer(qs, many=True)
-        # print(serialized_info.data)
         return Response(serialized_info.data)
 
     # used for adding new address to user
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # print(serializer.data["address"])
         UserAddress.objects.create(
             address=serializer.data["address"],
             zip_code=serializer.data["zip_code"],
@@ -754,7 +585,6 @@ class UserAddressEditView(APIView):
     def put(self, request, format=None):
         if "id" not in request.data:
             msg = "no address id for adress updating"
-            # print(msg)
             return Response(msg, status=status.HTTP_204_NO_CONTENT)
 
         copy_of_request = request.data.copy()
@@ -763,31 +593,19 @@ class UserAddressEditView(APIView):
         # checking that only users themselves can change their own adressess
         if address1.user.id != request.user.id:
             msg = "address owner and loggerdin user need to match"
-            # print(msg)
             return Response(msg, status=status.HTTP_204_NO_CONTENT)
 
-        # temp_dict = [str(request.user.id)]
         copy_of_request["user"] = str(request.user.id)
-        # copy_of_request["user"] = temp_dict
 
-        # print(copy_of_request, temp_dict)
         serializer = self.serializer_class(address1, data=copy_of_request, partial=True)
 
         serializer.is_valid(raise_exception=True)
-        # print(serializer)
         serializer.save()
 
-        # address1 = UserAddress.objects.get(id=11)
-        # print(address1, address1.id, address1.user, address1.address)
-        # if "address" in serializer
-        # ser2 = self.serializer_class(address1)
-
-        # return Response("derp", status=status.HTTP_200_OK)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # used for deleting existing address user has
     def delete(self, request, format=None):
-        # print("am I in delte")
         if "id" not in request.data:
             msg = "no address id for adress deletion"
             return Response(msg, status=status.HTTP_204_NO_CONTENT)
@@ -847,7 +665,6 @@ class UserPasswordResetMailView(APIView):
         )
 
         if serializer.is_valid():
-            # serializer.is_valid(raise_exception=True)
             # creating token for user for pw reset and encoding the uid
             user = User.objects.get(username=serializer.data["username"])
             token_generator = default_token_generator

@@ -983,6 +983,18 @@ class TestUsers(TestCase):
         )
 
         # lisää tarkistus että token ja uid on oikein mutta salasana ei täsmää
+        data = {
+            "new_password": "a",
+            "new_password_again": "c",
+            "uid": the_parameters[0],
+            "token": the_parameters[1],
+        }
+        response = self.client.post(url2, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            400,
+            "should get wrongly stuff with wrong pw but uid and token right",
+        )
 
         data = {
             "new_password": "a",

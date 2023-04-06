@@ -146,7 +146,7 @@ urlpatterns = [
     path(
         "docs/",
         SpectacularSwaggerView.as_view(
-            template_name="swagger-ui.html", url_name="schema"
+            url_name="schema"
         ),
         name="swag",
     ),

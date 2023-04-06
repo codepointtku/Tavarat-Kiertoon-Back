@@ -47,8 +47,7 @@ INSTALLED_APPS = [
     "products",
     "users",
     "rest_framework",
-    "rest_framework_simplejwt",
-    "rest_framework_swagger",    
+    "rest_framework_simplejwt",   
     "orders",
     "bikes",
     "corsheaders",
@@ -60,6 +59,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -96,6 +96,10 @@ WSGI_APPLICATION = "tavarat_kiertoon.wsgi.application"
 
 REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -135,12 +139,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# for the use in whole program, set in invidual views of apps to use?
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
-}
 
 from datetime import timedelta
 

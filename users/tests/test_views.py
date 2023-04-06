@@ -1,6 +1,4 @@
-from django.conf import settings
 from django.contrib.auth.models import Group
-from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
@@ -8,11 +6,12 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
 from orders.models import ShoppingCart
-from users.models import CustomUser, Group, UserAddress
+from users.models import CustomUser, UserAddress
 from users.permissions import is_in_group
 from users.serializers import GroupPermissionsSerializer
 
 
+# check the changed data is the same data as the changed data instead htat jsut the data has changed.
 class TestUsers(TestCase):
     # function for logging in test user to get cookeis to test normal user
     def login_test_user(self):
@@ -249,6 +248,7 @@ class TestUsers(TestCase):
             400,
             "Joint user creation not working, username check fails, empty should not go through",
         )
+        # make it so that you only change the necessary valur to reduce line count
         # right data
         data = {
             "first_name": "testi",
@@ -292,10 +292,6 @@ class TestUsers(TestCase):
             "joint user should have not same username and email",
         )
 
-    # def test_order(self):
-    #     print("NELAJS, count user objs after setup?: ", CustomUser.objects.count())
-    #     self.assertEqual(CustomUser.objects.count(), CustomUser.objects.count())
-
     def test_user_login(self):
         """
         Test to test login functionality
@@ -322,7 +318,7 @@ class TestUsers(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            "wrong status codew coming when data loging data is right",
+            "wrong status code coming when data loging data is right",
         )
 
         # check that cookies were created in login
@@ -602,7 +598,7 @@ class TestUsers(TestCase):
 
     def test_updating_user_info_with_user(self):
         """
-        test for users cahnging their own info
+        test for users changing their own info
         """
         # print("KAKSTOISTAA!!!!")
         url = "/users/update/"
@@ -623,6 +619,7 @@ class TestUsers(TestCase):
         response = self.client.put(url, data, content_type="application/json")
         user2 = CustomUser.objects.get(id=user.id)
 
+        # check the changed data is the same data as the changed data instead htat jsut the data has changed.
         self.assertNotEqual(user.name, user2.name, "user name should have changed")
         self.assertNotEqual(
             user.phone_number,
@@ -678,7 +675,7 @@ class TestUsers(TestCase):
         self.assertEqual(user2.name, "Kinkku Kinkku!222", "user info changeed wrongly")
         self.assertEqual(user2.phone_number, "2222222", "user info changeed wrongly")
 
-    def test_user_adress(self):
+    def test_user_address(self):
         """
         test for testing user changing his own addressess
         """
@@ -783,7 +780,7 @@ class TestUsers(TestCase):
         self.assertEqual(
             response.status_code,
             204,
-            "should not go through as user adn adreess owner is different",
+            "should not go through as user and address owner is different",
         )
 
         # testing that user can delete his own address
@@ -794,7 +791,7 @@ class TestUsers(TestCase):
             200,
             "should go through as user and adress owner is same in delete",
         )
-        # checkign that database was updated
+        # checking that database was updated
         address_count_3 = UserAddress.objects.filter(user=user).count()
         self.assertNotEqual(
             address_count_2, address_count_3, "after deletion count should be different"
@@ -806,10 +803,10 @@ class TestUsers(TestCase):
         self.assertEqual(
             response.status_code,
             204,
-            "should not go through as no id in waht to delete",
+            "should not go through as no id in what to delete",
         )
 
-    def test_user_adress_as_admin(self):
+    def test_user_address_as_admin(self):
         """
         Test for testing admins rights to change adressess
         """
@@ -880,7 +877,7 @@ class TestUsers(TestCase):
         # testing that deleting user address works
         response = self.client.delete(url, content_type="application/json")
         with self.assertRaises(ObjectDoesNotExist, msg="adress was not deleted"):
-            test = UserAddress.objects.get(id=address_id)
+            UserAddress.objects.get(id=address_id)
 
     def test_password_reset(self):
         """
@@ -984,6 +981,8 @@ class TestUsers(TestCase):
             400,
             "should get wrongly stuff with wrong token",
         )
+
+        # lisää tarkistus että token ja uid on oikein mutta salasana ei täsmää
 
         data = {
             "new_password": "a",

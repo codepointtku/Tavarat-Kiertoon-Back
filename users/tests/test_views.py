@@ -884,13 +884,16 @@ class TestUsers(TestCase):
         self.assertEqual(
             response.status_code, 200, "should get 200 even on non existing username"
         )
+        self.assertEqual(
+            len(mail.outbox), 0, "mail should not have been sent when incorrect username"
+        )
 
         data = {"username": "testimies"}
         response = self.client.post(url, data=data, content_type="application/json")
         self.assertEqual(
             response.status_code, 200, "should go thorugh with existing username"
         )
-
+        
         # grabbing the link from the email that was sent, and putting it into form that can be used with test
         end_part_of_email_link = mail.outbox[0].body.split(url2)
         the_parameters = end_part_of_email_link[1].split("/")

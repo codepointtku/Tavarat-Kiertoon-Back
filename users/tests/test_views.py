@@ -229,7 +229,7 @@ class TestUsers(TestCase):
         )
 
         # test response with correct data for joint user creation wrongly and then correct
-        # wrong data
+        # wrong data (invalid username)
         data = {
             "first_name": "testi",
             "last_name": "tstilä",
@@ -248,20 +248,10 @@ class TestUsers(TestCase):
             400,
             "Joint user creation not working, username check fails, empty should not go through",
         )
-        # make it so that you only change the necessary valur to reduce line count
-        # right data
-        data = {
-            "first_name": "testi",
-            "last_name": "tstilä",
-            "email": "testingly@turku.fi",
-            "phone_number": "54519145",
-            "password": "1234",
-            "joint_user": "true",
-            "username": "testin päiväkoti",
-            "address": "testiläntie 12",
-            "zip_code": "12552",
-            "city": "TESTIKAUPUNKI",
-        }
+
+        # with right data (username)
+        data["username"] = "testin päiväkoti"
+
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(
             response.status_code,
@@ -269,7 +259,7 @@ class TestUsers(TestCase):
             "Joint user creation not working with correct data",
         )
 
-        # checking that user wascreated in database sucesfully
+        # checking that user was created in database sucesfully
         after_creation = CustomUser.objects.count()
         self.assertNotEqual(
             current_user_number,
@@ -285,7 +275,7 @@ class TestUsers(TestCase):
 
         self.assertIsNotNone(user, "user was not created with correct data")
 
-        # checkign hat joint user user name and email is correctly set, as in has user anem instead of email
+        # checking that joint user user name and email is correctly set, as in has user name instead of email
         self.assertNotEqual(
             user.email,
             user.username,
@@ -355,7 +345,7 @@ class TestUsers(TestCase):
             "wrong status code coming when no cookies",
         )
 
-        # testing that access token refreshes goes thorugh
+        # testing that access token refreshes goes through
         self.login_test_user()
         access_token_before = self.client.cookies["access_token"].value
 
@@ -474,6 +464,7 @@ class TestUsers(TestCase):
         url = f"/users/{test_user_id}/"
         response = self.client.get(url, content_type="application/json")
         self.assertEqual(response.status_code, 200, "admin user should go thorugh")
+        # non existing user
         url = "/users/52165445764567467668745983495834956349856394568934659834659834698596516/"
         response = self.client.get(url, content_type="application/json")
         self.assertEqual(
@@ -511,7 +502,7 @@ class TestUsers(TestCase):
 
     def test_group_names(self):
         """
-        test for checkign the group names exist in database and you can get them
+        test for checking the group names exist in database and you can get them
         """
         # print("KYMMMPPPIIIII")
         url = "/users/groups/"
@@ -540,7 +531,7 @@ class TestUsers(TestCase):
         Test for checking that permission changes go through
         """
         # print("YKSITOISTAAAaaaa")
-        # actually existin user id get for testign
+        # actually existin user id get for testing
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
         first = GroupPermissionsSerializer(user_for_testing)
         groups_before = first.data["groups"]
@@ -579,7 +570,7 @@ class TestUsers(TestCase):
             "admin should able to succesfully change permissions",
         )
         second_response_json = response.json()
-        # checkign that the permissions are actually changed in json
+        # checking that the permissions are actually changed in json
         self.assertNotEqual(
             first_response_json["groups"],
             second_response_json["groups"],
@@ -614,12 +605,12 @@ class TestUsers(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200, "should have access user")
 
-        # testing cahnging the info if succesfull in database
+        # testing changing the info if succesfull in database
         data = {"name": "Kinkku Kinkku!222", "phone_number": "kinkku!2222"}
         response = self.client.put(url, data, content_type="application/json")
         user2 = CustomUser.objects.get(id=user.id)
 
-        # check the changed data is the same data as the changed data instead htat jsut the data has changed.
+        # check the changed data is the same data as the changed data instead that just the data has changed.
         self.assertNotEqual(user.name, user2.name, "user name should have changed")
         self.assertNotEqual(
             user.phone_number,
@@ -668,7 +659,7 @@ class TestUsers(TestCase):
         data = {"name": "Kinkku Kinkku!222", "phone_number": "2222222"}
         response = self.client.put(url, data, content_type="application/json")
 
-        # chekign that the info has changed in database
+        # cheking that the info has changed in database
         user2 = CustomUser.objects.get(username="testi1@turku.fi")
         user2_info = [user2.name, user2.phone_number]
         self.assertNotEqual(user1_info, user2_info, "users info should have cahnged")
@@ -708,7 +699,7 @@ class TestUsers(TestCase):
             "id": address1.id,
         }
         zip_before_update = address1.zip_code
-        # checkign response is right
+        # checking response is right
         response = self.client.put(url, data=data, content_type="application/json")
         self.assertEqual(
             response.status_code,
@@ -725,7 +716,7 @@ class TestUsers(TestCase):
             "if update goes through zip code should have changed",
         )
 
-        # testing that if user and owner of adress dont match things shouldnt go thorugh
+        # testing that if user and owner of address dont match things shouldnt go thorugh
         self.login_test_admin()
         response = self.client.put(url, data=data, content_type="application/json")
         self.assertEqual(
@@ -740,7 +731,6 @@ class TestUsers(TestCase):
             "zip_code": "77777777",
         }
         response = self.client.put(url, data=data, content_type="application/json")
-        # print(response.content)
         self.assertEqual(
             response.status_code,
             204,
@@ -763,7 +753,7 @@ class TestUsers(TestCase):
         )
         address_count_2 = UserAddress.objects.filter(user=user).count()
 
-        # testign taht the new address is in database
+        # testing that the new address is in database
         self.assertNotEqual(
             address_count,
             address_count_2,
@@ -810,7 +800,7 @@ class TestUsers(TestCase):
         """
         Test for testing admins rights to change adressess
         """
-        # tgettign address to test
+        # gettign address to test
         address_for_testing = UserAddress.objects.get(address="testi")
         address_id = address_for_testing.id
         url = f"/users/address/{address_id}/"

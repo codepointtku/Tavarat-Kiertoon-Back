@@ -21,7 +21,7 @@ class Bulletin(models.Model):
     author = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     title = models.CharField(max_length=255)
     content = models.TextField()
-    subject = models.ManyToManyField(BulletinSubject)
+    subject = models.ManyToManyField(BulletinSubject, blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:

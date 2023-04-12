@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+from django.test import TestCase
 
 from orders.models import ShoppingCart, Order
 from users.models import CustomUser
@@ -67,6 +67,11 @@ class TestOrders(TestCase):
         cls.test_order = Order.objects.create(
             user=cls.test_user, phone_number="1234567890"
         )
+        cls.test_order.products.set(
+            [
+                Product.objects.get(id=cls.test_product1.id)
+            ]
+        )
         cls.test_shoppingcart = ShoppingCart.objects.create(
             user=cls.test_user
             )
@@ -125,7 +130,7 @@ class TestOrders(TestCase):
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
-        print("DEL")
+        self.assertEqual(response.json()["products"], [])
 
     def test_add_to_shopping_cart(self):
         url = "/shopping_cart/"
@@ -136,7 +141,6 @@ class TestOrders(TestCase):
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
-        print("ADD")
 
     def test_add_to_shopping_cart_amountovermax(self):
         url = "/shopping_cart/"
@@ -147,7 +151,6 @@ class TestOrders(TestCase):
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
-        print("ADD")
 
     def test_remove_from_shopping_cart(self):
         url = "/shopping_cart/"
@@ -158,7 +161,6 @@ class TestOrders(TestCase):
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
-        print("REMOVE")
 
     def test_remove_from_shopping_cart_amountovermax(self):
         url = "/shopping_cart/"
@@ -169,6 +171,32 @@ class TestOrders(TestCase):
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
-        print("REMOVE")
 
+    def test_post_order(self):
+        url = "/orders/"
+        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        data = {
+            "user": self.test_user.id,
+            "status": "Waiting",
+            "delivery_address": "kuja123",
+            "contact": "Tony Halme",
+            "order_info": "nyrrillataa",
+            "phone_number": "99999"
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+        data = {"user": self.test_user.id}
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
 
+    def test_get_order(self):
+        url = f"/orders/{self.test_order.id}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_order_logged_user(self):
+        url = f"/orders/user/"
+        response = self.client.get(url)
+        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)

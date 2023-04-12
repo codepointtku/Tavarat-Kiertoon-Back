@@ -32,7 +32,6 @@ class TestOrders(TestCase):
             username="nyrrillataa",
             joint_user=False
         )
-        cls.test_shoppingcart = ShoppingCart.objects.create(user=cls.test_user)
         cls.test_color = Color.objects.create(name="punainen")
         cls.test_storage = Storage.objects.create(name="mokkavarasto")
         cls.test_storage1 = Storage.objects.create(name="italiangoldstorage")
@@ -45,6 +44,7 @@ class TestOrders(TestCase):
         )
         cls.test_product = Product.objects.create(
             name="nahkasohva",
+            group_id=1,
             price=0,
             category=cls.test_category,
             color=cls.test_color,
@@ -55,6 +55,7 @@ class TestOrders(TestCase):
         )
         cls.test_product1 = Product.objects.create(
             name="sohvanahka",
+            group_id=909,
             price=0,
             category=cls.test_category,
             color=cls.test_color,
@@ -65,6 +66,14 @@ class TestOrders(TestCase):
         )
         cls.test_order = Order.objects.create(
             user=cls.test_user, phone_number="1234567890"
+        )
+        cls.test_shoppingcart = ShoppingCart.objects.create(
+            user=cls.test_user
+            )
+        cls.test_shoppingcart.products.set(
+            [
+                Product.objects.get(id=cls.test_product.id)
+            ]
         )
 
         
@@ -96,9 +105,70 @@ class TestOrders(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.content.decode(), '"Shopping cart for this user does not exist"')
 
+    def test_put_shopping_cart_doesnotexist(self):
+        url = "/shopping_cart/"
+        self.client.login(username="kahvimakeempi@turku.fi", password="Äijjä93")
+        response = self.client.put(url)
+        self.assertEqual(response.content.decode(), '"Shopping cart for this user does not exist"')
+
     def test_get_shopping_cart(self):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
         response = self.client.get(url)
         self.assertEqual(response.json()["user"], self.test_user.id)
-        
+
+    def test_empty_shopping_cart(self):
+        url = "/shopping_cart/"
+        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        data = {
+            "products": ""
+        }
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 202)
+        print("DEL")
+
+    def test_add_to_shopping_cart(self):
+        url = "/shopping_cart/"
+        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        data = {
+            "products": self.test_product1.id,
+            "amount": 1
+        }
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 202)
+        print("ADD")
+
+    def test_add_to_shopping_cart_amountovermax(self):
+        url = "/shopping_cart/"
+        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        data = {
+            "products": self.test_product1.id,
+            "amount": 10
+        }
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 202)
+        print("ADD")
+
+    def test_remove_from_shopping_cart(self):
+        url = "/shopping_cart/"
+        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        data = {
+            "products": self.test_product.id,
+            "amount": -1
+        }
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 202)
+        print("REMOVE")
+
+    def test_remove_from_shopping_cart_amountovermax(self):
+        url = "/shopping_cart/"
+        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        data = {
+            "products": self.test_product.id,
+            "amount": -10
+        }
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 202)
+        print("REMOVE")
+
+

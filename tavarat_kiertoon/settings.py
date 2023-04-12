@@ -212,3 +212,11 @@ EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 PASSWORD_RESET_URL_FRONT = "http://127.0.0.1:8000/users/password/reset/"
 
 PASSWORD_RESET_TIMEOUT = 900  # ( 60 * 15 = 900 (sekuntia))
+
+# Define the below varibles in .env
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = config("EMAIL_PORT")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS")

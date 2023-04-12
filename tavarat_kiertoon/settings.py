@@ -205,8 +205,9 @@ AUTH_USER_MODEL = "users.CustomUser"
 # setting for allowed domains in email to be used elsewhere in program
 VALID_EMAIL_DOMAINS = ["turku.fi", "edu.turku.fi"]
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-# EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
+# # EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+# EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # swap this to the fornts reset view when done
 PASSWORD_RESET_URL_FRONT = "http://127.0.0.1:8000/users/password/reset/"

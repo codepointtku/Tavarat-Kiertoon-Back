@@ -185,6 +185,7 @@ class TestOrders(TestCase):
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
+
         data = {"user": self.test_user.id}
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
@@ -198,5 +199,39 @@ class TestOrders(TestCase):
         url = f"/orders/user/"
         response = self.client.get(url)
         self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+
         response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_remove_products_from_order(self):
+        url = f"/orders/{self.test_order.id}/"
+        data = {
+            "productId": self.test_order.id,
+            "product": self.test_product1.id
+        }
+        response = self.client.delete(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 202)
+
+        data = {
+            "productId": self.test_order.id
+        }
+        response = self.client.delete(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 204)        
+
+    def test_update_order(self):
+        url = f"/orders/{self.test_order.id}/"
+        data = {
+            "user": self.test_user.id, 
+            "phone_number": "11212121",
+            "status": "Waiting"   
+        }
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+
+        data = {
+            "user": self.test_user.id,
+            "phone_number": "11212121",
+            "delivery_date": "asd"
+        }
+        response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)

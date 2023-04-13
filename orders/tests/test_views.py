@@ -13,19 +13,19 @@ class TestOrders(TestCase):
             last_name="Make",
             email="kahvimake@turku.fi",
             phone_number="1112223344",
-            password="Rekkamies88",
+            password="asd123",
             address="Karvakuja 1",
             zip_code="100500",
             city="Puuhamaa",
-            username="kahvimaesto",
+            username="kahvimaestro",
             joint_user=False
         )
         cls.test_user1 = CustomUser.objects.create_user(
             first_name="Kahvimpi",
-            last_name="Makee",
-            email="kahvimakeempi@turku.fi",
+            last_name="Markus",
+            email="kahvimarkus@turku.fi",
             phone_number="1112223323",
-            password="Äijjä93",
+            password="qwe456",
             address="Karvakuja 2",
             zip_code="100500",
             city="Puuhamaa",
@@ -106,25 +106,25 @@ class TestOrders(TestCase):
 
     def test_get_shopping_cart_doesnotexist(self):
         url = "/shopping_cart/"
-        self.client.login(username="kahvimakeempi@turku.fi", password="Äijjä93")
+        self.client.login(username="kahvimarkus@turku.fi", password="qwe456")
         response = self.client.get(url)
         self.assertEqual(response.content.decode(), '"Shopping cart for this user does not exist"')
 
     def test_put_shopping_cart_doesnotexist(self):
         url = "/shopping_cart/"
-        self.client.login(username="kahvimakeempi@turku.fi", password="Äijjä93")
+        self.client.login(username="kahvimarkus@turku.fi", password="qwe456")
         response = self.client.put(url)
         self.assertEqual(response.content.decode(), '"Shopping cart for this user does not exist"')
 
     def test_get_shopping_cart(self):
         url = "/shopping_cart/"
-        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         response = self.client.get(url)
         self.assertEqual(response.json()["user"], self.test_user.id)
 
     def test_empty_shopping_cart(self):
         url = "/shopping_cart/"
-        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "products": ""
         }
@@ -134,7 +134,7 @@ class TestOrders(TestCase):
 
     def test_add_to_shopping_cart(self):
         url = "/shopping_cart/"
-        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "products": self.test_product1.id,
             "amount": 1
@@ -144,7 +144,7 @@ class TestOrders(TestCase):
 
     def test_add_to_shopping_cart_amountovermax(self):
         url = "/shopping_cart/"
-        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "products": self.test_product1.id,
             "amount": 10
@@ -154,7 +154,7 @@ class TestOrders(TestCase):
 
     def test_remove_from_shopping_cart(self):
         url = "/shopping_cart/"
-        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "products": self.test_product.id,
             "amount": -1
@@ -164,7 +164,7 @@ class TestOrders(TestCase):
 
     def test_remove_from_shopping_cart_amountovermax(self):
         url = "/shopping_cart/"
-        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "products": self.test_product.id,
             "amount": -10
@@ -172,15 +172,20 @@ class TestOrders(TestCase):
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
 
+    def test_get_orders(self):
+        url = "/orders/?status=Waiting"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
     def test_post_order(self):
         url = "/orders/"
-        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "user": self.test_user.id,
             "status": "Waiting",
             "delivery_address": "kuja123",
-            "contact": "Tony Halme",
-            "order_info": "nyrrillataa",
+            "contact": "Antero Alakulo",
+            "order_info": "nyrillataan",
             "phone_number": "99999"
         }
         response = self.client.post(url, data, content_type="application/json")
@@ -198,7 +203,7 @@ class TestOrders(TestCase):
     def test_get_order_logged_user(self):
         url = f"/orders/user/"
         response = self.client.get(url)
-        self.client.login(username="kahvimake@turku.fi", password="Rekkamies88")
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -234,4 +239,4 @@ class TestOrders(TestCase):
             "delivery_date": "asd"
         }
         response = self.client.put(url, data, content_type="application/json")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)

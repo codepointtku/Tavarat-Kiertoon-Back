@@ -675,11 +675,16 @@ class UserPasswordResetMailView(APIView):
             message = "heres the password reset link you requested: " + reset_url
 
             # sending the email
+            subject = "Reset password to Tavarat Kiertoon"
+            message = "Hi you are trying to reset your Tavarat kiertoon password.\n\n"
+            message += f"Please click the following link to reset your user accounts password: {reset_url} \n\n"
+            message += "If you did not request this password reset ignore this mail."
+
             send_mail(
-                "password reset link",
+                subject,
                 message,
-                "tavaratkiertoon_backend@testi.fi",
-                ["testi@turku.fi"],
+                settings.EMAIL_HOST_USER,
+                [user.email],
                 fail_silently=False,
             )
 

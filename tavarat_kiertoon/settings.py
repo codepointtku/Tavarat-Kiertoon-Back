@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     "products",
     "users",
     "rest_framework",
-    "rest_framework_simplejwt",   
+    "rest_framework_simplejwt",
     "orders",
     "bikes",
     "corsheaders",
@@ -202,12 +202,25 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.CustomUser"
 
 # setting for allowed domains in email to be used elsewhere in program
-VALID_EMAIL_DOMAINS = ["turku.fi", "edu.turku.fi"]
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+VALID_EMAIL_DOMAINS = config("VALID_EMAIL_DOMAINS")
+# if  yo uwant to change the email backendtype do it in the .env file, its default on console
+
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_BACKEND = config("EMAIL_BACKEND")
+
 EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 
 # swap this to the fornts reset view when done
 PASSWORD_RESET_URL_FRONT = "http://127.0.0.1:8000/users/password/reset/"
 
 PASSWORD_RESET_TIMEOUT = 900  # ( 60 * 15 = 900 (sekuntia))
+
+# Define the below varibles in .env
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = config("EMAIL_PORT")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS")

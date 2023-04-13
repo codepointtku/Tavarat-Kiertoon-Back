@@ -23,6 +23,8 @@ class BikeStockList(generics.ListAPIView):
 
 
 class MainBikeList(generics.ListAPIView):
+    serializer_class = BikePackageSerializer
+
     def list(self, request, *args, **kwargs):
         today = datetime.date.today()
         available_from = today + datetime.timedelta(days=7)

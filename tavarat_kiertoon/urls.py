@@ -18,6 +18,7 @@ from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -57,17 +58,12 @@ from products.views import (
     StorageListView,
     StorageProductListView,
 )
-from users.views import (
+from users.views import (  # GroupNameView,; GroupPermissionCheckView,; UserAddressListView,; UserDetailLimitedView,; UserDetailsListLimitedView,
     GroupListView,
-    GroupNameView,
-    GroupPermissionCheckView,
     GroupPermissionUpdateView,
-    UserAddressAddView,
+    UserAddressAdminEditView,
     UserAddressEditView,
-    UserAddressListView,
     UserCreateListView,
-    UserDetailLimitedView,
-    UserDetailsListLimitedView,
     UserDetailsListView,
     UserLoggedInDetailView,
     UserLoginTestView,
@@ -107,14 +103,9 @@ urlpatterns = [
     path("user/", UserLoggedInDetailView.as_view()),
     path("users/create/", UserCreateListView.as_view()),
     path("users/<int:pk>/", UserSingleGetView.as_view()),
-    path("users/address/", UserAddressListView.as_view()),
-    path("users/address/add/", UserAddressAddView.as_view()),
-    path("users/address/<int:pk>/", UserAddressEditView.as_view()),
-    path("users/limited/", UserDetailsListLimitedView.as_view()),
-    path("users/limited/<int:pk>/", UserDetailLimitedView.as_view()),
+    path("users/address/edit/", UserAddressEditView.as_view()),
+    path("users/address/<int:pk>/", UserAddressAdminEditView.as_view()),
     path("users/groups/", GroupListView.as_view()),
-    path("users/groups/<int:pk>/", GroupNameView.as_view()),
-    path("users/groups/permission/", GroupPermissionCheckView.as_view()),
     path("users/groups/permission/<int:pk>/", GroupPermissionUpdateView.as_view()),
     path("users/login_check/", UserLoginTestView.as_view()),
     path("users/logout/", UserLogoutView.as_view()),
@@ -129,9 +120,7 @@ urlpatterns = [
     path("contacts/<int:pk>", ContactDetailView.as_view()),
     path("api-auth/", include("rest_framework.urls")),
     path("users/login/", UserLoginView.as_view(), name="token_obtain_pair_http"),
-    path("users/login/test/", UserLoginTestView.as_view(), name="token_obtain_pair"),
     path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refresh"),
-    path("users/login/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("users/password/resetemail/", UserPasswordResetMailView.as_view()),
     path(
         "users/password/reset/<uidb64>/<token>/",
@@ -140,6 +129,14 @@ urlpatterns = [
     path(
         "users/password/reset/",
         UserPasswordResetMailValidationView.as_view(),
+    ),
+    path("schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "docs/",
+        SpectacularSwaggerView.as_view(
+            url_name="schema"
+        ),
+        name="swag",
     ),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT

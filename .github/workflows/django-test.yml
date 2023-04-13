@@ -18,6 +18,13 @@ jobs:
       DATABASE_PASSWORD: postgres
       DATABASE_HOST: localhost
       DATABASE_PORT: 5432
+      DEFAULT_FROM_EMAIL: codepointTku@gmail.com
+      EMAIL_HOST: smtp.gmail.com
+      EMAIL_HOST_USER: codepointTku@gmail.com
+      EMAIL_HOST_PASSWORD: gibnthatqtojkort
+      EMAIL_PORT: 587 
+      EMAIL_USE_TLS: True
+      EMAIL_RECEIVER: codepointTku@gmail.com
     services:
       postgres:
         image: postgres:15

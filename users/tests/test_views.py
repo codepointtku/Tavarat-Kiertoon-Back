@@ -115,9 +115,9 @@ class TestUsers(TestCase):
             "/user/",
             "/users/groups/",
             f"/users/groups/permission/{user_for_testing.id}/",
-            "/users/update/",
+            "/user/update/",
             f"/users/update/{user_for_testing.id}/",
-            "/users/address/edit/",
+            "/user/address/edit/",
             f"/users/address/{address_for_testing.id}",
             "/users/password/resetemail/",
             "/users/password/reset/",
@@ -592,7 +592,7 @@ class TestUsers(TestCase):
         test for users changing their own info
         """
         # print("KAKSTOISTAA!!!!")
-        url = "/users/update/"
+        url = "/user/update/"
 
         # test without logging in (forbidden response)
         response = self.client.put(url)
@@ -670,7 +670,7 @@ class TestUsers(TestCase):
         """
         test for testing user changing his own addressess
         """
-        url = "/users/address/edit/"
+        url = "/user/address/edit/"
         # print("NELJÄTOSITA")
 
         # test response as anon
@@ -885,7 +885,9 @@ class TestUsers(TestCase):
             response.status_code, 200, "should get 200 even on non existing username"
         )
         self.assertEqual(
-            len(mail.outbox), 0, "mail should not have been sent when incorrect username"
+            len(mail.outbox),
+            0,
+            "mail should not have been sent when incorrect username",
         )
 
         data = {"username": "testimies"}
@@ -893,7 +895,7 @@ class TestUsers(TestCase):
         self.assertEqual(
             response.status_code, 200, "should go thorugh with existing username"
         )
-        
+
         # grabbing the link from the email that was sent, and putting it into form that can be used with test
         end_part_of_email_link = mail.outbox[0].body.split(url2)
         the_parameters = end_part_of_email_link[1].split("/")

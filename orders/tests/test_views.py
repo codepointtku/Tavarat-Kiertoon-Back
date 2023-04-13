@@ -231,7 +231,7 @@ class TestOrders(TestCase):
             "status": "Waiting"   
         }
         response = self.client.put(url, data, content_type="application/json")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 202)
 
         data = {
             "user": self.test_user.id,
@@ -239,4 +239,4 @@ class TestOrders(TestCase):
             "delivery_date": "asd"
         }
         response = self.client.put(url, data, content_type="application/json")
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 204)

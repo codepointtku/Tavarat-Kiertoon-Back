@@ -101,15 +101,15 @@ urlpatterns = [
     path("categories/tree/", CategoryTreeView.as_view()),
     path("users/", UserDetailsListView.as_view()),
     path("user/", UserLoggedInDetailView.as_view()),
+    path("user/update/", UserUpdateInfoView.as_view()),
+    path("user/address/edit/", UserAddressEditView.as_view()),
     path("users/create/", UserCreateListView.as_view()),
     path("users/<int:pk>/", UserSingleGetView.as_view()),
-    path("users/address/edit/", UserAddressEditView.as_view()),
     path("users/address/<int:pk>/", UserAddressAdminEditView.as_view()),
     path("users/groups/", GroupListView.as_view()),
     path("users/groups/permission/<int:pk>/", GroupPermissionUpdateView.as_view()),
     path("users/login_check/", UserLoginTestView.as_view()),
     path("users/logout/", UserLogoutView.as_view()),
-    path("users/update/", UserUpdateInfoView.as_view()),
     path("users/update/<int:pk>/", UserUpdateSingleView.as_view()),
     path("bulletins/", BulletinListView.as_view()),
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),
@@ -133,9 +133,7 @@ urlpatterns = [
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "docs/",
-        SpectacularSwaggerView.as_view(
-            url_name="schema"
-        ),
+        SpectacularSwaggerView.as_view(url_name="schema"),
         name="swag",
     ),
 ] + static(

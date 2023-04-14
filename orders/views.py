@@ -183,7 +183,9 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
                 return Response(status=status.HTTP_202_ACCEPTED)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def perform_update(self, serializer):
+    def put(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)

@@ -19,7 +19,7 @@ from bikes.models import (
     BikeStock,
     BikeType,
 )
-from bulletins.models import Bulletin, BulletinSubject
+from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
 from orders.models import Order, ShoppingCart
@@ -50,7 +50,6 @@ class Command(BaseCommand):
 
 def clear_data():
     """Deletes all the table data."""
-    BulletinSubject.objects.all().delete()
     Bulletin.objects.all().delete()
     Category.objects.all().delete()
     ContactForm.objects.all().delete()

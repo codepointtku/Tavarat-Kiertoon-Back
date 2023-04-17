@@ -19,7 +19,7 @@ from bikes.models import (
     BikeStock,
     BikeType,
 )
-from bulletins.models import Bulletin, BulletinSubject
+from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
 from orders.models import Order, ShoppingCart
@@ -50,7 +50,6 @@ class Command(BaseCommand):
 
 def clear_data():
     """Deletes all the table data."""
-    BulletinSubject.objects.all().delete()
     Bulletin.objects.all().delete()
     Category.objects.all().delete()
     ContactForm.objects.all().delete()
@@ -103,14 +102,6 @@ def create_contact_forms():
             status=c_form["status"],
         )
         c_form_obj.save()
-
-
-def create_bulletin_subjects():
-    """Creates bulletin subjects from the list"""
-    b_subjects = ["Yleinen", "Sivusto", "Mobiili"]
-    for subject in b_subjects:
-        b_subject_obj = BulletinSubject(name=subject)
-        b_subject_obj.save()
 
 
 def create_colors():
@@ -833,16 +824,6 @@ def create_bulletins():
             author=random.choice(authors),
         )
         bulletin_object.save()
-    queryset = Bulletin.objects.all()
-    bulletin_subjects = BulletinSubject.objects.all()
-    for query in queryset:
-        query.subject.set(
-            [
-                random.choice(bulletin_subjects),
-                random.choice(bulletin_subjects),
-                random.choice(bulletin_subjects),
-            ]
-        )
 
 
 def create_contacts():
@@ -968,7 +949,6 @@ def run_seed(self, mode):
         return
 
     create_contact_forms()
-    create_bulletin_subjects()
     create_colors()
     create_groups()
     create_storages()

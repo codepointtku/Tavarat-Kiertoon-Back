@@ -112,14 +112,16 @@ class ProductListView(generics.ListAPIView):
     pagination_class = ProductListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
-    ordering_fields = ["id"]
-    ordering = ["-id"]
+    ordering_fields = ["modified_date"]
+    ordering = ["-modified_date"]
     filterset_class = ProductFilter
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         unique_groupids = (
-            queryset.values("id").order_by("group_id", "id").distinct("group_id")
+            queryset.values("id")
+            .order_by("group_id", "-modified_date")
+            .distinct("group_id")
         )
         grouped_queryset = queryset.filter(id__in=unique_groupids)
         amounts = (
@@ -154,8 +156,8 @@ class StorageProductListView(generics.ListCreateAPIView):
     pagination_class = ProductListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
-    ordering_fields = ["id"]
-    ordering = ["-id"]
+    ordering_fields = ["modified_date"]
+    ordering = ["-modified_date"]
     filterset_class = ProductFilter
 
     def get_queryset(self):

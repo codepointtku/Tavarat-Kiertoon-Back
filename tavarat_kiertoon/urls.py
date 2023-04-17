@@ -25,12 +25,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from bulletins.views import (
-    BulletinDetailView,
-    BulletinListView,
-    BulletinSubjectDetailView,
-    BulletinSubjectListView,
-)
+from bulletins.views import BulletinDetailView, BulletinListView
 from categories.views import CategoryDetailView, CategoryListView
 from contact_forms.views import (
     ContactDetailView,
@@ -101,8 +96,6 @@ urlpatterns = [
     path("categories/tree/", CategoryTreeView.as_view()),
     path("bulletins/", BulletinListView.as_view()),
     path("bulletins/<int:pk>", BulletinDetailView.as_view()),
-    path("bulletin_subjects/", BulletinSubjectListView.as_view()),
-    path("bulletin_subjects/<int:pk>", BulletinSubjectDetailView.as_view()),
     path("bikes/", include("bikes.urls")),
     path("contacts/", ContactListView.as_view()),
     path("contacts/<int:pk>", ContactDetailView.as_view()),

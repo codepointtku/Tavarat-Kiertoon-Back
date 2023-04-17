@@ -105,14 +105,6 @@ def create_contact_forms():
         c_form_obj.save()
 
 
-def create_bulletin_subjects():
-    """Creates bulletin subjects from the list"""
-    b_subjects = ["Yleinen", "Sivusto", "Mobiili"]
-    for subject in b_subjects:
-        b_subject_obj = BulletinSubject(name=subject)
-        b_subject_obj.save()
-
-
 def create_colors():
     """Creates color objects from the list."""
     colors = ["Punainen", "Sininen", "Vihreä", "Musta", "Valkoinen", "Ruskea"]
@@ -833,16 +825,6 @@ def create_bulletins():
             author=random.choice(authors),
         )
         bulletin_object.save()
-    queryset = Bulletin.objects.all()
-    bulletin_subjects = BulletinSubject.objects.all()
-    for query in queryset:
-        query.subject.set(
-            [
-                random.choice(bulletin_subjects),
-                random.choice(bulletin_subjects),
-                random.choice(bulletin_subjects),
-            ]
-        )
 
 
 def create_contacts():
@@ -968,7 +950,6 @@ def run_seed(self, mode):
         return
 
     create_contact_forms()
-    create_bulletin_subjects()
     create_colors()
     create_groups()
     create_storages()

@@ -12,8 +12,12 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
-from drf_spectacular.utils import extend_schema, extend_schema_serializer
-from rest_framework import generics, permissions, status
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_serializer,
+    inline_serializer,
+)
+from rest_framework import generics, permissions, serializers, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import IsAuthenticated
@@ -522,7 +526,7 @@ class UserUpdateInfoView(APIView):
 
 class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     """
-    Get specific users info for updating
+    Get specific users info for updating, field that can be updated
     """
 
     authentication_classes = [
@@ -740,6 +744,16 @@ class UserPasswordResetMailValidationView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # get is used in testing should not be needed in deployment, will be removed later?
+    @extend_schema(
+        responses=inline_serializer(
+            name="test returns",
+            fields={
+                "msg": serializers.CharField(),
+                "uid": serializers.CharField(),
+                "token": serializers.CharField(),
+            },
+        )
+    )
     def get(self, request, *args, **kwargs):
         if "uidb64" not in kwargs or "token" not in kwargs:
             return Response(

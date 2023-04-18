@@ -118,7 +118,7 @@ class TestUsers(TestCase):
             "/user/edit/",
             f"/users/{user_for_testing.id}/edit/",
             "/user/address/edit/",
-            f"/users/{address_for_testing.id}/address/",
+            f"/users/address/{address_for_testing.id}/",
             "/users/password/resetemail/",
             "/users/password/reset/",
             "/users/password/reset/1/1/",
@@ -803,7 +803,7 @@ class TestUsers(TestCase):
         # gettign address to test
         address_for_testing = UserAddress.objects.get(address="testi")
         address_id = address_for_testing.id
-        url = f"/users/{address_id}/address/"
+        url = f"/users/address/{address_id}/"
         # print("VIISITOISTAaaaaaaaa")
 
         # testing response for anons

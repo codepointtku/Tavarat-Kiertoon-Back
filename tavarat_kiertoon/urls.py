@@ -107,7 +107,7 @@ urlpatterns = [
     path("users/create/", UserCreateListView.as_view()),
     path("users/<int:pk>/", UserSingleGetView.as_view()),
     path("users/<int:pk>/edit/", UserUpdateSingleView.as_view()),
-    path("users/<int:pk>/address/", UserAddressAdminEditView.as_view()),
+    path("users/address/<int:pk>/", UserAddressAdminEditView.as_view()),
     path("users/<int:pk>/groups/permission/", GroupPermissionUpdateView.as_view()),
     path("users/groups/", GroupListView.as_view()),
     path("users/login/", UserLoginView.as_view(), name="token_obtain_pair_http"),

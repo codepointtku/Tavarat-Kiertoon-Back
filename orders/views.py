@@ -16,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from products.models import Picture, Product
+from products.serializers import ProductSerializer
 from products.views import pic_ids_as_address_list
 from users.views import CustomJWTAuthentication
 
@@ -169,6 +170,14 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
 
+    @extend_schema(
+        parameters=[
+            ProductSerializer,
+            OpenApiParameter("products", OpenApiTypes.BOOL),
+        ],
+        request=OrderDetailSerializer,
+        responses=OrderDetailSerializer,
+    )
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)

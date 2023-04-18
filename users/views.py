@@ -15,6 +15,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 from drf_spectacular.utils import extend_schema, extend_schema_serializer
 from rest_framework import generics, permissions, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -542,7 +543,7 @@ class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
 
 
-class UserAddressEditView(APIView):
+class UserAddressEditView(APIView, ListModelMixin):
     """
     Get list of all addresss logged in user has, and edit them new one
     """
@@ -565,6 +566,7 @@ class UserAddressEditView(APIView):
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
 
+    @extend_schema(request=UserAddressSerializer(many=True))
     def get(self, request, format=None):
         qs = UserAddress.objects.filter(user=request.user.id)
         serialized_info = UserAddressSerializer(qs, many=True)

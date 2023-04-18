@@ -156,7 +156,7 @@ class StorageProductListView(generics.ListCreateAPIView):
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
     ordering_fields = ["modified_date", "id"]
-    ordering = ["modified_date", "-id"]
+    ordering = ["-modified_date", "-id"]
     filterset_class = ProductFilter
 
     def get_queryset(self):
@@ -227,7 +227,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         if "modify_date" in request.data:
-            serializer.save(modified_date=timezone.now)
+            serializer.save(modified_date=timezone.now())
         else:
             serializer.save()
         data = serializer.data

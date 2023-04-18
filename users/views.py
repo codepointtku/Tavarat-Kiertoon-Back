@@ -507,8 +507,8 @@ class UserUpdateInfoView(APIView):
     queryset = User.objects.all()
 
     def get(self, request, format=None):
-        queryset = User.objects.filter(id=request.user.id)
-        serialized_data = self.serializer_class(queryset, many=True)
+        user = User.objects.get(id=request.user.id)
+        serialized_data = self.serializer_class(user)
         return Response(serialized_data.data)
 
     def put(self, request, format=None):

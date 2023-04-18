@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.http import urlsafe_base64_decode
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers, status
 
 from .models import CustomUser, UserAddress

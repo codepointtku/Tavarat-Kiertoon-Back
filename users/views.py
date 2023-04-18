@@ -12,6 +12,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
+from drf_spectacular.utils import extend_schema, extend_schema_serializer
 from rest_framework import generics, permissions, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -671,6 +672,8 @@ class UserPasswordResetMailView(APIView):
             token_for_user = token_generator.make_token(user=user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
 
+            back_reset_url = "http://127.0.0.1:8000/users/password/reset/"
+            reset_url_back = f"{back_reset_url}{uid}/{token_for_user}/"
             reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
             message = "heres the password reset link you requested: " + reset_url
 
@@ -694,6 +697,7 @@ class UserPasswordResetMailView(APIView):
             response.data = {
                 "message": message,
                 "url": reset_url,
+                "back_reset": reset_url_back,
                 "crypt": uid,
                 "token": token_for_user,
             }

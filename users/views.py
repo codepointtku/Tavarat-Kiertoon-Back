@@ -484,7 +484,8 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
 
 class UserUpdateInfoView(APIView):
     """
-    Get logged in users information and update it
+    Get logged in users information and update it.
+    only fields that can be changed.
     """
 
     authentication_classes = [
@@ -545,7 +546,8 @@ class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
 
 class UserAddressEditView(APIView, ListModelMixin):
     """
-    Get list of all addresss logged in user has, and edit them new one
+    Get list of all addresss logged in user has, and edit them
+    allows delete if address id is givne, but address owner id has to match users own.
     """
 
     authentication_classes = [
@@ -566,7 +568,7 @@ class UserAddressEditView(APIView, ListModelMixin):
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
 
-    @extend_schema(request=UserAddressSerializer(many=True))
+    # @extend_schema(request=UserAddressSerializer(many=True))
     def get(self, request, format=None):
         qs = UserAddress.objects.filter(user=request.user.id)
         serialized_info = UserAddressSerializer(qs, many=True)

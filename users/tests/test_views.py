@@ -114,11 +114,11 @@ class TestUsers(TestCase):
             f"/users/{user_for_testing.id}/",
             "/user/",
             "/users/groups/",
-            f"/users/groups/permission/{user_for_testing.id}/",
-            "/user/update/",
-            f"/users/update/{user_for_testing.id}/",
+            f"/users/{user_for_testing.id}/groups/permission/",
+            "/user/edit/",
+            f"/users/{user_for_testing.id}/edit/",
             "/user/address/edit/",
-            f"/users/address/{address_for_testing.id}",
+            f"/users/{address_for_testing.id}/address/",
             "/users/password/resetemail/",
             "/users/password/reset/",
             "/users/password/reset/1/1/",
@@ -535,7 +535,7 @@ class TestUsers(TestCase):
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
         first = GroupPermissionsSerializer(user_for_testing)
         groups_before = first.data["groups"]
-        url = f"/users/groups/permission/{user_for_testing.id}/"
+        url = f"/users/{user_for_testing.id}/groups/permission/"
 
         # testing that normal non admin user cant do the change
         self.login_test_user()
@@ -592,7 +592,7 @@ class TestUsers(TestCase):
         test for users changing their own info
         """
         # print("KAKSTOISTAA!!!!")
-        url = "/user/update/"
+        url = "/user/edit/"
 
         # test without logging in (forbidden response)
         response = self.client.put(url)
@@ -626,7 +626,7 @@ class TestUsers(TestCase):
 
         # get existing users id for testing
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
-        url = f"/users/update/{user_for_testing.id}/"
+        url = f"/users/{user_for_testing.id}/edit/"
 
         # test response when not logged in
         response = self.client.get(url)
@@ -803,7 +803,7 @@ class TestUsers(TestCase):
         # gettign address to test
         address_for_testing = UserAddress.objects.get(address="testi")
         address_id = address_for_testing.id
-        url = f"/users/address/{address_id}/"
+        url = f"/users/{address_id}/address/"
         # print("VIISITOISTAaaaaaaaa")
 
         # testing response for anons

@@ -1,7 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
-from django.shortcuts import render
 from django_filters import rest_framework as filters
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
@@ -98,15 +99,15 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
         available_itemset = itemset.exclude(id__in=instance.products.values("id"))
         removable_itemset = instance.products.filter(group_id=cartproduct.group_id)
         amount = request.data["amount"]
-        
-        #front sends either a negative or a positive amount
+
+        # front sends either a negative or a positive amount
         if amount >= 0:
             if len(available_itemset) < amount:
                 amount = len(available_itemset)
             for i in range(amount):
                 instance.products.add(available_itemset[i])
         else:
-            #if amount is negative, conversion to positive for iterating over removable_itemset
+            # if amount is negative, conversion to positive for iterating over removable_itemset
             amount *= -1
             if amount > len(removable_itemset):
                 amount = len(removable_itemset)

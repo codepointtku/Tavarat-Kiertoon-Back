@@ -29,6 +29,7 @@ from .serializers import (
     ColorSerializer,
     PictureSerializer,
     ProductSerializer,
+    ProductCreateSerializer,
     StorageSerializer,
 )
 
@@ -153,6 +154,10 @@ class ProductListView(generics.ListAPIView):
             ProductSerializer,
             inline_serializer("Post Products", fields={"amount": serializers.IntegerField()})
         ],
+        # request=
+        #     {"application/json": (inline_serializer("Post Products", fields={"amount": serializers.IntegerField(),"product": ProductSerializer()}))}
+        request=
+            {"application/json": ProductCreateSerializer()}
     )
 )
 class StorageProductListView(generics.ListCreateAPIView):

@@ -13,6 +13,14 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ProductCreateSerializer(serializers.ModelSerializer):
+    amount = serializers.IntegerField()
+
+    class Meta:
+        model = Product
+        fields = ("__all__")
+
+
 class ColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Color

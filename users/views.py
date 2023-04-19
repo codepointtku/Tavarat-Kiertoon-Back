@@ -580,14 +580,11 @@ class UserAddressEditView(APIView, ListModelMixin):
 
     # used for adding new address to user
     def post(self, request, format=None):
-        serializer = self.serializer_class(data=request.data)
+        copy_of_request_data = request.data.copy()
+        copy_of_request_data["user"] = request.user.id
+        serializer = self.serializer_class(data=copy_of_request_data)
         serializer.is_valid(raise_exception=True)
-        UserAddress.objects.create(
-            address=serializer.data["address"],
-            zip_code=serializer.data["zip_code"],
-            city=serializer.data["city"],
-            user=request.user,
-        )
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # used for updating existing address user has

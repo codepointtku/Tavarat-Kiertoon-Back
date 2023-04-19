@@ -148,15 +148,18 @@ class ProductListView(generics.ListAPIView):
         serializer = self.get_serializer(grouped_queryset, many=True)
         return Response(serializer.data)
 
+
 @extend_schema_view(
     post=extend_schema(
         parameters=[
             ProductCreateSerializer,
         ],
         # request=
-        #     {"application/json": (inline_serializer("Post Products", fields={"amount": serializers.IntegerField(),"product": ProductSerializer()}))}
+        #     {"application/json": (inline_serializer("Product amount", fields={"amount": serializers.IntegerField(), "other": ProductSerializer()}))}
         request=
-            {"application/json": ProductCreateSerializer()},
+            {"application/json": (inline_serializer(fields={"amount": serializers.IntegerField()}, **ProductSerializer))}
+        # request=
+        #     {"application/json": ProductCreateSerializer()},
     )
 )
 class StorageProductListView(generics.ListCreateAPIView):

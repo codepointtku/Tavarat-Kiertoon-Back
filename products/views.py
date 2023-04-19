@@ -151,13 +151,12 @@ class ProductListView(generics.ListAPIView):
 @extend_schema_view(
     post=extend_schema(
         parameters=[
-            ProductSerializer,
-            inline_serializer("Post Products", fields={"amount": serializers.IntegerField()})
+            ProductCreateSerializer,
         ],
         # request=
         #     {"application/json": (inline_serializer("Post Products", fields={"amount": serializers.IntegerField(),"product": ProductSerializer()}))}
         request=
-            {"application/json": ProductCreateSerializer()}
+            {"application/json": ProductCreateSerializer()},
     )
 )
 class StorageProductListView(generics.ListCreateAPIView):

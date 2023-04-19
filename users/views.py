@@ -15,6 +15,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_serializer,
+    extend_schema_field,
     inline_serializer,
 )
 from rest_framework import generics, permissions, serializers, status
@@ -272,7 +273,7 @@ class UserTokenRefreshView(TokenViewBase):
 
         return response
 
-
+@extend_schema(exclude=True)
 class UserLoginTestView(APIView):
     """
     this view is mainly used for testing purposes
@@ -579,6 +580,8 @@ class UserAddressEditView(APIView, ListModelMixin):
         return Response(serialized_info.data)
 
     # used for adding new address to user
+    # @extend_schema(request=extend_schema_field())
+    # @extend_schema_field()
     def post(self, request, format=None):
         copy_of_request_data = request.data.copy()
         copy_of_request_data["user"] = request.user.id
@@ -588,6 +591,7 @@ class UserAddressEditView(APIView, ListModelMixin):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # used for updating existing address user has
+    #@extend_schema(request={"id": serializers.IntegerField()})
     def put(self, request, format=None):
         if "id" not in request.data:
             msg = "no address id for adress updating"
@@ -611,6 +615,14 @@ class UserAddressEditView(APIView, ListModelMixin):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # used for deleting existing address user has
+    @extend_schema(
+        responses=inline_serializer(
+            name="address_del_user",
+            fields={
+                "id": serializers.IntegerField(),
+            },
+        )
+    )
     def delete(self, request, format=None):
         if "id" not in request.data:
             msg = "no address id for adress deletion"

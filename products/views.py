@@ -6,13 +6,18 @@ from django.core.files.base import ContentFile
 from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
-from rest_framework import generics, status
+from rest_framework import generics, status, serializers
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from drf_spectacular.utils import(
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+)
 
 from categories.models import Category
 from categories.serializers import CategorySerializer
@@ -142,7 +147,14 @@ class ProductListView(generics.ListAPIView):
         serializer = self.get_serializer(grouped_queryset, many=True)
         return Response(serializer.data)
 
-
+@extend_schema_view(
+    post=extend_schema(
+        parameters=[
+            ProductSerializer,
+            inline_serializer("Post Products", fields={"amount": serializers.IntegerField()})
+        ],
+    )
+)
 class StorageProductListView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
     authentication_classes = [

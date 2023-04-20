@@ -11,7 +11,13 @@ class CategorySerializer(serializers.ModelSerializer):
     def get_product_count(self, obj):
         categories = obj.get_descendants(include_self=True)
         products = Product.objects.filter(available=True)
-        return products.filter(category__in=categories).count()
+        available_products = products.filter(category__in=categories)
+        return (
+            available_products.values_list("group_id")
+            .order_by("group_id")
+            .distinct()
+            .count()
+        )
 
     class Meta:
         model = Category

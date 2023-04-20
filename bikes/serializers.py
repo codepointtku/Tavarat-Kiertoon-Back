@@ -71,7 +71,7 @@ class BikePackageSerializer(serializers.ModelSerializer):
         ]
 
 
-class BikeStockIndividualSerializer(serializers.ModelSerializer):
+class BikeStockDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeStock
         fields="__all__"

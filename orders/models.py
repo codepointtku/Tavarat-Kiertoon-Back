@@ -30,6 +30,7 @@ class Order(models.Model):
     order_info = models.TextField(null=True, default=None, blank=True)
     delivery_date = models.DateTimeField(null=True, default=None, blank=True)
     phone_number = models.CharField(max_length=255)
+    creation_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f"{self.user}'s Order({self.id})"

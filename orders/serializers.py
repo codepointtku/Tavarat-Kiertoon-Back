@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from products.serializers import ProductSerializer
@@ -12,8 +13,6 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    a = serializers.SlugRelatedField(many=True, read_only=True, slug_field="pictures")
-
     class Meta:
         model = Order
         fields = "__all__"

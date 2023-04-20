@@ -23,7 +23,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from products.models import Picture, Product
 from products.serializers import ProductSerializer
-from products.views import pic_ids_as_address_list
 from users.views import CustomJWTAuthentication
 
 from .models import Order, ShoppingCart
@@ -85,8 +84,6 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
         except ObjectDoesNotExist:
             return Response("Shopping cart for this user does not exist")
         serializer = self.get_serializer(instance)
-        for product in serializer.data["products"]:
-            product["pictures"] = pic_ids_as_address_list(product["pictures"])
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
@@ -123,8 +120,6 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
 
         updatedinstance = ShoppingCart.objects.get(user=request.user)
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)
-        for product in detailserializer.data["products"]:
-            product["pictures"] = pic_ids_as_address_list(product["pictures"])
         return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
 
@@ -175,13 +170,6 @@ class OrderListView(ListCreateAPIView):
 class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
-
-    def get(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        for product in serializer.data["products"]:
-            product["pictures"] = pic_ids_as_address_list(product["pictures"])
-        return Response(serializer.data)
 
     def delete(self, request, *args, **kwargs):
         order = Order.objects.get(id=request.data["productId"])

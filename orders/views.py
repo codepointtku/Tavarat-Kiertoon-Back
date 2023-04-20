@@ -2,8 +2,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
-from rest_framework import status
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    extend_schema,
+    extend_schema_field,
+    inline_serializer,
+)
+from rest_framework import fields, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import (
@@ -170,15 +176,7 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
 
-    @extend_schema(
-        parameters=[
-            ProductSerializer,
-            OpenApiParameter("products", OpenApiTypes.BOOL),
-        ],
-        request=OrderDetailSerializer,
-        responses=OrderDetailSerializer,
-    )
-    def retrieve(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         for product in serializer.data["products"]:

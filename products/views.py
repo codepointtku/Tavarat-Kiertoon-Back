@@ -15,7 +15,6 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from categories.models import Category
-from categories.serializers import CategorySerializer
 from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
@@ -112,14 +111,16 @@ class ProductListView(generics.ListAPIView):
     pagination_class = ProductListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
-    ordering_fields = ["id"]
-    ordering = ["-id"]
+    ordering_fields = ["modified_date", "id"]
+    ordering = ["-modified_date", "-id"]
     filterset_class = ProductFilter
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         unique_groupids = (
-            queryset.values("id").order_by("group_id", "id").distinct("group_id")
+            queryset.values("id")
+            .order_by("group_id", "-modified_date")
+            .distinct("group_id")
         )
         grouped_queryset = queryset.filter(id__in=unique_groupids)
         amounts = (
@@ -154,8 +155,8 @@ class StorageProductListView(generics.ListCreateAPIView):
     pagination_class = ProductListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
-    ordering_fields = ["id"]
-    ordering = ["-id"]
+    ordering_fields = ["modified_date", "id"]
+    ordering = ["-modified_date", "-id"]
     filterset_class = ProductFilter
 
     def get_queryset(self):
@@ -225,7 +226,10 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        if "modify_date" in request.data:
+            serializer.save(modified_date=timezone.now())
+        else:
+            serializer.save()
         data = serializer.data
         data["pictures"] = pic_ids_as_address_list(data["pictures"])
 

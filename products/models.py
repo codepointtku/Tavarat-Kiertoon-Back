@@ -1,6 +1,7 @@
 from os.path import basename
 
 from django.db import models
+from django.utils import timezone
 
 from categories.models import Category
 
@@ -57,6 +58,7 @@ class Product(models.Model):
     free_description = models.TextField(blank=True, null=True)
     pictures = models.ManyToManyField(Picture, blank=True)
     date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(default=timezone.now)
     measurements = models.CharField(max_length=50, null=True, blank=True)
     color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True)
     weight = models.FloatField(default=0.0, blank=True, null=True)

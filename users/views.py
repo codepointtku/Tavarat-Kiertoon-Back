@@ -12,12 +12,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_field,
-    extend_schema_serializer,
-    inline_serializer,
-)
+from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.mixins import ListModelMixin
@@ -39,6 +34,9 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     BooleanValidatorSerializer,
     GroupNameSerializer,
     GroupPermissionsSerializer,
+    UserAddressDeleteRequestSerializer,
+    UserAddressPostRequestSerializer,
+    UserAddressPutRequestSerializer,
     UserAddressSerializer,
     UserCreateReturnSerializer,
     UserCreateSerializer,
@@ -574,16 +572,13 @@ class UserAddressEditView(APIView, ListModelMixin):
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
 
-    # @extend_schema(request=UserAddressSerializer(many=True))
     def get(self, request, format=None):
         qs = UserAddress.objects.filter(user=request.user.id)
         serialized_info = UserAddressSerializer(qs, many=True)
         return Response(serialized_info.data)
 
     # used for adding new address to user
-    # @extend_schema(request=extend_schema_field())
-    # @extend_schema_field()
-    # @extend_schema(parameters=UserAddressSerializer)
+    @extend_schema(request=UserAddressPostRequestSerializer)
     def post(self, request, format=None):
         copy_of_request_data = request.data.copy()
         copy_of_request_data["user"] = request.user.id
@@ -593,8 +588,7 @@ class UserAddressEditView(APIView, ListModelMixin):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # used for updating existing address user has
-    # @extend_schema(request={"id": serializers.IntegerField()})
-    @extend_schema(parameters=[UserAddressSerializer])
+    @extend_schema(request=UserAddressPutRequestSerializer)
     def put(self, request, format=None):
         if "id" not in request.data:
             msg = "no address id for adress updating"
@@ -618,14 +612,7 @@ class UserAddressEditView(APIView, ListModelMixin):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # used for deleting existing address user has
-    @extend_schema(
-        request=inline_serializer(
-            name="address_del_user",
-            fields={
-                "id": serializers.IntegerField(),
-            },
-        )
-    )
+    @extend_schema(request=UserAddressDeleteRequestSerializer)
     def delete(self, request, format=None):
         if "id" not in request.data:
             msg = "no address id for adress deletion"

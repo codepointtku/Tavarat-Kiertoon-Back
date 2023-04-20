@@ -95,7 +95,7 @@ class UserPasswordChangeEmailValidationSerializer(serializers.Serializer):
 
 
 # @extend_schema_serializer(many=True, exclude_fields=["city"])
-#@extend_schema_serializer(many=True, exclude_fields=["city"])
+# @extend_schema_serializer(many=True, exclude_fields=["city"])
 class UserAddressSerializer(serializers.ModelSerializer):
     """
     Serializer for user address
@@ -234,3 +234,37 @@ class GroupPermissionsSerializer(serializers.ModelSerializer):
             "email",
             "groups",
         ]
+
+
+# -----------------------------------------------------------------------
+# schema serializers
+# -----------------------------------------------------------------------
+
+
+@extend_schema_serializer(exclude_fields=["user"])
+class UserAddressPostRequestSerializer(UserAddressSerializer):
+    """
+    Serializer mainly for schema purpose, fields required for creating address for user
+    """
+
+
+@extend_schema_serializer(exclude_fields=["user"])
+class UserAddressPutRequestSerializer(UserAddressSerializer):
+    """
+    Serializer mainly for schema purpose, removing the required tag and adding id
+    id = the id number of address being changed
+    """
+
+    id = serializers.IntegerField(required=True)
+    address = serializers.CharField(max_length=255, required=False)
+    zip_code = serializers.CharField(max_length=10, required=False)
+    city = serializers.CharField(max_length=100, required=False)
+
+
+class UserAddressDeleteRequestSerializer(UserAddressSerializer):
+    """
+    Serializer mainly for schema purpose, id
+    id = the id number of address being deleted
+    """
+
+    id = serializers.IntegerField(required=True)

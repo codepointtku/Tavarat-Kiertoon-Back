@@ -724,18 +724,20 @@ class UserPasswordResetMailValidationView(APIView):
         serializer = self.serializer_class(
             data=request.data, context={"request": request}
         )
-        serializer.is_valid(raise_exception=True)
+        # serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
+            # updating the users pw in database
+            user = User.objects.get(id=serializer.data["uid"])
+            user.set_password(serializer.data["new_password"])
+            user.save()
 
-        # updating the users pw in database
-        user = User.objects.get(id=serializer.data["uid"])
-        user.set_password(serializer.data["new_password"])
-        user.save()
+            response = Response()
+            response.status_code = status.HTTP_200_OK
+            response.data = {"data": serializer.data, "messsage": "pw updated"}
 
-        response = Response()
-        response.status_code = status.HTTP_200_OK
-        response.data = {"data": serializer.data, "messsage": "pw updated"}
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
     # get is used in testing should not be needed in deployment, will be removed later?
     def get(self, request, *args, **kwargs):

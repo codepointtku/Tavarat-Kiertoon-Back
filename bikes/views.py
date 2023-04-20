@@ -13,6 +13,7 @@ from bikes.serializers import (
     BikeRentalSerializer,
     BikeSerializer,
     BikeStockSerializer,
+    BikeStockIndividualSerializer,
 )
 
 
@@ -21,6 +22,9 @@ class BikeStockList(generics.ListAPIView):
     serializer_class = BikeStockSerializer
     # permission_classes = [isAdminUser]
 
+class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = BikeStock.objects.all()
+    serializer_class = BikeStockIndividualSerializer
 
 class MainBikeList(generics.ListAPIView):
     serializer_class = BikePackageSerializer

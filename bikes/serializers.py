@@ -69,3 +69,10 @@ class BikePackageSerializer(serializers.ModelSerializer):
             "description",
             "bikes",
         ]
+
+
+class BikeStockIndividualSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeStock
+        fields="__all__"
+        depth = 2

@@ -156,10 +156,10 @@ class ProductListView(generics.ListAPIView):
         ],
         # request=
         #     {"application/json": (inline_serializer("Product amount", fields={"amount": serializers.IntegerField(), "other": ProductSerializer()}))}
-        request=
-            {"application/json": (inline_serializer(fields={"amount": serializers.IntegerField()}, **ProductSerializer))}
         # request=
-        #     {"application/json": ProductCreateSerializer()},
+        #     {"application/json": (inline_serializer(fields={"amount": serializers.IntegerField()}, **ProductSerializer))}
+        request=
+            {"application/json": ProductCreateSerializer()},
     )
 )
 class StorageProductListView(generics.ListCreateAPIView):

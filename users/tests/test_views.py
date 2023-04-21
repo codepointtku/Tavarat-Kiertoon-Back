@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
@@ -870,6 +871,7 @@ class TestUsers(TestCase):
         # urls required for tests
         url = "/users/password/resetemail/"
         url2 = "/users/password/reset/"
+        url3 = settings.PASSWORD_RESET_URL_FRONT
 
         data = {"username": "tottally not should exist user name"}
         # testing invalid user, still should get 200 for security reasons but mail shoudnt be sent as user doesnt exist
@@ -890,7 +892,7 @@ class TestUsers(TestCase):
         )
 
         # grabbing the link from the email that was sent, and putting it into form that can be used with test
-        end_part_of_email_link = mail.outbox[0].body.split(url2)
+        end_part_of_email_link = mail.outbox[0].body.split(url3)
         the_parameters = end_part_of_email_link[1].split("/")
         # par 0 should be encoded uid, par 1 the token for reset
         the_change_url = (
@@ -922,7 +924,7 @@ class TestUsers(TestCase):
         response = self.client.post(url2, data, content_type="application/json")
         self.assertEqual(
             response.status_code,
-            400,
+            204,
             "should get wrongly stuff with wrong pw",
         )
 
@@ -937,7 +939,7 @@ class TestUsers(TestCase):
         response = self.client.post(url2, data, content_type="application/json")
         self.assertEqual(
             response.status_code,
-            400,
+            204,
             "should get wrongly stuff with wrong uid",
         )
 
@@ -952,7 +954,7 @@ class TestUsers(TestCase):
         response = self.client.post(url2, data, content_type="application/json")
         self.assertEqual(
             response.status_code,
-            400,
+            204,
             "should get wrongly stuff with non existant uid",
         )
 
@@ -966,7 +968,7 @@ class TestUsers(TestCase):
         response = self.client.post(url2, data, content_type="application/json")
         self.assertEqual(
             response.status_code,
-            400,
+            204,
             "should get wrongly stuff with wrong token",
         )
 
@@ -980,7 +982,7 @@ class TestUsers(TestCase):
         response = self.client.post(url2, data, content_type="application/json")
         self.assertEqual(
             response.status_code,
-            400,
+            204,
             "should get wrongly stuff with wrong pw but uid and token right",
         )
 
@@ -1002,7 +1004,7 @@ class TestUsers(TestCase):
         response = self.client.post(url2, data, content_type="application/json")
         self.assertEqual(
             response.status_code,
-            400,
+            204,
             "should not go thorugh as token should be used",
         )
 

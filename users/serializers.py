@@ -184,7 +184,13 @@ class UserFullSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         # fields = "__all__"
-        exclude = ["password", "is_admin", "is_staff", "is_superuser"]
+        exclude = [
+            "password",
+            "is_admin",
+            "is_staff",
+            "is_superuser",
+            "user_permissions",
+        ]
         depth = 1
 
 

@@ -552,6 +552,7 @@ class UserAddressEditView(APIView, ListModelMixin):
     """
     Get list of all addresss logged in user has, and edit them
     allows delete if address id is givne, but address owner id has to match users own.
+    about DELETE: schemas dont work with DELETE so it shows wrong, requires "id" integer in request bodyt and returns 200
     """
 
     authentication_classes = [

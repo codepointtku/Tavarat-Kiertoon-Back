@@ -27,6 +27,7 @@ jobs:
       EMAIL_RECEIVER: codepointTku@gmail.com
       EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
       VALID_EMAIL_DOMAINS: turku.fi, edu.turku.fi
+      PASSWORD_RESET_URL_FRONT : http://localhost:3000/salasananpalautus/
     services:
       postgres:
         image: postgres:15

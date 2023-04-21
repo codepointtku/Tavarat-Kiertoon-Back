@@ -15,6 +15,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
+    RetrieveUpdateAPIView,
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.pagination import PageNumberPagination
@@ -68,7 +69,7 @@ class ShoppingCartListView(ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
+class ShoppingCartDetailView(RetrieveUpdateAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartDetailSerializer
     authentication_classes = [

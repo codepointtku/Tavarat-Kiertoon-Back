@@ -264,10 +264,40 @@ class UserAddressPutRequestSerializer(UserAddressSerializer):
     city = serializers.CharField(max_length=100, required=False)
 
 
-class UserAddressDeleteRequestSerializer(UserAddressSerializer):
+class UserAddressDeleteRequestSerializer(serializers.Serializer):
     """
     Serializer mainly for schema purpose, id
     id = the id number of address being deleted
     """
 
     id = serializers.IntegerField(required=True)
+
+
+class UserLoginPostSerializer(serializers.Serializer):
+    """
+    Serializer mainly for schema purpose,
+    needed login information
+    """
+
+    username = serializers.CharField(max_length=255)
+    password = serializers.CharField(max_length=128)
+
+
+class UsersLoginResponseSerializer(serializers.ModelSerializer):
+    """
+    Serializer for return data when logging in and refreshing.
+    """
+
+    Success = serializers.CharField(default="Some message", max_length=255)
+
+    groups = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )  # comes out in list
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "Success",
+            "username",
+            "groups",
+        ]

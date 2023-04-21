@@ -42,9 +42,11 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     UserCreateSerializer,
     UserFullSerializer,
     UserLimitedSerializer,
+    UserLoginPostSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
+    UsersLoginResponseSerializer,
     UserUpdateSerializer,
 )
 
@@ -77,6 +79,7 @@ class UserCreateListView(APIView):
     # queryset = CustomUser.objects.all()
     serializer_class = UserCreateSerializer
 
+    @extend_schema(responses=UserCreateReturnSerializer)
     def post(self, request, format=None):
         # extremely uglu validation stuff
         # if some one can make this better it would be good
@@ -171,6 +174,10 @@ class UserLoginView(APIView):
 
     serializer_class = UserPasswordSerializer
 
+    @extend_schema(
+        request=UserLoginPostSerializer,
+        responses=UsersLoginResponseSerializer,
+    )
     def post(self, request, format=None):
         data = request.data
         response = Response()
@@ -466,6 +473,7 @@ class GroupListView(generics.ListAPIView):
 class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
     Update users permissions, should be only allowed to admins, on testing phase allowing fo users
+    id = user id whose permission will be updated as id/pk parameter in url
     """
 
     authentication_classes = [

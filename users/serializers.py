@@ -264,15 +264,6 @@ class UserAddressPutRequestSerializer(UserAddressSerializer):
     city = serializers.CharField(max_length=100, required=False)
 
 
-class UserAddressDeleteRequestSerializer(serializers.Serializer):
-    """
-    Serializer mainly for schema purpose, id
-    id = the id number of address being deleted
-    """
-
-    id = serializers.IntegerField(required=True)
-
-
 class UserLoginPostSerializer(serializers.Serializer):
     """
     Serializer mainly for schema purpose,
@@ -301,3 +292,7 @@ class UsersLoginResponseSerializer(serializers.ModelSerializer):
             "username",
             "groups",
         ]
+
+
+class MessageSerializer(serializers.Serializer):
+    message = serializers.CharField(max_length=255)

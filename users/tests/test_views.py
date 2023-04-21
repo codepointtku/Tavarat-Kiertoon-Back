@@ -118,6 +118,7 @@ class TestUsers(TestCase):
             "/user/edit/",
             f"/users/{user_for_testing.id}/edit/",
             "/user/address/edit/",
+            f"/user/address/edit/{address_for_testing.id}/delete/",
             f"/users/address/{address_for_testing.id}/",
             "/users/password/resetemail/",
             "/users/password/reset/",
@@ -764,6 +765,7 @@ class TestUsers(TestCase):
             "id": address1.id,
         }
 
+        url = f"/user/address/edit/{address1.id}/delete/"
         # testing that non owner of address delete should not go through
         self.login_test_admin()
         response = self.client.delete(url, data=data, content_type="application/json")
@@ -785,15 +787,6 @@ class TestUsers(TestCase):
         address_count_3 = UserAddress.objects.filter(user=user).count()
         self.assertNotEqual(
             address_count_2, address_count_3, "after deletion count should be different"
-        )
-
-        # testing that no id what to delete shouldnt go through with anything
-        data = {"nothing": "nothing"}
-        response = self.client.delete(url, data=data, content_type="application/json")
-        self.assertEqual(
-            response.status_code,
-            204,
-            "should not go through as no id in what to delete",
         )
 
     def test_user_address_as_admin(self):

@@ -34,7 +34,7 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     BooleanValidatorSerializer,
     GroupNameSerializer,
     GroupPermissionsSerializer,
-    UserAddressDeleteRequestSerializer,
+    MessageSerializer,
     UserAddressPostRequestSerializer,
     UserAddressPutRequestSerializer,
     UserAddressSerializer,
@@ -234,6 +234,7 @@ class UserTokenRefreshView(TokenViewBase):
 
     _serializer_class = api_settings.TOKEN_REFRESH_SERIALIZER
 
+    @extend_schema(request=None, responses=UsersLoginResponseSerializer)
     def post(self, request, *args, **kwargs):
         # check that refresh cookie is found
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
@@ -621,25 +622,55 @@ class UserAddressEditView(APIView, ListModelMixin):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # used for deleting existing address user has
-    @extend_schema(request=UserAddressDeleteRequestSerializer)
-    def delete(self, request, format=None):
-        if "id" not in request.data:
-            msg = "no address id for adress deletion"
-            return Response(msg, status=status.HTTP_204_NO_CONTENT)
+    # @extend_schema(request=UserAddressDeleteRequestSerializer)
+    # def delete(self, request, format=None):
+    #     if "id" not in request.data:
+    #         msg = "no address id for adress deletion"
+    #         return Response(msg, status=status.HTTP_204_NO_CONTENT)
 
-        address = UserAddress.objects.get(id=request.data["id"])
-        address_msg = address.address + " " + address.zip_code + " " + address.city
+    #     address = UserAddress.objects.get(id=request.data["id"])
+    #     address_msg = address.address + " " + address.zip_code + " " + address.city
 
-        # checking that only users themselves can change their adressess
-        if address.user.id != request.user.id:
-            msg = "address owner and loggerdin user need to match"
-            return Response(msg, status=status.HTTP_204_NO_CONTENT)
+    #     # checking that only users themselves can change their adressess
+    #     if address.user.id != request.user.id:
+    #         msg = "address owner and loggerdin user need to match"
+    #         return Response(msg, status=status.HTTP_204_NO_CONTENT)
 
-        address.delete()
+    #     address.delete()
 
-        return Response(
-            f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
-        )
+    #     return Response(
+    #         f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
+    #     )
+
+
+class UserAddressEditDeleteView(APIView):
+    authentication_classes = [
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "DELETE": ["user_group"],
+    }
+
+    def delete(self, request, *args, **kwargs):
+        to_be_deleted_id = kwargs["pk"]
+        # print(to_be_deleted_id)
+
+        address = UserAddress.objects.get(id=to_be_deleted_id)
+
+        if request.user.id == address.user.id:
+            # print("bingo")
+            address_msg = address.address + " " + address.zip_code + " " + address.city
+            address.delete()
+
+            return Response(
+                f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
+            )
+
+        else:
+            # print("user didnt match the  owner of address")
+            return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
 
 
 class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
@@ -675,6 +706,7 @@ class UserPasswordResetMailView(APIView):
 
     serializer_class = UserPasswordCheckEmailSerializer
 
+    @extend_schema(responses=None)
     def post(self, request, format=None):
         # using serializewr to check that user exists that the pw reset mail is sent to
         serializer = self.serializer_class(
@@ -726,13 +758,15 @@ class UserPasswordResetMailView(APIView):
 class UserPasswordResetMailValidationView(APIView):
     """
     View that handless the password reset producre and updates the pw.
-    needs the uid and user token created in UserPasswordResetMailView
+    needs the uid and user token created in UserPasswordResetMailView.
+    the 'uidb64'/'token' variant and GET method is only for testing and should not be used in deployment so DO NOT USE
     """
 
     serializer_class = UserPasswordChangeEmailValidationSerializer
 
     # @method_decorator(sensitive_post_parameters())
     @method_decorator(never_cache)
+    @extend_schema(responses=MessageSerializer)
     def post(self, request, format=None, *args, **kwargs):
         # serializer is used to validate the data send, matching passwords and uid decode and token check
         serializer = self.serializer_class(
@@ -749,7 +783,8 @@ class UserPasswordResetMailValidationView(APIView):
         response.status_code = status.HTTP_200_OK
         response.data = {"data": serializer.data, "messsage": "pw updated"}
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response("password update was successfull", status=status.HTTP_200_OK)
+        # return Response(serializer.data, status=status.HTTP_200_OK)
 
     # get is used in testing should not be needed in deployment, will be removed later?
     @extend_schema(

@@ -18,6 +18,12 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class OrderRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        exclude = ["products"]
+
+
 class ShoppingCartDetailSerializer(serializers.ModelSerializer):
     products = ProductSerializer(many=True, read_only=True)
 

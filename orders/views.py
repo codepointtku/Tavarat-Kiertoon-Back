@@ -28,6 +28,7 @@ from users.views import CustomJWTAuthentication
 from .models import Order, ShoppingCart
 from .serializers import (
     OrderDetailSerializer,
+    OrderRequestSerializer,
     OrderSerializer,
     ShoppingCartDetailSerializer,
     ShoppingCartSerializer,
@@ -153,6 +154,7 @@ class OrderListView(ListCreateAPIView):
     ordering = ["id"]
     filterset_class = OrderFilter
 
+    @extend_schema(request=OrderRequestSerializer)
     def post(self, request, *args, **kwargs):
         user_id = request.data["user"]
         available_products_ids = product_availibility_check(user_id)

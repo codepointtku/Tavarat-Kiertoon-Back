@@ -17,6 +17,7 @@ from drf_spectacular.utils import(
     extend_schema,
     extend_schema_view,
     inline_serializer,
+    PolymorphicProxySerializer
 )
 
 from categories.models import Category
@@ -28,8 +29,12 @@ from .serializers import (
     ColorSerializer,
     PictureSerializer,
     ProductSerializer,
+    ProductListSerializer,
+    ProductColorStringSerializer,
     ProductCreateSerializer,
     StorageSerializer,
+    AsdaSerializer,
+    AsdSerializer
 )
 
 
@@ -105,6 +110,12 @@ class ProductFilter(filters.FilterSet):
         return or_queryset
 
 
+@extend_schema_view(
+    get=extend_schema(
+        responses=
+            {"200": ProductListSerializer()},
+    )
+)
 class ProductListView(generics.ListAPIView):
     queryset = Product.objects.filter(available=True)
     serializer_class = ProductSerializer
@@ -152,8 +163,14 @@ class ProductListView(generics.ListAPIView):
 
 @extend_schema_view(
     post=extend_schema(
-        request=
-            {"application/json": ProductCreateSerializer()},
+        request=PolymorphicProxySerializer(
+                    component_name="ProductCreation",
+                    serializers=[
+                        ProductCreateSerializer,
+                        ProductColorStringSerializer
+                    ],
+                    resource_type_field_name="color",
+        )
     )
 )
 class StorageProductListView(generics.ListCreateAPIView):

@@ -40,6 +40,7 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     UserAddressSerializer,
     UserCreateReturnSerializer,
     UserCreateSerializer,
+    UserFullSchemaSerializer,
     UserFullSerializer,
     UserLimitedSerializer,
     UserLoginPostSerializer,
@@ -365,6 +366,7 @@ class UserLogoutView(APIView):
         return response
 
 
+@extend_schema(responses=UserFullSchemaSerializer)
 class UserDetailsListView(generics.ListAPIView):
     """
     List all users with all database fields, no POST here
@@ -388,6 +390,7 @@ class UserDetailsListView(generics.ListAPIView):
     serializer_class = UserFullSerializer
 
 
+@extend_schema(responses=UserFullSchemaSerializer)
 class UserSingleGetView(APIView):
     """
     Get single user with all database fields, no POST here
@@ -422,6 +425,7 @@ class UserSingleGetView(APIView):
         return Response(serializer.data)
 
 
+@extend_schema(responses=UserFullSchemaSerializer)
 class UserLoggedInDetailView(APIView):
     """
     Get logged in users info
@@ -642,6 +646,10 @@ class UserAddressEditView(APIView, ListModelMixin):
 
 
 class UserAddressEditDeleteView(APIView):
+    """
+    Delete the specific address given in kwargs. address needs to match logged in user id as owner
+    """
+
     authentication_classes = [
         CustomJWTAuthentication,
     ]

@@ -86,6 +86,12 @@ class BikeStockListSerializer(serializers.ModelSerializer):
         depth = 2
 
 
+class BikeStockCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeStock
+        fields = "__all__"
+
+        
 class BikeStockDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeStock

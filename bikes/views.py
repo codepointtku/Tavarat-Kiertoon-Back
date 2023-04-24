@@ -16,15 +16,29 @@ from bikes.serializers import (
     BikeSerializer,
     BikeStockListSerializer,
     BikeStockDetailSerializer,
-    BikeRentalSchemaPostSerializer
+    BikeRentalSchemaPostSerializer,
+    BikeStockCreateSerializer,
 )
 
 
-class BikeStockListView(generics.ListAPIView):
+@extend_schema_view(
+    post=extend_schema(
+    request=BikeStockCreateSerializer
+    )
+)
+class BikeStockListView(generics.ListCreateAPIView):
     queryset = BikeStock.objects.all()
     serializer_class = BikeStockListSerializer
     # permission_classes = [isAdminUser]
 
+    def post(self, request, *args, **kwargs):
+        serializer = BikeStockCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED
+        )
+    
 
 class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeStock.objects.all()

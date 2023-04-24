@@ -9,6 +9,14 @@ class BikeRentalSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class BikeRentalSchemaPostSerializer(serializers.ModelSerializer):
+    bike_stock = serializers.DictField()
+
+    class Meta:
+        model = BikeRental
+        fields = "__all__"
+
+
 class BikeStockSerializer(serializers.ModelSerializer):
     rental = BikeRentalSerializer(many=True)
 
@@ -70,14 +78,15 @@ class BikePackageSerializer(serializers.ModelSerializer):
             "bikes",
         ]
 
+
 class BikeStockListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeStock
-        fields =  "__all__"
+        fields = "__all__"
         depth = 2
 
 
-class BikeStockDetailSerializer(serializers.ModelSerializer): 
+class BikeStockDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeStock
         fields = "__all__"

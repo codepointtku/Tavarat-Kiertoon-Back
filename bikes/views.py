@@ -7,6 +7,8 @@ import math
 from rest_framework import generics, status
 from rest_framework.response import Response
 
+from drf_spectacular.utils import extend_schema_view, extend_schema
+
 from bikes.models import Bike, BikePackage, BikeRental, BikeStock
 from bikes.serializers import (
     BikePackageSerializer,
@@ -14,6 +16,7 @@ from bikes.serializers import (
     BikeSerializer,
     BikeStockListSerializer,
     BikeStockDetailSerializer,
+    BikeRentalSchemaPostSerializer
 )
 
 
@@ -129,6 +132,11 @@ class MainBikeList(generics.ListAPIView):
         )
 
 
+@extend_schema_view(
+    post=extend_schema(
+        request=BikeRentalSchemaPostSerializer
+    )
+)
 class RentalListView(generics.ListCreateAPIView):
     queryset = BikeRental.objects.all()
     serializer_class = BikeRentalSerializer

@@ -228,6 +228,7 @@ class UserLoginView(APIView):
             )
 
 
+######## KYSY ARNOLTA MITÄ LAITTAA SCHEMAAAN
 class UserTokenRefreshView(TokenViewBase):
     """
     Takes refresh token from cookies and if its valid sets new access token to cookies
@@ -366,7 +367,7 @@ class UserLogoutView(APIView):
         return response
 
 
-@extend_schema(responses=UserFullSchemaSerializer)
+# @extend_schema(responses=UserFullSchemaSerializer)
 class UserDetailsListView(generics.ListAPIView):
     """
     List all users with all database fields, no POST here
@@ -387,10 +388,11 @@ class UserDetailsListView(generics.ListAPIView):
     }
 
     queryset = CustomUser.objects.all()
-    serializer_class = UserFullSerializer
+    # serializer_class = UserFullSerializer
+    serializer_class = UserFullSchemaSerializer
 
 
-@extend_schema(responses=UserFullSchemaSerializer)
+# @extend_schema(responses=UserFullSchemaSerializer)
 class UserSingleGetView(APIView):
     """
     Get single user with all database fields, no POST here
@@ -412,7 +414,8 @@ class UserSingleGetView(APIView):
     }
 
     queryset = CustomUser.objects.all()
-    serializer_class = UserFullSerializer
+    # serializer_class = UserFullSerializer
+    serializer_class = UserFullSchemaSerializer
 
     def get(self, request, pk, format=None):
         try:
@@ -420,12 +423,13 @@ class UserSingleGetView(APIView):
         except CustomUser.DoesNotExist:
             return Response("no such user", status=status.HTTP_204_NO_CONTENT)
 
-        serializer = UserFullSerializer(user)
+        # serializer = UserFullSerializer(user)
+        serializer = UserFullSchemaSerializer(user)
 
         return Response(serializer.data)
 
 
-@extend_schema(responses=UserFullSchemaSerializer)
+# @extend_schema(responses=UserFullSchemaSerializer)
 class UserLoggedInDetailView(APIView):
     """
     Get logged in users info
@@ -445,7 +449,8 @@ class UserLoggedInDetailView(APIView):
         "PUT": ["user_group"],
     }
     queryset = CustomUser.objects.all()
-    serializer_class = UserFullSerializer
+    # serializer_class = UserFullSerializer
+    serializer_class = UserFullSchemaSerializer
 
     def get(self, request, format=None):
         serializer = self.serializer_class(request.user)

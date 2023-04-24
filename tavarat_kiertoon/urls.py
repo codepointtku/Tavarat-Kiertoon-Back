@@ -118,7 +118,7 @@ urlpatterns = [
     path("users/logout/", UserLogoutView.as_view()),
     path("users/password/resetemail/", UserPasswordResetMailView.as_view()),
     path(
-        "users/password/reset/<uidb64>/<token>/",
+        "users/password/reset/<str:uidb64>/<str:token>/",
         UserPasswordResetMailValidationView.as_view(),
     ),
     path(

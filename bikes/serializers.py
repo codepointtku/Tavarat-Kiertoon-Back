@@ -37,12 +37,6 @@ class BikeStockSerializer(serializers.ModelSerializer):
         ]
 
 
-class BikeModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Bike
-        fields = "__all__"
-
-
 class BikeSerializer(serializers.ModelSerializer):
     type = serializers.StringRelatedField(source="type.name")
     brand = serializers.StringRelatedField(source="brand.name")
@@ -135,3 +129,13 @@ class BikeStockDetailSerializer(serializers.ModelSerializer):
         model = BikeStock
         fields = "__all__"
 
+
+class BikeModelSerializer(serializers.ModelSerializer):
+    type = BikeTypeSerializer(read_only=True)
+    brand = BikeBrandSerializer(read_only=True)
+    size = BikeSizeSerializer(read_only=True)
+    color = ColorSerializer(read_only=True)
+    
+    class Meta:
+        model = Bike
+        fields = "__all__"

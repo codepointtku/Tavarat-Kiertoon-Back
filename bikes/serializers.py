@@ -139,3 +139,14 @@ class BikeModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bike
         fields = "__all__"
+
+
+class BikeModelCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bike
+        fields = "__all__"
+
+
+class MainBikeListSchemaSerializer(serializers.Serializer):
+    bikes = BikeSerializer()
+

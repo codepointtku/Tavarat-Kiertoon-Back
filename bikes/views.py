@@ -19,17 +19,36 @@ from bikes.serializers import (
     BikeRentalSchemaPostSerializer,
     BikeStockCreateSerializer,
     BikeModelSerializer,
+    BikeModelCreateSerializer,
+    MainBikeListSchemaSerializer
 )
 
-
+@extend_schema_view(
+    post=extend_schema(
+        request=BikeModelCreateSerializer
+    )
+)
 class BikeModelListView(generics.ListCreateAPIView):
     queryset = Bike.objects.all()
     serializer_class = BikeModelSerializer
 
+    def post(self,request, *args, **kwargs):
+        serializer = BikeModelCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
 
+@extend_schema_view(put=extend_schema(request=BikeModelCreateSerializer))
 class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Bike.objects.all()
     serializer_class = BikeModelSerializer
+
+    def update(self, request, *args, **kwargs):
+        serializer = BikeModelCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
 @extend_schema_view(post=extend_schema(request=BikeStockCreateSerializer))
@@ -58,7 +77,7 @@ class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class MainBikeList(generics.ListAPIView):
-    serializer_class = BikePackageSerializer
+    serializer_class = MainBikeListSchemaSerializer
 
     def list(self, request, *args, **kwargs):
         today = datetime.date.today()

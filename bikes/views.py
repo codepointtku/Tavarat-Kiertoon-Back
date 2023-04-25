@@ -32,16 +32,6 @@ class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BikeModelSerializer
 
 
-class BikeModelListView(generics.ListCreateAPIView):
-    queryset = Bike.objects.all()
-    serializer_class = BikeModelSerializer
-
-
-class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Bike.objects.all()
-    serializer_class = BikeModelSerializer
-
-
 @extend_schema_view(post=extend_schema(request=BikeStockCreateSerializer))
 class BikeStockListView(generics.ListCreateAPIView):
     queryset = BikeStock.objects.all()

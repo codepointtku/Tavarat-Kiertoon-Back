@@ -228,7 +228,6 @@ class UserLoginView(APIView):
             )
 
 
-######## KYSY ARNOLTA MITÄ LAITTAA SCHEMAAAN
 class UserTokenRefreshView(TokenViewBase):
     """
     Takes refresh token from cookies and if its valid sets new access token to cookies

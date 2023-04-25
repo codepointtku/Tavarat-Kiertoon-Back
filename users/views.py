@@ -341,6 +341,8 @@ class UserLogoutView(APIView):
     Logs out the user and (flush session just in case, mainly for use in testing at back)
     """
 
+    serializer_class = None
+
     def jwt_logout(self, request):
         logout(request)
         # deleting the http only jwt cookies that are used as login session
@@ -662,6 +664,8 @@ class UserAddressEditDeleteView(APIView):
     required_groups = {
         "DELETE": ["user_group"],
     }
+
+    serializer_class = None
 
     def delete(self, request, *args, **kwargs):
         to_be_deleted_id = kwargs["pk"]

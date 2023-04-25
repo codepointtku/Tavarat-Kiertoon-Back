@@ -1,15 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django_filters import rest_framework as filters
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import (
-    OpenApiExample,
-    OpenApiParameter,
-    extend_schema,
-    extend_schema_field,
-    inline_serializer,
-)
-from rest_framework import fields, serializers, status
+from drf_spectacular.utils import extend_schema
+from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import (
@@ -22,8 +15,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from products.models import Picture, Product
-from products.serializers import ProductSerializer
+from products.models import Product
 from users.views import CustomJWTAuthentication
 
 from .models import Order, ShoppingCart
@@ -191,7 +183,7 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
 class OrderSelfListView(ListAPIView):

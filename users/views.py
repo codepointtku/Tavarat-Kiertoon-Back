@@ -629,27 +629,6 @@ class UserAddressEditView(APIView, ListModelMixin):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # used for deleting existing address user has
-    # @extend_schema(request=UserAddressDeleteRequestSerializer)
-    # def delete(self, request, format=None):
-    #     if "id" not in request.data:
-    #         msg = "no address id for adress deletion"
-    #         return Response(msg, status=status.HTTP_204_NO_CONTENT)
-
-    #     address = UserAddress.objects.get(id=request.data["id"])
-    #     address_msg = address.address + " " + address.zip_code + " " + address.city
-
-    #     # checking that only users themselves can change their adressess
-    #     if address.user.id != request.user.id:
-    #         msg = "address owner and loggerdin user need to match"
-    #         return Response(msg, status=status.HTTP_204_NO_CONTENT)
-
-    #     address.delete()
-
-    #     return Response(
-    #         f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
-    #     )
-
 
 class UserAddressEditDeleteView(APIView):
     """
@@ -669,12 +648,10 @@ class UserAddressEditDeleteView(APIView):
 
     def delete(self, request, *args, **kwargs):
         to_be_deleted_id = kwargs["pk"]
-        # print(to_be_deleted_id)
 
         address = UserAddress.objects.get(id=to_be_deleted_id)
 
         if request.user.id == address.user.id:
-            # print("bingo")
             address_msg = address.address + " " + address.zip_code + " " + address.city
             address.delete()
 

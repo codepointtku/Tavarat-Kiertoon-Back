@@ -18,7 +18,28 @@ from bikes.serializers import (
     BikeStockDetailSerializer,
     BikeRentalSchemaPostSerializer,
     BikeStockCreateSerializer,
+    BikeModelSerializer,
 )
+
+
+class BikeModelListView(generics.ListCreateAPIView):
+    queryset = Bike.objects.all()
+    serializer_class = BikeModelSerializer
+
+
+class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Bike.objects.all()
+    serializer_class = BikeModelSerializer
+
+
+class BikeModelListView(generics.ListCreateAPIView):
+    queryset = Bike.objects.all()
+    serializer_class = BikeModelSerializer
+
+
+class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Bike.objects.all()
+    serializer_class = BikeModelSerializer
 
 
 @extend_schema_view(post=extend_schema(request=BikeStockCreateSerializer))

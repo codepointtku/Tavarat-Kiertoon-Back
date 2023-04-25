@@ -32,6 +32,7 @@ from .serializers import (
     OrderDetailSerializer,
     OrderRequestSerializer,
     OrderSerializer,
+    ShoppingCartDetailRequestSerializer,
     ShoppingCartDetailSerializer,
     ShoppingCartSerializer,
 )
@@ -79,7 +80,7 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         CustomJWTAuthentication,
     ]
 
-    def retrieve(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:
             return Response("You must be logged in to see your shoppingcart")
         try:
@@ -89,7 +90,8 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    def update(self, request, *args, **kwargs):
+    @extend_schema(request=ShoppingCartDetailRequestSerializer)
+    def put(self, request, *args, **kwargs):
         try:
             instance = ShoppingCart.objects.get(user=request.user)
         except ObjectDoesNotExist:

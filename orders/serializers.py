@@ -32,6 +32,11 @@ class ShoppingCartDetailSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ShoppingCartDetailRequestSerializer(serializers.Serializer):
+    products = serializers.IntegerField()
+    amount = serializers.IntegerField()
+
+
 class OrderDetailSerializer(serializers.ModelSerializer):
     products = ProductSerializer(many=True, read_only=True)
 

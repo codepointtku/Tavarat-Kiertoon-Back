@@ -94,8 +94,6 @@ class UserPasswordChangeEmailValidationSerializer(serializers.Serializer):
         return data
 
 
-# @extend_schema_serializer(many=True, exclude_fields=["city"])
-# @extend_schema_serializer(many=True, exclude_fields=["city"])
 class UserAddressSerializer(serializers.ModelSerializer):
     """
     Serializer for user address

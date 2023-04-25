@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
-from .models import Bike, BikeAmount, BikePackage, BikeRental, BikeStock
+from .models import Bike, BikeAmount, BikePackage, BikeRental, BikeStock, BikeType, BikeSize, BikeBrand
+
+from products.serializers import ColorSerializer, StorageSerializer
 
 
 class BikeRentalSerializer(serializers.ModelSerializer):
@@ -25,6 +27,12 @@ class BikeStockSerializer(serializers.ModelSerializer):
             "storage",
             "rental",
         ]
+
+
+class BikeModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bike
+        fields = "__all__"
 
 
 class BikeSerializer(serializers.ModelSerializer):
@@ -70,15 +78,49 @@ class BikePackageSerializer(serializers.ModelSerializer):
             "bikes",
         ]
 
+
+class BikeTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeType
+        fields = "__all__"
+
+
+class BikeBrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeBrand
+        fields = "__all__"
+
+
+class BikeSizeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeSize
+        fields = "__all__"
+
+
+class BikeStockDepthSerializer(serializers.ModelSerializer):
+    type = BikeTypeSerializer(read_only=True)
+    brand = BikeBrandSerializer(read_only=True)
+    size = BikeSizeSerializer(read_only=True)
+    color = ColorSerializer(read_only=True)
+
+    class Meta:
+        model = Bike
+        fields = "__all__"
+
+
 class BikeStockListSerializer(serializers.ModelSerializer):
+    bike = BikeStockDepthSerializer(read_only=True)
+
     class Meta:
         model = BikeStock
         fields =  "__all__"
-        depth = 2
 
 
 class BikeStockDetailSerializer(serializers.ModelSerializer): 
+    bike = BikeStockDepthSerializer(read_only=True)
+    storage = StorageSerializer(read_only=True)
+
     class Meta:
         model = BikeStock
         fields = "__all__"
-        depth = 2
+

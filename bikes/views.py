@@ -14,7 +14,18 @@ from bikes.serializers import (
     BikeSerializer,
     BikeStockListSerializer,
     BikeStockDetailSerializer,
+    BikeModelSerializer,
 )
+
+
+class BikeModelListView(generics.ListCreateAPIView):
+    queryset = Bike.objects.all()
+    serializer_class = BikeModelSerializer
+
+
+class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Bike.objects.all()
+    serializer_class = BikeModelSerializer
 
 
 class BikeStockListView(generics.ListAPIView):

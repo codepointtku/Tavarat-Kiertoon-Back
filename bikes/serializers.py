@@ -29,6 +29,12 @@ class BikeStockSerializer(serializers.ModelSerializer):
         ]
 
 
+class BikeModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bike
+        fields = "__all__"
+
+
 class BikeSerializer(serializers.ModelSerializer):
     type = serializers.StringRelatedField(source="type.name")
     brand = serializers.StringRelatedField(source="brand.name")

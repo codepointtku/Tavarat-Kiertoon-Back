@@ -154,6 +154,16 @@ class TestOrders(TestCase):
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
 
+    def test_clear_shopping_cart(self):
+        url = "/shopping_cart/"
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
+        data = {"amount": 0}
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(
+            [product.id for product in self.test_shoppingcart.products.all()], []
+        )
+
     def test_get_orders(self):
         url = "/orders/?status=Waiting"
         response = self.client.get(url)

@@ -27,10 +27,6 @@ from .serializers import (
 )
 
 
-def pic_ids_as_address_list(pic_ids):
-    return [Picture.objects.get(id=pic_id).picture_address.name for pic_id in pic_ids]
-
-
 def color_check_create(instance):
     try:
         color = int(instance["color"])
@@ -132,7 +128,6 @@ class ProductListView(generics.ListAPIView):
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             for product in serializer.data:
-                product["pictures"] = pic_ids_as_address_list(product["pictures"])
                 product["amount"] = amounts.filter(group_id=product["group_id"])[0][
                     "amount"
                 ]
@@ -171,8 +166,6 @@ class StorageProductListView(generics.ListCreateAPIView):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            for product in serializer.data:
-                product["pictures"] = pic_ids_as_address_list(product["pictures"])
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -202,15 +195,10 @@ class StorageProductListView(generics.ListCreateAPIView):
             self.perform_create(pic_serializer)
             picture_ids.append(pic_serializer.data["id"])
 
-        # combine pic_ids_as_address_list with enumerate loop?
         for product in products:
             for picture_id in picture_ids:
                 product.pictures.add(picture_id)
 
-        for i in range(len(serializer.data)):
-            serializer.data[i]["pictures"] = pic_ids_as_address_list(
-                serializer.data[i]["pictures"]
-            )
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
@@ -231,7 +219,6 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         else:
             serializer.save()
         data = serializer.data
-        data["pictures"] = pic_ids_as_address_list(data["pictures"])
 
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
@@ -246,7 +233,6 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         data = serializer.data
         amount = self.queryset.filter(group_id=data["group_id"], available=True).count()
         data["amount"] = amount
-        data["pictures"] = pic_ids_as_address_list(data["pictures"])
         return Response(data)
 
 

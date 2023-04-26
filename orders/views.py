@@ -1,27 +1,30 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
-from django.shortcuts import render
 from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
+    RetrieveUpdateAPIView,
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from products.models import Picture, Product
-from products.views import pic_ids_as_address_list
+from products.models import Product
 from users.views import CustomJWTAuthentication
 
 from .models import Order, ShoppingCart
 from .serializers import (
+    OrderDetailRequestSerializer,
     OrderDetailSerializer,
+    OrderRequestSerializer,
     OrderSerializer,
+    ShoppingCartDetailRequestSerializer,
     ShoppingCartDetailSerializer,
     ShoppingCartSerializer,
 )
@@ -59,7 +62,7 @@ class ShoppingCartListView(ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
+class ShoppingCartDetailView(RetrieveUpdateAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartDetailSerializer
     authentication_classes = [
@@ -69,7 +72,7 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    def retrieve(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:
             return Response("You must be logged in to see your shoppingcart")
         try:
@@ -77,17 +80,16 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
         except ObjectDoesNotExist:
             return Response("Shopping cart for this user does not exist")
         serializer = self.get_serializer(instance)
-        for product in serializer.data["products"]:
-            product["pictures"] = pic_ids_as_address_list(product["pictures"])
         return Response(serializer.data)
 
-    def update(self, request, *args, **kwargs):
+    @extend_schema(request=ShoppingCartDetailRequestSerializer)
+    def put(self, request, *args, **kwargs):
         try:
             instance = ShoppingCart.objects.get(user=request.user)
         except ObjectDoesNotExist:
             return Response("Shopping cart for this user does not exist")
-
-        if request.data["products"] == "":
+        # if amount is 0, clear users ShoppingCart
+        if request.data["amount"] == 0:
             instance.products.clear()
             updatedinstance = ShoppingCart.objects.get(user=request.user)
             detailserializer = ShoppingCartDetailSerializer(updatedinstance)
@@ -98,15 +100,15 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
         available_itemset = itemset.exclude(id__in=instance.products.values("id"))
         removable_itemset = instance.products.filter(group_id=cartproduct.group_id)
         amount = request.data["amount"]
-        
-        #front sends either a negative or a positive amount
-        if amount >= 0:
+
+        # front sends either a negative or a positive amount
+        if amount > 0:
             if len(available_itemset) < amount:
                 amount = len(available_itemset)
             for i in range(amount):
                 instance.products.add(available_itemset[i])
         else:
-            #if amount is negative, conversion to positive for iterating over removable_itemset
+            # if amount is negative, conversion to positive for iterating over removable_itemset
             amount *= -1
             if amount > len(removable_itemset):
                 amount = len(removable_itemset)
@@ -115,8 +117,6 @@ class ShoppingCartDetailView(RetrieveUpdateDestroyAPIView):
 
         updatedinstance = ShoppingCart.objects.get(user=request.user)
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)
-        for product in detailserializer.data["products"]:
-            product["pictures"] = pic_ids_as_address_list(product["pictures"])
         return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
 
@@ -150,6 +150,7 @@ class OrderListView(ListCreateAPIView):
     ordering = ["id"]
     filterset_class = OrderFilter
 
+    @extend_schema(request=OrderRequestSerializer)
     def post(self, request, *args, **kwargs):
         user_id = request.data["user"]
         available_products_ids = product_availibility_check(user_id)
@@ -168,28 +169,21 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        for product in serializer.data["products"]:
-            product["pictures"] = pic_ids_as_address_list(product["pictures"])
-        return Response(serializer.data)
-
-    def delete(self, request, *args, **kwargs):
-        order = Order.objects.get(id=request.data["productId"])
-        for product in order.products.all():
-            if product.id == request.data["product"]:
-                order.products.remove(product.id)
-                return Response(status=status.HTTP_202_ACCEPTED)
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
+    @extend_schema(request=OrderDetailRequestSerializer)
     def put(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-        return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        instance.products.clear()
+        for product in request.data["products"]:
+            instance.products.add(product)
+        if getattr(instance, "_prefetched_objects_cache", None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
 class OrderSelfListView(ListAPIView):

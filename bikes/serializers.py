@@ -94,6 +94,7 @@ class BikeBrandSerializer(serializers.ModelSerializer):
 
 
 class BikeSizeSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = BikeSize
         fields = "__all__"

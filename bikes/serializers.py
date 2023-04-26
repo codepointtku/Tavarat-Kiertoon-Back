@@ -151,6 +151,43 @@ class BikeModelCreateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class MainBikeSchemaDateSerializer(serializers.Serializer):
+    available_from = serializers.DateField()
+    available_to = serializers.DateField()     
+
+
+class MainBikeSchemaBikesSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    max_available = serializers.IntegerField()
+    description = serializers.CharField()
+    type = serializers.CharField()
+    brand = serializers.CharField()
+    size = serializers.CharField()
+    unavailable = serializers.CharField()
+    package_only_count = serializers.IntegerField()
+    package_only_unavailable = serializers.CharField()
+
+
+class MainBikeSchemaPackageBikeSerializer(serializers.Serializer):
+    bike = serializers.IntegerField()
+    amount = serializers.IntegerField()
+
+
+class MainBikeSchemaPackageSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    description = serializers.CharField()
+    bikes = MainBikeSchemaPackageBikeSerializer(many=True)
+    type = serializers.CharField()
+    unavailable = serializers.CharField()
+    brand = serializers.IntegerField()
+    color = serializers.IntegerField()
+    size = serializers.CharField()
+    max_available = serializers.IntegerField()
+
 class MainBikeListSchemaSerializer(serializers.Serializer):
-    bikes = BikeSerializer()
+    date_info = MainBikeSchemaDateSerializer()
+    bikes = MainBikeSchemaBikesSerializer(many=True)
+    packages = MainBikeSchemaPackageSerializer(many=True)
 

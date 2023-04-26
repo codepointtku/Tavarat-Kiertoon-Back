@@ -76,42 +76,44 @@ class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
-@extend_schema_view(
-    get=extend_schema(
-        description="list of bike renal calendars start and end date and all bikes and packages",
-        request={},
-        responses={
-            200: inline_serializer(
-                "MainBikelist",
-                fields={
-                    "date_info": inline_serializer(
-                        "date_info",
-                        fields={
-                            "available_from": serializers.DateField(),
-                            "available_to": serializers.DateField(),
-                        },
-                    ),
-                    "bikes": inline_serializer(
-                        "bikes",
-                        fields={
-                            "bikes": inline_serializer("bike", fields={
-                                "id": serializers.IntegerField(),
-                                "name": serializers.CharField(),
-                                "max_available": serializers.IntegerField(),
-                                "description": serializers.CharField(),
-                                "type": serializers.CharField(),
-                                "brand": serializers.CharField(),
-                                }
-                            )
-                        }
-                    ),
-                },
-            ),
-        },
-    ),
-)
+# @extend_schema_view(
+#     get=extend_schema(
+#         description="list of bike renal calendars start and end date and all bikes and packages",
+#         request={},
+#         responses={
+#             200: inline_serializer(
+#                 "MainBikelist",
+#                 fields={
+#                     "date_info": inline_serializer(
+#                         "date_info",
+#                         fields={
+#                             "available_from": serializers.DateField(),
+#                             "available_to": serializers.DateField(),
+#                         },
+#                     ),
+#                     "bikes": inline_serializer(
+#                         "bikes",
+#                         fields={
+#                                 "id": serializers.IntegerField(),
+#                                 "name": serializers.CharField(),
+#                                 "max_available": serializers.IntegerField(),
+#                                 "description": serializers.CharField(),
+#                                 "type": serializers.CharField(),
+#                                 "brand": serializers.CharField(),
+#                                 "size": serializers.CharField(),
+#                                 "unavailable": serializers.CharField(),
+#                                 "package_only_count": serializers.IntegerField(),
+#                                 "package_only_unavailable": serializers.CharField(),
+#                         },
+#                     ),
+#                 },
+#             ),
+#         },
+#     ),
+# )
 class MainBikeList(generics.ListAPIView):
     serializer_class = MainBikeListSchemaSerializer
+    queryset = Bike.objects.none()
 
     def list(self, request, *args, **kwargs):
         today = datetime.date.today()

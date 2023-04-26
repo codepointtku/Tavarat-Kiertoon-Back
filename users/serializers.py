@@ -10,15 +10,6 @@ from .models import CustomUser, UserAddress
 
 User = get_user_model()
 
-
-class BooleanValidatorSerializer(serializers.ModelSerializer):
-    joint_user = serializers.BooleanField(default=False)
-
-    class Meta:
-        model = CustomUser
-        fields = ["joint_user"]
-
-
 class UserPasswordSerializer(serializers.ModelSerializer):
     """
     Serializer for users, checking password fields

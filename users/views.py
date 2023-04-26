@@ -31,7 +31,6 @@ from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
 from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSerializer,; UserNamesSerializer,
-    BooleanValidatorSerializer,
     GroupNameSerializer,
     GroupPermissionsSerializer,
     MessageSerializer,
@@ -81,28 +80,13 @@ class UserCreateListView(APIView):
 
     @extend_schema(responses=UserCreateReturnSerializer)
     def post(self, request, format=None):
-        # extremely uglu validation stuff
-        # if some one can make this better it would be good
-        # problem is username validation so it passes the real validator (allowed to be empty for normal users)
-        # need to swap the email addreess to username before validator for normal users
-        # the joint user bool field isnt properly converted to values before its run thoough serialzier
-        # if its done in same validator it fucks up the username = email change
-        # this works buit is uugly as is this poem too
-        # if you want to see the probelm jsut throw request data straight to serializer and validate
-        # when creating normal user and have empty user name field
 
-        # so that bool value can be read properly before  actually going into creation checks
         copy_of_request = request.data.copy()
         if "joint_user" in request.data:
             if not request.data["joint_user"]:
                 copy_of_request["username"] = request.data["email"]
         else: 
             copy_of_request["username"] = request.data["email"]
-
-        boolval = BooleanValidatorSerializer(data=request.data)
-        if boolval.is_valid():
-            if not boolval.data["joint_user"]:
-                copy_of_request["username"] = request.data["email"]
 
         serialized_values = UserCreateSerializer(data=copy_of_request)
         # serialized_values = UserCreateSerializer(data=request.data)

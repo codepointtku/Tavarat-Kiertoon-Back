@@ -252,7 +252,7 @@ class GroupPermissionsSerializer(serializers.ModelSerializer):
             "groups",
         ]
 
-class UsersLoginResponseSerializer(serializers.ModelSerializer):
+class UsersLoginRefreshResponseSerializer(serializers.ModelSerializer):
     """
     Serializer for return data when logging in and refreshing.
     pass message in context.

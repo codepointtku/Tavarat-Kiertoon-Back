@@ -46,7 +46,7 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
-    UsersLoginResponseSerializer,
+    UsersLoginRefreshResponseSerializer,
     UserUpdateSerializer,
 )
 
@@ -182,7 +182,7 @@ class UserLoginView(APIView):
     serializer_class = UserLoginPostSerializer
 
     @extend_schema(
-        responses=UsersLoginResponseSerializer,
+        responses=UsersLoginRefreshResponseSerializer,
     )
     def post(self, request, format=None):
 
@@ -216,7 +216,7 @@ class UserLoginView(APIView):
             )
 
             msg = "Login successfully"
-            response_data = UsersLoginResponseSerializer(user, context={'message': msg})
+            response_data = UsersLoginRefreshResponseSerializer(user, context={'message': msg})
             csrf.get_token(request)
             response.status_code = status.HTTP_200_OK
             response.data = response_data.data
@@ -236,7 +236,7 @@ class UserTokenRefreshView(TokenViewBase):
 
     _serializer_class = api_settings.TOKEN_REFRESH_SERIALIZER
 
-    @extend_schema(request=None, responses=UsersLoginResponseSerializer)
+    @extend_schema(request=None, responses=UsersLoginRefreshResponseSerializer)
     def post(self, request, *args, **kwargs):
         # check that refresh cookie is found
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
@@ -271,13 +271,10 @@ class UserTokenRefreshView(TokenViewBase):
         refresh_token_obj = RefreshToken(refresh_token["refresh"])
         user_id = refresh_token_obj["user_id"]
         user = User.objects.get(id=user_id)
-        serializer_group = UserLimitedSerializer(user)
+        msg = "Refresh succeess"
+        response_data = UsersLoginRefreshResponseSerializer(user, context={'message': msg})
         response.status_code = status.HTTP_200_OK
-        response.data = {
-            "username": user.get_username(),
-            "Success": "refresh success",
-            "groups": serializer_group.data["groups"],
-        }
+        response.data = response_data.data
 
         return response
 

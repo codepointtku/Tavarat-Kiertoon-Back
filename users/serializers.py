@@ -171,6 +171,14 @@ class SubSerializerForGroups(serializers.ModelSerializer):
         model = Group
         fields = ["name"]
 
+class SubSerializerForGroupsSchema(serializers.ModelSerializer):
+    """
+    Serializer for getting group names from users
+    """
+
+    class Meta:
+        model = Group
+        fields = "__all__"
 
 class UserFullSerializer(serializers.ModelSerializer):
     """
@@ -178,6 +186,7 @@ class UserFullSerializer(serializers.ModelSerializer):
     """
 
     address_list = UserAddressSerializer(many=True, read_only=True)
+    groups = SubSerializerForGroupsSchema(many=True, read_only=True)
 
     class Meta:
         model = CustomUser
@@ -189,7 +198,6 @@ class UserFullSerializer(serializers.ModelSerializer):
             "is_superuser",
             "user_permissions",
         ]
-        depth = 1
 
 
 class UserLimitedSerializer(serializers.ModelSerializer):
@@ -294,33 +302,3 @@ class UsersLoginResponseSerializer(serializers.ModelSerializer):
 
 class MessageSerializer(serializers.Serializer):
     message = serializers.CharField(max_length=255)
-
-
-class SubSerializerForGroupsSchema(serializers.ModelSerializer):
-    """
-    Serializer for getting group names from users
-    """
-
-    class Meta:
-        model = Group
-        fields = "__all__"
-
-
-class UserFullSchemaSerializer(serializers.ModelSerializer):
-    """
-    Serializer for users, all database fields
-    """
-
-    address_list = UserAddressSerializer(many=True, read_only=True)
-    groups = SubSerializerForGroupsSchema(many=True, read_only=True)
-
-    class Meta:
-        model = CustomUser
-        # fields = "__all__"
-        exclude = [
-            "password",
-            "is_admin",
-            "is_staff",
-            "is_superuser",
-            "user_permissions",
-        ]

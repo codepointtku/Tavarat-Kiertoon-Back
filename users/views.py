@@ -40,7 +40,6 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     UserAddressSerializer,
     UserCreateReturnSerializer,
     UserCreateSerializer,
-    UserFullSchemaSerializer,
     UserFullSerializer,
     UserLimitedSerializer,
     UserLoginPostSerializer,
@@ -93,8 +92,14 @@ class UserCreateListView(APIView):
         # when creating normal user and have empty user name field
 
         # so that bool value can be read properly before  actually going into creation checks
-        boolval = BooleanValidatorSerializer(data=request.data)
         copy_of_request = request.data.copy()
+        if "joint_user" in request.data:
+            if not request.data["joint_user"]:
+                copy_of_request["username"] = request.data["email"]
+        else: 
+            copy_of_request["username"] = request.data["email"]
+
+        boolval = BooleanValidatorSerializer(data=request.data)
         if boolval.is_valid():
             if not boolval.data["joint_user"]:
                 copy_of_request["username"] = request.data["email"]
@@ -367,8 +372,6 @@ class UserLogoutView(APIView):
         response = self.jwt_logout(request)
         return response
 
-
-# @extend_schema(responses=UserFullSchemaSerializer)
 class UserDetailsListView(generics.ListAPIView):
     """
     List all users with all database fields, no POST here
@@ -389,11 +392,9 @@ class UserDetailsListView(generics.ListAPIView):
     }
 
     queryset = CustomUser.objects.all()
-    # serializer_class = UserFullSerializer
-    serializer_class = UserFullSchemaSerializer
+    serializer_class = UserFullSerializer
 
 
-# @extend_schema(responses=UserFullSchemaSerializer)
 class UserSingleGetView(APIView):
     """
     Get single user with all database fields, no POST here
@@ -415,8 +416,7 @@ class UserSingleGetView(APIView):
     }
 
     queryset = CustomUser.objects.all()
-    # serializer_class = UserFullSerializer
-    serializer_class = UserFullSchemaSerializer
+    serializer_class = UserFullSerializer
 
     def get(self, request, pk, format=None):
         try:
@@ -424,13 +424,10 @@ class UserSingleGetView(APIView):
         except CustomUser.DoesNotExist:
             return Response("no such user", status=status.HTTP_204_NO_CONTENT)
 
-        # serializer = UserFullSerializer(user)
-        serializer = UserFullSchemaSerializer(user)
+        serializer = UserFullSerializer(user)
 
         return Response(serializer.data)
 
-
-# @extend_schema(responses=UserFullSchemaSerializer)
 class UserLoggedInDetailView(APIView):
     """
     Get logged in users info
@@ -450,8 +447,7 @@ class UserLoggedInDetailView(APIView):
         "PUT": ["user_group"],
     }
     queryset = CustomUser.objects.all()
-    # serializer_class = UserFullSerializer
-    serializer_class = UserFullSchemaSerializer
+    serializer_class = UserFullSerializer
 
     def get(self, request, format=None):
         serializer = self.serializer_class(request.user)

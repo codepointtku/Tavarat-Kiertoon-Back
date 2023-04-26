@@ -126,6 +126,9 @@ class BikeStockCreateSerializer(serializers.ModelSerializer):
 
         
 class BikeStockDetailSerializer(serializers.ModelSerializer):
+    bike = BikeStockDepthSerializer(read_only=True)
+    storage = StorageSerializer(read_only=True)
+    
     class Meta:
         model = BikeStock
         fields = "__all__"

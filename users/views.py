@@ -178,20 +178,20 @@ class UserLoginView(APIView):
     Login with jwt token and as http only cookie
     """
 
-    serializer_class = UserPasswordSerializer
+    #serializer_class = UserPasswordSerializer
+    serializer_class = UserLoginPostSerializer
 
     @extend_schema(
-        request=UserLoginPostSerializer,
         responses=UsersLoginResponseSerializer,
     )
     def post(self, request, format=None):
-        data = request.data
-        response = Response()
-        username = data.get("username", None)
-        password = data.get("password", None)
 
-        user = authenticate(username=username, password=password)
+        pw_data = self.serializer_class(data=request.data)
+        pw_data.is_valid()
+
+        user = authenticate(username=pw_data.data["username"], password=pw_data.data["password"])
         if user is not None:
+            response = Response()
             # setting the jwt tokens as http only cookie to "login" the user
             data = get_tokens_for_user(user)
             response.set_cookie(
@@ -215,17 +215,13 @@ class UserLoginView(APIView):
                 path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
             )
 
-            serializer_group = UserLimitedSerializer(user)
-
+            msg = "Login successfully"
+            response_data = UsersLoginResponseSerializer(user, context={'message': msg})
             csrf.get_token(request)
             response.status_code = status.HTTP_200_OK
-            # put here what other information front needs from login. like users groups need be in list form
-            response.data = {
-                "Success": "Login successfully",
-                "username": serializer_group.data["username"],
-                "groups": serializer_group.data["groups"],
-            }
+            response.data = response_data.data
             return response
+        
         else:
             return Response(
                 {"Invalid": "Invalid username or password!!"},

@@ -39,6 +39,14 @@ class UserPasswordSerializer(serializers.ModelSerializer):
             "message_for_user",
         ]
 
+class UserLoginPostSerializer(serializers.Serializer):
+    """
+    needed login information
+    """
+
+    username = serializers.CharField(max_length=255)
+    password = serializers.CharField(max_length=128)
+
 
 class UserPasswordCheckEmailSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=255)
@@ -244,6 +252,32 @@ class GroupPermissionsSerializer(serializers.ModelSerializer):
             "groups",
         ]
 
+class UsersLoginResponseSerializer(serializers.ModelSerializer):
+    """
+    Serializer for return data when logging in and refreshing.
+    pass message in context.
+    """
+
+    message = serializers.CharField(default="Some message", max_length=255)
+
+    groups = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )  # comes out in list
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "message",
+            "username",
+            "groups",
+        ]
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['message'] = self.context["message"]
+
+        return representation
+    
 
 # -----------------------------------------------------------------------
 # schema serializers
@@ -268,37 +302,6 @@ class UserAddressPutRequestSerializer(UserAddressSerializer):
     address = serializers.CharField(max_length=255, required=False)
     zip_code = serializers.CharField(max_length=10, required=False)
     city = serializers.CharField(max_length=100, required=False)
-
-
-class UserLoginPostSerializer(serializers.Serializer):
-    """
-    Serializer mainly for schema purpose,
-    needed login information
-    """
-
-    username = serializers.CharField(max_length=255)
-    password = serializers.CharField(max_length=128)
-
-
-class UsersLoginResponseSerializer(serializers.ModelSerializer):
-    """
-    Serializer for return data when logging in and refreshing.
-    """
-
-    Success = serializers.CharField(default="Some message", max_length=255)
-
-    groups = serializers.SlugRelatedField(
-        many=True, read_only=True, slug_field="name"
-    )  # comes out in list
-
-    class Meta:
-        model = CustomUser
-        fields = [
-            "Success",
-            "username",
-            "groups",
-        ]
-
 
 class MessageSerializer(serializers.Serializer):
     message = serializers.CharField(max_length=255)

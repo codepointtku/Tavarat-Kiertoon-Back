@@ -1,6 +1,7 @@
 from django.conf import settings
-from rest_framework.exceptions import PermissionDenied
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework.authentication import CSRFCheck
+from rest_framework.exceptions import PermissionDenied
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
@@ -30,3 +31,16 @@ class CustomJWTAuthentication(JWTAuthentication):
         validated_token = self.get_validated_token(raw_token)
         enforce_csrf(request)
         return self.get_user(validated_token), validated_token
+
+
+class ourJWTauth(OpenApiAuthenticationExtension):
+    # target_class = "tavarat_kiertoon.users.authenticate.CustomJWTAuthentication"
+    target_class = CustomJWTAuthentication
+    name = "CustomJWTAuthentication"
+
+    def get_security_definition(self, auto_schema):
+        return {
+            "type": "apiKey",
+            "in": "cookie",
+            "name": settings.SIMPLE_JWT["AUTH_COOKIE"],
+        }

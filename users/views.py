@@ -12,8 +12,10 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
-from rest_framework import generics, permissions, status
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import generics, permissions, serializers, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -29,17 +31,21 @@ from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
 from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSerializer,; UserNamesSerializer,
-    BooleanValidatorSerializer,
     GroupNameSerializer,
     GroupPermissionsSerializer,
+    MessageSerializer,
+    UserAddressPostRequestSerializer,
+    UserAddressPutRequestSerializer,
     UserAddressSerializer,
     UserCreateReturnSerializer,
     UserCreateSerializer,
     UserFullSerializer,
     UserLimitedSerializer,
+    UserLoginPostSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
+    UsersLoginRefreshResponseSerializer,
     UserUpdateSerializer,
 )
 
@@ -72,23 +78,15 @@ class UserCreateListView(APIView):
     # queryset = CustomUser.objects.all()
     serializer_class = UserCreateSerializer
 
+    @extend_schema(responses=UserCreateReturnSerializer)
     def post(self, request, format=None):
-        # extremely uglu validation stuff
-        # if some one can make this better it would be good
-        # problem is username validation so it passes the real validator (allowed to be empty for normal users)
-        # need to swap the email addreess to username before validator for normal users
-        # the joint user bool field isnt properly converted to values before its run thoough serialzier
-        # if its done in same validator it fucks up the username = email change
-        # this works buit is uugly as is this poem too
-        # if you want to see the probelm jsut throw request data straight to serializer and validate
-        # when creating normal user and have empty user name field
-
-        # so that bool value can be read properly before  actually going into creation checks
-        boolval = BooleanValidatorSerializer(data=request.data)
+        # set username to email address if normal user
         copy_of_request = request.data.copy()
-        if boolval.is_valid():
-            if not boolval.data["joint_user"]:
+        if "joint_user" in request.data:
+            if not request.data["joint_user"]:
                 copy_of_request["username"] = request.data["email"]
+        else:
+            copy_of_request["username"] = request.data["email"]
 
         serialized_values = UserCreateSerializer(data=copy_of_request)
         # serialized_values = UserCreateSerializer(data=request.data)
@@ -164,16 +162,21 @@ class UserLoginView(APIView):
     Login with jwt token and as http only cookie
     """
 
-    serializer_class = UserPasswordSerializer
+    # serializer_class = UserPasswordSerializer
+    serializer_class = UserLoginPostSerializer
 
+    @extend_schema(
+        responses=UsersLoginRefreshResponseSerializer,
+    )
     def post(self, request, format=None):
-        data = request.data
-        response = Response()
-        username = data.get("username", None)
-        password = data.get("password", None)
+        pw_data = self.serializer_class(data=request.data)
+        pw_data.is_valid()
 
-        user = authenticate(username=username, password=password)
+        user = authenticate(
+            username=pw_data.data["username"], password=pw_data.data["password"]
+        )
         if user is not None:
+            response = Response()
             # setting the jwt tokens as http only cookie to "login" the user
             data = get_tokens_for_user(user)
             response.set_cookie(
@@ -197,17 +200,15 @@ class UserLoginView(APIView):
                 path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
             )
 
-            serializer_group = UserLimitedSerializer(user)
-
+            msg = "Login successfully"
+            response_data = UsersLoginRefreshResponseSerializer(
+                user, context={"message": msg}
+            )
             csrf.get_token(request)
             response.status_code = status.HTTP_200_OK
-            # put here what other information front needs from login. like users groups need be in list form
-            response.data = {
-                "Success": "Login successfully",
-                "username": serializer_group.data["username"],
-                "groups": serializer_group.data["groups"],
-            }
+            response.data = response_data.data
             return response
+
         else:
             return Response(
                 {"Invalid": "Invalid username or password!!"},
@@ -222,6 +223,7 @@ class UserTokenRefreshView(TokenViewBase):
 
     _serializer_class = api_settings.TOKEN_REFRESH_SERIALIZER
 
+    @extend_schema(request=None, responses=UsersLoginRefreshResponseSerializer)
     def post(self, request, *args, **kwargs):
         # check that refresh cookie is found
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
@@ -256,17 +258,17 @@ class UserTokenRefreshView(TokenViewBase):
         refresh_token_obj = RefreshToken(refresh_token["refresh"])
         user_id = refresh_token_obj["user_id"]
         user = User.objects.get(id=user_id)
-        serializer_group = UserLimitedSerializer(user)
+        msg = "Refresh succeess"
+        response_data = UsersLoginRefreshResponseSerializer(
+            user, context={"message": msg}
+        )
         response.status_code = status.HTTP_200_OK
-        response.data = {
-            "username": user.get_username(),
-            "Success": "refresh success",
-            "groups": serializer_group.data["groups"],
-        }
+        response.data = response_data.data
 
         return response
 
 
+@extend_schema(exclude=True)
 class UserLoginTestView(APIView):
     """
     this view is mainly used for testing purposes
@@ -326,6 +328,8 @@ class UserLogoutView(APIView):
     Logs out the user and (flush session just in case, mainly for use in testing at back)
     """
 
+    serializer_class = None
+
     def jwt_logout(self, request):
         logout(request)
         # deleting the http only jwt cookies that are used as login session
@@ -343,10 +347,6 @@ class UserLogoutView(APIView):
         return response
 
     def post(self, request):
-        response = self.jwt_logout(request)
-        return response
-
-    def get(self, request):
         response = self.jwt_logout(request)
         return response
 
@@ -460,6 +460,7 @@ class GroupListView(generics.ListAPIView):
 class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
     Update users permissions, should be only allowed to admins, on testing phase allowing fo users
+    id = user id whose permission will be updated as id/pk parameter in url
     """
 
     authentication_classes = [
@@ -482,7 +483,8 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
 
 class UserUpdateInfoView(APIView):
     """
-    Get logged in users information and update it
+    Get logged in users information and update it.
+    only fields that can be changed.
     """
 
     authentication_classes = [
@@ -504,8 +506,8 @@ class UserUpdateInfoView(APIView):
     queryset = User.objects.all()
 
     def get(self, request, format=None):
-        queryset = User.objects.filter(id=request.user.id)
-        serialized_data = self.serializer_class(queryset, many=True)
+        user = User.objects.get(id=request.user.id)
+        serialized_data = self.serializer_class(user)
         return Response(serialized_data.data)
 
     def put(self, request, format=None):
@@ -519,7 +521,7 @@ class UserUpdateInfoView(APIView):
 
 class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     """
-    Get specific users info for updating
+    Get specific users info for updating, field that can be updated
     """
 
     authentication_classes = [
@@ -541,9 +543,9 @@ class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
 
 
-class UserAddressEditView(APIView):
+class UserAddressEditView(APIView, ListModelMixin):
     """
-    Get list of all addresss logged in user has, and edit them new one
+    Get list of all addresss logged in user has, and edit them
     """
 
     authentication_classes = [
@@ -570,18 +572,17 @@ class UserAddressEditView(APIView):
         return Response(serialized_info.data)
 
     # used for adding new address to user
+    @extend_schema(request=UserAddressPostRequestSerializer)
     def post(self, request, format=None):
-        serializer = self.serializer_class(data=request.data)
+        copy_of_request_data = request.data.copy()
+        copy_of_request_data["user"] = request.user.id
+        serializer = self.serializer_class(data=copy_of_request_data)
         serializer.is_valid(raise_exception=True)
-        UserAddress.objects.create(
-            address=serializer.data["address"],
-            zip_code=serializer.data["zip_code"],
-            city=serializer.data["city"],
-            user=request.user,
-        )
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # used for updating existing address user has
+    @extend_schema(request=UserAddressPutRequestSerializer)
     def put(self, request, format=None):
         if "id" not in request.data:
             msg = "no address id for adress updating"
@@ -604,25 +605,39 @@ class UserAddressEditView(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # used for deleting existing address user has
-    def delete(self, request, format=None):
-        if "id" not in request.data:
-            msg = "no address id for adress deletion"
-            return Response(msg, status=status.HTTP_204_NO_CONTENT)
 
-        address = UserAddress.objects.get(id=request.data["id"])
-        address_msg = address.address + " " + address.zip_code + " " + address.city
+class UserAddressEditDeleteView(APIView):
+    """
+    Delete the specific address given in kwargs. address needs to match logged in user id as owner
+    """
 
-        # checking that only users themselves can change their adressess
-        if address.user.id != request.user.id:
-            msg = "address owner and loggerdin user need to match"
-            return Response(msg, status=status.HTTP_204_NO_CONTENT)
+    authentication_classes = [
+        CustomJWTAuthentication,
+    ]
 
-        address.delete()
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "DELETE": ["user_group"],
+    }
 
-        return Response(
-            f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
-        )
+    serializer_class = None
+
+    def delete(self, request, *args, **kwargs):
+        to_be_deleted_id = kwargs["pk"]
+
+        address = UserAddress.objects.get(id=to_be_deleted_id)
+
+        if request.user.id == address.user.id:
+            address_msg = address.address + " " + address.zip_code + " " + address.city
+            address.delete()
+
+            return Response(
+                f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
+            )
+
+        else:
+            # print("user didnt match the  owner of address")
+            return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
 
 
 class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
@@ -658,6 +673,7 @@ class UserPasswordResetMailView(APIView):
 
     serializer_class = UserPasswordCheckEmailSerializer
 
+    @extend_schema(responses=None)
     def post(self, request, format=None):
         # using serializewr to check that user exists that the pw reset mail is sent to
         serializer = self.serializer_class(
@@ -712,13 +728,15 @@ class UserPasswordResetMailView(APIView):
 class UserPasswordResetMailValidationView(APIView):
     """
     View that handless the password reset producre and updates the pw.
-    needs the uid and user token created in UserPasswordResetMailView
+    needs the uid and user token created in UserPasswordResetMailView.
+    the 'uidb64'/'token' variant and GET method is only for testing and should not be used in deployment so DO NOT USE
     """
 
     serializer_class = UserPasswordChangeEmailValidationSerializer
 
     # @method_decorator(sensitive_post_parameters())
     @method_decorator(never_cache)
+    @extend_schema(responses=MessageSerializer)
     def post(self, request, format=None, *args, **kwargs):
         # serializer is used to validate the data send, matching passwords and uid decode and token check
         serializer = self.serializer_class(
@@ -740,6 +758,16 @@ class UserPasswordResetMailValidationView(APIView):
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
     # get is used in testing should not be needed in deployment, will be removed later?
+    @extend_schema(
+        responses=inline_serializer(
+            name="test returns",
+            fields={
+                "msg": serializers.CharField(),
+                "uid": serializers.CharField(),
+                "token": serializers.CharField(),
+            },
+        )
+    )
     def get(self, request, *args, **kwargs):
         if "uidb64" not in kwargs or "token" not in kwargs:
             return Response(

@@ -10,15 +10,6 @@ from .models import CustomUser, UserAddress
 
 User = get_user_model()
 
-
-class BooleanValidatorSerializer(serializers.ModelSerializer):
-    joint_user = serializers.BooleanField(default=False)
-
-    class Meta:
-        model = CustomUser
-        fields = ["joint_user"]
-
-
 class UserPasswordSerializer(serializers.ModelSerializer):
     """
     Serializer for users, checking password fields
@@ -38,6 +29,14 @@ class UserPasswordSerializer(serializers.ModelSerializer):
             "password_correct",
             "message_for_user",
         ]
+
+class UserLoginPostSerializer(serializers.Serializer):
+    """
+    needed login information
+    """
+
+    username = serializers.CharField(max_length=255)
+    password = serializers.CharField(max_length=128)
 
 
 class UserPasswordCheckEmailSerializer(serializers.Serializer):
@@ -171,6 +170,14 @@ class SubSerializerForGroups(serializers.ModelSerializer):
         model = Group
         fields = ["name"]
 
+class SubSerializerForGroupsSchema(serializers.ModelSerializer):
+    """
+    Serializer for getting group names from users
+    """
+
+    class Meta:
+        model = Group
+        fields = "__all__"
 
 class UserFullSerializer(serializers.ModelSerializer):
     """
@@ -178,6 +185,7 @@ class UserFullSerializer(serializers.ModelSerializer):
     """
 
     address_list = UserAddressSerializer(many=True, read_only=True)
+    groups = SubSerializerForGroupsSchema(many=True, read_only=True)
 
     class Meta:
         model = CustomUser
@@ -189,7 +197,6 @@ class UserFullSerializer(serializers.ModelSerializer):
             "is_superuser",
             "user_permissions",
         ]
-        depth = 1
 
 
 class UserLimitedSerializer(serializers.ModelSerializer):
@@ -236,6 +243,32 @@ class GroupPermissionsSerializer(serializers.ModelSerializer):
             "groups",
         ]
 
+class UsersLoginRefreshResponseSerializer(serializers.ModelSerializer):
+    """
+    Serializer for return data when logging in and refreshing.
+    pass message in context.
+    """
+
+    message = serializers.CharField(default="Some message", max_length=255)
+
+    groups = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )  # comes out in list
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "message",
+            "username",
+            "groups",
+        ]
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['message'] = self.context["message"]
+
+        return representation
+    
 
 # -----------------------------------------------------------------------
 # schema serializers
@@ -261,66 +294,5 @@ class UserAddressPutRequestSerializer(UserAddressSerializer):
     zip_code = serializers.CharField(max_length=10, required=False)
     city = serializers.CharField(max_length=100, required=False)
 
-
-class UserLoginPostSerializer(serializers.Serializer):
-    """
-    Serializer mainly for schema purpose,
-    needed login information
-    """
-
-    username = serializers.CharField(max_length=255)
-    password = serializers.CharField(max_length=128)
-
-
-class UsersLoginResponseSerializer(serializers.ModelSerializer):
-    """
-    Serializer for return data when logging in and refreshing.
-    """
-
-    Success = serializers.CharField(default="Some message", max_length=255)
-
-    groups = serializers.SlugRelatedField(
-        many=True, read_only=True, slug_field="name"
-    )  # comes out in list
-
-    class Meta:
-        model = CustomUser
-        fields = [
-            "Success",
-            "username",
-            "groups",
-        ]
-
-
 class MessageSerializer(serializers.Serializer):
     message = serializers.CharField(max_length=255)
-
-
-class SubSerializerForGroupsSchema(serializers.ModelSerializer):
-    """
-    Serializer for getting group names from users
-    """
-
-    class Meta:
-        model = Group
-        fields = "__all__"
-
-
-class UserFullSchemaSerializer(serializers.ModelSerializer):
-    """
-    Serializer for users, all database fields
-    """
-
-    address_list = UserAddressSerializer(many=True, read_only=True)
-    groups = SubSerializerForGroupsSchema(many=True, read_only=True)
-
-    class Meta:
-        model = CustomUser
-        # fields = "__all__"
-        exclude = [
-            "password",
-            "is_admin",
-            "is_staff",
-            "is_superuser",
-            "user_permissions",
-        ]

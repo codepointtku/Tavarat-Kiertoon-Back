@@ -31,7 +31,6 @@ from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
 from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSerializer,; UserNamesSerializer,
-    BooleanValidatorSerializer,
     GroupNameSerializer,
     GroupPermissionsSerializer,
     MessageSerializer,
@@ -40,14 +39,13 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     UserAddressSerializer,
     UserCreateReturnSerializer,
     UserCreateSerializer,
-    UserFullSchemaSerializer,
     UserFullSerializer,
     UserLimitedSerializer,
     UserLoginPostSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
-    UsersLoginResponseSerializer,
+    UsersLoginRefreshResponseSerializer,
     UserUpdateSerializer,
 )
 
@@ -82,22 +80,13 @@ class UserCreateListView(APIView):
 
     @extend_schema(responses=UserCreateReturnSerializer)
     def post(self, request, format=None):
-        # extremely uglu validation stuff
-        # if some one can make this better it would be good
-        # problem is username validation so it passes the real validator (allowed to be empty for normal users)
-        # need to swap the email addreess to username before validator for normal users
-        # the joint user bool field isnt properly converted to values before its run thoough serialzier
-        # if its done in same validator it fucks up the username = email change
-        # this works buit is uugly as is this poem too
-        # if you want to see the probelm jsut throw request data straight to serializer and validate
-        # when creating normal user and have empty user name field
 
-        # so that bool value can be read properly before  actually going into creation checks
-        boolval = BooleanValidatorSerializer(data=request.data)
         copy_of_request = request.data.copy()
-        if boolval.is_valid():
-            if not boolval.data["joint_user"]:
+        if "joint_user" in request.data:
+            if not request.data["joint_user"]:
                 copy_of_request["username"] = request.data["email"]
+        else: 
+            copy_of_request["username"] = request.data["email"]
 
         serialized_values = UserCreateSerializer(data=copy_of_request)
         # serialized_values = UserCreateSerializer(data=request.data)
@@ -173,20 +162,20 @@ class UserLoginView(APIView):
     Login with jwt token and as http only cookie
     """
 
-    serializer_class = UserPasswordSerializer
+    #serializer_class = UserPasswordSerializer
+    serializer_class = UserLoginPostSerializer
 
     @extend_schema(
-        request=UserLoginPostSerializer,
-        responses=UsersLoginResponseSerializer,
+        responses=UsersLoginRefreshResponseSerializer,
     )
     def post(self, request, format=None):
-        data = request.data
-        response = Response()
-        username = data.get("username", None)
-        password = data.get("password", None)
 
-        user = authenticate(username=username, password=password)
+        pw_data = self.serializer_class(data=request.data)
+        pw_data.is_valid()
+
+        user = authenticate(username=pw_data.data["username"], password=pw_data.data["password"])
         if user is not None:
+            response = Response()
             # setting the jwt tokens as http only cookie to "login" the user
             data = get_tokens_for_user(user)
             response.set_cookie(
@@ -210,17 +199,13 @@ class UserLoginView(APIView):
                 path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
             )
 
-            serializer_group = UserLimitedSerializer(user)
-
+            msg = "Login successfully"
+            response_data = UsersLoginRefreshResponseSerializer(user, context={'message': msg})
             csrf.get_token(request)
             response.status_code = status.HTTP_200_OK
-            # put here what other information front needs from login. like users groups need be in list form
-            response.data = {
-                "Success": "Login successfully",
-                "username": serializer_group.data["username"],
-                "groups": serializer_group.data["groups"],
-            }
+            response.data = response_data.data
             return response
+        
         else:
             return Response(
                 {"Invalid": "Invalid username or password!!"},
@@ -235,7 +220,7 @@ class UserTokenRefreshView(TokenViewBase):
 
     _serializer_class = api_settings.TOKEN_REFRESH_SERIALIZER
 
-    @extend_schema(request=None, responses=UsersLoginResponseSerializer)
+    @extend_schema(request=None, responses=UsersLoginRefreshResponseSerializer)
     def post(self, request, *args, **kwargs):
         # check that refresh cookie is found
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
@@ -270,13 +255,10 @@ class UserTokenRefreshView(TokenViewBase):
         refresh_token_obj = RefreshToken(refresh_token["refresh"])
         user_id = refresh_token_obj["user_id"]
         user = User.objects.get(id=user_id)
-        serializer_group = UserLimitedSerializer(user)
+        msg = "Refresh succeess"
+        response_data = UsersLoginRefreshResponseSerializer(user, context={'message': msg})
         response.status_code = status.HTTP_200_OK
-        response.data = {
-            "username": user.get_username(),
-            "Success": "refresh success",
-            "groups": serializer_group.data["groups"],
-        }
+        response.data = response_data.data
 
         return response
 
@@ -367,8 +349,6 @@ class UserLogoutView(APIView):
         response = self.jwt_logout(request)
         return response
 
-
-# @extend_schema(responses=UserFullSchemaSerializer)
 class UserDetailsListView(generics.ListAPIView):
     """
     List all users with all database fields, no POST here
@@ -389,11 +369,9 @@ class UserDetailsListView(generics.ListAPIView):
     }
 
     queryset = CustomUser.objects.all()
-    # serializer_class = UserFullSerializer
-    serializer_class = UserFullSchemaSerializer
+    serializer_class = UserFullSerializer
 
 
-# @extend_schema(responses=UserFullSchemaSerializer)
 class UserSingleGetView(APIView):
     """
     Get single user with all database fields, no POST here
@@ -415,8 +393,7 @@ class UserSingleGetView(APIView):
     }
 
     queryset = CustomUser.objects.all()
-    # serializer_class = UserFullSerializer
-    serializer_class = UserFullSchemaSerializer
+    serializer_class = UserFullSerializer
 
     def get(self, request, pk, format=None):
         try:
@@ -424,13 +401,10 @@ class UserSingleGetView(APIView):
         except CustomUser.DoesNotExist:
             return Response("no such user", status=status.HTTP_204_NO_CONTENT)
 
-        # serializer = UserFullSerializer(user)
-        serializer = UserFullSchemaSerializer(user)
+        serializer = UserFullSerializer(user)
 
         return Response(serializer.data)
 
-
-# @extend_schema(responses=UserFullSchemaSerializer)
 class UserLoggedInDetailView(APIView):
     """
     Get logged in users info
@@ -450,8 +424,7 @@ class UserLoggedInDetailView(APIView):
         "PUT": ["user_group"],
     }
     queryset = CustomUser.objects.all()
-    # serializer_class = UserFullSerializer
-    serializer_class = UserFullSchemaSerializer
+    serializer_class = UserFullSerializer
 
     def get(self, request, format=None):
         serializer = self.serializer_class(request.user)

@@ -80,12 +80,11 @@ class UserCreateListView(APIView):
 
     @extend_schema(responses=UserCreateReturnSerializer)
     def post(self, request, format=None):
-
         copy_of_request = request.data.copy()
         if "joint_user" in request.data:
             if not request.data["joint_user"]:
                 copy_of_request["username"] = request.data["email"]
-        else: 
+        else:
             copy_of_request["username"] = request.data["email"]
 
         serialized_values = UserCreateSerializer(data=copy_of_request)
@@ -162,18 +161,19 @@ class UserLoginView(APIView):
     Login with jwt token and as http only cookie
     """
 
-    #serializer_class = UserPasswordSerializer
+    # serializer_class = UserPasswordSerializer
     serializer_class = UserLoginPostSerializer
 
     @extend_schema(
         responses=UsersLoginRefreshResponseSerializer,
     )
     def post(self, request, format=None):
-
         pw_data = self.serializer_class(data=request.data)
         pw_data.is_valid()
 
-        user = authenticate(username=pw_data.data["username"], password=pw_data.data["password"])
+        user = authenticate(
+            username=pw_data.data["username"], password=pw_data.data["password"]
+        )
         if user is not None:
             response = Response()
             # setting the jwt tokens as http only cookie to "login" the user
@@ -200,12 +200,14 @@ class UserLoginView(APIView):
             )
 
             msg = "Login successfully"
-            response_data = UsersLoginRefreshResponseSerializer(user, context={'message': msg})
+            response_data = UsersLoginRefreshResponseSerializer(
+                user, context={"message": msg}
+            )
             csrf.get_token(request)
             response.status_code = status.HTTP_200_OK
             response.data = response_data.data
             return response
-        
+
         else:
             return Response(
                 {"Invalid": "Invalid username or password!!"},
@@ -256,7 +258,9 @@ class UserTokenRefreshView(TokenViewBase):
         user_id = refresh_token_obj["user_id"]
         user = User.objects.get(id=user_id)
         msg = "Refresh succeess"
-        response_data = UsersLoginRefreshResponseSerializer(user, context={'message': msg})
+        response_data = UsersLoginRefreshResponseSerializer(
+            user, context={"message": msg}
+        )
         response.status_code = status.HTTP_200_OK
         response.data = response_data.data
 
@@ -349,6 +353,7 @@ class UserLogoutView(APIView):
         response = self.jwt_logout(request)
         return response
 
+
 class UserDetailsListView(generics.ListAPIView):
     """
     List all users with all database fields, no POST here
@@ -404,6 +409,7 @@ class UserSingleGetView(APIView):
         serializer = UserFullSerializer(user)
 
         return Response(serializer.data)
+
 
 class UserLoggedInDetailView(APIView):
     """

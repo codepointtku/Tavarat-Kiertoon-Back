@@ -10,6 +10,7 @@ from .models import CustomUser, UserAddress
 
 User = get_user_model()
 
+
 class UserPasswordSerializer(serializers.ModelSerializer):
     """
     Serializer for users, checking password fields
@@ -29,6 +30,7 @@ class UserPasswordSerializer(serializers.ModelSerializer):
             "password_correct",
             "message_for_user",
         ]
+
 
 class UserLoginPostSerializer(serializers.Serializer):
     """
@@ -170,6 +172,7 @@ class SubSerializerForGroups(serializers.ModelSerializer):
         model = Group
         fields = ["name"]
 
+
 class SubSerializerForGroupsSchema(serializers.ModelSerializer):
     """
     Serializer for getting group names from users
@@ -178,6 +181,7 @@ class SubSerializerForGroupsSchema(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = "__all__"
+
 
 class UserFullSerializer(serializers.ModelSerializer):
     """
@@ -243,6 +247,7 @@ class GroupPermissionsSerializer(serializers.ModelSerializer):
             "groups",
         ]
 
+
 class UsersLoginRefreshResponseSerializer(serializers.ModelSerializer):
     """
     Serializer for return data when logging in and refreshing.
@@ -262,13 +267,14 @@ class UsersLoginRefreshResponseSerializer(serializers.ModelSerializer):
             "username",
             "groups",
         ]
-    
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['message'] = self.context["message"]
+        if "message" in self.context:
+            representation["message"] = self.context["message"]
 
         return representation
-    
+
 
 # -----------------------------------------------------------------------
 # schema serializers
@@ -293,6 +299,7 @@ class UserAddressPutRequestSerializer(UserAddressSerializer):
     address = serializers.CharField(max_length=255, required=False)
     zip_code = serializers.CharField(max_length=10, required=False)
     city = serializers.CharField(max_length=100, required=False)
+
 
 class MessageSerializer(serializers.Serializer):
     message = serializers.CharField(max_length=255)

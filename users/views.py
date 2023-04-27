@@ -201,11 +201,7 @@ class UserActivationView(APIView):
             user.is_active = True
             user.save()
 
-            response = Response()
-            response.status_code = status.HTTP_200_OK
-            response.data = {"messsage": "user activated"}
-
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response("user activated", status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 

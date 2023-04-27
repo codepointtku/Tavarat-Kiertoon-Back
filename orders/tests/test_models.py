@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from orders.models import ShoppingCart, Order
+from orders.models import Order, ShoppingCart
 from users.models import CustomUser
 
 
@@ -16,11 +16,11 @@ class TestOrdersModels(TestCase):
             zip_code="100500",
             city="Puuhamaa",
             username="kahvimaesto",
-            joint_user=False
+            joint_user=False,
         )
-        self.test_shoppingcart = ShoppingCart.objects.create(
-            user=self.test_user
-        )
+        self.test_user.is_active = True
+        self.test_user.save()
+        self.test_shoppingcart = ShoppingCart.objects.create(user=self.test_user)
         self.test_order = Order.objects.create(
             user=self.test_user, phone_number="1234567890"
         )

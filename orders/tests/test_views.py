@@ -21,6 +21,9 @@ class TestOrders(TestCase):
             username="kahvimaestro",
             joint_user=False,
         )
+        cls.test_user.is_active = True
+        cls.test_user.save()
+
         cls.test_user1 = CustomUser.objects.create_user(
             first_name="Kahvimpi",
             last_name="Markus",
@@ -33,6 +36,9 @@ class TestOrders(TestCase):
             username="nyrrillataa",
             joint_user=False,
         )
+        cls.test_user1.is_active = True
+        cls.test_user1.save()
+
         cls.test_color = Color.objects.create(name="punainen")
         cls.test_storage = Storage.objects.create(name="mokkavarasto")
         cls.test_storage1 = Storage.objects.create(name="italiangoldstorage")

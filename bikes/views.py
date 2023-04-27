@@ -45,7 +45,8 @@ class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BikeModelSerializer
 
     def update(self, request, *args, **kwargs):
-        serializer = BikeModelCreateSerializer(data=request.data)
+        instance = self.get_object()
+        serializer = BikeModelCreateSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
@@ -70,7 +71,8 @@ class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BikeStockDetailSerializer
 
     def update(self, request, *args, **kwargs):
-        serializer = BikeStockCreateSerializer(data=request.data)
+        instance = self.get_object()
+        serializer = BikeStockCreateSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)

@@ -164,9 +164,9 @@ class MainBikeSchemaBikesSerializer(serializers.Serializer):
     type = serializers.CharField()
     brand = serializers.CharField()
     size = serializers.CharField()
-    unavailable = serializers.CharField()
+    unavailable = serializers.DictField()
     package_only_count = serializers.IntegerField()
-    package_only_unavailable = serializers.CharField()
+    package_only_unavailable = serializers.DictField()
 
 
 class MainBikeSchemaPackageBikeSerializer(serializers.Serializer):
@@ -180,7 +180,7 @@ class MainBikeSchemaPackageSerializer(serializers.Serializer):
     description = serializers.CharField()
     bikes = MainBikeSchemaPackageBikeSerializer(many=True)
     type = serializers.CharField()
-    unavailable = serializers.CharField()
+    unavailable = serializers.DictField()
     brand = serializers.IntegerField()
     color = serializers.IntegerField()
     size = serializers.CharField()

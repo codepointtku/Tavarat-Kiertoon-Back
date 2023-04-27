@@ -3,19 +3,12 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.http import urlsafe_base64_decode
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers, status
 
 from .models import CustomUser, UserAddress
 
 User = get_user_model()
-
-
-class BooleanValidatorSerializer(serializers.ModelSerializer):
-    joint_user = serializers.BooleanField(default=False)
-
-    class Meta:
-        model = CustomUser
-        fields = ["joint_user"]
 
 
 class UserPasswordSerializer(serializers.ModelSerializer):
@@ -37,6 +30,15 @@ class UserPasswordSerializer(serializers.ModelSerializer):
             "password_correct",
             "message_for_user",
         ]
+
+
+class UserLoginPostSerializer(serializers.Serializer):
+    """
+    needed login information
+    """
+
+    username = serializers.CharField(max_length=255)
+    password = serializers.CharField(max_length=128)
 
 
 class UserPasswordCheckEmailSerializer(serializers.Serializer):
@@ -171,18 +173,34 @@ class SubSerializerForGroups(serializers.ModelSerializer):
         fields = ["name"]
 
 
+class SubSerializerForGroupsSchema(serializers.ModelSerializer):
+    """
+    Serializer for getting group names from users
+    """
+
+    class Meta:
+        model = Group
+        fields = "__all__"
+
+
 class UserFullSerializer(serializers.ModelSerializer):
     """
     Serializer for users, all database fields
     """
 
     address_list = UserAddressSerializer(many=True, read_only=True)
+    groups = SubSerializerForGroupsSchema(many=True, read_only=True)
 
     class Meta:
         model = CustomUser
         # fields = "__all__"
-        exclude = ["password", "is_admin", "is_staff", "is_superuser"]
-        depth = 1
+        exclude = [
+            "password",
+            "is_admin",
+            "is_staff",
+            "is_superuser",
+            "user_permissions",
+        ]
 
 
 class UserLimitedSerializer(serializers.ModelSerializer):
@@ -226,8 +244,62 @@ class GroupPermissionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = [
-            "id",
-            "name",
-            "email",
             "groups",
         ]
+
+
+class UsersLoginRefreshResponseSerializer(serializers.ModelSerializer):
+    """
+    Serializer for return data when logging in and refreshing.
+    pass message in context.
+    """
+
+    message = serializers.CharField(default="Some message", max_length=255)
+
+    groups = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )  # comes out in list
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "message",
+            "username",
+            "groups",
+        ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if "message" in self.context:
+            representation["message"] = self.context["message"]
+
+        return representation
+
+
+# -----------------------------------------------------------------------
+# schema serializers
+# -----------------------------------------------------------------------
+
+
+@extend_schema_serializer(exclude_fields=["user"])
+class UserAddressPostRequestSerializer(UserAddressSerializer):
+    """
+    Serializer mainly for schema purpose, fields required for creating address for user
+    """
+
+
+@extend_schema_serializer(exclude_fields=["user"])
+class UserAddressPutRequestSerializer(UserAddressSerializer):
+    """
+    Serializer mainly for schema purpose, removing the required tag and adding id
+    id = the id number of address being changed
+    """
+
+    id = serializers.IntegerField(required=True)
+    address = serializers.CharField(max_length=255, required=False)
+    zip_code = serializers.CharField(max_length=10, required=False)
+    city = serializers.CharField(max_length=100, required=False)
+
+
+class MessageSerializer(serializers.Serializer):
+    message = serializers.CharField(max_length=255)

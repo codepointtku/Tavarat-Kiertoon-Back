@@ -132,11 +132,6 @@ class UserCreateListView(APIView):
                     "invalid email domain", status=status.HTTP_400_BAD_REQUEST
                 )
 
-            return_serializer = UserCreateReturnSerializer(data=serialized_values.data)
-            return_serializer.is_valid()
-
-            # create email verification for user creation  /// FOR LATER WHO EVER DOES IT
-
             # actually creating the user
             user = User.objects.create_user(
                 first_name=first_name_post,
@@ -152,6 +147,39 @@ class UserCreateListView(APIView):
             )
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()
+
+            # create email verification for user creation  /// FOR LATER WHO EVER DOES IT
+            if True:
+                token_generator = default_token_generator
+                token_for_user = token_generator.make_token(user=user)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+                back_activate_url = "http://127.0.0.1:8000/users/activate/"
+                activate_url_back = f"{back_activate_url}{uid}/{token_for_user}/"
+                activate_url = (
+                    f"{settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"
+                )
+                message = "heres the activation link you requested: " + activate_url
+
+                # sending activation email
+                subject = "welcome to use Tavarat Kiertoon"
+                message = "Hi you have created account for tavarat kiertoon.\n\n"
+                message += f"Please click the following link to activate your account: {activate_url} \n\n"
+                message += "If you did not request account creation to tavart kiertoon, ignore this mail."
+
+                send_mail(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [user.email],
+                    fail_silently=False,
+                )
+
+            return_serializer = UserCreateReturnSerializer(
+                data=serialized_values.data, context={"message": activate_url_back}
+            )
+            return_serializer.is_valid()
+
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)

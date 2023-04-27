@@ -143,6 +143,8 @@ class UserCreateReturnSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(max_length=155)
     phone_number = serializers.CharField(max_length=50)
 
+    message = serializers.CharField(default="Some message", max_length=255)
+
     class Meta:
         model = CustomUser
         fields = [
@@ -150,7 +152,15 @@ class UserCreateReturnSerializer(serializers.ModelSerializer):
             "last_name",
             "email",
             "phone_number",
+            "message",
         ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if "message" in self.context:
+            representation["message"] = self.context["message"]
+
+        return representation
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):

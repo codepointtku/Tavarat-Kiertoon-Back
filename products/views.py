@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
-from rest_framework import generics, status, serializers
+from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
@@ -16,7 +16,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from drf_spectacular.utils import(
     extend_schema,
     extend_schema_view,
-    inline_serializer,
     PolymorphicProxySerializer
 )
 
@@ -32,9 +31,8 @@ from .serializers import (
     ProductListSerializer,
     ProductColorStringSerializer,
     ProductCreateSerializer,
+    ProductUpdateSerializer,
     StorageSerializer,
-    AsdaSerializer,
-    AsdSerializer
 )
 
 
@@ -241,7 +239,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = ProductUpdateSerializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         if "modify_date" in request.data:
             serializer.save(modified_date=timezone.now())

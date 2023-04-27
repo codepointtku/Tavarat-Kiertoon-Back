@@ -25,21 +25,22 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ProductUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = "__all__"
+
 class ProductListSerializer(serializers.ModelSerializer):
     category_name = serializers.ReadOnlyField(source="category.name")
     color_name = serializers.ReadOnlyField(source="color.name")
     storage_name = serializers.ReadOnlyField(source="storages.name")
+    pictures = PictureSerializer(many=True, read_only=True)
     amount = serializers.IntegerField()
 
     class Meta:
         model = Product
         fields = "__all__"
 
-class AsdSerializer(serializers.Serializer):
-    color = serializers.CharField()
-
-class AsdaSerializer(serializers.Serializer):
-    color = serializers.IntegerField()
 
 class ProductColorStringSerializer(serializers.ModelSerializer):
     amount = serializers.IntegerField()

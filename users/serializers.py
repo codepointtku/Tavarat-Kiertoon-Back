@@ -95,6 +95,38 @@ class UserPasswordChangeEmailValidationSerializer(serializers.Serializer):
         return data
 
 
+class UserTokenValidationSerializer(serializers.Serializer):
+    uid = serializers.CharField(max_length=255)
+    token = serializers.CharField(max_length=255)
+
+    def validate(self, data):
+        """
+        check the correctness of token
+        """
+        # decoding uid and chekcing that token is valid
+        token_generator = default_token_generator
+        try:
+            uid = urlsafe_base64_decode(data["uid"]).decode()
+        except ValueError:
+            msg = "stuff went wrong in decoding uid or something"
+            raise serializers.ValidationError(msg)
+
+        try:
+            user = User.objects.get(id=uid)
+        except (ValueError, ObjectDoesNotExist):
+            msg = "something doesnt feel right about user"
+            raise serializers.ValidationError(msg)
+
+        if not token_generator.check_token(user=user, token=data["token"]):
+            msg = "something went wrong confirming email link, get now one"
+            raise serializers.ValidationError(msg)
+
+        # print("jammign that decoded uid into data insted of coded one, old: ", data)
+        data["uid"] = uid
+
+        return data
+
+
 class UserAddressSerializer(serializers.ModelSerializer):
     """
     Serializer for user address

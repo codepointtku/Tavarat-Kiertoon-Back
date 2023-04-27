@@ -46,6 +46,7 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
     UsersLoginRefreshResponseSerializer,
+    UserTokenValidationSerializer,
     UserUpdateSerializer,
 )
 
@@ -183,6 +184,30 @@ class UserCreateListView(APIView):
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserActivationView(APIView):
+    serializer_class = UserTokenValidationSerializer
+
+    def post(self, request, format=None, *args, **kwargs):
+        # serializer is used to validate the data send, matching passwords and uid decode and token check
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+
+        if serializer.is_valid():
+            # updating the users pw in database
+            user = User.objects.get(id=serializer.data["uid"])
+            user.is_active = True
+            user.save()
+
+            response = Response()
+            response.status_code = status.HTTP_200_OK
+            response.data = {"messsage": "user activated"}
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
 
 class UserLoginView(APIView):

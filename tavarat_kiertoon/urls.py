@@ -56,6 +56,7 @@ from products.views import (
 from users.views import (  # GroupNameView,; GroupPermissionCheckView,; UserAddressListView,; UserDetailLimitedView,; UserDetailsListLimitedView,
     GroupListView,
     GroupPermissionUpdateView,
+    UserActivationView,
     UserAddressAdminEditView,
     UserAddressEditDeleteView,
     UserAddressEditView,
@@ -116,6 +117,7 @@ urlpatterns = [
     path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refresh"),
     path("users/login_check/", UserLoginTestView.as_view(), name="test_view_for_dev"),
     path("users/logout/", UserLogoutView.as_view()),
+    path("users/activate/", UserActivationView.as_view()),
     path("users/password/resetemail/", UserPasswordResetMailView.as_view()),
     path(
         "users/password/reset/<str:uidb64>/<str:token>/",

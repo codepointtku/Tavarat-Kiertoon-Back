@@ -350,10 +350,6 @@ class UserLogoutView(APIView):
         response = self.jwt_logout(request)
         return response
 
-    def get(self, request):
-        response = self.jwt_logout(request)
-        return response
-
 
 class UserDetailsListView(generics.ListAPIView):
     """

@@ -45,7 +45,22 @@ class CategoryTreeView(APIView):
     @extend_schema(
         responses=CategoryTreeSerializer,
         examples=[
-            OpenApiExample("Example 1", description="longer description", value=5)
+            OpenApiExample(
+                "Example 1",
+                description="Keys are category ids, and values are list of all lvl 2 child category ids of that category",
+                value={
+                    "1": [3, 4, 6, 7],
+                    "2": [3, 4],
+                    "3": [3],
+                    "4": [4],
+                    "5": [6, 7],
+                    "6": [6],
+                    "7": [7],
+                    "8": [10],
+                    "9": [10],
+                    "10": [10],
+                },
+            )
         ],
     )
     def get(self, request, *args, **kwargs):

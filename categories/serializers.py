@@ -25,7 +25,9 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class CategoryTreeSerializer(serializers.Serializer):
-    category_number = serializers.ListField(child=serializers.IntegerField())
+    category_number = serializers.ListField(
+        child=serializers.ModelField(model_field=Category._meta.get_field("id"))
+    )
 
     # def get_a(self, obj) -> list:
     #     return [0, 1, 2]

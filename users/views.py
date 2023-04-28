@@ -81,13 +81,16 @@ class UserCreateListView(APIView):
     @extend_schema(responses=UserCreateReturnSerializer)
     def post(self, request, format=None):
         # set username to email address if normal user
+        print(request.data)
         copy_of_request = request.data.copy()
         if "joint_user" in request.data:
-            if not request.data["joint_user"]:
+            if request.data["joint_user"] == "false":
+                print("sdihofosdsdö")
                 copy_of_request["username"] = request.data["email"]
         else:
             copy_of_request["username"] = request.data["email"]
 
+        print(copy_of_request)
         serialized_values = UserCreateSerializer(data=copy_of_request)
         # serialized_values = UserCreateSerializer(data=request.data)
 

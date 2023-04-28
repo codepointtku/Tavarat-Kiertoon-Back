@@ -26,7 +26,7 @@ from rest_framework_simplejwt.views import (
 )
 
 from bulletins.views import BulletinDetailView, BulletinListView
-from categories.views import CategoryDetailView, CategoryListView
+from categories.views import CategoryDetailView, CategoryListView, CategoryTreeView
 from contact_forms.views import (
     ContactDetailView,
     ContactFormDetailView,
@@ -41,7 +41,6 @@ from orders.views import (
     ShoppingCartListView,
 )
 from products.views import (
-    CategoryTreeView,
     ColorDetailView,
     ColorListView,
     PictureDetailView,

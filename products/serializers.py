@@ -26,9 +26,12 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
+    modify_date = serializers.CharField(required=False)
+
     class Meta:
         model = Product
         fields = "__all__"
+
 
 class ProductListSerializer(serializers.ModelSerializer):
     category_name = serializers.ReadOnlyField(source="category.name")

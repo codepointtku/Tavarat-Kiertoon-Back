@@ -234,7 +234,8 @@ class StorageProductListView(generics.ListCreateAPIView):
 
 @extend_schema_view(
     put=extend_schema(
-        request=ProductUpdateSerializer()
+        request=ProductUpdateSerializer(),
+        responses=ProductUpdateSerializer()
     )
 )
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):

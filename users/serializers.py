@@ -118,6 +118,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
     zip_code = serializers.CharField(max_length=10)
     city = serializers.CharField(max_length=100)
 
+    username = serializers.CharField(max_length=255, required=False)
+
     class Meta:
         model = CustomUser
         fields = [
@@ -132,6 +134,31 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "zip_code",
             "city",
         ]
+
+    def to_internal_value(self, data):
+        mod_data = super().to_internal_value(data)
+        print("mod data: ", mod_data)
+        mod_data["username"] = mod_data["email"]
+        print("mod data 2: ", mod_data)
+        return mod_data
+
+    # def validate(self, data):
+    #     data_check = super().validate(data)
+    #     print("data check: ", data_check)
+    #     return data_check
+
+    # def to_representation(self, instance):
+    #     representation = super().to_representation(instance)
+
+    #     print("representation method, email: ", representation["email"])
+    #     print("representation method, username: ", representation["username"])
+    #     print("representation method, joint_usr :", representation["joint_user"])
+
+    #     # if not representation["joint_user"]:
+    #     #     print("repres joint user block")
+    #     #     representation["username"] = representation["email"]
+
+    #     return representation
 
 
 class UserCreateReturnSerializer(serializers.ModelSerializer):

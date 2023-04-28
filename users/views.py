@@ -81,15 +81,18 @@ class UserCreateListView(APIView):
     @extend_schema(responses=UserCreateReturnSerializer)
     def post(self, request, format=None):
         # set username to email address if normal user
-        copy_of_request = request.data.copy()
-        if "joint_user" in request.data:
-            if request.data["joint_user"] == "false":
-                copy_of_request["username"] = request.data["email"]
-        else:
-            copy_of_request["username"] = request.data["email"]
+        # copy_of_request = request.data.copy()
+        # print("request data: ", request.data)
+        # if "joint_user" in request.data:
+        #     print("joint use found: ", request.data["joint_user"])
+        #     if not request.data["joint_user"]:
+        #         print("joint user is and is: ", request.data["joint_user"])
+        #         copy_of_request["username"] = request.data["email"]
+        # else:
+        #     copy_of_request["username"] = request.data["email"]
 
-        serialized_values = UserCreateSerializer(data=copy_of_request)
-        # serialized_values = UserCreateSerializer(data=request.data)
+        # serialized_values = UserCreateSerializer(data=copy_of_request)
+        serialized_values = UserCreateSerializer(data=request.data)
 
         if serialized_values.is_valid():
             # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else

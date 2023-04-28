@@ -28,6 +28,7 @@ from .serializers import (
     ColorSerializer,
     PictureSerializer,
     ProductSerializer,
+    ProductStorageTransferSerializer,
     ProductListSerializer,
     ProductColorStringSerializer,
     ProductCreateSerializer,
@@ -231,7 +232,11 @@ class StorageProductListView(generics.ListCreateAPIView):
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
-
+@extend_schema_view(
+    put=extend_schema(
+        request=ProductUpdateSerializer()
+    )
+)
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -323,8 +328,14 @@ class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PictureSerializer
 
 
+@extend_schema_view(
+    put=extend_schema(
+        responses=ProductSerializer(many=True)
+    )
+)
 class ProductStorageTransferView(APIView):
     """View for transfering list of products to different storage"""
+    serializer_class = ProductStorageTransferSerializer
 
     def put(self, request, *args, **kwargs):
         storage = Storage.objects.get(id=request.data["storage"])

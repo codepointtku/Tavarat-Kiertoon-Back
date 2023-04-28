@@ -62,6 +62,11 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ProductStorageTransferSerializer(serializers.Serializer):
+    storage = serializers.IntegerField()
+    products = serializers.ListField(child=serializers.IntegerField())
+        
+
 class ColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Color

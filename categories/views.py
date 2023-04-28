@@ -1,9 +1,10 @@
+from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Category
-from .serializers import CategorySerializer
+from .serializers import CategorySerializer, CategoryTreeSerializer
 
 
 # Create your views here.
@@ -41,6 +42,12 @@ class CategoryTreeView(APIView):
 
     queryset = Category.objects.all()
 
+    @extend_schema(
+        responses=CategoryTreeSerializer,
+        examples=[
+            OpenApiExample("Example 1", description="longer description", value=5)
+        ],
+    )
     def get(self, request, *args, **kwargs):
         category_tree = {
             c.id: [c.id for c in c.get_descendants(include_self=True).filter(level=2)]

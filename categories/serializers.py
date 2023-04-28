@@ -22,3 +22,10 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = "__all__"
+
+
+class CategoryTreeSerializer(serializers.Serializer):
+    category_number = serializers.ListField(child=serializers.IntegerField())
+
+    # def get_a(self, obj) -> list:
+    #     return [0, 1, 2]

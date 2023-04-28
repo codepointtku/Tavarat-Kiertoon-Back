@@ -88,7 +88,6 @@ class UserCreateListView(APIView):
         else:
             copy_of_request["username"] = request.data["email"]
 
-        print(copy_of_request)
         serialized_values = UserCreateSerializer(data=copy_of_request)
         # serialized_values = UserCreateSerializer(data=request.data)
 

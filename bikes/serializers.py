@@ -11,6 +11,14 @@ class BikeRentalSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class BikeRentalSchemaPostSerializer(serializers.ModelSerializer):
+    bike_stock = serializers.DictField(child=serializers.IntegerField())
+
+    class Meta:
+        model = BikeRental
+        fields = "__all__"
+
+
 class BikeStockSerializer(serializers.ModelSerializer):
     rental = BikeRentalSerializer(many=True)
 
@@ -27,12 +35,6 @@ class BikeStockSerializer(serializers.ModelSerializer):
             "storage",
             "rental",
         ]
-
-
-class BikeModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Bike
-        fields = "__all__"
 
 
 class BikeSerializer(serializers.ModelSerializer):
@@ -92,6 +94,7 @@ class BikeBrandSerializer(serializers.ModelSerializer):
 
 
 class BikeSizeSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = BikeSize
         fields = "__all__"
@@ -116,11 +119,76 @@ class BikeStockListSerializer(serializers.ModelSerializer):
         fields =  "__all__"
 
 
-class BikeStockDetailSerializer(serializers.ModelSerializer): 
-    bike = BikeStockDepthSerializer(read_only=True)
-    storage = StorageSerializer(read_only=True)
-
+class BikeStockCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeStock
         fields = "__all__"
+
+        
+class BikeStockDetailSerializer(serializers.ModelSerializer):
+    bike = BikeStockDepthSerializer(read_only=True)
+    storage = StorageSerializer(read_only=True)
+    
+    class Meta:
+        model = BikeStock
+        fields = "__all__"
+
+
+class BikeModelSerializer(serializers.ModelSerializer):
+    type = BikeTypeSerializer(read_only=True)
+    brand = BikeBrandSerializer(read_only=True)
+    size = BikeSizeSerializer(read_only=True)
+    color = ColorSerializer(read_only=True)
+    
+    class Meta:
+        model = Bike
+        fields = "__all__"
+
+
+class BikeModelCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bike
+        fields = "__all__"
+
+
+class MainBikeSchemaDateSerializer(serializers.Serializer):
+    available_from = serializers.DateField()
+    available_to = serializers.DateField()     
+
+
+class MainBikeSchemaBikesSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    max_available = serializers.IntegerField()
+    description = serializers.CharField()
+    type = serializers.CharField()
+    brand = serializers.CharField()
+    size = serializers.CharField()
+    color = serializers.IntegerField()
+    unavailable = serializers.DictField(child=serializers.IntegerField())
+    package_only_count = serializers.IntegerField()
+    package_only_unavailable = serializers.DictField(child=serializers.IntegerField())
+
+
+class MainBikeSchemaPackageBikeSerializer(serializers.Serializer):
+    bike = serializers.IntegerField()
+    amount = serializers.IntegerField()
+
+
+class MainBikeSchemaPackageSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    description = serializers.CharField()
+    bikes = MainBikeSchemaPackageBikeSerializer(many=True)
+    type = serializers.CharField()
+    unavailable = serializers.DictField(child=serializers.IntegerField())
+    brand = serializers.IntegerField()
+    color = serializers.IntegerField()
+    size = serializers.CharField()
+    max_available = serializers.IntegerField()
+
+class MainBikeListSchemaSerializer(serializers.Serializer):
+    date_info = MainBikeSchemaDateSerializer()
+    bikes = MainBikeSchemaBikesSerializer(many=True)
+    packages = MainBikeSchemaPackageSerializer(many=True)
 

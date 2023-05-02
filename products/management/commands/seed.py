@@ -691,7 +691,6 @@ def create_products():
         },
     ]
     true_false = [1, 1, 1, 0]
-    # categories = Category.objects.filter(level=2)
     colors = Color.objects.all()
     storages = Storage.objects.all()
     pictures = Picture.objects.all()

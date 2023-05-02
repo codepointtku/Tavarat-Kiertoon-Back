@@ -23,6 +23,7 @@ from .serializers import (
     OrderDetailRequestSerializer,
     OrderDetailSerializer,
     OrderRequestSerializer,
+    OrderResponseSerializer,
     OrderSerializer,
     ShoppingCartDetailRequestSerializer,
     ShoppingCartDetailSerializer,
@@ -150,7 +151,11 @@ class OrderListView(ListCreateAPIView):
     ordering = ["id"]
     filterset_class = OrderFilter
 
-    @extend_schema(request=OrderRequestSerializer)
+    @extend_schema(responses=OrderResponseSerializer)
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    @extend_schema(request=OrderRequestSerializer, responses=OrderResponseSerializer)
     def post(self, request, *args, **kwargs):
         user_id = request.data["user"]
         available_products_ids = product_availibility_check(user_id)

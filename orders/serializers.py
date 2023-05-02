@@ -12,6 +12,19 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ShoppingCartDetailSerializer(serializers.ModelSerializer):
+    products = ProductSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ShoppingCart
+        fields = "__all__"
+
+
+class ShoppingCartDetailRequestSerializer(serializers.Serializer):
+    products = serializers.IntegerField()
+    amount = serializers.IntegerField()
+
+
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
@@ -24,17 +37,18 @@ class OrderRequestSerializer(serializers.ModelSerializer):
         exclude = ["products"]
 
 
-class ShoppingCartDetailSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
-
+class OrderResponseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ShoppingCart
+        model = Order
         fields = "__all__"
-
-
-class ShoppingCartDetailRequestSerializer(serializers.Serializer):
-    products = serializers.IntegerField()
-    amount = serializers.IntegerField()
+        extra_kwargs = {
+            "delivery_address": {"required": True},
+            "contact": {"required": True},
+            "order_info": {"required": True},
+            "delivery_date": {"required": True},
+            "user": {"required": True},
+            "products": {"required": True},
+        }
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):

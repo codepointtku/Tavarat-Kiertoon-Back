@@ -707,6 +707,7 @@ def create_products():
             category=Category.objects.get(name=product["category"]),
             color=random.choice(colors),
             storages=random.choice(storages),
+            measurements="",
         )
         for _ in range(
             random.choices(

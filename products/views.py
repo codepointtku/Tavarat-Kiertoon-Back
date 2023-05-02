@@ -233,6 +233,9 @@ class StorageProductListView(generics.ListCreateAPIView):
         )
 
 @extend_schema_view(
+    get=extend_schema(
+        responses=ProductListSerializer(),
+    ),
     put=extend_schema(
         request=ProductUpdateSerializer(),
         responses=ProductUpdateSerializer()

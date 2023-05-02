@@ -43,6 +43,19 @@ class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
+        extra_kwargs = {"available": {"required": True},
+            "barcode": {"required": True},
+            "group_id": {"required": True},
+            "price": {"required": True},
+            "shelf_id": {"required": True},
+            "free_description": {"required": True},
+            "modified_date": {"required": True},
+            "measurements": {"required": True},
+            "weight": {"required": True},
+            "category": {"required": True},
+            "storages": {"required": True},
+            "color": {"required": True},
+        }
 
 
 class ProductColorStringSerializer(serializers.ModelSerializer):

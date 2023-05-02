@@ -175,6 +175,7 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
 
+    @extend_schema(responses=OrderDetailResponseSerializer)
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
@@ -196,11 +197,9 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
             instance._prefetched_objects_cache = {}
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
+    @extend_schema(methods=["PATCH"], exclude=True)
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
 
 
 class OrderSelfListView(ListAPIView):

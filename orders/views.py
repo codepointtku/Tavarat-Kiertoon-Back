@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import send_mail
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema
@@ -161,6 +163,11 @@ class OrderListView(ListCreateAPIView):
             for product_id in available_products_ids:
                 order.products.add(product_id)
             updated_serializer = OrderSerializer(order).data
+            subject = f"Tilaus {order.id}"
+            message = "viesti"
+            send_mail(
+                subject=subject, message=message, settings=settings.EMAIL_HOST_USER
+            )
             return Response(updated_serializer, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

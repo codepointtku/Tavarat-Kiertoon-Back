@@ -227,3 +227,7 @@ class OrderSelfListView(ListAPIView):
         if self.request.user.is_anonymous:
             return
         return Order.objects.filter(user=self.request.user)
+
+    @extend_schema(responses=OrderDetailResponseSerializer)
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)

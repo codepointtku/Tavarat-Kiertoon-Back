@@ -58,6 +58,30 @@ class ProductListSerializer(serializers.ModelSerializer):
         }
 
 
+class ProductStorageListSerializer(serializers.ModelSerializer):
+    category_name = serializers.ReadOnlyField(source="category.name")
+    color_name = serializers.ReadOnlyField(source="color.name")
+    storage_name = serializers.ReadOnlyField(source="storages.name")
+    pictures = PictureSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+        extra_kwargs = {"available": {"required": True},
+            "barcode": {"required": True},
+            "group_id": {"required": True},
+            "price": {"required": True},
+            "shelf_id": {"required": True},
+            "free_description": {"required": True},
+            "modified_date": {"required": True},
+            "measurements": {"required": True},
+            "weight": {"required": True},
+            "category": {"required": True},
+            "storages": {"required": True},
+            "color": {"required": True},
+        }
+
+
 class ProductColorStringSerializer(serializers.ModelSerializer):
     amount = serializers.IntegerField()
     color = serializers.CharField()
@@ -66,7 +90,13 @@ class ProductColorStringSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
-        
+        extra_kwargs = {"available": {"required": True},
+            "barcode": {"required": True},
+            "category": {"required": True},
+            "storages": {"required": True},
+            "color": {"required": True},
+        }   
+
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     amount = serializers.IntegerField()
@@ -76,6 +106,12 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
+        extra_kwargs = {"available": {"required": True},
+            "barcode": {"required": True},
+            "category": {"required": True},
+            "storages": {"required": True},
+            "color": {"required": True},
+        }
 
 
 class ProductStorageTransferSerializer(serializers.Serializer):

@@ -15,9 +15,7 @@ class TestOrdersModels(TestCase):
             address="Karvakuja 1",
             zip_code="100500",
             city="Puuhamaa",
-            # username="kahvimaesto",
             username="kahvimake@turku.fi",
-            # joint_user=False
         )
         self.test_shoppingcart = ShoppingCart.objects.create(user=self.test_user)
         self.test_order = Order.objects.create(

@@ -8,9 +8,7 @@ class Bulletin(models.Model):
     """class for making Bulletin table for database"""
 
     id = models.BigAutoField(primary_key=True)
-    author = models.ForeignKey(
-        CustomUser, on_delete=models.SET_NULL, null=True, blank=False
-    )
+    author = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     title = models.CharField(max_length=255)
     content = models.TextField()
     date = models.DateTimeField(auto_now_add=True)

@@ -44,24 +44,24 @@ class Product(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     available = models.BooleanField(default=False)
-    barcode = models.CharField(max_length=255, blank=True, null=True)
+    barcode = models.CharField(max_length=255, default="")
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, null=True, blank=True
+        Category, on_delete=models.SET_NULL, null=True
     )
-    group_id = models.CharField(max_length=255, blank=True, null=True)
+    group_id = models.CharField(max_length=255, default="")
     name = models.CharField(max_length=255)
     price = models.FloatField(default=0.0)
     storages = models.ForeignKey(
-        Storage, on_delete=models.SET_NULL, null=True, blank=True
+        Storage, on_delete=models.SET_NULL, null=True
     )
     shelf_id = models.IntegerField(blank=True, null=True)
-    free_description = models.TextField(blank=True, null=True)
+    free_description = models.TextField(default="", blank=True)
     pictures = models.ManyToManyField(Picture, blank=True)
     date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(default=timezone.now)
-    measurements = models.CharField(max_length=50, null=True, blank=True)
+    measurements = models.CharField(max_length=50, default="", blank=True)
     color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True)
-    weight = models.FloatField(default=0.0, blank=True, null=True)
+    weight = models.FloatField(default=0.0)
 
     def __str__(self) -> str:
         return f"Product: {self.name}({self.id})"

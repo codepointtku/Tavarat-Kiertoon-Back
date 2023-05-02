@@ -7,6 +7,8 @@ import math
 from rest_framework import generics, status
 from rest_framework.response import Response
 
+from drf_spectacular.utils import extend_schema_view, extend_schema
+
 from bikes.models import Bike, BikePackage, BikeRental, BikeStock
 from bikes.serializers import (
     BikePackageSerializer,
@@ -14,33 +16,87 @@ from bikes.serializers import (
     BikeSerializer,
     BikeStockListSerializer,
     BikeStockDetailSerializer,
+    BikeRentalSchemaPostSerializer,
+    BikeStockCreateSerializer,
     BikeModelSerializer,
+    BikeModelCreateSerializer,
+    MainBikeListSchemaSerializer
 )
 
-
+@extend_schema_view(
+    post=extend_schema(
+        request=BikeModelCreateSerializer,
+        responses=BikeModelCreateSerializer
+    )
+)
 class BikeModelListView(generics.ListCreateAPIView):
     queryset = Bike.objects.all()
     serializer_class = BikeModelSerializer
 
+    def post(self,request, *args, **kwargs):
+        serializer = BikeModelCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
 
+@extend_schema_view(
+    put=extend_schema(
+        request=BikeModelCreateSerializer,
+        responses=BikeModelCreateSerializer
+    )
+)
 class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Bike.objects.all()
     serializer_class = BikeModelSerializer
 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = BikeModelCreateSerializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
-class BikeStockListView(generics.ListAPIView):
+
+@extend_schema_view(
+    post=extend_schema(
+        request=BikeStockCreateSerializer,
+        responses=BikeStockCreateSerializer
+    )
+)
+class BikeStockListView(generics.ListCreateAPIView):
     queryset = BikeStock.objects.all()
     serializer_class = BikeStockListSerializer
     # permission_classes = [isAdminUser]
 
+    def post(self, request, *args, **kwargs):
+        serializer = BikeStockCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
+@extend_schema_view(
+    put=extend_schema(
+        request=BikeStockCreateSerializer,
+        responses=BikeStockCreateSerializer
+    )
+)
 class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeStock.objects.all()
     serializer_class = BikeStockDetailSerializer
 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = BikeStockCreateSerializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+
 
 class MainBikeList(generics.ListAPIView):
-    serializer_class = BikePackageSerializer
+    serializer_class = MainBikeListSchemaSerializer
+    queryset = Bike.objects.none()
 
     def list(self, request, *args, **kwargs):
         today = datetime.date.today()
@@ -140,6 +196,7 @@ class MainBikeList(generics.ListAPIView):
         )
 
 
+@extend_schema_view(post=extend_schema(request=BikeRentalSchemaPostSerializer))
 class RentalListView(generics.ListCreateAPIView):
     queryset = BikeRental.objects.all()
     serializer_class = BikeRentalSerializer
@@ -149,15 +206,21 @@ class RentalListView(generics.ListCreateAPIView):
         bikes_list = []
         for rental_item in request.data["bike_stock"]:
             if rental_item.startswith("package"):
-                package = BikePackage.objects.get(id=rental_item.split("-",1)[1]).bikes.values("id", "amount")
+                package = BikePackage.objects.get(
+                    id=rental_item.split("-", 1)[1]
+                ).bikes.values("id", "amount")
                 packageamount = request.data["bike_stock"][rental_item]
                 for packageitem in package:
                     amount = packageamount * packageitem["amount"]
-                    available_bikes = BikeStock.objects.filter(bike=packageitem["id"]).order_by("-package_only", "id")
+                    available_bikes = BikeStock.objects.filter(
+                        bike=packageitem["id"]
+                    ).order_by("-package_only", "id")
                     for bike in range(amount):
                         bikes_list.append(available_bikes[bike].id)
             else:
-                available_bikes = BikeStock.objects.filter(bike=rental_item, package_only=False)
+                available_bikes = BikeStock.objects.filter(
+                    bike=rental_item, package_only=False
+                )
                 amount = request.data["bike_stock"][rental_item]
                 for bike in range(amount):
                     bikes_list.append(available_bikes[bike].id)

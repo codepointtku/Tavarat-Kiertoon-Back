@@ -8,7 +8,7 @@ from .models import Category
 class CategorySerializer(serializers.ModelSerializer):
     product_count = serializers.SerializerMethodField()
 
-    def get_product_count(self, obj):
+    def get_product_count(self, obj) -> int:
         categories = obj.get_descendants(include_self=True)
         products = Product.objects.filter(available=True)
         available_products = products.filter(category__in=categories)

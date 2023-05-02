@@ -164,10 +164,10 @@ class OrderListView(ListCreateAPIView):
             for product_id in available_products_ids:
                 order.products.add(product_id)
             updated_serializer = OrderSerializer(order).data
-            subject = "Tavarat kiertoon tilaus"
+            subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (
                 "Hei!\n"
-                "Vastaanotimme tilauksesi ja tilaus pyritään toimittamaan 1-2 viikon sisällä\n"
+                "Vastaanotimme tilauksesi ja tilaus pyrimme toimittamaan sen 1-2 viikon sisällä\n"
                 f"Tilausnumeronne on {order.id}.\n\n"
                 "Terveisin Tavarat kieroon väki!"
             )

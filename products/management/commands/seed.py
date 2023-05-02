@@ -280,6 +280,9 @@ def create_users():
         },
     ]
     super = CustomUser.objects.create_superuser(username="super", password="super")
+    UserAddress.objects.create(
+        address="Superkatu6000", zip_code="9001", city="Superkylä", user=super
+    )
     for group in Group.objects.all():
         group.user_set.add(super)
 

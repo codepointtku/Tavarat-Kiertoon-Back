@@ -159,7 +159,7 @@ class OrderListView(ListCreateAPIView):
     pagination_class = OrderListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["id"]
-    ordering = ["id"]
+    ordering = ["-id"]
     filterset_class = OrderFilter
 
     @extend_schema(responses=OrderResponseSerializer)

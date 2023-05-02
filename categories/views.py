@@ -4,7 +4,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Category
-from .serializers import CategorySerializer, CategoryTreeSerializer
+from .serializers import (
+    CategoryResponseSerializer,
+    CategorySerializer,
+    CategoryTreeSerializer,
+)
 
 
 # Create your views here.
@@ -12,6 +16,11 @@ class CategoryListView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    @extend_schema(responses=CategoryResponseSerializer)
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    @extend_schema(responses=CategoryResponseSerializer)
     def post(self, request, *args, **kwargs):
         instance = request.data
 
@@ -35,6 +44,22 @@ class CategoryListView(generics.ListCreateAPIView):
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+
+    @extend_schema(responses=CategoryResponseSerializer)
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    @extend_schema(responses=CategoryResponseSerializer)
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    @extend_schema(methods=["PATCH"], exclude=True)
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    @extend_schema(responses=CategoryResponseSerializer)
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
 
 class CategoryTreeView(APIView):

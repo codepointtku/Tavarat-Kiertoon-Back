@@ -40,10 +40,6 @@ class ContactFormDetailView(RetrieveUpdateDestroyAPIView):
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
 
-    @extend_schema(responses=ContactFormResponseSerializer)
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
-
 
 class ContactListView(ListCreateAPIView):
     queryset = Contact.objects.all()

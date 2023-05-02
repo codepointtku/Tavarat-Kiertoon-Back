@@ -57,10 +57,6 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
 
-    @extend_schema(responses=CategoryResponseSerializer)
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
-
 
 class CategoryTreeView(APIView):
     """Returns all category ids as keys and all level 2 child categories of that category as list"""

@@ -127,6 +127,10 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)
         return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
+    @extend_schema(methods=["PATCH"], exclude=True)
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
 
 class OrderListPagination(PageNumberPagination):
     page_size = 50

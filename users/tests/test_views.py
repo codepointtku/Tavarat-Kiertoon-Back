@@ -56,7 +56,6 @@ class TestUsers(TestCase):
             zip_code="zip_code",
             city="city",
             username="testi1@turku.fi",
-            # joint_user="false",
         )
 
         user2_set = CustomUser.objects.create_user(
@@ -69,7 +68,6 @@ class TestUsers(TestCase):
             zip_code="testi",
             city="tessti",
             username="testimies",
-            # joint_user="true",
         )
 
         user3_set = CustomUser.objects.create_user(
@@ -82,7 +80,6 @@ class TestUsers(TestCase):
             zip_code="admin",
             city="admin",
             username="admin",
-            # joint_user="true",
         )
         for group in Group.objects.all():
             group.user_set.add(user3_set)
@@ -238,7 +235,6 @@ class TestUsers(TestCase):
             "email": "testingly@turku.fi",
             "phone_number": "54519145",
             "password": "1234",
-            # "joint_user": "true",
             "username": "",
             "address": "testiläntie 12",
             "zip_code": "12552",

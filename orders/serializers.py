@@ -35,6 +35,7 @@ class OrderRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         exclude = ["products"]
+        extra_kwargs = {"user": {"required": True}}
 
 
 class OrderResponseSerializer(serializers.ModelSerializer):
@@ -42,8 +43,6 @@ class OrderResponseSerializer(serializers.ModelSerializer):
         model = Order
         fields = "__all__"
         extra_kwargs = {
-            "delivery_address": {"required": True},
-            "contact": {"required": True},
             "order_info": {"required": True},
             "delivery_date": {"required": True},
             "user": {"required": True},
@@ -63,3 +62,14 @@ class OrderDetailRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = "__all__"
+
+
+class OrderDetailResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = "__all__"
+        extra_kwargs = {
+            "order_info": {"required": True},
+            "delivery_date": {"required": True},
+            "user": {"required": True},
+        }

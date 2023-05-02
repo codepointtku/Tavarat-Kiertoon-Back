@@ -21,6 +21,7 @@ from users.views import CustomJWTAuthentication
 from .models import Order, ShoppingCart
 from .serializers import (
     OrderDetailRequestSerializer,
+    OrderDetailResponseSerializer,
     OrderDetailSerializer,
     OrderRequestSerializer,
     OrderResponseSerializer,
@@ -174,7 +175,12 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
 
-    @extend_schema(request=OrderDetailRequestSerializer)
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        request=OrderDetailRequestSerializer, responses=OrderDetailResponseSerializer
+    )
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
@@ -189,6 +195,12 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
 
 class OrderSelfListView(ListAPIView):

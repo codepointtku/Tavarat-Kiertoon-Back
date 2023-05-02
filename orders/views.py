@@ -165,9 +165,8 @@ class OrderListView(ListCreateAPIView):
             updated_serializer = OrderSerializer(order).data
             subject = f"Tilaus {order.id}"
             message = "viesti"
-            send_mail(
-                subject=subject, message=message, settings=settings.EMAIL_HOST_USER
-            )
+            user = user.objects.get(id=user_id)
+            send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
             return Response(updated_serializer, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

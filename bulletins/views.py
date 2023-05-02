@@ -38,7 +38,3 @@ class BulletinDetailView(RetrieveUpdateDestroyAPIView):
     @extend_schema(methods=["PATCH"], exclude=True)
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
-
-    @extend_schema(responses=BulletinResponseSerializer)
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)

@@ -80,21 +80,12 @@ class UserCreateListView(APIView):
 
     @extend_schema(responses=UserCreateReturnSerializer)
     def post(self, request, format=None):
-        # set username to email address if normal user
-        # copy_of_request = request.data.copy()
-        # print("request data: ", request.data)
-        # if "joint_user" in request.data:
-        #     print("joint use found: ", request.data["joint_user"])
-        #     if not request.data["joint_user"]:
-        #         print("joint user is and is: ", request.data["joint_user"])
-        #         copy_of_request["username"] = request.data["email"]
-        # else:
-        #     copy_of_request["username"] = request.data["email"]
+        # if no username field comes in request = normal user and email will be copied to username
+        # if username comes it means the user will be "joint_user" and user will use the transmitted username
+        # this is performed in the serializer validations.
 
-        # serialized_values = UserCreateSerializer(data=copy_of_request)
-        print("in view data in request: ", request.data)
         serialized_values = UserCreateSerializer(data=request.data)
-        print("in view now ser val: ", serialized_values.initial_data)
+
         if serialized_values.is_valid():
             # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
             if not Group.objects.filter(name="user_group").exists():
@@ -111,16 +102,12 @@ class UserCreateListView(APIView):
             email_post = serialized_values["email"].value
             phone_number_post = serialized_values["phone_number"].value
             password_post = serialized_values["password"].value
-            joint_user_post = serialized_values["joint_user"].value
 
             address_post = serialized_values["address"].value
             zip_code_post = serialized_values["zip_code"].value
             city_post = serialized_values["city"].value
 
             username_post = serialized_values["username"].value
-
-            if not joint_user_post:
-                username_post = email_post
 
             # checking that email domain is valid
             # checking email domain
@@ -152,7 +139,6 @@ class UserCreateListView(APIView):
                 zip_code=zip_code_post,
                 city=city_post,
                 username=username_post,
-                joint_user=joint_user_post,
             )
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()

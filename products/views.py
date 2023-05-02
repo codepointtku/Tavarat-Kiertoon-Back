@@ -28,6 +28,7 @@ from .serializers import (
     ColorSerializer,
     PictureSerializer,
     ProductSerializer,
+    ProductStorageListSerializer,
     ProductStorageTransferSerializer,
     ProductListSerializer,
     ProductColorStringSerializer,
@@ -108,7 +109,7 @@ class ProductFilter(filters.FilterSet):
 @extend_schema_view(
     get=extend_schema(
         responses=
-            {"200": ProductListSerializer()},
+            ProductListSerializer
     )
 )
 class ProductListView(generics.ListAPIView):
@@ -164,7 +165,11 @@ class ProductListView(generics.ListAPIView):
                         ProductColorStringSerializer
                     ],
                     resource_type_field_name="color",
-        )
+        ),
+        responses=ProductListSerializer()
+    ),
+    get=extend_schema(
+        responses=ProductStorageListSerializer()
     )
 )
 class StorageProductListView(generics.ListCreateAPIView):
@@ -239,6 +244,9 @@ class StorageProductListView(generics.ListCreateAPIView):
     put=extend_schema(
         request=ProductUpdateSerializer(),
         responses=ProductUpdateSerializer()
+    ),
+    patch=extend_schema(
+        exclude=True
     )
 )
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):

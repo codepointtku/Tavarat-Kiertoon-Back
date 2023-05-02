@@ -10,6 +10,14 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingCart
         fields = "__all__"
+        extra_kwargs = {"user": {"required": True}}
+
+
+class ShoppingCartResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShoppingCart
+        fields = "__all__"
+        extra_kwargs = {"user": {"required": True}}
 
 
 class ShoppingCartDetailSerializer(serializers.ModelSerializer):

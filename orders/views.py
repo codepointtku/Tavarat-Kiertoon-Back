@@ -28,6 +28,7 @@ from .serializers import (
     OrderSerializer,
     ShoppingCartDetailRequestSerializer,
     ShoppingCartDetailSerializer,
+    ShoppingCartResponseSerializer,
     ShoppingCartSerializer,
 )
 
@@ -54,6 +55,11 @@ class ShoppingCartListView(ListCreateAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
 
+    @extend_schema(responses=ShoppingCartResponseSerializer)
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    @extend_schema(responses=ShoppingCartResponseSerializer)
     def post(self, request):
         serializer = ShoppingCartSerializer(data=request.data)
         if serializer.is_valid():

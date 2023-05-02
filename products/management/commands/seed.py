@@ -738,6 +738,8 @@ def create_shopping_carts():
     queryset = ShoppingCart.objects.all()
     products = list(Product.objects.filter(available=True))
     for query in queryset:
+        if query.user.username == "super":
+            query.products.set(random.sample(products, 5))
         query.products.set(random.sample(products, random.randint(1, 6)))
 
 

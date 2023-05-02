@@ -18,8 +18,9 @@ class TestOrders(TestCase):
             address="Karvakuja 1",
             zip_code="100500",
             city="Puuhamaa",
-            username="kahvimaestro",
-            joint_user=False,
+            # username="kahvimaestro",
+            username="kahvimake@turku.fi",
+            # joint_user=False,
         )
         cls.test_user1 = CustomUser.objects.create_user(
             first_name="Kahvimpi",
@@ -30,8 +31,9 @@ class TestOrders(TestCase):
             address="Karvakuja 2",
             zip_code="100500",
             city="Puuhamaa",
-            username="nyrrillataa",
-            joint_user=False,
+            # username="nyrrillataa",
+            username="kahvimarkus@turku.fi",
+            # joint_user=False,
         )
         cls.test_color = Color.objects.create(name="punainen")
         cls.test_storage = Storage.objects.create(name="mokkavarasto")

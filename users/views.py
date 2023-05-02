@@ -143,12 +143,7 @@ class UserCreateListView(APIView):
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)
-        print(
-            "servalue errors: ",
-            serialized_values.errors,
-            " initial values:  ",
-            serialized_values.initial_data,
-        )
+
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

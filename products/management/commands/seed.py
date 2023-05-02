@@ -280,6 +280,11 @@ def create_users():
         },
     ]
     super = CustomUser.objects.create_superuser(username="super", password="super")
+    super.phone_number = 900090009
+    super.save()
+    UserAddress.objects.create(
+        address="Superkatu6000", zip_code="9001", city="Superkylä", user=super
+    )
     for group in Group.objects.all():
         group.user_set.add(super)
 
@@ -686,7 +691,6 @@ def create_products():
         },
     ]
     true_false = [1, 1, 1, 0]
-    # categories = Category.objects.filter(level=2)
     colors = Color.objects.all()
     storages = Storage.objects.all()
     pictures = Picture.objects.all()
@@ -734,7 +738,10 @@ def create_shopping_carts():
     queryset = ShoppingCart.objects.all()
     products = list(Product.objects.filter(available=True))
     for query in queryset:
-        query.products.set(random.sample(products, random.randint(1, 6)))
+        if query.user.username == "super":
+            query.products.set(random.sample(products, 5))
+        else:
+            query.products.set(random.sample(products, random.randint(1, 6)))
 
 
 def create_orders():

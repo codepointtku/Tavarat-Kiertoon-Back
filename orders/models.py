@@ -24,10 +24,10 @@ class Order(models.Model):
     products = models.ManyToManyField(Product, blank=True)
     status = models.CharField(max_length=255)
     delivery_address = models.CharField(
-        max_length=255, null=True, default=None, blank=True
+        max_length=255, null=True
     )
-    contact = models.CharField(max_length=255, null=True, default=None, blank=True)
-    order_info = models.TextField(null=True, default=None, blank=True)
+    contact = models.CharField(max_length=255, default="", blank=True)
+    order_info = models.TextField(default="", blank=True)
     delivery_date = models.DateTimeField(null=True, default=None, blank=True)
     phone_number = models.CharField(max_length=255)
     creation_date = models.DateTimeField(auto_now_add=True)

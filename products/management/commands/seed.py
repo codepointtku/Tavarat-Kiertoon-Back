@@ -281,6 +281,8 @@ def create_users():
     ]
     super = CustomUser.objects.create_superuser(username="super", password="super")
     super.phone_number = 900090009
+    super.name = "Super"
+    super.email = "super@turku.fi"
     super.save()
     UserAddress.objects.create(
         address="Superkatu6000", zip_code="9001", city="Superkylä", user=super

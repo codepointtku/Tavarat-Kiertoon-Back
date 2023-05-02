@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from drf_spectacular.utils import extend_schema
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView

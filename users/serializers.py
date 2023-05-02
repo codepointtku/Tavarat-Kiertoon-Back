@@ -118,7 +118,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     zip_code = serializers.CharField(max_length=10)
     city = serializers.CharField(max_length=100)
 
-    username = serializers.CharField(max_length=255, required=False)
+    # username = serializers.CharField(max_length=255, required=False)
 
     class Meta:
         model = CustomUser
@@ -136,9 +136,12 @@ class UserCreateSerializer(serializers.ModelSerializer):
         ]
 
     def to_internal_value(self, data):
-        mod_data = super().to_internal_value(data)
-        print("mod data: ", mod_data)
+        print("data before any change an stuff: ", data)
+        mod_data = data
         mod_data["username"] = mod_data["email"]
+        mod_data = super().to_internal_value(mod_data)
+        print("mod data: ", mod_data)
+        # mod_data["username"] = mod_data["email"]
         print("mod data 2: ", mod_data)
         return mod_data
 

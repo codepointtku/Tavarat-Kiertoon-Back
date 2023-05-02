@@ -92,8 +92,9 @@ class UserCreateListView(APIView):
         #     copy_of_request["username"] = request.data["email"]
 
         # serialized_values = UserCreateSerializer(data=copy_of_request)
+        print("in view data in request: ", request.data)
         serialized_values = UserCreateSerializer(data=request.data)
-
+        print("in view now ser val: ", serialized_values.initial_data)
         if serialized_values.is_valid():
             # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
             if not Group.objects.filter(name="user_group").exists():
@@ -156,7 +157,12 @@ class UserCreateListView(APIView):
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)
-
+        print(
+            "servalue errors: ",
+            serialized_values.errors,
+            " initial values:  ",
+            serialized_values.initial_data,
+        )
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

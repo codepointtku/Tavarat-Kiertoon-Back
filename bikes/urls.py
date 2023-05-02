@@ -12,4 +12,5 @@ urlpatterns = [
     path("rental/<int:pk>/", views.RentalDetailView.as_view()),
     path("models/", views.BikeModelListView.as_view()),
     path("models/<int:pk>/", views.BikeModelDetailView.as_view()),
+    path("packages/", views.BikePackagesListView.as_view()),
 ]

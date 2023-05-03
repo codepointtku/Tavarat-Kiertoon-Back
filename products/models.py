@@ -51,7 +51,7 @@ class ModifyProduct(models.Model):
         ADDTOCART = "Added to shopping cart"
         REMOVEFROMCART = "Removed from shopping cart"
         TIMEOUTFROMCART = "Timed out from shopping cart"
-        ORDER = "Ordered"
+        ORDER = "Ordered"  # Done
         STORAGE = "Modified in storage"
         CREATION = "Creation"
         # Returned to circulation

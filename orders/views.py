@@ -190,7 +190,7 @@ class OrderListView(ListCreateAPIView):
                 order.products.add(product_id)
             updated_serializer = OrderSerializer(order).data
             modify_product_instance = ModifyProduct.objects.create(
-                user=request.user, circumstance="ORDER"
+                user=request.user, circumstance="Ordered"
             )
             products = Product.objects.filter(id__in=updated_serializer["products"])
             for product in products:

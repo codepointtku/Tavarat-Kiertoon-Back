@@ -53,7 +53,7 @@ class ModifyProduct(models.Model):
         TIMEOUTFROMCART = "Timed out from shopping cart"
         ORDER = "Ordered"  # Done
         STORAGE = "Modified in storage"
-        CREATION = "Creation"
+        CREATION = "Creation"  # Done
         CIRCULATION = "Returned to circulation"
 
     id = models.BigAutoField(primary_key=True)

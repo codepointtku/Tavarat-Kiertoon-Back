@@ -219,8 +219,16 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         if "modify_date" in request.data:
             serializer.save(modified_date=timezone.now())
+            modify_product_instance = ModifyProduct.objects.create(
+                user=request.user, circumstance="Returned to circulation"
+            )
+            instance.modified.add(modify_product_instance)
         else:
             serializer.save()
+            modify_product_instance = ModifyProduct.objects.create(
+                user=request.user, circumstance="Modified in storage"
+            )
+            instance.modified.add(modify_product_instance)
         data = serializer.data
 
         if getattr(instance, "_prefetched_objects_cache", None):

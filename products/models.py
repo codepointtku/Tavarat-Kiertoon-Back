@@ -54,6 +54,7 @@ class ModifyProduct(models.Model):
         ORDER = "Ordered"
         STORAGE = "Modified in storage"
         CREATION = "Creation"
+        # Returned to circulation
 
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)

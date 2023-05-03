@@ -23,10 +23,8 @@ class Order(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     products = models.ManyToManyField(Product, blank=True)
     status = models.CharField(max_length=255)
-    delivery_address = models.CharField(
-        max_length=255, null=True
-    )
-    contact = models.CharField(max_length=255, default="", blank=True)
+    delivery_address = models.CharField(max_length=255)
+    contact = models.CharField(max_length=255)
     order_info = models.TextField(default="", blank=True)
     delivery_date = models.DateTimeField(null=True, default=None, blank=True)
     phone_number = models.CharField(max_length=255)

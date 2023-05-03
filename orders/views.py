@@ -24,11 +24,14 @@ from users.views import CustomJWTAuthentication
 from .models import Order, ShoppingCart
 from .serializers import (
     OrderDetailRequestSerializer,
+    OrderDetailResponseSerializer,
     OrderDetailSerializer,
     OrderRequestSerializer,
+    OrderResponseSerializer,
     OrderSerializer,
     ShoppingCartDetailRequestSerializer,
     ShoppingCartDetailSerializer,
+    ShoppingCartResponseSerializer,
     ShoppingCartSerializer,
 )
 
@@ -55,6 +58,11 @@ class ShoppingCartListView(ListCreateAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
 
+    @extend_schema(responses=ShoppingCartResponseSerializer)
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    @extend_schema(responses=ShoppingCartResponseSerializer)
     def post(self, request):
         serializer = ShoppingCartSerializer(data=request.data)
         if serializer.is_valid():
@@ -122,6 +130,10 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)
         return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
+    @extend_schema(methods=["PATCH"], exclude=True)
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
 
 class OrderListPagination(PageNumberPagination):
     page_size = 50
@@ -150,7 +162,7 @@ class OrderListView(ListCreateAPIView):
     pagination_class = OrderListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["id"]
-    ordering = ["id"]
+    ordering = ["-id"]
     filterset_class = OrderFilter
     authentication_classes = [
         SessionAuthentication,
@@ -159,7 +171,11 @@ class OrderListView(ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    @extend_schema(request=OrderRequestSerializer)
+    @extend_schema(responses=OrderResponseSerializer)
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    @extend_schema(request=OrderRequestSerializer, responses=OrderResponseSerializer)
     def post(self, request, *args, **kwargs):
         try:
             user = request.user
@@ -195,7 +211,13 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
 
-    @extend_schema(request=OrderDetailRequestSerializer)
+    @extend_schema(responses=OrderDetailResponseSerializer)
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        request=OrderDetailRequestSerializer, responses=OrderDetailResponseSerializer
+    )
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
@@ -210,6 +232,10 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+
+    @extend_schema(methods=["PATCH"], exclude=True)
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
 
 
 class OrderSelfListView(ListAPIView):
@@ -227,3 +253,7 @@ class OrderSelfListView(ListAPIView):
         if self.request.user.is_anonymous:
             return
         return Order.objects.filter(user=self.request.user)
+
+    @extend_schema(responses=OrderDetailResponseSerializer)
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)

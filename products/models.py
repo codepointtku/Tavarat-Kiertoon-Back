@@ -53,6 +53,7 @@ class ModifyProduct(models.Model):
         TIMEOUTFROMCART = "Timed out from shopping cart"
         ORDER = "Ordered"
         STORAGE = "Modified in storage"
+        CREATION = "Creation"
 
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)

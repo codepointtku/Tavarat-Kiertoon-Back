@@ -180,14 +180,10 @@ class OrderListView(ListCreateAPIView):
             user = request.user
         except ValueError:
             return "You must be logged in to make an order"
-        # available_products_ids = product_availibility_check(user.id)
         serializer = OrderSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             order = Order.objects.get(id=serializer.data["id"])
-            # for product_id in available_products_ids:
-            #     order.products.add(product_id)
-            # updated_serializer = OrderSerializer(order).data
             shopping_cart = ShoppingCart.objects.get(user=user.id)
             modify_product_instance = ModifyProduct.objects.create(
                 user=request.user, circumstance="Ordered"
@@ -199,9 +195,6 @@ class OrderListView(ListCreateAPIView):
                 user=request.user, circumstance="Ordered"
             )
             serializer = OrderSerializer(order)
-            # products = Product.objects.filter(id__in=serializer["products"])
-            # for product in products:
-            #     product.modified.add(modify_product_instance)
             subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (
                 "Hei!\n"

@@ -9,10 +9,10 @@ from rest_framework.response import Response
 
 from drf_spectacular.utils import extend_schema_view, extend_schema
 
-from bikes.models import Bike, BikePackage, BikeRental, BikeStock, BikePackages
+from bikes.models import Bike, BikePackage, BikeRental, BikeStock, BikeAmount
 from bikes.serializers import (
+    BikeAmountSerializer,
     BikePackageSerializer,
-    BikePackagesSerializer,
     BikeRentalSerializer,
     BikeSerializer,
     BikeStockListSerializer,
@@ -238,6 +238,12 @@ class RentalDetailView(generics.RetrieveAPIView):
     serializer_class = BikeRentalSerializer
 
 
-class BikePackagesListView(generics.ListCreateAPIView):
-    queryset = BikePackages.objects.all()
-    serializer_class = BikePackagesSerializer
+class BikeAmountListView(generics.ListAPIView):
+    queryset = BikeAmount.objects.all()
+    serializer_class = BikeAmountSerializer
+
+
+class BikePackageListView(generics.ListCreateAPIView):
+    queryset = BikePackage.objects.all()
+    serializer_class = BikePackageSerializer
+

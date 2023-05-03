@@ -792,6 +792,7 @@ class UserPasswordResetMailValidationView(APIView):
             # updating the users pw in database
             user = User.objects.get(id=serializer.data["uid"])
             user.set_password(serializer.data["new_password"])
+            user.is_active = True
             user.save()
 
             response = Response()

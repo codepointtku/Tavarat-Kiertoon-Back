@@ -127,8 +127,3 @@ class BikeAmount(models.Model):
     def __str__(self) -> str:
         return f"Bike amount: {self.amount}x{self.bike}({self.id})"
 
-
-class BikePackages(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.CharField(max_length=255)
-    bikemodel = models.ManyToManyField(BikeAmount)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Bike, BikeAmount, BikePackage, BikePackages, BikeRental, BikeStock, BikeType, BikeSize, BikeBrand
+from .models import Bike, BikeAmount, BikePackage, BikeRental, BikeStock, BikeType, BikeSize, BikeBrand
 
 from products.serializers import ColorSerializer, StorageSerializer
 
@@ -193,7 +193,8 @@ class MainBikeListSchemaSerializer(serializers.Serializer):
     packages = MainBikeSchemaPackageSerializer(many=True)
 
 
-class BikePackagesSerializer(serializers.ModelSerializer):
+class BikeAmountSerializer(serializers.ModelSerializer):
     class Meta:
-        model = BikePackages
+        model = BikeAmount
         fields = "__all__"
+

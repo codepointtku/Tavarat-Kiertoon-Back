@@ -21,6 +21,7 @@ from users.views import CustomJWTAuthentication
 from .models import Color, Picture, Product, Storage
 from .serializers import (
     ColorSerializer,
+    ModifyProduct,
     PictureSerializer,
     ProductSerializer,
     StorageSerializer,
@@ -181,6 +182,13 @@ class StorageProductListView(generics.ListCreateAPIView):
         serializer = ProductSerializer(data=modified_request, many=True)
         serializer.is_valid(raise_exception=True)
         products = serializer.save()
+
+        modify_product_instance = ModifyProduct.objects.create(
+            user=request.user, circumstance="Creation"
+        )
+        for product in products:
+            product.modify.add(modify_product_instance)
+
         picture_ids = []
         for file in request.FILES.getlist("pictures[]"):
             ext = file.content_type.split("/")[1]

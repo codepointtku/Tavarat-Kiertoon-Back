@@ -48,9 +48,11 @@ class ModifyProduct(models.Model):
     class CircumstanceChoices(models.TextChoices):
         """Choices for the state of the bike."""
 
-        SHOPPINGCART = "SHOPPING CART"
-        ORDER = "ORDER"
-        STORAGE = "STORAGE"
+        ADDTOCART = "Added to shopping cart"
+        REMOVEFROMCART = "Removed from shopping cart"
+        TIMEOUTFROMCART = "Timed out from shopping cart"
+        ORDER = "Ordered"
+        STORAGE = "Modified in storage"
 
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)

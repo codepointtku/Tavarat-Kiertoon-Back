@@ -21,7 +21,6 @@ class CustomUserManager(BaseUserManager):
         zip_code,
         city,
         username,
-        joint_user,
     ):
         """function for creating a user"""
         if not first_name:
@@ -38,8 +37,8 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Users must have zip_code")
         if not city:
             raise ValueError("Users must have city")
-        if not joint_user:
-            username = self.normalize_email(email=email)
+        if "@" in username:
+            username = self.normalize_email(email=username)
 
         if not username:
             raise ValueError("Users must have user name")

@@ -18,8 +18,7 @@ class TestOrders(TestCase):
             address="Karvakuja 1",
             zip_code="100500",
             city="Puuhamaa",
-            username="kahvimaestro",
-            joint_user=False,
+            username="kahvimake@turku.fi",
         )
         cls.test_user.is_active = True
         cls.test_user.save()
@@ -33,8 +32,7 @@ class TestOrders(TestCase):
             address="Karvakuja 2",
             zip_code="100500",
             city="Puuhamaa",
-            username="nyrrillataa",
-            joint_user=False,
+            username="kahvimarkus@turku.fi",
         )
         cls.test_user1.is_active = True
         cls.test_user1.save()

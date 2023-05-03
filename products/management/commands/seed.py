@@ -215,8 +215,7 @@ def create_users():
             "address": "Katulantiekuja 22",
             "zip_code": "20100",
             "city": "Turku",
-            "username": "",
-            "joint_user": False,
+            "username": "billy.herrington@turku.fi",
         },
         {
             "first_name": "Sami",
@@ -228,7 +227,6 @@ def create_users():
             "zip_code": "80085",
             "city": "Rauma",
             "username": "Samin mashausopisto",
-            "joint_user": True,
         },
         {
             "first_name": "Pekka",
@@ -239,8 +237,7 @@ def create_users():
             "address": "Pythosentie 12",
             "zip_code": "22222",
             "city": "Lohja",
-            "username": "",
-            "joint_user": False,
+            "username": "pekka.python@turku.fi",
         },
         {
             "first_name": "Pirjo",
@@ -251,8 +248,7 @@ def create_users():
             "address": "Pythosentie 12",
             "zip_code": "22222",
             "city": "Lohja",
-            "username": "",
-            "joint_user": False,
+            "username": "pirjo.pythonen@turku.fi",
         },
         {
             "first_name": "Jad",
@@ -263,8 +259,7 @@ def create_users():
             "address": "TzHaar Fight Cave",
             "zip_code": "Wave 63",
             "city": "Brimhaven",
-            "username": "",
-            "joint_user": False,
+            "username": "TzTok-Jad@turku.fi",
         },
         {
             "first_name": "Kavhi",
@@ -276,7 +271,6 @@ def create_users():
             "zip_code": "20100",
             "city": "Turku",
             "username": "Kavhila",
-            "joint_user": True,
         },
     ]
     super = CustomUser.objects.create_superuser(username="super", password="super")
@@ -299,7 +293,6 @@ def create_users():
             zip_code=user["zip_code"],
             city=user["city"],
             username=user["username"],
-            joint_user=user["joint_user"],
         )
         created_user.is_active = True
         created_user.save()

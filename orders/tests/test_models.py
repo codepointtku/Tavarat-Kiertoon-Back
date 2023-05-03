@@ -15,8 +15,7 @@ class TestOrdersModels(TestCase):
             address="Karvakuja 1",
             zip_code="100500",
             city="Puuhamaa",
-            username="kahvimaesto",
-            joint_user=False,
+            username="kahvimake@turku.fi",
         )
         self.test_user.is_active = True
         self.test_user.save()

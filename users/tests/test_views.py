@@ -56,7 +56,6 @@ class TestUsers(TestCase):
             zip_code="zip_code",
             city="city",
             username="testi1@turku.fi",
-            joint_user="false",
         )
         user_set.is_active = True
         user_set.save()
@@ -71,7 +70,6 @@ class TestUsers(TestCase):
             zip_code="testi",
             city="tessti",
             username="testimies",
-            joint_user="true",
         )
         user2_set.is_active = True
         user2_set.save()
@@ -86,7 +84,6 @@ class TestUsers(TestCase):
             zip_code="admin",
             city="admin",
             username="admin",
-            joint_user="true",
         )
         user3_set.is_active = True
         user3_set.save()
@@ -244,7 +241,6 @@ class TestUsers(TestCase):
             "email": "testingly@turku.fi",
             "phone_number": "54519145",
             "password": "1234",
-            "joint_user": "true",
             "username": "",
             "address": "testiläntie 12",
             "zip_code": "12552",

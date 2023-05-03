@@ -62,13 +62,13 @@ class TestProducts(TestCase):
         cls.user = CustomUser.objects.create_user(
             first_name="first_name",
             last_name="last_name",
-            email="testi1@turku.fi",
+            email="rotta@turku.fi",
             phone_number="phone_number",
             password="turku",
             address="address",
             zip_code="zip_code",
             city="city",
-            username="testi1@turku.fi",
+            username="rotta@turku.fi",
         )
 
         queryset = Product.objects.all()
@@ -83,11 +83,11 @@ class TestProducts(TestCase):
     def login_test_user(self):
         url = "/users/login/"
         data = {
-            "username": "testi1@turku.fi",
+            "username": "rotta@turku.fi",
             "password": "turku",
         }
         self.client.post(url, data, content_type="application/json")
-        a = CustomUser.objects.get(username="testi1@turku.fi")
+        a = CustomUser.objects.get(username="rotta@turku.fi")
         return a
 
     def test_get_colors(self):
@@ -250,6 +250,7 @@ class TestProducts(TestCase):
         )
 
     def tearDownClass():
+        super().tearDownClass()
         print("\nDeleting temporary files...\n")
         try:
             shutil.rmtree(TEST_DIR)

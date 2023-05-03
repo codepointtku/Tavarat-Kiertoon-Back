@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from categories.models import Category
 from products.models import Color, Picture, Product, Storage
+from users.models import CustomUser
 
 TEST_DIR = "testmedia/"
 
@@ -58,6 +59,17 @@ class TestProducts(TestCase):
             free_description="tämä nahka on sohvainen",
             weight=50,
         )
+        cls.user = CustomUser.objects.create_user(
+            first_name="first_name",
+            last_name="last_name",
+            email="testi1@turku.fi",
+            phone_number="phone_number",
+            password="turku",
+            address="address",
+            zip_code="zip_code",
+            city="city",
+            username="testi1@turku.fi",
+        )
 
         queryset = Product.objects.all()
         for query in queryset:
@@ -68,6 +80,16 @@ class TestProducts(TestCase):
                 ],
             )
 
+    def login_test_user(self):
+        url = "/users/login/"
+        data = {
+            "username": "testi1@turku.fi",
+            "password": "turku",
+        }
+        self.client.post(url, data, content_type="application/json")
+        a = CustomUser.objects.get(username="testi1@turku.fi")
+        return a
+
     def test_get_colors(self):
         url = "/colors/"
         response = self.client.get(url)
@@ -75,11 +97,6 @@ class TestProducts(TestCase):
 
     def test_get_storages(self):
         url = "/storages/"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_get_pictures(self):
-        url = "/pictures/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
@@ -118,18 +135,8 @@ class TestProducts(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
-    @override_settings(MEDIA_ROOT=TEST_DIR)
-    def test_post_picture(self):
-        picture = urllib.request.urlretrieve(
-            url="https://picsum.photos/200.jpg",
-            filename="testmedia/pictures/testpicture.jpeg",
-        )
-        url = "/pictures/"
-        data = {"file": open(picture[0], "rb")}
-        response = self.client.post(url, data, format="multipart")
-        self.assertEqual(response.status_code, 201)
-
     def test_post_multiple_products_multiple_pictures(self):
+        self.login_test_user()
         url = "/storage/products/"
         data = {
             "name": "nahkatuoli",
@@ -146,6 +153,7 @@ class TestProducts(TestCase):
 
     @override_settings(MEDIA_ROOT=TEST_DIR)
     def test_post_product_with_new_picture(self):
+        self.login_test_user()
         picture = urllib.request.urlretrieve(
             url="https://picsum.photos/200.jpg",
             filename="testmedia/pictures/testpicture1.jpeg",
@@ -180,10 +188,12 @@ class TestProducts(TestCase):
             "weight": 100,
             "free_description": "umpipuinen sohva",
         }
+        self.login_test_user()
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
     def test_post_product_existing_color_as_string(self):
+        self.login_test_user()
         url = "/storage/products/"
         colorstr = str("punainen")
         data = {
@@ -204,12 +214,13 @@ class TestProducts(TestCase):
         url = f"/products/transfer/"
         data = {
             "products": [self.test_product.id, self.test_picture1.id],
-            "storage": self.test_storage1.id
+            "storage": self.test_storage1.id,
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
     def test_update_product_name(self):
+        self.login_test_user()
         url = f"/products/{self.test_product.id}/"
         data = {"name": "kahvisohva"}
         response = self.client.put(url, data, content_type="application/json")

@@ -52,9 +52,9 @@ class ModifyProduct(models.Model):
         REMOVEFROMCART = "Removed from shopping cart"
         TIMEOUTFROMCART = "Timed out from shopping cart"
         ORDER = "Ordered"  # Done
-        STORAGE = "Modified in storage"
+        STORAGE = "Modified in storage"  # Done
         CREATION = "Creation"  # Done
-        CIRCULATION = "Returned to circulation"
+        CIRCULATION = "Returned to circulation"  # Done
 
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)

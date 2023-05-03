@@ -44,6 +44,7 @@ from products.views import (
     CategoryTreeView,
     ColorDetailView,
     ColorListView,
+    ModifyProductListView,
     ProductDetailView,
     ProductListView,
     ProductStorageTransferView,
@@ -73,6 +74,7 @@ from users.views import (  # GroupNameView,; GroupPermissionCheckView,; UserAddr
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("modifyproducts/", ModifyProductListView.as_view()),
     path("storage/products/", StorageProductListView.as_view()),
     path("storages/", StorageListView.as_view()),
     path("storages/<int:pk>/", StorageDetailView.as_view()),

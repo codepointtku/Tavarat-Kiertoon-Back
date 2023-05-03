@@ -18,6 +18,7 @@ class ModifyProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ModifyProduct
         fields = "__all__"
+        extra_kwargs = {"user": {"required": True}}
 
 
 class ProductSerializer(serializers.ModelSerializer):

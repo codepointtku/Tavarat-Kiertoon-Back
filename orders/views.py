@@ -17,7 +17,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from products.models import Product
+from products.models import ModifyProduct, Product
 from users.models import CustomUser
 from users.views import CustomJWTAuthentication
 
@@ -152,11 +152,20 @@ class OrderListView(ListCreateAPIView):
     ordering_fields = ["id"]
     ordering = ["id"]
     filterset_class = OrderFilter
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
 
     @extend_schema(request=OrderRequestSerializer)
     def post(self, request, *args, **kwargs):
-        user_id = request.data["user"]
-        available_products_ids = product_availibility_check(user_id)
+        try:
+            user = request.user
+        except ValueError:
+            return "You must be logged in to make an order"
+        available_products_ids = product_availibility_check(user.id)
         serializer = OrderSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -164,6 +173,12 @@ class OrderListView(ListCreateAPIView):
             for product_id in available_products_ids:
                 order.products.add(product_id)
             updated_serializer = OrderSerializer(order).data
+            modify_product_instance = ModifyProduct.objects.create(
+                user=request.user, circumstance="ORDER"
+            )
+            products = Product.objects.filter(id__in=updated_serializer["products"])
+            for product in products:
+                product.modified.add(modify_product_instance)
             subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (
                 "Hei!\n"
@@ -171,7 +186,6 @@ class OrderListView(ListCreateAPIView):
                 f"Tilausnumeronne on {order.id}.\n\n"
                 "Terveisin Tavarat kieroon väki!"
             )
-            user = CustomUser.objects.get(id=user_id)
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
             return Response(updated_serializer, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

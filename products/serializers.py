@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Color, Picture, Product, Storage
+from .models import Color, ModifyProduct, Picture, Product, Storage
 
 
 class PictureSerializer(serializers.ModelSerializer):
@@ -14,11 +14,18 @@ class PictureSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ModifyProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModifyProduct
+        fields = "__all__"
+
+
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.ReadOnlyField(source="category.name")
     color_name = serializers.ReadOnlyField(source="color.name")
     storage_name = serializers.ReadOnlyField(source="storages.name")
     pictures = PictureSerializer(many=True, read_only=True)
+    modified = ModifyProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product

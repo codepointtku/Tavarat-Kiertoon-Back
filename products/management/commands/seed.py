@@ -23,8 +23,7 @@ from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
 from orders.models import Order, ShoppingCart
-from orders.views import product_availibility_check
-from products.models import Color, Picture, Product, Storage
+from products.models import Color, ModifyProduct, Picture, Product, Storage
 from users.models import CustomUser, UserAddress
 
 # python manage.py seed
@@ -713,7 +712,11 @@ def create_products():
         Product.objects.bulk_create(same_products)
     queryset = Product.objects.all()
     pictures = Picture.objects.all()
+    modify_product_instance = ModifyProduct.objects.create(
+        user=CustomUser.objects.get(username="super"), circumstance="Creation"
+    )
     for query in queryset:
+        query.modified.add(modify_product_instance)
         query.pictures.set(
             [
                 random.choice(pictures),
@@ -786,7 +789,7 @@ def create_orders():
             phone_number=user.phone_number,
         )
         order_obj.save()
-        for product_id in product_availibility_check(user.id):
+        for product_id in ShoppingCart.objects.get(user=user).products.all():
             order_obj.products.add(product_id)
 
 

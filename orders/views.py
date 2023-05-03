@@ -35,23 +35,6 @@ from .serializers import (
     ShoppingCartSerializer,
 )
 
-# Create your views here.
-# def product_availibility_check(user_id):
-#     shopping_cart = ShoppingCart.objects.get(user_id=user_id)
-#     product_list = shopping_cart.products.all()
-#     product_ids = [product.id for product in product_list]
-
-#     def available_product(product: object):
-#         for same_product in Product.objects.filter(group_id=product.group_id):
-#             if same_product.available and same_product.id not in product_ids:
-#                 product_ids.append(same_product.id)
-#                 return same_product.id
-
-#     return [
-#         product.id if product.available else available_product(product)
-#         for product in product_list
-#     ]
-
 
 class ShoppingCartListView(ListCreateAPIView):
     queryset = ShoppingCart.objects.all()

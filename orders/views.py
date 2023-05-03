@@ -35,23 +35,22 @@ from .serializers import (
     ShoppingCartSerializer,
 )
 
-
 # Create your views here.
-def product_availibility_check(user_id):
-    shopping_cart = ShoppingCart.objects.get(user_id=user_id)
-    product_list = shopping_cart.products.all()
-    product_ids = [product.id for product in product_list]
+# def product_availibility_check(user_id):
+#     shopping_cart = ShoppingCart.objects.get(user_id=user_id)
+#     product_list = shopping_cart.products.all()
+#     product_ids = [product.id for product in product_list]
 
-    def available_product(product: object):
-        for same_product in Product.objects.filter(group_id=product.group_id):
-            if same_product.available and same_product.id not in product_ids:
-                product_ids.append(same_product.id)
-                return same_product.id
+#     def available_product(product: object):
+#         for same_product in Product.objects.filter(group_id=product.group_id):
+#             if same_product.available and same_product.id not in product_ids:
+#                 product_ids.append(same_product.id)
+#                 return same_product.id
 
-    return [
-        product.id if product.available else available_product(product)
-        for product in product_list
-    ]
+#     return [
+#         product.id if product.available else available_product(product)
+#         for product in product_list
+#     ]
 
 
 class ShoppingCartListView(ListCreateAPIView):
@@ -181,20 +180,28 @@ class OrderListView(ListCreateAPIView):
             user = request.user
         except ValueError:
             return "You must be logged in to make an order"
-        available_products_ids = product_availibility_check(user.id)
+        # available_products_ids = product_availibility_check(user.id)
         serializer = OrderSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             order = Order.objects.get(id=serializer.data["id"])
-            for product_id in available_products_ids:
-                order.products.add(product_id)
-            updated_serializer = OrderSerializer(order).data
+            # for product_id in available_products_ids:
+            #     order.products.add(product_id)
+            # updated_serializer = OrderSerializer(order).data
+            shopping_cart = ShoppingCart.objects.get(user=user.id)
             modify_product_instance = ModifyProduct.objects.create(
                 user=request.user, circumstance="Ordered"
             )
-            products = Product.objects.filter(id__in=updated_serializer["products"])
-            for product in products:
+            for product in shopping_cart.products.all():
+                order.products.add(product)
                 product.modified.add(modify_product_instance)
+            modify_product_instance = ModifyProduct.objects.create(
+                user=request.user, circumstance="Ordered"
+            )
+            serializer = OrderSerializer(order)
+            # products = Product.objects.filter(id__in=serializer["products"])
+            # for product in products:
+            #     product.modified.add(modify_product_instance)
             subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (
                 "Hei!\n"
@@ -203,7 +210,7 @@ class OrderListView(ListCreateAPIView):
                 "Terveisin Tavarat kieroon väki!"
             )
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
-            return Response(updated_serializer, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

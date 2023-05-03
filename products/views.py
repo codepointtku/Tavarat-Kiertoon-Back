@@ -22,6 +22,7 @@ from .models import Color, Picture, Product, Storage
 from .serializers import (
     ColorSerializer,
     ModifyProduct,
+    ModifyProductSerializer,
     PictureSerializer,
     ProductSerializer,
     StorageSerializer,
@@ -294,3 +295,8 @@ class ProductStorageTransferView(APIView):
         products.update(storages=storage)
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
+
+
+class ModifyProductListView(generics.ListAPIView):
+    queryset = ModifyProduct.objects.all()
+    serializer_class = ModifyProductSerializer

@@ -13,5 +13,6 @@ urlpatterns = [
     path("models/", views.BikeModelListView.as_view()),
     path("models/<int:pk>/", views.BikeModelDetailView.as_view()),
     path("packages/", views.BikePackageListView.as_view()),
+    path("packages/<int:pk>/", views.BikePackageDetailView.as_view()),
     path("packageamounts/", views.BikeAmountListView.as_view())
 ]

@@ -140,7 +140,7 @@ class UserCreateListView(APIView):
             cart_obj.save()
 
             # create email verification for user creation
-            if settings.DEBUG:
+            if False:  # settings.DEBUG:
                 print("debug päällä, activating user without email")
                 user.is_active = True
                 user.save()

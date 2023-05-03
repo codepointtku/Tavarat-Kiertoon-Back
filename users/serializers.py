@@ -6,6 +6,7 @@ from django.utils.http import urlsafe_base64_decode
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers, status
 
+from .custom_functions import custom_time_token_generator
 from .models import CustomUser, UserAddress
 
 User = get_user_model()
@@ -104,7 +105,8 @@ class UserTokenValidationSerializer(serializers.Serializer):
         check the correctness of token
         """
         # decoding uid and chekcing that token is valid
-        token_generator = default_token_generator
+        # token_generator = default_token_generator
+        token_generator = custom_time_token_generator
         try:
             uid = urlsafe_base64_decode(data["uid"]).decode()
         except ValueError:

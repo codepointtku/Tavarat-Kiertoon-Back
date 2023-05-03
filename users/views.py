@@ -139,8 +139,12 @@ class UserCreateListView(APIView):
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()
 
-            # create email verification for user creation  /// FOR LATER WHO EVER DOES IT
-            if True:
+            # create email verification for user creation
+            if settings.DEBUG:
+                print("debug päällä, activating user without email")
+                user.is_active = True
+                user.save()
+            else:
                 token_generator = default_token_generator
                 token_for_user = token_generator.make_token(user=user)
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -150,13 +154,15 @@ class UserCreateListView(APIView):
                 activate_url = (
                     f"{settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"
                 )
-                message = "heres the activation link you requested: " + activate_url
+                message = (
+                    "heres the activation link for tavarat kiertoon: " + activate_url
+                )
 
                 # sending activation email
                 subject = "welcome to use Tavarat Kiertoon"
                 message = "Hi you have created account for tavarat kiertoon.\n\n"
                 message += f"Please click the following link to activate your account: {activate_url} \n\n"
-                message += "If you did not request account creation to tavart kiertoon, ignore this mail."
+                message += "If you did not request account creation to tavarat kiertoon, ignore this mail."
 
                 send_mail(
                     subject,

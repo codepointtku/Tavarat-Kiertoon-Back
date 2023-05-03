@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import send_mail
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema
@@ -16,6 +18,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from products.models import Product
+from users.models import CustomUser
 from users.views import CustomJWTAuthentication
 
 from .models import Order, ShoppingCart
@@ -177,6 +180,15 @@ class OrderListView(ListCreateAPIView):
             for product_id in available_products_ids:
                 order.products.add(product_id)
             updated_serializer = OrderSerializer(order).data
+            subject = f"Tavarat Kiertoon tilaus {order.id}"
+            message = (
+                "Hei!\n"
+                "Vastaanotimme tilauksesi ja tilaus pyrimme toimittamaan sen 1-2 viikon sisällä\n"
+                f"Tilausnumeronne on {order.id}.\n\n"
+                "Terveisin Tavarat kieroon väki!"
+            )
+            user = CustomUser.objects.get(id=user_id)
+            send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
             return Response(updated_serializer, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

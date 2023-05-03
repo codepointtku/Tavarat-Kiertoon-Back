@@ -160,9 +160,11 @@ class UserCreateListView(APIView):
 
                 # sending activation email
                 subject = "welcome to use Tavarat Kiertoon"
-                message = "Hi you have created account for tavarat kiertoon.\n\n"
-                message += f"Please click the following link to activate your account: {activate_url} \n\n"
-                message += "If you did not request account creation to tavarat kiertoon, ignore this mail."
+                message = (
+                    "Hi you have created account for tavarat kiertoon.\n\n"
+                    f"Please click the following link to activate your account: {activate_url} \n\n"
+                    "If you did not request account creation to tavarat kiertoon, ignore this mail."
+                )
 
                 send_mail(
                     subject,
@@ -739,9 +741,11 @@ class UserPasswordResetMailView(APIView):
 
             # sending the email
             subject = "Reset password to Tavarat Kiertoon"
-            message = "Hi you are trying to reset your Tavarat kiertoon password.\n\n"
-            message += f"Please click the following link to reset your user accounts password: {reset_url} \n\n"
-            message += "If you did not request this password reset ignore this mail."
+            message = (
+                "Hi you are trying to reset your Tavarat kiertoon password.\n\n"
+                f"Please click the following link to reset your user accounts password: {reset_url} \n\n"
+                "If you did not request this password reset ignore this mail."
+            )
 
             send_mail(
                 subject,

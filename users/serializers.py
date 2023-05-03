@@ -112,7 +112,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=155)
-    joint_user = serializers.BooleanField(default=False)
     phone_number = serializers.CharField(max_length=50)
     address = serializers.CharField(max_length=255)
     zip_code = serializers.CharField(max_length=10)
@@ -126,12 +125,18 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "email",
             "phone_number",
             "password",
-            "joint_user",
             "username",
             "address",
             "zip_code",
             "city",
         ]
+
+    def to_internal_value(self, data):
+        mod_data = data.copy()
+        if "username" not in data:
+            mod_data["username"] = mod_data["email"]
+        mod_data = super().to_internal_value(mod_data)
+        return mod_data
 
 
 class UserCreateReturnSerializer(serializers.ModelSerializer):

@@ -55,11 +55,6 @@ class ProductListPagination(PageNumberPagination):
     page_size_query_param = "page_size"
 
 
-class CategoryProductListPagination(PageNumberPagination):
-    page_size = 50
-    page_size_query_param = "page_size"
-
-
 class ProductFilter(filters.FilterSet):
     search = filters.CharFilter(method="search_filter", label="Search")
     category = filters.ModelMultipleChoiceFilter(queryset=Category.objects.all())
@@ -187,7 +182,7 @@ class StorageProductListView(generics.ListCreateAPIView):
             user=request.user, circumstance="Creation"
         )
         for product in products:
-            product.modify.add(modify_product_instance)
+            product.modified.add(modify_product_instance)
 
         picture_ids = []
         for file in request.FILES.getlist("pictures[]"):

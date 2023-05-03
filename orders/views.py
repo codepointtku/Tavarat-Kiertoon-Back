@@ -176,10 +176,7 @@ class OrderListView(ListCreateAPIView):
 
     @extend_schema(request=OrderRequestSerializer, responses=OrderResponseSerializer)
     def post(self, request, *args, **kwargs):
-        try:
-            user = request.user
-        except ValueError:
-            return "You must be logged in to make an order"
+        user = request.user
         serializer = OrderSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()

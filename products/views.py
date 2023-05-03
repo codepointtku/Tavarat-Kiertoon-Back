@@ -285,33 +285,6 @@ class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = StorageSerializer
 
 
-class PictureListView(generics.ListCreateAPIView):
-    queryset = Picture.objects.all()
-    serializer_class = PictureSerializer
-
-    def create(self, request, *args, **kwargs):
-        for file in request.FILES.values():
-            ext = file.content_type.split("/")[1]
-            serializer = self.get_serializer(
-                data={
-                    "picture_address": ContentFile(
-                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
-                    )
-                }
-            )
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
-
-
-class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Picture.objects.all()
-    serializer_class = PictureSerializer
-
-
 class ProductStorageTransferView(APIView):
     """View for transfering list of products to different storage"""
 

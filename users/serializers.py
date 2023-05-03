@@ -97,6 +97,11 @@ class UserPasswordChangeEmailValidationSerializer(serializers.Serializer):
 
 
 class UserTokenValidationSerializer(serializers.Serializer):
+
+    """
+    Serializer for user activation validations.
+    """
+
     uid = serializers.CharField(max_length=255)
     token = serializers.CharField(max_length=255)
 

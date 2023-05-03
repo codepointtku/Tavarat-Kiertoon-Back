@@ -8,7 +8,8 @@ from django.utils.http import base36_to_int, int_to_base36
 
 class CustomTimeTokenGenerator(PasswordResetTokenGenerator):
     """
-    copy of PasswordResetTokenGenerator with just the settings.PASSWORD_RESET_TIMEOUT changed so taht we can use different time for activation email time out.
+    copy of PasswordResetTokenGenerator,
+    with just the settings.PASSWORD_RESET_TIMEOUT changed so that we can use different time for activation email time out.
     """
 
     def check_token(self, user, token):

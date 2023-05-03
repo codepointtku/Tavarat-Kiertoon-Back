@@ -140,7 +140,7 @@ class UserCreateListView(APIView):
             cart_obj.save()
 
             # create email verification for user creation
-            if False:  # settings.DEBUG:
+            if settings.DEBUG:
                 print("debug päällä, activating user without email")
                 user.is_active = True
                 user.save()
@@ -185,6 +185,10 @@ class UserCreateListView(APIView):
 
 
 class UserActivationView(APIView):
+    """
+    view for user activation. front passess the uid and token that gets validated and then user gets activated.
+    """
+
     serializer_class = UserTokenValidationSerializer
 
     def post(self, request, format=None, *args, **kwargs):
@@ -194,7 +198,7 @@ class UserActivationView(APIView):
         )
 
         if serializer.is_valid():
-            # updating the users pw in database
+            # activating the user
             user = User.objects.get(id=serializer.data["uid"])
             user.is_active = True
             user.save()
@@ -778,6 +782,7 @@ class UserPasswordResetMailValidationView(APIView):
     """
     View that handless the password reset producre and updates the pw.
     needs the uid and user token created in UserPasswordResetMailView.
+    Also activates the user if for some reason its been activated or needs to bew reactivated.
     the 'uidb64'/'token' variant and GET method is only for testing and should not be used in deployment so DO NOT USE
     """
 

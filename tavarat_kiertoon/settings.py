@@ -213,7 +213,7 @@ EMAIL_BACKEND = config("EMAIL_BACKEND")
 
 EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 
-# swap this to the fornts reset view when done
+# addresses at front
 PASSWORD_RESET_URL_FRONT = config("PASSWORD_RESET_URL_FRONT")
 USER_ACTIVATION_URL_FRONT = config("USER_ACTIVATION_URL_FRONT")
 

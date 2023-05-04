@@ -48,7 +48,11 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     UsersLoginRefreshResponseSerializer,
     UserTokenValidationSerializer,
     UserUpdateSerializer,
-    UserFullResponseSchemaSerializer
+    UserFullResponseSchemaSerializer,
+    UserUpdateReturnSchemaSerializer,
+    GroupPermissionsResponseSchemaSerializer,
+    UserCreateReturnResponseSchemaSerializer,
+    UsersLoginRefreshResponseSchemaSerializer
 )
 
 User = get_user_model()
@@ -80,7 +84,7 @@ class UserCreateListView(APIView):
     # queryset = CustomUser.objects.all()
     serializer_class = UserCreateSerializer
 
-    @extend_schema(responses=UserCreateReturnSerializer)
+    @extend_schema(responses=UserCreateReturnResponseSchemaSerializer)
     def post(self, request, format=None):
         # if no username field comes in request = normal user and email will be copied to username
         # if username comes it means the user will be "joint_user" and user will use the transmitted username
@@ -208,7 +212,6 @@ class UserActivationView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
-
 class UserLoginView(APIView):
     """
     Login with jwt token and as http only cookie
@@ -218,7 +221,7 @@ class UserLoginView(APIView):
     serializer_class = UserLoginPostSerializer
 
     @extend_schema(
-        responses=UsersLoginRefreshResponseSerializer,
+        responses=UsersLoginRefreshResponseSchemaSerializer,
     )
     def post(self, request, format=None):
         pw_data = self.serializer_class(data=request.data)
@@ -267,7 +270,6 @@ class UserLoginView(APIView):
                 status=status.HTTP_204_NO_CONTENT,
             )
 
-
 class UserTokenRefreshView(TokenViewBase):
     """
     Takes refresh token from cookies and if its valid sets new access token to cookies
@@ -275,7 +277,7 @@ class UserTokenRefreshView(TokenViewBase):
 
     _serializer_class = api_settings.TOKEN_REFRESH_SERIALIZER
 
-    @extend_schema(request=None, responses=UsersLoginRefreshResponseSerializer)
+    @extend_schema(request=None, responses=UsersLoginRefreshResponseSchemaSerializer)
     def post(self, request, *args, **kwargs):
         # check that refresh cookie is found
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
@@ -508,7 +510,7 @@ class GroupListView(generics.ListAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupNameSerializer
 
-
+@extend_schema(responses=GroupPermissionsResponseSchemaSerializer)
 class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
     Update users permissions, should be only allowed to admins, on testing phase allowing fo users
@@ -532,7 +534,7 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
     serializer_class = GroupPermissionsSerializer
 
-
+@extend_schema(responses=UserUpdateReturnSchemaSerializer)
 class UserUpdateInfoView(APIView):
     """
     Get logged in users information and update it.
@@ -570,7 +572,7 @@ class UserUpdateInfoView(APIView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
+@extend_schema(responses=UserUpdateReturnSchemaSerializer)
 class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     """
     Get specific users info for updating, field that can be updated
@@ -815,6 +817,7 @@ class UserPasswordResetMailValidationView(APIView):
 
     # get is used in testing should not be needed in deployment, will be removed later?
     @extend_schema(
+        exclude=True,
         responses=inline_serializer(
             name="test returns",
             fields={
@@ -822,7 +825,7 @@ class UserPasswordResetMailValidationView(APIView):
                 "uid": serializers.CharField(),
                 "token": serializers.CharField(),
             },
-        )
+        )       
     )
     def get(self, request, *args, **kwargs):
         if "uidb64" not in kwargs or "token" not in kwargs:

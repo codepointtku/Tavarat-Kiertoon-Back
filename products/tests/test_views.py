@@ -250,7 +250,7 @@ class TestProducts(TestCase):
         )
 
     @classmethod
-    def tearDownClass():
+    def tearDownClass(self):
         print("\nDeleting temporary files...\n")
         try:
             shutil.rmtree(TEST_DIR)

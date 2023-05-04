@@ -48,6 +48,7 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     UsersLoginRefreshResponseSerializer,
     UserTokenValidationSerializer,
     UserUpdateSerializer,
+    UserFullResponseSchemaSerializer
 )
 
 User = get_user_model()
@@ -401,7 +402,7 @@ class UserLogoutView(APIView):
         response = self.jwt_logout(request)
         return response
 
-
+@extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserDetailsListView(generics.ListAPIView):
     """
     List all users with all database fields, no POST here
@@ -424,7 +425,7 @@ class UserDetailsListView(generics.ListAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserFullSerializer
 
-
+@extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserSingleGetView(APIView):
     """
     Get single user with all database fields, no POST here
@@ -458,7 +459,7 @@ class UserSingleGetView(APIView):
 
         return Response(serializer.data)
 
-
+@extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserLoggedInDetailView(APIView):
     """
     Get logged in users info

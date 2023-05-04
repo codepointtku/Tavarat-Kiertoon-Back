@@ -234,7 +234,10 @@ class SubSerializerForGroupsSchema(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = "__all__"
+        #fields = "__all__"
+        exclude = [
+            "permissions"
+        ]
 
 
 class UserFullSerializer(serializers.ModelSerializer):
@@ -357,3 +360,26 @@ class UserAddressPutRequestSerializer(UserAddressSerializer):
 
 class MessageSerializer(serializers.Serializer):
     message = serializers.CharField(max_length=255)
+
+class UserFullResponseSchemaSerializer(serializers.ModelSerializer):
+    """
+    FOR SCHEMA, Serializer for users, all database fields
+    """
+
+    address_list = UserAddressSerializer(many=True, read_only=True)
+    groups = SubSerializerForGroupsSchema(many=True, read_only=True)
+
+    class Meta:
+        model = CustomUser
+        exclude = [
+            "password",
+            "is_admin",
+            "is_staff",
+            "is_superuser",
+            "user_permissions",
+        ]       
+        extra_kwargs = {"last_login": {"required": True},
+            "name": {"required": True},
+            "phone_number": {"required": True},
+            "is_active" : {"required": True},
+        }

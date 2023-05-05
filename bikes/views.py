@@ -251,3 +251,5 @@ class BikePackageListView(generics.ListCreateAPIView):
 class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikePackage.objects.all()
     serializer_class = BikePackageSerializer
+
+

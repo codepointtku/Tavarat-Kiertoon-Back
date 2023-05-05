@@ -1,6 +1,15 @@
 from rest_framework import serializers
 
-from .models import Bike, BikeAmount, BikePackage, BikeRental, BikeStock, BikeType, BikeSize, BikeBrand
+from .models import (
+    Bike,
+    BikeAmount,
+    BikePackage,
+    BikeRental,
+    BikeStock,
+    BikeType,
+    BikeSize,
+    BikeBrand,
+)
 
 from products.serializers import ColorSerializer, StorageSerializer
 
@@ -80,6 +89,17 @@ class BikePackageSerializer(serializers.ModelSerializer):
             "bikes",
         ]
 
+    def create(self, validated_data):
+        bikemodels_data = validated_data.pop("bikes")
+
+        # similar to Parent.objects.create(**validated_data)
+        print(validated_data)
+        package = BikePackage.objects.create(**validated_data)
+
+        for bikemodel_data in bikemodels_data:
+            BikeAmount.objects.create(package=package, **bikemodel_data)
+        return package
+
 
 class BikeTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -94,7 +114,6 @@ class BikeBrandSerializer(serializers.ModelSerializer):
 
 
 class BikeSizeSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = BikeSize
         fields = "__all__"
@@ -116,7 +135,7 @@ class BikeStockListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BikeStock
-        fields =  "__all__"
+        fields = "__all__"
 
 
 class BikeStockCreateSerializer(serializers.ModelSerializer):
@@ -124,11 +143,11 @@ class BikeStockCreateSerializer(serializers.ModelSerializer):
         model = BikeStock
         fields = "__all__"
 
-        
+
 class BikeStockDetailSerializer(serializers.ModelSerializer):
     bike = BikeStockDepthSerializer(read_only=True)
     storage = StorageSerializer(read_only=True)
-    
+
     class Meta:
         model = BikeStock
         fields = "__all__"
@@ -139,7 +158,7 @@ class BikeModelSerializer(serializers.ModelSerializer):
     brand = BikeBrandSerializer(read_only=True)
     size = BikeSizeSerializer(read_only=True)
     color = ColorSerializer(read_only=True)
-    
+
     class Meta:
         model = Bike
         fields = "__all__"
@@ -153,7 +172,7 @@ class BikeModelCreateSerializer(serializers.ModelSerializer):
 
 class MainBikeSchemaDateSerializer(serializers.Serializer):
     available_from = serializers.DateField()
-    available_to = serializers.DateField()     
+    available_to = serializers.DateField()
 
 
 class MainBikeSchemaBikesSerializer(serializers.Serializer):
@@ -186,6 +205,7 @@ class MainBikeSchemaPackageSerializer(serializers.Serializer):
     color = serializers.IntegerField()
     size = serializers.CharField()
     max_available = serializers.IntegerField()
+
 
 class MainBikeListSchemaSerializer(serializers.Serializer):
     date_info = MainBikeSchemaDateSerializer()

@@ -154,6 +154,8 @@ class UserCreateListView(APIView):
                 token_for_user = token_generator.make_token(user=user)
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
 
+                # back urls are only for testing purposes and to ease development to quickly access right urls
+                # should be removed when in deplayment stage from response
                 back_activate_url = "http://127.0.0.1:8000/users/activate/"
                 activate_url_back = f"{back_activate_url}{uid}/{token_for_user}/"
                 activate_url = (
@@ -741,6 +743,8 @@ class UserPasswordResetMailView(APIView):
             token_for_user = token_generator.make_token(user=user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
 
+            # back urls are only for testing purposes and to ease development to quickly access right urls
+            # should be removed when in deplayment stage from response
             back_reset_url = "http://127.0.0.1:8000/users/password/reset/"
             reset_url_back = f"{back_reset_url}{uid}/{token_for_user}/"
             reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
@@ -815,7 +819,7 @@ class UserPasswordResetMailValidationView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
-    # get is used in testing should not be needed in deployment, will be removed later?
+    # get is used in testing should not be needed in deployment, will be removed later
     @extend_schema(
         exclude=True,
         responses=inline_serializer(

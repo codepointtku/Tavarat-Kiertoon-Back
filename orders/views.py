@@ -171,9 +171,6 @@ class OrderListView(ListCreateAPIView):
             for product in shopping_cart.products.all():
                 order.products.add(product)
                 product.modified.add(modify_product_instance)
-            modify_product_instance = ModifyProduct.objects.create(
-                user=request.user, circumstance="Ordered"
-            )
             serializer = OrderSerializer(order)
             subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (

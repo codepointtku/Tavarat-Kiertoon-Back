@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
@@ -90,15 +90,6 @@ class TestUsers(TestCase):
         for group in Group.objects.all():
             group.user_set.add(user3_set)
 
-    def test_setup(self):
-        # print("EKA, count user objs after setup?: ", CustomUser.objects.count())
-        # testing that setup went rhough and created correct ammount of users for testing
-        self.assertEqual(
-            CustomUser.objects.count(),
-            4,
-            "testing setup, somethigng went wrong with setup",
-        )
-
     def test_get_users_forbidden(self):
         """
         Testing 404 responses from urls, so they exist
@@ -127,6 +118,7 @@ class TestUsers(TestCase):
             "/users/password/resetemail/",
             "/users/password/reset/",
             "/users/password/reset/1/1/",
+            "/users/activate/",
         ]
 
         # goign thorugh the urls
@@ -1033,4 +1025,117 @@ class TestUsers(TestCase):
             response.status_code,
             200,
             "should be able to login with new pw",
+        )
+
+    def test_account_activation_reset(self):
+        # print("accoutn activation test, debug status: ", settings.DEBUG)
+        url = "/users/create/"
+        # url = "/users/activate/"
+        url2 = settings.USER_ACTIVATION_URL_FRONT
+
+        # creating user that needs to be activated
+        data = {
+            "first_name": "t",
+            "last_name": "t",
+            "email": "t@turku.fi",
+            "phone_number": "5555",
+            "password": "1234",
+            "address": "test12",
+            "zip_code": "12552",
+            "city": "TESTIKAUPUNKI",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+
+        # testing that email was sent
+        self.assertEqual(
+            len(mail.outbox),
+            1,
+            "mail should have been sent in user creattion",
+        )
+
+        # checking that the user is not active
+        user = CustomUser.objects.get(username="t@turku.fi")
+        self.assertFalse(user.is_active, "User shouldnt be activee after creation")
+
+        # should not be able to login
+        url = "/users/login/"
+        data = {
+            "username": "t@turku.fi",
+            "password": "1234",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            204, response.status_code, "shouldnt be able to login wihtout being active"
+        )
+
+        url = "/users/activate/"
+        # grabbing the link from the email that was sent, and putting it into form that can be used with test
+        end_part_of_email_link = mail.outbox[0].body.split(url2)
+        the_parameters = end_part_of_email_link[1].split("/")
+
+        data = {
+            "uid": "a",
+            "token": "a",
+        }
+
+        # wrong kind of encoded uid
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "should get wrongly stuff with wrong uid",
+        )
+
+        # testataan ei oikealla uidllä jota ei olemassa
+        uid = urlsafe_base64_encode(force_bytes(-1))
+        data = {
+            "uid": uid,
+            "token": "a",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "should get wrongly stuff with non existant uid",
+        )
+
+        data = {
+            "uid": the_parameters[0],
+            "token": "a",
+        }
+        # testing response with non  valid token
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "should get wrongly stuff with wrong token",
+        )
+
+        # par 0 should be encoded uid, par 1 the token for reset
+        data = {
+            "uid": the_parameters[0],
+            "token": the_parameters[1],
+        }
+        response = self.client.post(url, data, content_type="application/json")
+
+        # checking for right statuts code on righ values
+        self.assertEqual(
+            200,
+            response.status_code,
+            "should get 200 response on succesfull activation",
+        )
+
+        # active status check
+        user = CustomUser.objects.get(username="t@turku.fi")
+        self.assertTrue(user.is_active, "user should be active")
+
+        # should be able to login now
+        url = "/users/login/"
+        data = {
+            "username": "t@turku.fi",
+            "password": "1234",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            200, response.status_code, "should be able to login when active now"
         )

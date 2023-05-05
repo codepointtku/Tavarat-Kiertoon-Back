@@ -6,6 +6,11 @@ from django.core.files.base import ContentFile
 from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
+from drf_spectacular.utils import (
+    PolymorphicProxySerializer,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
@@ -24,7 +29,13 @@ from .serializers import (
     ModifyProduct,
     ModifyProductSerializer,
     PictureSerializer,
+    ProductColorStringSerializer,
+    ProductCreateSerializer,
+    ProductListSerializer,
     ProductSerializer,
+    ProductStorageListSerializer,
+    ProductStorageTransferSerializer,
+    ProductUpdateSerializer,
     StorageSerializer,
 )
 
@@ -92,6 +103,7 @@ class ProductFilter(filters.FilterSet):
         return or_queryset
 
 
+@extend_schema_view(get=extend_schema(responses=ProductListSerializer))
 class ProductListView(generics.ListAPIView):
     queryset = Product.objects.filter(available=True)
     serializer_class = ProductSerializer
@@ -136,6 +148,17 @@ class ProductListView(generics.ListAPIView):
         return Response(serializer.data)
 
 
+@extend_schema_view(
+    post=extend_schema(
+        request=PolymorphicProxySerializer(
+            component_name="ProductCreation",
+            serializers=[ProductCreateSerializer, ProductColorStringSerializer],
+            resource_type_field_name="color",
+        ),
+        responses=ProductListSerializer(),
+    ),
+    get=extend_schema(responses=ProductStorageListSerializer()),
+)
 class StorageProductListView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
     authentication_classes = [
@@ -209,6 +232,15 @@ class StorageProductListView(generics.ListCreateAPIView):
         )
 
 
+@extend_schema_view(
+    get=extend_schema(
+        responses=ProductListSerializer(),
+    ),
+    put=extend_schema(
+        request=ProductUpdateSerializer(), responses=ProductUpdateSerializer()
+    ),
+    patch=extend_schema(exclude=True),
+)
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -222,7 +254,9 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = ProductUpdateSerializer(
+            instance, data=request.data, partial=partial
+        )
         serializer.is_valid(raise_exception=True)
         '"modify_date" key is sent from front when storage changes products availibility = True when it comes back to circulation'
         if "modify_date" in request.data:
@@ -274,8 +308,11 @@ class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = StorageSerializer
 
 
+@extend_schema_view(put=extend_schema(responses=ProductSerializer(many=True)))
 class ProductStorageTransferView(APIView):
     """View for transfering list of products to different storage"""
+
+    serializer_class = ProductStorageTransferSerializer
 
     def put(self, request, *args, **kwargs):
         storage = Storage.objects.get(id=request.data["storage"])

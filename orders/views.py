@@ -169,9 +169,6 @@ class OrderListView(ListCreateAPIView):
     ordering = ["-id"]
     filterset_class = OrderFilter
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
     def post(self, request, *args, **kwargs):
         user_id = request.data["user"]
         available_products_ids = product_availibility_check(user_id)
@@ -205,9 +202,6 @@ class OrderListView(ListCreateAPIView):
 class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)

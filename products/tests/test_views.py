@@ -251,7 +251,6 @@ class TestProducts(TestCase):
 
     @classmethod
     def tearDownClass(self):
-        print("\nDeleting temporary files...\n")
         try:
             shutil.rmtree(TEST_DIR)
         except OSError:

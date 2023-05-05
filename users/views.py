@@ -12,7 +12,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
-from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.mixins import ListModelMixin
@@ -32,27 +32,27 @@ from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
 from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSerializer,; UserNamesSerializer,
     GroupNameSerializer,
+    GroupPermissionsResponseSchemaSerializer,
     GroupPermissionsSerializer,
     MessageSerializer,
     UserAddressPostRequestSerializer,
     UserAddressPutRequestSerializer,
     UserAddressSerializer,
+    UserCreateReturnResponseSchemaSerializer,
     UserCreateReturnSerializer,
     UserCreateSerializer,
+    UserFullResponseSchemaSerializer,
     UserFullSerializer,
     UserLimitedSerializer,
     UserLoginPostSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
+    UsersLoginRefreshResponseSchemaSerializer,
     UsersLoginRefreshResponseSerializer,
     UserTokenValidationSerializer,
-    UserUpdateSerializer,
-    UserFullResponseSchemaSerializer,
     UserUpdateReturnSchemaSerializer,
-    GroupPermissionsResponseSchemaSerializer,
-    UserCreateReturnResponseSchemaSerializer,
-    UsersLoginRefreshResponseSchemaSerializer
+    UserUpdateSerializer,
 )
 
 User = get_user_model()
@@ -214,6 +214,7 @@ class UserActivationView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
+
 class UserLoginView(APIView):
     """
     Login with jwt token and as http only cookie
@@ -271,6 +272,7 @@ class UserLoginView(APIView):
                 {"Invalid": "Invalid username or password!!"},
                 status=status.HTTP_204_NO_CONTENT,
             )
+
 
 class UserTokenRefreshView(TokenViewBase):
     """
@@ -406,6 +408,7 @@ class UserLogoutView(APIView):
         response = self.jwt_logout(request)
         return response
 
+
 @extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserDetailsListView(generics.ListAPIView):
     """
@@ -428,6 +431,7 @@ class UserDetailsListView(generics.ListAPIView):
 
     queryset = CustomUser.objects.all()
     serializer_class = UserFullSerializer
+
 
 @extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserSingleGetView(APIView):
@@ -462,6 +466,7 @@ class UserSingleGetView(APIView):
         serializer = UserFullSerializer(user)
 
         return Response(serializer.data)
+
 
 @extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserLoggedInDetailView(APIView):
@@ -512,6 +517,8 @@ class GroupListView(generics.ListAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupNameSerializer
 
+
+@extend_schema_view(patch=extend_schema(exclude=True))
 @extend_schema(responses=GroupPermissionsResponseSchemaSerializer)
 class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
@@ -535,6 +542,7 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
 
     queryset = User.objects.all()
     serializer_class = GroupPermissionsSerializer
+
 
 @extend_schema(responses=UserUpdateReturnSchemaSerializer)
 class UserUpdateInfoView(APIView):
@@ -574,6 +582,8 @@ class UserUpdateInfoView(APIView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+@extend_schema_view(patch=extend_schema(exclude=True))
 @extend_schema(responses=UserUpdateReturnSchemaSerializer)
 class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     """
@@ -696,6 +706,7 @@ class UserAddressEditDeleteView(APIView):
             return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema_view(patch=extend_schema(exclude=True))
 class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
     """
     Get specific address by id and do update/destroy/ to it
@@ -829,7 +840,7 @@ class UserPasswordResetMailValidationView(APIView):
                 "uid": serializers.CharField(),
                 "token": serializers.CharField(),
             },
-        )       
+        ),
     )
     def get(self, request, *args, **kwargs):
         if "uidb64" not in kwargs or "token" not in kwargs:

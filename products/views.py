@@ -224,6 +224,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
+        '"modify_date" key is sent from front when storage changes products availibility = True when it comes back to circulation'
         if "modify_date" in request.data:
             serializer.save(modified_date=timezone.now())
             modify_product_instance = ModifyProduct.objects.create(

@@ -92,7 +92,6 @@ class BikePackageSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         bikemodels_data = validated_data.pop("bikes")
 
-        # similar to Parent.objects.create(**validated_data)
         print(validated_data)
         package = BikePackage.objects.create(**validated_data)
 

@@ -6,6 +6,11 @@ from django.db import models
 class ContactForm(models.Model):
     """class for making ContactForm table for database"""
 
+    class StatusChoices(models.Choices):
+        NOT_READ = "Not read"
+        READ = "Read"
+        HANDLED = "Handled"
+
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
@@ -13,7 +18,9 @@ class ContactForm(models.Model):
     message = models.TextField()
     order_id = models.IntegerField(blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=255, default="Not read")
+    status = models.CharField(
+        max_length=255, choices=StatusChoices.choices, default="Not read"
+    )
 
     def __str__(self) -> str:
         return f"{self.email}'s ContactForm({self.id})"

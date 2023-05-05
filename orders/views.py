@@ -54,15 +54,14 @@ def product_availibility_check(user_id):
     ]
 
 
+@extend_schema_view(
+    get=extend_schema(responses=ShoppingCartResponseSerializer),
+    post=extend_schema(responses=ShoppingCartResponseSerializer),
+)
 class ShoppingCartListView(ListCreateAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
 
-    @extend_schema(responses=ShoppingCartResponseSerializer)
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    @extend_schema(responses=ShoppingCartResponseSerializer)
     def post(self, request):
         serializer = ShoppingCartSerializer(data=request.data)
         if serializer.is_valid():
@@ -73,6 +72,10 @@ class ShoppingCartListView(ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema_view(
+    put=extend_schema(request=ShoppingCartDetailRequestSerializer),
+    patch=extend_schema(exclude=True),
+)
 class ShoppingCartDetailView(RetrieveUpdateAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartDetailSerializer
@@ -93,7 +96,6 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    @extend_schema(request=ShoppingCartDetailRequestSerializer)
     def put(self, request, *args, **kwargs):
         try:
             instance = ShoppingCart.objects.get(user=request.user)
@@ -130,10 +132,6 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)
         return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
-    @extend_schema(methods=["PATCH"], exclude=True)
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
-
 
 class OrderListPagination(PageNumberPagination):
     page_size = 50
@@ -156,6 +154,12 @@ class OrderFilter(filters.FilterSet):
         return queryset.filter(Q(status__iexact=value))
 
 
+@extend_schema_view(
+    get=extend_schema(responses=OrderResponseSerializer),
+    post=extend_schema(
+        request=OrderRequestSerializer, responses=OrderResponseSerializer
+    ),
+)
 class OrderListView(ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
@@ -165,11 +169,9 @@ class OrderListView(ListCreateAPIView):
     ordering = ["-id"]
     filterset_class = OrderFilter
 
-    @extend_schema(responses=OrderResponseSerializer)
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
-    @extend_schema(request=OrderRequestSerializer, responses=OrderResponseSerializer)
     def post(self, request, *args, **kwargs):
         user_id = request.data["user"]
         available_products_ids = product_availibility_check(user_id)

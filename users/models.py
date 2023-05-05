@@ -73,6 +73,7 @@ class CustomUserManager(BaseUserManager):
         user.is_admin = True
         user.is_staff = True
         user.is_superuser = True
+        user.is_active = True
 
         user.save(using=self._db)
 
@@ -90,6 +91,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     creation_date = models.DateTimeField(auto_now_add=True)
     phone_number = models.CharField(max_length=255, null=True)
     username = models.CharField(max_length=255, unique=True)
+    is_active = models.BooleanField(
+        default=False,
+        help_text=(
+            "Designates whether this user should be treated as active. "
+            "Unselect this instead of deleting accounts."
+        ),
+    )
 
     objects = CustomUserManager()
 

@@ -253,19 +253,6 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response(data)
 
 
-class CategoryTreeView(APIView):
-    """Returns all category ids as keys and all level 2 child categories of that category as list"""
-
-    queryset = Category.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        category_tree = {
-            c.id: [c.id for c in c.get_descendants(include_self=True).filter(level=2)]
-            for c in self.queryset.all()
-        }
-        return Response(category_tree)
-
-
 class ColorListView(generics.ListCreateAPIView):
     queryset = Color.objects.all()
     serializer_class = ColorSerializer

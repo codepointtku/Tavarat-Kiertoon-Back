@@ -213,10 +213,16 @@ EMAIL_BACKEND = config("EMAIL_BACKEND")
 
 EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 
-# swap this to the fornts reset view when done
+# addresses at front
 PASSWORD_RESET_URL_FRONT = config("PASSWORD_RESET_URL_FRONT")
+USER_ACTIVATION_URL_FRONT = config("USER_ACTIVATION_URL_FRONT")
 
-PASSWORD_RESET_TIMEOUT = 900  # ( 60 * 15 = 900 (sekuntia))
+PASSWORD_RESET_TIMEOUT = int(
+    config("PASSWORD_RESET_TIMEOUT")
+)  # ( 60 * 15 = 900 (sekuntia)(15min))
+USER_CREATION_TIMEOUT = int(
+    config("USER_CREATION_TIMEOUT")
+)  # ( 60 * 60 * 24 * 14 = 1209600 (sekuntia)(2wiikkoa))
 
 # Define the below varibles in .env
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")

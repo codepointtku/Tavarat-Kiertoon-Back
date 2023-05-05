@@ -9,8 +9,14 @@ class ContactFormSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ContactSerializer(serializers.ModelSerializer):
+class ContactFormResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactForm
+        fields = "__all__"
+        extra_kwargs = {"order_id": {"required": True}, "status": {"required": True}}
 
+
+class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         fields = "__all__"

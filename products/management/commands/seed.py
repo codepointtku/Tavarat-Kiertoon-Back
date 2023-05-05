@@ -274,6 +274,8 @@ def create_users():
     ]
     super = CustomUser.objects.create_superuser(username="super", password="super")
     super.phone_number = 900090009
+    super.name = "Super"
+    super.email = "super@turku.fi"
     super.save()
     UserAddress.objects.create(
         address="Superkatu6000", zip_code="9001", city="Superkylä", user=super
@@ -282,7 +284,7 @@ def create_users():
         group.user_set.add(super)
 
     for user in users:
-        CustomUser.objects.create_user(
+        created_user = CustomUser.objects.create_user(
             first_name=user["first_name"],
             last_name=user["last_name"],
             email=user["email"],
@@ -293,6 +295,8 @@ def create_users():
             city=user["city"],
             username=user["username"],
         )
+        created_user.is_active = True
+        created_user.save()
 
 
 def create_picture():

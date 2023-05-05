@@ -46,6 +46,7 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
     UsersLoginRefreshResponseSerializer,
+    UserTokenValidationSerializer,
     UserUpdateSerializer,
 )
 
@@ -123,11 +124,6 @@ class UserCreateListView(APIView):
                     "invalid email domain", status=status.HTTP_400_BAD_REQUEST
                 )
 
-            return_serializer = UserCreateReturnSerializer(data=serialized_values.data)
-            return_serializer.is_valid()
-
-            # create email verification for user creation  /// FOR LATER WHO EVER DOES IT
-
             # actually creating the user
             user = User.objects.create_user(
                 first_name=first_name_post,
@@ -142,9 +138,76 @@ class UserCreateListView(APIView):
             )
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()
+
+            # create email verification for user creation
+            if settings.DEBUG:
+                print("debug päällä, activating user without email")
+                user.is_active = True
+                user.save()
+            else:
+                token_generator = default_token_generator
+                token_for_user = token_generator.make_token(user=user)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+                # back urls are only for testing purposes and to ease development to quickly access right urls
+                # should be removed when in deplayment stage from response
+                back_activate_url = "http://127.0.0.1:8000/users/activate/"
+                activate_url_back = f"{back_activate_url}{uid}/{token_for_user}/"
+                activate_url = (
+                    f"{settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"
+                )
+                message = (
+                    "heres the activation link for tavarat kiertoon: " + activate_url
+                )
+
+                # sending activation email
+                subject = "welcome to use Tavarat Kiertoon"
+                message = (
+                    "Hi you have created account for tavarat kiertoon.\n\n"
+                    f"Please click the following link to activate your account: {activate_url} \n\n"
+                    "If you did not request account creation to tavarat kiertoon, ignore this mail."
+                )
+
+                send_mail(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [user.email],
+                    fail_silently=False,
+                )
+
+            return_serializer = UserCreateReturnSerializer(
+                data=serialized_values.data, context={"message": activate_url_back}
+            )
+            return_serializer.is_valid()
+
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserActivationView(APIView):
+    """
+    view for user activation. front passess the uid and token that gets validated and then user gets activated.
+    """
+
+    serializer_class = UserTokenValidationSerializer
+
+    def post(self, request, format=None, *args, **kwargs):
+        # serializer is used to validate the data send, matching passwords and uid decode and token check
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+
+        if serializer.is_valid():
+            # activating the user
+            user = User.objects.get(id=serializer.data["uid"])
+            user.is_active = True
+            user.save()
+
+            return Response("user activated", status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
 
 class UserLoginView(APIView):
@@ -677,6 +740,8 @@ class UserPasswordResetMailView(APIView):
             token_for_user = token_generator.make_token(user=user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
 
+            # back urls are only for testing purposes and to ease development to quickly access right urls
+            # should be removed when in deplayment stage from response
             back_reset_url = "http://127.0.0.1:8000/users/password/reset/"
             reset_url_back = f"{back_reset_url}{uid}/{token_for_user}/"
             reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
@@ -684,9 +749,11 @@ class UserPasswordResetMailView(APIView):
 
             # sending the email
             subject = "Reset password to Tavarat Kiertoon"
-            message = "Hi you are trying to reset your Tavarat kiertoon password.\n\n"
-            message += f"Please click the following link to reset your user accounts password: {reset_url} \n\n"
-            message += "If you did not request this password reset ignore this mail."
+            message = (
+                "Hi you are trying to reset your Tavarat kiertoon password.\n\n"
+                f"Please click the following link to reset your user accounts password: {reset_url} \n\n"
+                "If you did not request this password reset ignore this mail."
+            )
 
             send_mail(
                 subject,
@@ -719,6 +786,7 @@ class UserPasswordResetMailValidationView(APIView):
     """
     View that handless the password reset producre and updates the pw.
     needs the uid and user token created in UserPasswordResetMailView.
+    Also activates the user if for some reason its been activated or needs to bew reactivated.
     the 'uidb64'/'token' variant and GET method is only for testing and should not be used in deployment so DO NOT USE
     """
 
@@ -737,6 +805,7 @@ class UserPasswordResetMailValidationView(APIView):
             # updating the users pw in database
             user = User.objects.get(id=serializer.data["uid"])
             user.set_password(serializer.data["new_password"])
+            user.is_active = True
             user.save()
 
             response = Response()
@@ -747,7 +816,7 @@ class UserPasswordResetMailValidationView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
-    # get is used in testing should not be needed in deployment, will be removed later?
+    # get is used in testing should not be needed in deployment, will be removed later
     @extend_schema(
         responses=inline_serializer(
             name="test returns",

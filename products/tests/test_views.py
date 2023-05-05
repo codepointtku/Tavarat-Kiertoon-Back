@@ -70,6 +70,8 @@ class TestProducts(TestCase):
             city="city",
             username="rotta@turku.fi",
         )
+        cls.user.is_active = True
+        cls.user.save()
 
         queryset = Product.objects.all()
         for query in queryset:

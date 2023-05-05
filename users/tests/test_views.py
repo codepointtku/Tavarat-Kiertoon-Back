@@ -927,7 +927,7 @@ class TestUsers(TestCase):
         )
 
         # testataan ei oikealla uidllä jota ei olemassa
-        uid = urlsafe_base64_encode(force_bytes(9999999999999999999999999))
+        uid = urlsafe_base64_encode(force_bytes(-1))
         data = {
             "new_password": "a",
             "new_password_again": "a",

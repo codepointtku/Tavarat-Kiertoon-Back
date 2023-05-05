@@ -195,17 +195,20 @@ class OrderListView(ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema_view(
+    get=extend_schema(responses=OrderDetailResponseSerializer),
+    put=extend_schema(
+        request=OrderDetailRequestSerializer, responses=OrderDetailResponseSerializer
+    ),
+    patch=extend_schema(exclude=True),
+)
 class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
 
-    @extend_schema(responses=OrderDetailResponseSerializer)
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
-    @extend_schema(
-        request=OrderDetailRequestSerializer, responses=OrderDetailResponseSerializer
-    )
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
@@ -221,11 +224,8 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
             instance._prefetched_objects_cache = {}
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
-    @extend_schema(methods=["PATCH"], exclude=True)
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
 
-
+@extend_schema_view(get=extend_schema(responses=OrderDetailResponseSerializer))
 class OrderSelfListView(ListAPIView):
     """View for returning logged in users own orders"""
 
@@ -241,7 +241,3 @@ class OrderSelfListView(ListAPIView):
         if self.request.user.is_anonymous:
             return
         return Order.objects.filter(user=self.request.user)
-
-    @extend_schema(responses=OrderDetailResponseSerializer)
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)

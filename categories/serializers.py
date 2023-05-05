@@ -22,3 +22,16 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = "__all__"
+
+
+class CategoryResponseSerializer(CategorySerializer):
+    class Meta:
+        model = Category
+        fields = "__all__"
+        extra_kwargs = {"parent": {"required": True}}
+
+
+class CategoryTreeSerializer(serializers.Serializer):
+    category_id = serializers.ListField(
+        child=serializers.ModelField(model_field=Category._meta.get_field("id"))
+    )

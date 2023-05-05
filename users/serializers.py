@@ -6,6 +6,7 @@ from django.utils.http import urlsafe_base64_decode
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers, status
 
+from .custom_functions import custom_time_token_generator
 from .models import CustomUser, UserAddress
 
 User = get_user_model()
@@ -95,6 +96,44 @@ class UserPasswordChangeEmailValidationSerializer(serializers.Serializer):
         return data
 
 
+class UserTokenValidationSerializer(serializers.Serializer):
+
+    """
+    Serializer for user activation validations.
+    """
+
+    uid = serializers.CharField(max_length=255)
+    token = serializers.CharField(max_length=255)
+
+    def validate(self, data):
+        """
+        check the correctness of token
+        """
+        # decoding uid and chekcing that token is valid
+        # token_generator = default_token_generator
+        token_generator = custom_time_token_generator
+        try:
+            uid = urlsafe_base64_decode(data["uid"]).decode()
+        except ValueError:
+            msg = "stuff went wrong in decoding uid or something"
+            raise serializers.ValidationError(msg)
+
+        try:
+            user = User.objects.get(id=uid)
+        except (ValueError, ObjectDoesNotExist):
+            msg = "something doesnt feel right about user"
+            raise serializers.ValidationError(msg)
+
+        if not token_generator.check_token(user=user, token=data["token"]):
+            msg = "something went wrong confirming email link, get now one"
+            raise serializers.ValidationError(msg)
+
+        # print("jammign that decoded uid into data insted of coded one, old: ", data)
+        data["uid"] = uid
+
+        return data
+
+
 class UserAddressSerializer(serializers.ModelSerializer):
     """
     Serializer for user address
@@ -148,6 +187,8 @@ class UserCreateReturnSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(max_length=155)
     phone_number = serializers.CharField(max_length=50)
 
+    message = serializers.CharField(default="Some message", max_length=255)
+
     class Meta:
         model = CustomUser
         fields = [
@@ -155,7 +196,15 @@ class UserCreateReturnSerializer(serializers.ModelSerializer):
             "last_name",
             "email",
             "phone_number",
+            "message",
         ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if "message" in self.context:
+            representation["message"] = self.context["message"]
+
+        return representation
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):

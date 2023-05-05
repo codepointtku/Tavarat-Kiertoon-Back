@@ -17,6 +17,8 @@ class TestOrdersModels(TestCase):
             city="Puuhamaa",
             username="kahvimake@turku.fi",
         )
+        self.test_user.is_active = True
+        self.test_user.save()
         self.test_shoppingcart = ShoppingCart.objects.create(user=self.test_user)
         self.test_order = Order.objects.create(
             user=self.test_user, phone_number="1234567890"

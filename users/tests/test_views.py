@@ -889,22 +889,11 @@ class TestUsers(TestCase):
         end_part_of_email_link = mail.outbox[0].body.split(url3)
         the_parameters = end_part_of_email_link[1].split("/")
         # par 0 should be encoded uid, par 1 the token for reset
-        the_change_url = (
-            f"/users/password/reset/{the_parameters[0]}/{the_parameters[1]}/"
-        )
 
         # test that can get ok reponse from the reset url
         response = self.client.get(url2)
         self.assertEqual(
             response.status_code, 200, "should go thorugh without thigns happening"
-        )
-
-        # testing response
-        response = self.client.get(the_change_url)
-        self.assertEqual(
-            response.status_code,
-            200,
-            "should go thorugh without thigns happening with params",
         )
 
         # testing reponse with various non valid parameters

@@ -191,6 +191,7 @@ class UserCreateListView(APIView):
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(responses=MessageSerializer)
 class UserActivationView(APIView):
     """
     view for user activation. front passess the uid and token that gets validated and then user gets activated.

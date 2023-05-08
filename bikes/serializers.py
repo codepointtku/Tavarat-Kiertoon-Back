@@ -92,12 +92,23 @@ class BikePackageSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         bikemodels_data = validated_data.pop("bikes")
 
-        print(validated_data)
         package = BikePackage.objects.create(**validated_data)
 
         for bikemodel_data in bikemodels_data:
             BikeAmount.objects.create(package=package, **bikemodel_data)
         return package
+    
+    def update(self, instance, validated_data):
+        bikemodels_data = validated_data.pop("bikes")
+
+        package = BikePackage.objects.update(**validated_data)
+        bikeamount_ids = BikeAmount.objects.filter(package_id=instance.pk).values_list('id', flat=True)
+        print(bikeamount_ids)
+        bikeamount_set = []
+
+        # for bikemodel_data in bikemodels_data:
+        #     BikeAmount.objects.update(package=package, **bikemodel_data)
+        return package        
 
 
 class BikeTypeSerializer(serializers.ModelSerializer):

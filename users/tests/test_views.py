@@ -871,6 +871,11 @@ class TestUsers(TestCase):
             response.status_code, 200, "should go thorugh with existing username"
         )
 
+        # setting user as in_active to test that it turns to active staus
+        user = CustomUser.objects.get(username="testimies")
+        user.is_acivete = False
+        user.save()
+
         # checking the front url is in reset email
         self.assertTrue(
             (settings.PASSWORD_RESET_URL_FRONT in mail.outbox[0].body),
@@ -982,6 +987,10 @@ class TestUsers(TestCase):
             204,
             "should not go thorugh as token should be used",
         )
+
+        # testing that user active status was turned on
+        user = CustomUser.objects.get(username="testimies")
+        self.assertTrue(user.is_active, "user should be active after password reset")
 
         # testing login with old pw
         url = "/users/login/"

@@ -72,13 +72,15 @@ class BikeSerializer(serializers.ModelSerializer):
 
 
 class BikeAmountSerializer(serializers.ModelSerializer):
+    # id = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = BikeAmount
-        fields = ["bike", "amount", "id"]
+        exclude = ["package"]
 
 
 class BikePackageSerializer(serializers.ModelSerializer):
-    bikes = BikeAmountSerializer(many=True)
+    bikes = BikeAmountSerializer()
 
     class Meta:
         model = BikePackage
@@ -97,30 +99,45 @@ class BikePackageSerializer(serializers.ModelSerializer):
         for bikemodel_data in bikemodels_data:
             BikeAmount.objects.create(package=package, **bikemodel_data)
         return package
-    
+
     def update(self, instance, validated_data):
+        print(validated_data)
         bikemodels_data = validated_data.pop("bikes")
+        print(bikemodels_data)
 
         instance.name = validated_data.get("name", instance.name)
         instance.description = validated_data.get("description", instance.description)
         instance.save()
 
-        bikeamount_ids = BikeAmount.objects.filter(package_id=instance.pk).values_list('id', flat=True)
+        bikeamount_ids = BikeAmount.objects.filter(package_id=instance.pk).values_list(
+            "id", flat=True
+        )
         print(bikeamount_ids)
         bikeamount_set = []
 
         for bikemodel_data in bikemodels_data:
+            print(bikemodel_data.keys())
             if "id" in bikemodel_data.keys():
-                if BikeAmount.objects.filter(id=bikemodel_data['id']).exists():
-                    bikeamount_instance = BikeAmount.objects.get(id=bikemodel_data['id'])
-                    bikeamount_instance.amount = bikemodel_data.get('amount', bikeamount_instance.amount)
-                    bikeamount_instance.bike = bikemodel_data.get('bike', bikeamount_instance.bike)
+                if BikeAmount.objects.filter(id=bikemodel_data["id"]).exists():
+                    bikeamount_instance = BikeAmount.objects.get(
+                        id=bikemodel_data["id"]
+                    )
+                    bikeamount_instance.amount = bikemodel_data.get(
+                        "amount", bikeamount_instance.amount
+                    )
+                    bikeamount_instance.bike = bikemodel_data.get(
+                        "bike", bikeamount_instance.bike
+                    )
                     bikeamount_instance.save()
                     bikeamount_set.append(bikeamount_instance.id)
+                    print("asd")
                 else:
+                    print("fgh")
                     continue
             else:
-                bikeamount_instance = BikeAmount.objects.create(package=instance, **bikemodel_data)
+                bikeamount_instance = BikeAmount.objects.create(
+                    package=instance, **bikemodel_data
+                )
                 bikeamount_set.append(bikeamount_instance.id)
 
         for bikeamount_id in bikeamount_ids:
@@ -246,4 +263,3 @@ class BikeAmountSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeAmount
         fields = "__all__"
-

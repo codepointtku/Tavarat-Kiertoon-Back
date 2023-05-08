@@ -94,7 +94,6 @@ class TestUsers(TestCase):
         """
         Testing 404 responses from urls, so they exist
         """
-        # print("TOKA")
         # getting objects which id's get used in urls
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
         address_for_testing = UserAddress.objects.get(address="admin")
@@ -129,7 +128,6 @@ class TestUsers(TestCase):
             )
 
     def test_post_user_creation(self):
-        # print("KOLMAS")
         """
         Test for testing user creation
         """
@@ -282,7 +280,6 @@ class TestUsers(TestCase):
         """
         Test to test login functionality
         """
-        # print("VIIIDES")
         # wrong login info
         url = "/users/login/"
         data = {
@@ -329,7 +326,6 @@ class TestUsers(TestCase):
         """
         test to test token refreshing functionality
         """
-        # print("KUUDES")
 
         # testing the return value without cookies
         url = "/users/login/refresh/"
@@ -380,7 +376,6 @@ class TestUsers(TestCase):
         """
         test for testing logout functionality
         """
-        # print("SEITSEMÄAS")
         url = "/users/logout/"
         data = {}
         self.login_test_user()
@@ -413,7 +408,6 @@ class TestUsers(TestCase):
         """
 
         # testing getting user information and allowed groups working for view
-        # print("KAHDEKSASS")
         url = "/users/"
         # anonymous user responses
         response = self.client.get(url, content_type="application/json")
@@ -473,7 +467,6 @@ class TestUsers(TestCase):
         """
         Test for testing getitng logged in users stuff
         """
-        # print("YSIIIIiiii")
         url = "/user/"
         # anonymous
         response = self.client.get(url, content_type="application/json")
@@ -500,7 +493,6 @@ class TestUsers(TestCase):
         """
         test for checking the group names exist in database and you can get them
         """
-        # print("KYMMMPPPIIIII")
         url = "/users/groups/"
         self.login_test_user()
         response = self.client.get(url, content_type="application/json")
@@ -526,7 +518,6 @@ class TestUsers(TestCase):
         """
         Test for checking that permission changes go through
         """
-        # print("YKSITOISTAAAaaaa")
         # actually existin user id get for testing
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
         first = GroupPermissionsSerializer(user_for_testing)
@@ -587,7 +578,6 @@ class TestUsers(TestCase):
         """
         test for users changing their own info
         """
-        # print("KAKSTOISTAA!!!!")
         url = "/user/edit/"
 
         # test without logging in (forbidden response)
@@ -618,7 +608,6 @@ class TestUsers(TestCase):
         """
         test for testing admin changin other users info
         """
-        # print("KOLMETOISTA!!!!")
 
         # get existing users id for testing
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
@@ -667,7 +656,6 @@ class TestUsers(TestCase):
         test for testing user changing his own addressess
         """
         url = "/user/address/edit/"
-        # print("NELJÄTOSITA")
 
         # test response as anon
         response = self.client.get(url)
@@ -792,7 +780,6 @@ class TestUsers(TestCase):
         address_for_testing = UserAddress.objects.get(address="testi")
         address_id = address_for_testing.id
         url = f"/users/address/{address_id}/"
-        # print("VIISITOISTAaaaaaaaa")
 
         # testing response for anons
         response = self.client.get(url)
@@ -861,7 +848,6 @@ class TestUsers(TestCase):
         """
         Test for testing password reset functionality
         """
-        # print("KKUUUSIIIIITOISTAAAAaaaaaaa!!!!!")
         # urls required for tests
         url = "/users/password/resetemail/"
         url2 = "/users/password/reset/"
@@ -888,7 +874,7 @@ class TestUsers(TestCase):
         # checking the front url is in reset email
         self.assertTrue(
             (settings.PASSWORD_RESET_URL_FRONT in mail.outbox[0].body),
-            "passwrod reset url front should be in email",
+            "password reset front url should be in reset email",
         )
 
         # grabbing the link from the email that was sent, and putting it into form that can be used with test
@@ -1023,7 +1009,10 @@ class TestUsers(TestCase):
         )
 
     def test_account_activation_reset(self):
-        # print("accoutn activation test, debug status: ", settings.DEBUG)
+        """
+        Test for testing the account creation activation functionality.
+        """
+        # print("account activation test, debug status: ", settings.DEBUG)
         url = "/users/create/"
         # url = "/users/activate/"
         url2 = settings.USER_ACTIVATION_URL_FRONT

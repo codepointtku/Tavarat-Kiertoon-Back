@@ -72,7 +72,7 @@ class BikeSerializer(serializers.ModelSerializer):
 
 
 class BikeAmountSerializer(serializers.ModelSerializer):
-    # id = serializers.IntegerField(read_only=True)
+    id = serializers.IntegerField(required=False)
 
     class Meta:
         model = BikeAmount
@@ -80,7 +80,7 @@ class BikeAmountSerializer(serializers.ModelSerializer):
 
 
 class BikePackageSerializer(serializers.ModelSerializer):
-    bikes = BikeAmountSerializer()
+    bikes = BikeAmountSerializer(many=True)
 
     class Meta:
         model = BikePackage

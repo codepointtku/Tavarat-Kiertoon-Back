@@ -885,6 +885,12 @@ class TestUsers(TestCase):
             response.status_code, 200, "should go thorugh with existing username"
         )
 
+        # checking the front url is in reset email
+        self.assertTrue(
+            (settings.PASSWORD_RESET_URL_FRONT in mail.outbox[0].body),
+            "passwrod reset url front should be in email",
+        )
+
         # grabbing the link from the email that was sent, and putting it into form that can be used with test
         end_part_of_email_link = mail.outbox[0].body.split(url3)
         the_parameters = end_part_of_email_link[1].split("/")
@@ -1058,6 +1064,13 @@ class TestUsers(TestCase):
         )
 
         url = "/users/activate/"
+
+        # checking that te front url is in the  activation mail
+        self.assertTrue(
+            (settings.USER_ACTIVATION_URL_FRONT in mail.outbox[0].body),
+            "front address should be in activation mail",
+        )
+
         # grabbing the link from the email that was sent, and putting it into form that can be used with test
         end_part_of_email_link = mail.outbox[0].body.split(url2)
         the_parameters = end_part_of_email_link[1].split("/")

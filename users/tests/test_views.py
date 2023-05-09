@@ -57,6 +57,8 @@ class TestUsers(TestCase):
             city="city",
             username="testi1@turku.fi",
         )
+        user_set.is_active = True
+        user_set.save()
 
         user2_set = CustomUser.objects.create_user(
             first_name="first_name",
@@ -69,6 +71,8 @@ class TestUsers(TestCase):
             city="tessti",
             username="testimies",
         )
+        user2_set.is_active = True
+        user2_set.save()
 
         user3_set = CustomUser.objects.create_user(
             first_name="admin",
@@ -81,6 +85,8 @@ class TestUsers(TestCase):
             city="admin",
             username="admin",
         )
+        user3_set.is_active = True
+        user3_set.save()
         for group in Group.objects.all():
             group.user_set.add(user3_set)
 

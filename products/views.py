@@ -25,6 +25,7 @@ from users.views import CustomJWTAuthentication
 
 from .models import Color, Picture, Product, Storage
 from orders.models import ShoppingCart
+from orders.serializers import ShoppingCartDetailSerializer
 from .serializers import (
     ColorSerializer,
     PictureSerializer,
@@ -36,6 +37,7 @@ from .serializers import (
     ProductCreateSerializer,
     ProductUpdateSerializer,
     StorageSerializer,
+    ShoppingCartAvailableAmountListSerializer,
 )
 
 
@@ -344,7 +346,8 @@ class ProductStorageTransferView(APIView):
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
 
-class ShoppingCartAvailableAmountList(generics.ListAPIView):
+
+class ShoppingCartAvailableAmountList(APIView):
     """View for last step of modifying products in shopping cart before ordering"""
     authentication_classes = [
     SessionAuthentication,
@@ -352,7 +355,7 @@ class ShoppingCartAvailableAmountList(generics.ListAPIView):
     JWTAuthentication,
     CustomJWTAuthentication,
     ]
-    serializer_class = ProductSerializer
+    serializer_class = ShoppingCartAvailableAmountListSerializer
 
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:
@@ -361,4 +364,16 @@ class ShoppingCartAvailableAmountList(generics.ListAPIView):
             instance = ShoppingCart.objects.get(user=request.user)
         except ObjectDoesNotExist:
             return Response("Shopping cart for this user does not exist")
-        return Response("ok")
+        cartserializer = ShoppingCartDetailSerializer(instance)
+        group_ids = []
+        duplicate_checker = []
+        for product in cartserializer.data["products"]:
+            if product["group_id"] not in duplicate_checker:
+                group = product["group_id"]
+                amount = Product.objects.filter(group_id=product["group_id"], available=True).count()
+                pair = {"id": group, "amount": amount}
+                group_ids.append(pair)
+                duplicate_checker.append(group)
+        returnserializer = ShoppingCartAvailableAmountListSerializer(group_ids, many=True)
+        return Response(returnserializer.data)
+

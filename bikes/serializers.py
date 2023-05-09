@@ -253,7 +253,7 @@ class MainBikeListSchemaSerializer(serializers.Serializer):
     packages = MainBikeSchemaPackageSerializer(many=True)
 
 
-class BikeAmountSerializer(serializers.ModelSerializer):
+class BikeAmountListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeAmount
         fields = "__all__"

@@ -24,6 +24,7 @@ from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
 from .models import Color, Picture, Product, Storage
+from orders.models import ShoppingCart
 from .serializers import (
     ColorSerializer,
     PictureSerializer,
@@ -342,3 +343,22 @@ class ProductStorageTransferView(APIView):
         products.update(storages=storage)
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
+
+class ShoppingCartAvailableAmountList(generics.ListAPIView):
+    """View for last step of modifying products in shopping cart before ordering"""
+    authentication_classes = [
+    SessionAuthentication,
+    BasicAuthentication,
+    JWTAuthentication,
+    CustomJWTAuthentication,
+    ]
+    serializer_class = ProductSerializer
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return Response("You must be logged in to see your shoppingcart")
+        try:
+            instance = ShoppingCart.objects.get(user=request.user)
+        except ObjectDoesNotExist:
+            return Response("Shopping cart for this user does not exist")
+        return Response("ok")

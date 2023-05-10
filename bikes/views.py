@@ -11,9 +11,9 @@ from drf_spectacular.utils import extend_schema_view, extend_schema
 
 from bikes.models import Bike, BikePackage, BikeRental, BikeStock, BikeAmount
 from bikes.serializers import (
-    BikeAmountSerializer,
     BikeAmountListSerializer,
     BikePackageSerializer,
+    BikePackageSchemaResponseSerializer,
     BikeRentalSerializer,
     BikeSerializer,
     BikeStockListSerializer,
@@ -266,13 +266,30 @@ class BikeAmountListView(generics.ListAPIView):
     serializer_class = BikeAmountListSerializer
 
 
+@extend_schema_view(
+    get=extend_schema(
+        responses=BikePackageSchemaResponseSerializer()
+    ),
+    post=extend_schema(
+        responses=BikePackageSchemaResponseSerializer()
+    ),
+)
 class BikePackageListView(generics.ListCreateAPIView):
     queryset = BikePackage.objects.all()
     serializer_class = BikePackageSerializer
 
 
+@extend_schema_view(
+    get=extend_schema(
+        responses=BikePackageSchemaResponseSerializer()
+    ),
+    put=extend_schema(
+        responses=BikePackageSchemaResponseSerializer()
+    ),
+    patch=extend_schema(
+        exclude=True
+    ),
+)
 class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikePackage.objects.all()
     serializer_class = BikePackageSerializer
-
-

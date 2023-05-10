@@ -159,6 +159,31 @@ class BikePackageSerializer(serializers.ModelSerializer):
         return instance
 
 
+class BikeAmountSchemaResponseSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField
+
+    class Meta:
+        model = BikeAmount
+        exclude = ["package"]
+        extra_kwargs = {"id": {"required": True},
+                    "amount": {"required": True},
+                    "bike": {"required": True},
+        }
+
+
+class BikePackageSchemaResponseSerializer(serializers.ModelSerializer):
+    bikes = BikeAmountSchemaResponseSerializer(many=True)
+
+    class Meta:
+        model = BikePackage
+        fields = [
+            "id",
+            "name",
+            "description",
+            "bikes",
+        ]
+
+
 class BikeTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeType

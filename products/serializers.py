@@ -129,3 +129,13 @@ class StorageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Storage
         fields = "__all__"
+
+
+class StorageSchemaResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Storage
+        fields = "__all__"
+        extra_kwargs = {"name": {"required": True},
+            "address": {"required": True},
+            "in_use": {"required": True},
+        }

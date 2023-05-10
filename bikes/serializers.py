@@ -179,7 +179,7 @@ class BikeStockSchemaCreateUpdateSerializer(serializers.ModelSerializer):
                     "state": {"required": True},
                     "storage": {"required": True},
         }
-        
+
 
 class BikeModelSerializer(serializers.ModelSerializer):
     type = BikeTypeSerializer(read_only=True)

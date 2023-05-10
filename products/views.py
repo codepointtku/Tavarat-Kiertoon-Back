@@ -35,6 +35,7 @@ from .serializers import (
     ProductCreateSerializer,
     ProductUpdateSerializer,
     StorageSerializer,
+    StorageSchemaResponseSerializer,
 )
 
 
@@ -296,14 +297,28 @@ class ColorDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ColorSerializer
 
 
+@extend_schema_view(
+    get=extend_schema(
+        responses=StorageSchemaResponseSerializer(),
+    ),
+    post=extend_schema(
+        responses=StorageSchemaResponseSerializer(),
+    ),
+)
 class StorageListView(generics.ListCreateAPIView):
     queryset = Storage.objects.all()
     serializer_class = StorageSerializer
 
 
 @extend_schema_view(
+    get=extend_schema(
+        responses=StorageSchemaResponseSerializer(),
+    ),
     patch=extend_schema(
         exclude=True
+    ),
+    put=extend_schema(
+        responses=StorageSchemaResponseSerializer(),
     ),
 )
 class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):

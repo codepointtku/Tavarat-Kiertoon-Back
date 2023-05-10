@@ -24,6 +24,9 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenViewBase
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import OrderingFilter
+from django_filters import rest_framework as filters
 
 from orders.models import ShoppingCart
 
@@ -412,6 +415,9 @@ class UserLogoutView(APIView):
         response = self.jwt_logout(request)
         return response
 
+class UserListPagination(PageNumberPagination):
+    page_size = 30
+    page_size_query_param = "page_size"
 
 @extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserDetailsListView(generics.ListAPIView):
@@ -426,6 +432,9 @@ class UserDetailsListView(generics.ListAPIView):
         CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
+
+    pagination_class = UserListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
 
     required_groups = {
         "GET": ["admin_group"],

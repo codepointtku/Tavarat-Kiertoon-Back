@@ -126,3 +126,4 @@ class BikeAmount(models.Model):
 
     def __str__(self) -> str:
         return f"Bike amount: {self.amount}x{self.bike}({self.id})"
+

@@ -1,6 +1,15 @@
 from rest_framework import serializers
 
-from .models import Bike, BikeAmount, BikePackage, BikeRental, BikeStock, BikeType, BikeSize, BikeBrand
+from .models import (
+    Bike,
+    BikeAmount,
+    BikePackage,
+    BikeRental,
+    BikeStock,
+    BikeType,
+    BikeSize,
+    BikeBrand,
+)
 
 from products.serializers import ColorSerializer, StorageSerializer
 
@@ -81,9 +90,11 @@ class BikeSerializer(serializers.ModelSerializer):
 
 
 class BikeAmountSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
     class Meta:
         model = BikeAmount
-        fields = ["bike", "amount"]
+        exclude = ["package"]
 
 
 class BikePackageSerializer(serializers.ModelSerializer):
@@ -97,6 +108,55 @@ class BikePackageSerializer(serializers.ModelSerializer):
             "description",
             "bikes",
         ]
+
+    def create(self, validated_data):
+        bikemodels_data = validated_data.pop("bikes")
+
+        package = BikePackage.objects.create(**validated_data)
+
+        for bikemodel_data in bikemodels_data:
+            BikeAmount.objects.create(package=package, **bikemodel_data)
+        return package
+
+    def update(self, instance, validated_data):
+        bikemodels_data = validated_data.pop("bikes")
+
+        instance.name = validated_data.get("name", instance.name)
+        instance.description = validated_data.get("description", instance.description)
+        instance.save()
+
+        bikeamount_ids = BikeAmount.objects.filter(package_id=instance.pk).values_list(
+            "id", flat=True
+        )
+        bikeamount_set = []
+
+        for bikemodel_data in bikemodels_data:
+            if "id" in bikemodel_data.keys():
+                if BikeAmount.objects.filter(id=bikemodel_data["id"]).exists():
+                    bikeamount_instance = BikeAmount.objects.get(
+                        id=bikemodel_data["id"]
+                    )
+                    bikeamount_instance.amount = bikemodel_data.get(
+                        "amount", bikeamount_instance.amount
+                    )
+                    bikeamount_instance.bike = bikemodel_data.get(
+                        "bike", bikeamount_instance.bike
+                    )
+                    bikeamount_instance.save()
+                    bikeamount_set.append(bikeamount_instance.id)
+                else:
+                    continue
+            else:
+                bikeamount_instance = BikeAmount.objects.create(
+                    package=instance, **bikemodel_data
+                )
+                bikeamount_set.append(bikeamount_instance.id)
+
+        for bikeamount_id in bikeamount_ids:
+            if bikeamount_id not in bikeamount_set:
+                BikeAmount.objects.filter(pk=bikeamount_id).delete()
+
+        return instance
 
 
 class BikeTypeSerializer(serializers.ModelSerializer):
@@ -213,7 +273,7 @@ class BikeModelSchemaResponseSerializer(serializers.ModelSerializer):
 
 class MainBikeSchemaDateSerializer(serializers.Serializer):
     available_from = serializers.DateField()
-    available_to = serializers.DateField()     
+    available_to = serializers.DateField()
 
 
 class MainBikeSchemaBikesSerializer(serializers.Serializer):
@@ -247,8 +307,14 @@ class MainBikeSchemaPackageSerializer(serializers.Serializer):
     size = serializers.CharField()
     max_available = serializers.IntegerField()
 
+
 class MainBikeListSchemaSerializer(serializers.Serializer):
     date_info = MainBikeSchemaDateSerializer()
     bikes = MainBikeSchemaBikesSerializer(many=True)
     packages = MainBikeSchemaPackageSerializer(many=True)
 
+
+class BikeAmountListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeAmount
+        fields = "__all__"

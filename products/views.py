@@ -360,7 +360,7 @@ class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 @extend_schema_view(
     put=extend_schema(
-        responses=ProductSerializer(many=True)
+        responses=ProductStorageListSerializer(many=True)
     )
 )
 class ProductStorageTransferView(APIView):

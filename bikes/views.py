@@ -247,7 +247,11 @@ class RentalListView(generics.ListCreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+@extend_schema_view(
+    get=extend_schema(
+        responses=BikeRentalSchemaResponseSerializer
+    ),
+)
 class RentalDetailView(generics.RetrieveAPIView):
     queryset = BikeRental.objects.all()
     serializer_class = BikeRentalSerializer

@@ -134,6 +134,14 @@ class BikeStockListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeStock
         fields =  "__all__"
+        extra_kwargs = {"bike": {"required": True},
+                    "package_only": {"required": True},
+                    "number": {"required": True},
+                    "frame_number": {"required": True},
+                    "created_at": {"required": True},
+                    "state": {"required": True},
+                    "storage": {"required": True},
+        }
 
 
 class BikeStockCreateSerializer(serializers.ModelSerializer):
@@ -149,7 +157,29 @@ class BikeStockDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeStock
         fields = "__all__"
+        extra_kwargs = {"bike": {"required": True},
+                    "package_only": {"required": True},
+                    "number": {"required": True},
+                    "frame_number": {"required": True},
+                    "created_at": {"required": True},
+                    "state": {"required": True},
+                    "storage": {"required": True},
+        }
 
+
+class BikeStockSchemaCreateUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeStock
+        fields = "__all__"
+        extra_kwargs = {"bike": {"required": True},
+                    "package_only": {"required": True},
+                    "number": {"required": True},
+                    "frame_number": {"required": True},
+                    "created_at": {"required": True},
+                    "state": {"required": True},
+                    "storage": {"required": True},
+        }
+        
 
 class BikeModelSerializer(serializers.ModelSerializer):
     type = BikeTypeSerializer(read_only=True)

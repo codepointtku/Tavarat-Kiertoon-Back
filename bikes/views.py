@@ -19,6 +19,7 @@ from bikes.serializers import (
     BikeRentalSchemaPostSerializer,
     BikeRentalSchemaResponseSerializer,
     BikeStockCreateSerializer,
+    BikeStockSchemaCreateUpdateSerializer,
     BikeModelSerializer,
     BikeModelCreateSerializer,
     BikeModelSchemaResponseSerializer,
@@ -66,7 +67,7 @@ class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
 @extend_schema_view(
     post=extend_schema(
         request=BikeStockCreateSerializer,
-        responses=BikeStockCreateSerializer
+        responses=BikeStockSchemaCreateUpdateSerializer
     )
 )
 class BikeStockListView(generics.ListCreateAPIView):
@@ -84,7 +85,7 @@ class BikeStockListView(generics.ListCreateAPIView):
 @extend_schema_view(
     put=extend_schema(
         request=BikeStockCreateSerializer,
-        responses=BikeStockCreateSerializer
+        responses=BikeStockSchemaCreateUpdateSerializer
     ),
     patch=extend_schema(
         exclude=True
@@ -246,6 +247,7 @@ class RentalListView(generics.ListCreateAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @extend_schema_view(
     get=extend_schema(

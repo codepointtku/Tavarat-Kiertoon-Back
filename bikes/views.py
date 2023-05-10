@@ -20,13 +20,14 @@ from bikes.serializers import (
     BikeStockCreateSerializer,
     BikeModelSerializer,
     BikeModelCreateSerializer,
+    BikeModelResponseSerializer,
     MainBikeListSchemaSerializer
 )
 
 @extend_schema_view(
     post=extend_schema(
         request=BikeModelCreateSerializer,
-        responses=BikeModelCreateSerializer
+        responses=BikeModelResponseSerializer
     )
 )
 class BikeModelListView(generics.ListCreateAPIView):
@@ -38,12 +39,12 @@ class BikeModelListView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
 
 @extend_schema_view(
     put=extend_schema(
         request=BikeModelCreateSerializer,
-        responses=BikeModelCreateSerializer
+        responses=BikeModelResponseSerializer
     ),
     patch=extend_schema(
         exclude=True

@@ -94,7 +94,6 @@ class BikeBrandSerializer(serializers.ModelSerializer):
 
 
 class BikeSizeSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = BikeSize
         fields = "__all__"
@@ -124,11 +123,11 @@ class BikeStockCreateSerializer(serializers.ModelSerializer):
         model = BikeStock
         fields = "__all__"
 
-        
+
 class BikeStockDetailSerializer(serializers.ModelSerializer):
     bike = BikeStockDepthSerializer(read_only=True)
     storage = StorageSerializer(read_only=True)
-    
+
     class Meta:
         model = BikeStock
         fields = "__all__"
@@ -139,7 +138,7 @@ class BikeModelSerializer(serializers.ModelSerializer):
     brand = BikeBrandSerializer(read_only=True)
     size = BikeSizeSerializer(read_only=True)
     color = ColorSerializer(read_only=True)
-    
+
     class Meta:
         model = Bike
         fields = "__all__"
@@ -149,6 +148,19 @@ class BikeModelCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bike
         fields = "__all__"
+
+
+class BikeModelResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bike
+        fields = "__all__"
+        extra_kwargs = {"name": {"required": True},
+                    "description": {"required": True},
+                    "type": {"required": True},
+                    "brand": {"required": True},
+                    "size": {"required": True},
+                    "color": {"required": True},
+                }
 
 
 class MainBikeSchemaDateSerializer(serializers.Serializer):

@@ -420,7 +420,7 @@ class UserListPagination(PageNumberPagination):
     page_size_query_param = "page_size"
 
 class UserFilter(filters.FilterSet):
-    #address_list = filters.ModelMultipleChoiceFilter(queryset=UserAddress.objects.all().distinct("city"))
+    address_list = filters.ModelMultipleChoiceFilter(queryset=UserAddress.objects.all().values_list("city").distinct())
 
     class Meta:
         model = CustomUser

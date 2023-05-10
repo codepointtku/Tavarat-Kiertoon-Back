@@ -44,6 +44,9 @@ class BikeModelListView(generics.ListCreateAPIView):
     put=extend_schema(
         request=BikeModelCreateSerializer,
         responses=BikeModelCreateSerializer
+    ),
+    patch=extend_schema(
+        exclude=True
     )
 )
 class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -80,6 +83,9 @@ class BikeStockListView(generics.ListCreateAPIView):
     put=extend_schema(
         request=BikeStockCreateSerializer,
         responses=BikeStockCreateSerializer
+    ),
+    patch=extend_schema(
+        exclude=True
     )
 )
 class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):

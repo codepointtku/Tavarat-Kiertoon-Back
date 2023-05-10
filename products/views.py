@@ -285,6 +285,12 @@ class ColorListView(generics.ListCreateAPIView):
     serializer_class = ColorSerializer
 
 
+
+@extend_schema_view(
+    patch=extend_schema(
+        exclude=True
+    ),
+)
 class ColorDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Color.objects.all()
     serializer_class = ColorSerializer
@@ -295,6 +301,11 @@ class StorageListView(generics.ListCreateAPIView):
     serializer_class = StorageSerializer
 
 
+@extend_schema_view(
+    patch=extend_schema(
+        exclude=True
+    ),
+)
 class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Storage.objects.all()
     serializer_class = StorageSerializer
@@ -322,6 +333,11 @@ class PictureListView(generics.ListCreateAPIView):
         )
 
 
+@extend_schema_view(
+    patch=extend_schema(
+        exclude=True
+    ),
+)
 class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Picture.objects.all()
     serializer_class = PictureSerializer

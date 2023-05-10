@@ -419,6 +419,13 @@ class UserListPagination(PageNumberPagination):
     page_size = 30
     page_size_query_param = "page_size"
 
+class UserFilter(filters.FilterSet):
+    #address_list = filters.ModelMultipleChoiceFilter(queryset=UserAddress.objects.all().distinct("city"))
+
+    class Meta:
+        model = CustomUser
+        fields = ["id","last_login", "name", "email","creation_date", "phone_number", "username", "is_active", "address_list"]
+
 @extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserDetailsListView(generics.ListAPIView):
     """
@@ -435,6 +442,10 @@ class UserDetailsListView(generics.ListAPIView):
 
     pagination_class = UserListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+
+    # ordering_fields = ["modified_date", "id"]
+    # ordering = ["-modified_date", "-id"]
+    filterset_class = UserFilter
 
     required_groups = {
         "GET": ["admin_group"],

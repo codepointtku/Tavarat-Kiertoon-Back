@@ -17,17 +17,18 @@ from bikes.serializers import (
     BikeStockListSerializer,
     BikeStockDetailSerializer,
     BikeRentalSchemaPostSerializer,
+    BikeRentalSchemaResponseSerializer,
     BikeStockCreateSerializer,
     BikeModelSerializer,
     BikeModelCreateSerializer,
-    BikeModelResponseSerializer,
+    BikeModelSchemaResponseSerializer,
     MainBikeListSchemaSerializer
 )
 
 @extend_schema_view(
     post=extend_schema(
         request=BikeModelCreateSerializer,
-        responses=BikeModelResponseSerializer
+        responses=BikeModelSchemaResponseSerializer
     )
 )
 class BikeModelListView(generics.ListCreateAPIView):
@@ -44,7 +45,7 @@ class BikeModelListView(generics.ListCreateAPIView):
 @extend_schema_view(
     put=extend_schema(
         request=BikeModelCreateSerializer,
-        responses=BikeModelResponseSerializer
+        responses=BikeModelSchemaResponseSerializer
     ),
     patch=extend_schema(
         exclude=True
@@ -203,7 +204,15 @@ class MainBikeList(generics.ListAPIView):
         )
 
 
-@extend_schema_view(post=extend_schema(request=BikeRentalSchemaPostSerializer))
+@extend_schema_view(
+    get=extend_schema(
+        responses=BikeRentalSchemaResponseSerializer
+    ),
+    post=extend_schema(
+        request=BikeRentalSchemaPostSerializer,
+        responses=BikeRentalSchemaResponseSerializer
+    )
+)
 class RentalListView(generics.ListCreateAPIView):
     queryset = BikeRental.objects.all()
     serializer_class = BikeRentalSerializer

@@ -16,7 +16,25 @@ class BikeRentalSchemaPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BikeRental
+        exclude = ["state", "user"]
+
+
+class BikeRentalSchemaResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeRental
         fields = "__all__"
+        extra_kwargs = {"id": {"required": True},
+                    "start_date": {"required": True},
+                    "end_date": {"required": True},
+                    "state": {"required": True},
+                    "delivery_address": {"required": True},
+                    "pickup": {"required": True},
+                    "contact_name": {"required": True},
+                    "contact_phone_number": {"required": True},
+                    "extra_info": {"required": True},
+                    "user": {"required": True},
+                    "bike_stock": {"required": True},
+                }
 
 
 class BikeStockSerializer(serializers.ModelSerializer):
@@ -150,7 +168,7 @@ class BikeModelCreateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class BikeModelResponseSerializer(serializers.ModelSerializer):
+class BikeModelSchemaResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bike
         fields = "__all__"

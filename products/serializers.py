@@ -51,7 +51,8 @@ class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
-        extra_kwargs = {"available": {"required": True},
+        extra_kwargs = {
+            "available": {"required": True},
             "barcode": {"required": True},
             "group_id": {"required": True},
             "price": {"required": True},
@@ -63,6 +64,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "category": {"required": True},
             "storages": {"required": True},
             "color": {"required": True},
+            "modified": {"required": True},
         }
 
 
@@ -75,7 +77,8 @@ class ProductStorageListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
-        extra_kwargs = {"available": {"required": True},
+        extra_kwargs = {
+            "available": {"required": True},
             "barcode": {"required": True},
             "group_id": {"required": True},
             "price": {"required": True},
@@ -87,6 +90,7 @@ class ProductStorageListSerializer(serializers.ModelSerializer):
             "category": {"required": True},
             "storages": {"required": True},
             "color": {"required": True},
+            "modified": {"required": True},
         }
 
 
@@ -98,12 +102,13 @@ class ProductColorStringSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
-        extra_kwargs = {"available": {"required": True},
+        extra_kwargs = {
+            "available": {"required": True},
             "barcode": {"required": True},
             "category": {"required": True},
             "storages": {"required": True},
             "color": {"required": True},
-        }   
+        }
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
@@ -114,7 +119,8 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
-        extra_kwargs = {"available": {"required": True},
+        extra_kwargs = {
+            "available": {"required": True},
             "barcode": {"required": True},
             "category": {"required": True},
             "storages": {"required": True},
@@ -125,7 +131,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 class ProductStorageTransferSerializer(serializers.Serializer):
     storage = serializers.IntegerField()
     products = serializers.ListField(child=serializers.IntegerField())
-        
+
 
 class ColorSerializer(serializers.ModelSerializer):
     class Meta:

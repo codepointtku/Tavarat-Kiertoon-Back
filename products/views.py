@@ -355,7 +355,7 @@ class ShoppingCartAvailableAmountList(APIView):
     JWTAuthentication,
     CustomJWTAuthentication,
     ]
-    serializer_class = ShoppingCartAvailableAmountListSerializer
+    serializer_class = ShoppingCartAvailableAmountListSerializer(many=True)
 
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:

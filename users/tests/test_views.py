@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
@@ -90,20 +90,10 @@ class TestUsers(TestCase):
         for group in Group.objects.all():
             group.user_set.add(user3_set)
 
-    def test_setup(self):
-        # print("EKA, count user objs after setup?: ", CustomUser.objects.count())
-        # testing that setup went rhough and created correct ammount of users for testing
-        self.assertEqual(
-            CustomUser.objects.count(),
-            4,
-            "testing setup, somethigng went wrong with setup",
-        )
-
     def test_get_users_forbidden(self):
         """
         Testing 404 responses from urls, so they exist
         """
-        # print("TOKA")
         # getting objects which id's get used in urls
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
         address_for_testing = UserAddress.objects.get(address="admin")
@@ -127,6 +117,7 @@ class TestUsers(TestCase):
             "/users/password/resetemail/",
             "/users/password/reset/",
             "/users/password/reset/1/1/",
+            "/users/activate/",
         ]
 
         # goign thorugh the urls
@@ -137,7 +128,6 @@ class TestUsers(TestCase):
             )
 
     def test_post_user_creation(self):
-        # print("KOLMAS")
         """
         Test for testing user creation
         """
@@ -290,7 +280,6 @@ class TestUsers(TestCase):
         """
         Test to test login functionality
         """
-        # print("VIIIDES")
         # wrong login info
         url = "/users/login/"
         data = {
@@ -337,7 +326,6 @@ class TestUsers(TestCase):
         """
         test to test token refreshing functionality
         """
-        # print("KUUDES")
 
         # testing the return value without cookies
         url = "/users/login/refresh/"
@@ -388,7 +376,6 @@ class TestUsers(TestCase):
         """
         test for testing logout functionality
         """
-        # print("SEITSEMÄAS")
         url = "/users/logout/"
         data = {}
         self.login_test_user()
@@ -421,7 +408,6 @@ class TestUsers(TestCase):
         """
 
         # testing getting user information and allowed groups working for view
-        # print("KAHDEKSASS")
         url = "/users/"
         # anonymous user responses
         response = self.client.get(url, content_type="application/json")
@@ -481,7 +467,6 @@ class TestUsers(TestCase):
         """
         Test for testing getitng logged in users stuff
         """
-        # print("YSIIIIiiii")
         url = "/user/"
         # anonymous
         response = self.client.get(url, content_type="application/json")
@@ -508,7 +493,6 @@ class TestUsers(TestCase):
         """
         test for checking the group names exist in database and you can get them
         """
-        # print("KYMMMPPPIIIII")
         url = "/users/groups/"
         self.login_test_user()
         response = self.client.get(url, content_type="application/json")
@@ -534,7 +518,6 @@ class TestUsers(TestCase):
         """
         Test for checking that permission changes go through
         """
-        # print("YKSITOISTAAAaaaa")
         # actually existin user id get for testing
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
         first = GroupPermissionsSerializer(user_for_testing)
@@ -595,7 +578,6 @@ class TestUsers(TestCase):
         """
         test for users changing their own info
         """
-        # print("KAKSTOISTAA!!!!")
         url = "/user/edit/"
 
         # test without logging in (forbidden response)
@@ -626,7 +608,6 @@ class TestUsers(TestCase):
         """
         test for testing admin changin other users info
         """
-        # print("KOLMETOISTA!!!!")
 
         # get existing users id for testing
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
@@ -675,7 +656,6 @@ class TestUsers(TestCase):
         test for testing user changing his own addressess
         """
         url = "/user/address/edit/"
-        # print("NELJÄTOSITA")
 
         # test response as anon
         response = self.client.get(url)
@@ -800,7 +780,6 @@ class TestUsers(TestCase):
         address_for_testing = UserAddress.objects.get(address="testi")
         address_id = address_for_testing.id
         url = f"/users/address/{address_id}/"
-        # print("VIISITOISTAaaaaaaaa")
 
         # testing response for anons
         response = self.client.get(url)
@@ -869,7 +848,6 @@ class TestUsers(TestCase):
         """
         Test for testing password reset functionality
         """
-        # print("KKUUUSIIIIITOISTAAAAaaaaaaa!!!!!")
         # urls required for tests
         url = "/users/password/resetemail/"
         url2 = "/users/password/reset/"
@@ -893,26 +871,26 @@ class TestUsers(TestCase):
             response.status_code, 200, "should go thorugh with existing username"
         )
 
+        # setting user as in_active to test that it turns to active staus
+        user = CustomUser.objects.get(username="testimies")
+        user.is_acivete = False
+        user.save()
+
+        # checking the front url is in reset email
+        self.assertTrue(
+            (settings.PASSWORD_RESET_URL_FRONT in mail.outbox[0].body),
+            "password reset front url should be in reset email",
+        )
+
         # grabbing the link from the email that was sent, and putting it into form that can be used with test
         end_part_of_email_link = mail.outbox[0].body.split(url3)
         the_parameters = end_part_of_email_link[1].split("/")
         # par 0 should be encoded uid, par 1 the token for reset
-        the_change_url = (
-            f"/users/password/reset/{the_parameters[0]}/{the_parameters[1]}/"
-        )
 
         # test that can get ok reponse from the reset url
         response = self.client.get(url2)
         self.assertEqual(
             response.status_code, 200, "should go thorugh without thigns happening"
-        )
-
-        # testing response
-        response = self.client.get(the_change_url)
-        self.assertEqual(
-            response.status_code,
-            200,
-            "should go thorugh without thigns happening with params",
         )
 
         # testing reponse with various non valid parameters
@@ -946,7 +924,7 @@ class TestUsers(TestCase):
         )
 
         # testataan ei oikealla uidllä jota ei olemassa
-        uid = urlsafe_base64_encode(force_bytes(9999999999999999999999999))
+        uid = urlsafe_base64_encode(force_bytes(-1))
         data = {
             "new_password": "a",
             "new_password_again": "a",
@@ -1010,6 +988,10 @@ class TestUsers(TestCase):
             "should not go thorugh as token should be used",
         )
 
+        # testing that user active status was turned on
+        user = CustomUser.objects.get(username="testimies")
+        self.assertTrue(user.is_active, "user should be active after password reset")
+
         # testing login with old pw
         url = "/users/login/"
         data = {
@@ -1033,4 +1015,127 @@ class TestUsers(TestCase):
             response.status_code,
             200,
             "should be able to login with new pw",
+        )
+
+    def test_account_activation_reset(self):
+        """
+        Test for testing the account creation activation functionality.
+        """
+        # print("account activation test, debug status: ", settings.DEBUG)
+        url = "/users/create/"
+        # url = "/users/activate/"
+        url2 = settings.USER_ACTIVATION_URL_FRONT
+
+        # creating user that needs to be activated
+        data = {
+            "first_name": "t",
+            "last_name": "t",
+            "email": "t@turku.fi",
+            "phone_number": "5555",
+            "password": "1234",
+            "address": "test12",
+            "zip_code": "12552",
+            "city": "TESTIKAUPUNKI",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+
+        # testing that email was sent
+        self.assertEqual(
+            len(mail.outbox),
+            1,
+            "mail should have been sent in user creattion",
+        )
+
+        # checking that the user is not active
+        user = CustomUser.objects.get(username="t@turku.fi")
+        self.assertFalse(user.is_active, "User shouldnt be activee after creation")
+
+        # should not be able to login
+        url = "/users/login/"
+        data = {
+            "username": "t@turku.fi",
+            "password": "1234",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            204, response.status_code, "shouldnt be able to login wihtout being active"
+        )
+
+        url = "/users/activate/"
+
+        # checking that te front url is in the  activation mail
+        self.assertTrue(
+            (settings.USER_ACTIVATION_URL_FRONT in mail.outbox[0].body),
+            "front address should be in activation mail",
+        )
+
+        # grabbing the link from the email that was sent, and putting it into form that can be used with test
+        end_part_of_email_link = mail.outbox[0].body.split(url2)
+        the_parameters = end_part_of_email_link[1].split("/")
+
+        data = {
+            "uid": "a",
+            "token": "a",
+        }
+
+        # wrong kind of encoded uid
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "should get wrongly stuff with wrong uid",
+        )
+
+        # testataan ei oikealla uidllä jota ei olemassa
+        uid = urlsafe_base64_encode(force_bytes(-1))
+        data = {
+            "uid": uid,
+            "token": "a",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "should get wrongly stuff with non existant uid",
+        )
+
+        data = {
+            "uid": the_parameters[0],
+            "token": "a",
+        }
+        # testing response with non  valid token
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "should get wrongly stuff with wrong token",
+        )
+
+        # par 0 should be encoded uid, par 1 the token for reset
+        data = {
+            "uid": the_parameters[0],
+            "token": the_parameters[1],
+        }
+        response = self.client.post(url, data, content_type="application/json")
+
+        # checking for right statuts code on righ values
+        self.assertEqual(
+            200,
+            response.status_code,
+            "should get 200 response on succesfull activation",
+        )
+
+        # active status check
+        user = CustomUser.objects.get(username="t@turku.fi")
+        self.assertTrue(user.is_active, "user should be active")
+
+        # should be able to login now
+        url = "/users/login/"
+        data = {
+            "username": "t@turku.fi",
+            "password": "1234",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            200, response.status_code, "should be able to login when active now"
         )

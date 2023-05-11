@@ -234,7 +234,10 @@ class SubSerializerForGroupsSchema(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = "__all__"
+        #fields = "__all__"
+        exclude = [
+            "permissions"
+        ]
 
 
 class UserFullSerializer(serializers.ModelSerializer):
@@ -357,3 +360,92 @@ class UserAddressPutRequestSerializer(UserAddressSerializer):
 
 class MessageSerializer(serializers.Serializer):
     message = serializers.CharField(max_length=255)
+
+class UserFullResponseSchemaSerializer(serializers.ModelSerializer):
+    """
+    FOR SCHEMA, Serializer for users, all database fields
+    """
+
+    address_list = UserAddressSerializer(many=True, read_only=True)
+    groups = SubSerializerForGroupsSchema(many=True, read_only=True)
+
+    class Meta:
+        model = CustomUser
+        exclude = [
+            "password",
+            "is_admin",
+            "is_staff",
+            "is_superuser",
+            "user_permissions",
+        ]       
+        extra_kwargs = {"last_login": {"required": True},
+            "name": {"required": True},
+            "phone_number": {"required": True},
+            "is_active" : {"required": True},
+        }
+
+class UserUpdateReturnSchemaSerializer(serializers.ModelSerializer):
+    """
+    FOR SCHEMA, Serializer for users, for updating user information
+    """
+
+    class Meta:
+        model = CustomUser
+        fields = ["name", "phone_number"]
+        extra_kwargs = {"name": {"required": True},
+            "phone_number": {"required": True},
+        }
+
+class GroupPermissionsResponseSchemaSerializer(serializers.ModelSerializer):
+    """
+    FOR SCHEMA
+    """
+    class Meta:
+        model = CustomUser
+        fields = [
+            "groups",
+        ]
+        extra_kwargs = {"groups": {"required": True},
+        }
+
+class UserCreateReturnResponseSchemaSerializer(serializers.ModelSerializer):
+    """
+    FOR SCHEMA, Serializer for users, in specific format for user creation
+    """
+
+    first_name = serializers.CharField(max_length=100)
+    last_name = serializers.CharField(max_length=155)
+    phone_number = serializers.CharField(max_length=50)
+
+    message = serializers.CharField(max_length=255, required=True)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "first_name",
+            "last_name",
+            "email",
+            "phone_number",
+            "message",
+        ]
+
+class UsersLoginRefreshResponseSchemaSerializer(serializers.ModelSerializer):
+    """
+    FOR SCHEMA
+    Serializer for return data when logging in and refreshing.
+    pass message in context.
+    """
+
+    message = serializers.CharField(required=True, max_length=255)
+
+    groups = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )  # comes out in list
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "message",
+            "username",
+            "groups",
+        ]

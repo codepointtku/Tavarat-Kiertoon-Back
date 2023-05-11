@@ -343,3 +343,21 @@ class BikeAmountListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeAmount
         fields = "__all__"
+
+
+class BikeAmountSchemaCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeAmount
+        exclude = ["package"]
+
+
+class BikePackageCreateResponseSerializer(serializers.ModelSerializer):
+    bikes = BikeAmountSchemaCreateSerializer()
+
+    class Meta:
+        model = BikePackage
+        fields = [
+            "name",
+            "description",
+            "bikes",
+        ]

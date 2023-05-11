@@ -14,6 +14,7 @@ from bikes.serializers import (
     BikeAmountListSerializer,
     BikePackageSerializer,
     BikePackageSchemaResponseSerializer,
+    BikePackageCreateResponseSerializer,
     BikeRentalSerializer,
     BikeSerializer,
     BikeStockListSerializer,
@@ -271,6 +272,7 @@ class BikeAmountListView(generics.ListAPIView):
         responses=BikePackageSchemaResponseSerializer()
     ),
     post=extend_schema(
+        request=BikePackageCreateResponseSerializer(),
         responses=BikePackageSchemaResponseSerializer()
     ),
 )

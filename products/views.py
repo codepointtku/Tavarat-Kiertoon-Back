@@ -159,9 +159,9 @@ class ProductListView(generics.ListAPIView):
             serializers=[ProductCreateSerializer, ProductColorStringSerializer],
             resource_type_field_name="color",
         ),
-        responses=ProductListSerializer(),
+        responses=ProductStorageListSerializer(),
     ),
-    get=extend_schema(responses=ProductStorageListSerializer()),
+    get=extend_schema(responses=ProductListSerializer()),
 )
 class StorageProductListView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer

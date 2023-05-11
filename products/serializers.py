@@ -39,9 +39,10 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
+        read_only_fields = ["modified", "pictures"]
 
 
-class ProductUpdateResponseSerializer(ProductUpdateSerializer):
+class ProductUpdateResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
@@ -59,6 +60,8 @@ class ProductUpdateResponseSerializer(ProductUpdateSerializer):
             "storages": {"required": True},
             "color": {"required": True},
             "modified": {"required": True},
+            "pictures": {"required": True},
+            "pictures": {"required": True},
         }
 
 

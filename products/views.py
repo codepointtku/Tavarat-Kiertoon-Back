@@ -35,6 +35,7 @@ from .serializers import (
     ProductSerializer,
     ProductStorageListSerializer,
     ProductStorageTransferSerializer,
+    ProductUpdateResponseSerializer,
     ProductUpdateSerializer,
     StorageSerializer,
 )
@@ -237,7 +238,7 @@ class StorageProductListView(generics.ListCreateAPIView):
         responses=ProductListSerializer(),
     ),
     put=extend_schema(
-        request=ProductUpdateSerializer(), responses=ProductUpdateSerializer()
+        request=ProductUpdateSerializer(), responses=ProductUpdateResponseSerializer()
     ),
     patch=extend_schema(exclude=True),
 )

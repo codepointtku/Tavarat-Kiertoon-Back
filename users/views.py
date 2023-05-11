@@ -12,7 +12,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
-from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.mixins import ListModelMixin
@@ -32,21 +32,26 @@ from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
 from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSerializer,; UserNamesSerializer,
     GroupNameSerializer,
+    GroupPermissionsResponseSchemaSerializer,
     GroupPermissionsSerializer,
     MessageSerializer,
     UserAddressPostRequestSerializer,
     UserAddressPutRequestSerializer,
     UserAddressSerializer,
+    UserCreateReturnResponseSchemaSerializer,
     UserCreateReturnSerializer,
     UserCreateSerializer,
+    UserFullResponseSchemaSerializer,
     UserFullSerializer,
     UserLimitedSerializer,
     UserLoginPostSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
     UserPasswordSerializer,
+    UsersLoginRefreshResponseSchemaSerializer,
     UsersLoginRefreshResponseSerializer,
     UserTokenValidationSerializer,
+    UserUpdateReturnSchemaSerializer,
     UserUpdateSerializer,
 )
 
@@ -79,7 +84,7 @@ class UserCreateListView(APIView):
     # queryset = CustomUser.objects.all()
     serializer_class = UserCreateSerializer
 
-    @extend_schema(responses=UserCreateReturnSerializer)
+    @extend_schema(responses=UserCreateReturnResponseSchemaSerializer)
     def post(self, request, format=None):
         # if no username field comes in request = normal user and email will be copied to username
         # if username comes it means the user will be "joint_user" and user will use the transmitted username
@@ -142,6 +147,9 @@ class UserCreateListView(APIView):
             # create email verification for user creation
             if settings.DEBUG:
                 print("debug päällä, activating user without email")
+                activate_url_back = (
+                    "debug on, auto activated no need to viist activaion place"
+                )
                 user.is_active = True
                 user.save()
             else:
@@ -186,6 +194,7 @@ class UserCreateListView(APIView):
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(responses=MessageSerializer)
 class UserActivationView(APIView):
     """
     view for user activation. front passess the uid and token that gets validated and then user gets activated.
@@ -219,7 +228,7 @@ class UserLoginView(APIView):
     serializer_class = UserLoginPostSerializer
 
     @extend_schema(
-        responses=UsersLoginRefreshResponseSerializer,
+        responses=UsersLoginRefreshResponseSchemaSerializer,
     )
     def post(self, request, format=None):
         pw_data = self.serializer_class(data=request.data)
@@ -276,7 +285,7 @@ class UserTokenRefreshView(TokenViewBase):
 
     _serializer_class = api_settings.TOKEN_REFRESH_SERIALIZER
 
-    @extend_schema(request=None, responses=UsersLoginRefreshResponseSerializer)
+    @extend_schema(request=None, responses=UsersLoginRefreshResponseSchemaSerializer)
     def post(self, request, *args, **kwargs):
         # check that refresh cookie is found
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
@@ -404,6 +413,7 @@ class UserLogoutView(APIView):
         return response
 
 
+@extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserDetailsListView(generics.ListAPIView):
     """
     List all users with all database fields, no POST here
@@ -427,6 +437,7 @@ class UserDetailsListView(generics.ListAPIView):
     serializer_class = UserFullSerializer
 
 
+@extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserSingleGetView(APIView):
     """
     Get single user with all database fields, no POST here
@@ -461,6 +472,7 @@ class UserSingleGetView(APIView):
         return Response(serializer.data)
 
 
+@extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserLoggedInDetailView(APIView):
     """
     Get logged in users info
@@ -510,6 +522,8 @@ class GroupListView(generics.ListAPIView):
     serializer_class = GroupNameSerializer
 
 
+@extend_schema_view(patch=extend_schema(exclude=True))
+@extend_schema(responses=GroupPermissionsResponseSchemaSerializer)
 class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
     Update users permissions, should be only allowed to admins, on testing phase allowing fo users
@@ -534,6 +548,7 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = GroupPermissionsSerializer
 
 
+@extend_schema(responses=UserUpdateReturnSchemaSerializer)
 class UserUpdateInfoView(APIView):
     """
     Get logged in users information and update it.
@@ -572,6 +587,8 @@ class UserUpdateInfoView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@extend_schema_view(patch=extend_schema(exclude=True))
+@extend_schema(responses=UserUpdateReturnSchemaSerializer)
 class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     """
     Get specific users info for updating, field that can be updated
@@ -693,6 +710,7 @@ class UserAddressEditDeleteView(APIView):
             return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema_view(patch=extend_schema(exclude=True))
 class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
     """
     Get specific address by id and do update/destroy/ to it
@@ -818,6 +836,7 @@ class UserPasswordResetMailValidationView(APIView):
 
     # get is used in testing should not be needed in deployment, will be removed later
     @extend_schema(
+        exclude=True,
         responses=inline_serializer(
             name="test returns",
             fields={
@@ -825,7 +844,7 @@ class UserPasswordResetMailValidationView(APIView):
                 "uid": serializers.CharField(),
                 "token": serializers.CharField(),
             },
-        )
+        ),
     )
     def get(self, request, *args, **kwargs):
         if "uidb64" not in kwargs or "token" not in kwargs:

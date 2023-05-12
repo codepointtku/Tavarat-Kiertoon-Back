@@ -233,5 +233,5 @@ class OrderSelfListView(ListAPIView):
 
     def get_queryset(self):
         if self.request.user.is_anonymous:
-            return
+            return Order.objects.none()
         return Order.objects.filter(user=self.request.user)

@@ -17,6 +17,7 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
     PolymorphicProxySerializer,
+    OpenApiParameter,
 )
 
 from categories.models import Category
@@ -159,9 +160,10 @@ class ProductListView(generics.ListAPIView):
             serializers=[ProductCreateSerializer, ProductColorStringSerializer],
             resource_type_field_name="color",
         ),
-        responses=ProductStorageListSerializer(),
+        responses=ProductStorageListSerializer(many=True),
     ),
     get=extend_schema(responses=ProductListSerializer()),
+    @action(methods=["post"], detail=True, filter_backends=None, pagination_class=None)
 )
 class StorageProductListView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer

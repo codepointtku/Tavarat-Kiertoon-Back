@@ -24,6 +24,8 @@ from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
 from .models import Color, Picture, Product, Storage
+from orders.models import ShoppingCart
+from orders.serializers import ShoppingCartDetailSerializer
 from .serializers import (
     ColorSerializer,
     PictureSerializer,
@@ -35,6 +37,7 @@ from .serializers import (
     ProductCreateSerializer,
     ProductUpdateSerializer,
     StorageSerializer,
+    ShoppingCartAvailableAmountListSerializer,
 )
 
 
@@ -342,3 +345,35 @@ class ProductStorageTransferView(APIView):
         products.update(storages=storage)
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
+
+
+class ShoppingCartAvailableAmountList(APIView):
+    """View for last step of modifying products in shopping cart before ordering"""
+    authentication_classes = [
+    SessionAuthentication,
+    BasicAuthentication,
+    JWTAuthentication,
+    CustomJWTAuthentication,
+    ]
+    serializer_class = ShoppingCartAvailableAmountListSerializer(many=True)
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return Response("You must be logged in to see your shoppingcart")
+        try:
+            instance = ShoppingCart.objects.get(user=request.user)
+        except ObjectDoesNotExist:
+            return Response("Shopping cart for this user does not exist")
+        cartserializer = ShoppingCartDetailSerializer(instance)
+        group_ids = []
+        duplicate_checker = []
+        for product in cartserializer.data["products"]:
+            if product["group_id"] not in duplicate_checker:
+                group = product["group_id"]
+                amount = Product.objects.filter(group_id=product["group_id"], available=True).count()
+                pair = {"id": group, "amount": amount}
+                group_ids.append(pair)
+                duplicate_checker.append(group)
+        returnserializer = ShoppingCartAvailableAmountListSerializer(group_ids, many=True)
+        return Response(returnserializer.data)
+

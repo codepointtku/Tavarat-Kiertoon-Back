@@ -6,7 +6,7 @@ from .models import Color, Picture, Product, Storage
 class PictureSerializer(serializers.ModelSerializer):
     picture_address = serializers.SerializerMethodField()
 
-    def get_picture_address(self, obj):
+    def get_picture_address(self, obj) -> str:
         return obj.picture_address.name
 
     class Meta:
@@ -43,7 +43,8 @@ class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
-        extra_kwargs = {"available": {"required": True},
+        extra_kwargs = {
+            "available": {"required": True},
             "barcode": {"required": True},
             "group_id": {"required": True},
             "price": {"required": True},
@@ -67,7 +68,8 @@ class ProductStorageListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
-        extra_kwargs = {"available": {"required": True},
+        extra_kwargs = {
+            "available": {"required": True},
             "barcode": {"required": True},
             "group_id": {"required": True},
             "price": {"required": True},
@@ -90,12 +92,13 @@ class ProductColorStringSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
-        extra_kwargs = {"available": {"required": True},
+        extra_kwargs = {
+            "available": {"required": True},
             "barcode": {"required": True},
             "category": {"required": True},
             "storages": {"required": True},
             "color": {"required": True},
-        }   
+        }
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
@@ -106,7 +109,8 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
-        extra_kwargs = {"available": {"required": True},
+        extra_kwargs = {
+            "available": {"required": True},
             "barcode": {"required": True},
             "category": {"required": True},
             "storages": {"required": True},
@@ -117,7 +121,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 class ProductStorageTransferSerializer(serializers.Serializer):
     storage = serializers.IntegerField()
     products = serializers.ListField(child=serializers.IntegerField())
-        
+
 
 class ColorSerializer(serializers.ModelSerializer):
     class Meta:

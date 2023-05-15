@@ -1,4 +1,4 @@
-from drf_spectacular.utils import OpenApiExample, extend_schema
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,18 +12,16 @@ from .serializers import (
 
 
 # Create your views here.
+@extend_schema_view(
+    get=extend_schema(responses=CategoryResponseSerializer),
+    post=extend_schema(responses=CategoryResponseSerializer),
+)
 class CategoryListView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-    @extend_schema(responses=CategoryResponseSerializer)
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    @extend_schema(responses=CategoryResponseSerializer)
     def post(self, request, *args, **kwargs):
         instance = request.data
-
         try:
             parentcheck = Category.objects.get(id=instance["parent"])
             if parentcheck.level >= 2:
@@ -31,7 +29,7 @@ class CategoryListView(generics.ListCreateAPIView):
                     "Maximum category level(2) exceeded",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-        except:
+        except:  # What error this should catch? Maybe its good to specify that error.
             instance["parent"] == None
 
         serializer = CategorySerializer(data=instance)
@@ -41,21 +39,14 @@ class CategoryListView(generics.ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema_view(
+    get=extend_schema(responses=CategoryResponseSerializer),
+    put=extend_schema(responses=CategoryResponseSerializer),
+    patch=extend_schema(exclude=True),
+)
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-
-    @extend_schema(responses=CategoryResponseSerializer)
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    @extend_schema(responses=CategoryResponseSerializer)
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    @extend_schema(methods=["PATCH"], exclude=True)
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
 
 
 class CategoryTreeView(APIView):

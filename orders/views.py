@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.db.models import Q
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
@@ -54,15 +54,14 @@ def product_availibility_check(user_id):
     ]
 
 
+@extend_schema_view(
+    get=extend_schema(responses=ShoppingCartResponseSerializer),
+    post=extend_schema(responses=ShoppingCartResponseSerializer),
+)
 class ShoppingCartListView(ListCreateAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
 
-    @extend_schema(responses=ShoppingCartResponseSerializer)
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    @extend_schema(responses=ShoppingCartResponseSerializer)
     def post(self, request):
         serializer = ShoppingCartSerializer(data=request.data)
         if serializer.is_valid():
@@ -73,6 +72,10 @@ class ShoppingCartListView(ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema_view(
+    put=extend_schema(request=ShoppingCartDetailRequestSerializer),
+    patch=extend_schema(exclude=True),
+)
 class ShoppingCartDetailView(RetrieveUpdateAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartDetailSerializer
@@ -93,7 +96,6 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    @extend_schema(request=ShoppingCartDetailRequestSerializer)
     def put(self, request, *args, **kwargs):
         try:
             instance = ShoppingCart.objects.get(user=request.user)
@@ -130,10 +132,6 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)
         return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
-    @extend_schema(methods=["PATCH"], exclude=True)
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
-
 
 class OrderListPagination(PageNumberPagination):
     page_size = 50
@@ -156,6 +154,12 @@ class OrderFilter(filters.FilterSet):
         return queryset.filter(Q(status__iexact=value))
 
 
+@extend_schema_view(
+    get=extend_schema(responses=OrderResponseSerializer),
+    post=extend_schema(
+        request=OrderRequestSerializer, responses=OrderResponseSerializer
+    ),
+)
 class OrderListView(ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
@@ -165,11 +169,6 @@ class OrderListView(ListCreateAPIView):
     ordering = ["-id"]
     filterset_class = OrderFilter
 
-    @extend_schema(responses=OrderResponseSerializer)
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    @extend_schema(request=OrderRequestSerializer, responses=OrderResponseSerializer)
     def post(self, request, *args, **kwargs):
         user_id = request.data["user"]
         available_products_ids = product_availibility_check(user_id)
@@ -193,17 +192,17 @@ class OrderListView(ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema_view(
+    get=extend_schema(responses=OrderDetailResponseSerializer),
+    put=extend_schema(
+        request=OrderDetailRequestSerializer, responses=OrderDetailResponseSerializer
+    ),
+    patch=extend_schema(exclude=True),
+)
 class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
 
-    @extend_schema(responses=OrderDetailResponseSerializer)
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    @extend_schema(
-        request=OrderDetailRequestSerializer, responses=OrderDetailResponseSerializer
-    )
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
@@ -219,11 +218,8 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
             instance._prefetched_objects_cache = {}
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
-    @extend_schema(methods=["PATCH"], exclude=True)
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
 
-
+@extend_schema_view(get=extend_schema(responses=OrderDetailResponseSerializer))
 class OrderSelfListView(ListAPIView):
     """View for returning logged in users own orders"""
 
@@ -237,9 +233,5 @@ class OrderSelfListView(ListAPIView):
 
     def get_queryset(self):
         if self.request.user.is_anonymous:
-            return
+            return Order.objects.none()
         return Order.objects.filter(user=self.request.user)
-
-    @extend_schema(responses=OrderDetailResponseSerializer)
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)

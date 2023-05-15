@@ -35,23 +35,7 @@ from .serializers import (
     ShoppingCartSerializer,
 )
 
-
 # Create your views here.
-def product_availibility_check(user_id):
-    shopping_cart = ShoppingCart.objects.get(user_id=user_id)
-    product_list = shopping_cart.products.all()
-    product_ids = [product.id for product in product_list]
-
-    def available_product(product: object):
-        for same_product in Product.objects.filter(group_id=product.group_id):
-            if same_product.available and same_product.id not in product_ids:
-                product_ids.append(same_product.id)
-                return same_product.id
-
-    return [
-        product.id if product.available else available_product(product)
-        for product in product_list
-    ]
 
 
 @extend_schema_view(
@@ -114,17 +98,17 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         removable_itemset = instance.products.filter(group_id=cartproduct.group_id)
         amount = request.data["amount"]
 
-        #comparing amount to number of products already in shoppingcart, proceeding accordingly
+        # comparing amount to number of products already in shoppingcart, proceeding accordingly
         if len(removable_itemset) < amount:
             amount -= len(removable_itemset)
             if len(available_itemset) < amount:
                 amount = len(available_itemset)
             for i in range(amount):
                 instance.products.add(available_itemset[i])
-        
+
         else:
             amount -= len(removable_itemset)
-            amount *= -1       
+            amount *= -1
             for i in range(amount):
                 instance.products.remove(removable_itemset[i])
 

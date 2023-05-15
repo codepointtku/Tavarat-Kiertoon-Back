@@ -31,7 +31,8 @@ from .serializers import (
     PictureSerializer,
     ProductColorStringSerializer,
     ProductCreateSerializer,
-    ProductItemSerializer,
+    ProductItemsSerializer,
+    ProductItemUpdateSerializer,
     ProductListSerializer,
     ProductSerializer,
     ProductStorageListSerializer,
@@ -274,13 +275,22 @@ class ProductFilter(filters.FilterSet):
 #         return Response(data)
 
 
+class ProductItemsListView(generics.ListCreateAPIView):
+    """
+    Lists all Product items
+    """
+
+    queryset = ProductItem.objects.all()
+    serializer_class = ProductItemsSerializer
+
+
 class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     View for modifying single Product item
     """
 
     queryset = ProductItem.objects.all()
-    serializer_class = ProductItemSerializer
+    serializer_class = ProductItemUpdateSerializer
 
 
 class ColorListView(generics.ListCreateAPIView):

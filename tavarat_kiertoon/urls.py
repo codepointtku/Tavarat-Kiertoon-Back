@@ -51,6 +51,7 @@ from products.views import (
     StorageDetailView,
     StorageListView,
     StorageProductListView,
+    ShoppingCartAvailableAmountList,
 )
 from users.views import (  # GroupNameView,; GroupPermissionCheckView,; UserAddressListView,; UserDetailLimitedView,; UserDetailsListLimitedView,
     GroupListView,
@@ -84,6 +85,7 @@ urlpatterns = [
     path("colors/<int:pk>/", ColorDetailView.as_view()),
     path("shopping_carts/", ShoppingCartListView.as_view()),
     path("shopping_cart/", ShoppingCartDetailView.as_view()),
+    path("shopping_cart/available_amount/", ShoppingCartAvailableAmountList.as_view()),
     path("orders/", OrderListView.as_view()),
     path("orders/<int:pk>/", OrderDetailView.as_view()),
     path("orders/user/", OrderSelfListView.as_view()),

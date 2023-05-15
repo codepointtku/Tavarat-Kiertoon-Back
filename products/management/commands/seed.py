@@ -60,6 +60,7 @@ def clear_data():
     Picture.objects.all().delete()
     Storage.objects.all().delete()
     Product.objects.all().delete()
+    ProductItem.objects.all().delete()
     CustomUser.objects.all().delete()
     UserAddress.objects.all().delete()
     Bike.objects.all().delete()
@@ -311,7 +312,7 @@ def create_picture():
     picture_object.save()
 
 
-def create_products():
+def create_products_and_product_items():
     """Creates product objects from the list."""
     products = [
         {
@@ -714,9 +715,6 @@ def create_products():
                 storage=storage,
                 barcode=barcode,
             )
-            # same_products.append(copy(product_object))
-            # same_products[-1].available = random.choice(true_false)
-        # Product.objects.bulk_create(same_products)
     queryset = Product.objects.all()
     pictures = Picture.objects.all()
     for query in queryset:
@@ -965,7 +963,7 @@ def run_seed(self, mode):
     create_users()
     for _ in range(6):
         create_picture()
-    create_products()
+    create_products_and_product_items()
     create_shopping_carts()
     create_orders()
     create_bulletins()

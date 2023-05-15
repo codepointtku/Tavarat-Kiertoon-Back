@@ -25,7 +25,25 @@ class BikeRentalSchemaPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BikeRental
+        exclude = ["state", "user"]
+
+
+class BikeRentalSchemaResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeRental
         fields = "__all__"
+        extra_kwargs = {"id": {"required": True},
+                    "start_date": {"required": True},
+                    "end_date": {"required": True},
+                    "state": {"required": True},
+                    "delivery_address": {"required": True},
+                    "pickup": {"required": True},
+                    "contact_name": {"required": True},
+                    "contact_phone_number": {"required": True},
+                    "extra_info": {"required": True},
+                    "user": {"required": True},
+                    "bike_stock": {"required": True},
+                }
 
 
 class BikeStockSerializer(serializers.ModelSerializer):
@@ -141,6 +159,31 @@ class BikePackageSerializer(serializers.ModelSerializer):
         return instance
 
 
+class BikeAmountSchemaResponseSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField
+
+    class Meta:
+        model = BikeAmount
+        exclude = ["package"]
+        extra_kwargs = {"id": {"required": True},
+                    "amount": {"required": True},
+                    "bike": {"required": True},
+        }
+
+
+class BikePackageSchemaResponseSerializer(serializers.ModelSerializer):
+    bikes = BikeAmountSchemaResponseSerializer(many=True)
+
+    class Meta:
+        model = BikePackage
+        fields = [
+            "id",
+            "name",
+            "description",
+            "bikes",
+        ]
+
+
 class BikeTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeType
@@ -175,7 +218,15 @@ class BikeStockListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BikeStock
-        fields = "__all__"
+        fields =  "__all__"
+        extra_kwargs = {"bike": {"required": True},
+                    "package_only": {"required": True},
+                    "number": {"required": True},
+                    "frame_number": {"required": True},
+                    "created_at": {"required": True},
+                    "state": {"required": True},
+                    "storage": {"required": True},
+        }
 
 
 class BikeStockCreateSerializer(serializers.ModelSerializer):
@@ -191,6 +242,28 @@ class BikeStockDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeStock
         fields = "__all__"
+        extra_kwargs = {"bike": {"required": True},
+                    "package_only": {"required": True},
+                    "number": {"required": True},
+                    "frame_number": {"required": True},
+                    "created_at": {"required": True},
+                    "state": {"required": True},
+                    "storage": {"required": True},
+        }
+
+
+class BikeStockSchemaCreateUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeStock
+        fields = "__all__"
+        extra_kwargs = {"bike": {"required": True},
+                    "package_only": {"required": True},
+                    "number": {"required": True},
+                    "frame_number": {"required": True},
+                    "created_at": {"required": True},
+                    "state": {"required": True},
+                    "storage": {"required": True},
+        }
 
 
 class BikeModelSerializer(serializers.ModelSerializer):
@@ -208,6 +281,19 @@ class BikeModelCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bike
         fields = "__all__"
+
+
+class BikeModelSchemaResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bike
+        fields = "__all__"
+        extra_kwargs = {"name": {"required": True},
+                    "description": {"required": True},
+                    "type": {"required": True},
+                    "brand": {"required": True},
+                    "size": {"required": True},
+                    "color": {"required": True},
+                }
 
 
 class MainBikeSchemaDateSerializer(serializers.Serializer):
@@ -257,3 +343,21 @@ class BikeAmountListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeAmount
         fields = "__all__"
+
+
+class BikeAmountSchemaCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeAmount
+        exclude = ["package"]
+
+
+class BikePackageCreateResponseSerializer(serializers.ModelSerializer):
+    bikes = BikeAmountSchemaCreateSerializer(many=True)
+
+    class Meta:
+        model = BikePackage
+        fields = [
+            "name",
+            "description",
+            "bikes",
+        ]

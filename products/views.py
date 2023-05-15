@@ -20,12 +20,12 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from categories.models import Category
+from orders.models import ShoppingCart
+from orders.serializers import ShoppingCartDetailSerializer
 from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
 from .models import Color, Picture, Product, Storage
-from orders.models import ShoppingCart
-from orders.serializers import ShoppingCartDetailSerializer
 from .serializers import (
     ColorSerializer,
     PictureSerializer,
@@ -36,8 +36,8 @@ from .serializers import (
     ProductStorageListSerializer,
     ProductStorageTransferSerializer,
     ProductUpdateSerializer,
-    StorageSerializer,
     ShoppingCartAvailableAmountListSerializer,
+    StorageSerializer,
 )
 
 
@@ -109,168 +109,168 @@ class ProductFilter(filters.FilterSet):
         return or_queryset
 
 
-@extend_schema_view(get=extend_schema(responses=ProductListSerializer))
-class ProductListView(generics.ListAPIView):
-    queryset = Product.objects.filter(available=True)
-    serializer_class = ProductSerializer
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-    pagination_class = ProductListPagination
-    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
-    search_fields = ["name", "free_description"]
-    ordering_fields = ["modified_date", "id"]
-    ordering = ["-modified_date", "-id"]
-    filterset_class = ProductFilter
+# @extend_schema_view(get=extend_schema(responses=ProductListSerializer))
+# class ProductListView(generics.ListAPIView):
+#     queryset = Product.objects.filter(available=True)
+#     serializer_class = ProductSerializer
+#     authentication_classes = [
+#         SessionAuthentication,
+#         BasicAuthentication,
+#         JWTAuthentication,
+#         CustomJWTAuthentication,
+#     ]
+#     pagination_class = ProductListPagination
+#     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+#     search_fields = ["name", "free_description"]
+#     ordering_fields = ["modified_date", "id"]
+#     ordering = ["-modified_date", "-id"]
+#     filterset_class = ProductFilter
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        unique_groupids = (
-            queryset.values("id")
-            .order_by("group_id", "-modified_date")
-            .distinct("group_id")
-        )
-        grouped_queryset = queryset.filter(id__in=unique_groupids)
-        amounts = (
-            queryset.values("group_id")
-            .order_by("group_id")
-            .annotate(amount=Count("group_id"))
-        )
-        page = self.paginate_queryset(grouped_queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            for product in serializer.data:
-                product["amount"] = amounts.filter(group_id=product["group_id"])[0][
-                    "amount"
-                ]
-            response = self.get_paginated_response(serializer.data)
-            if queryset._hints:
-                response.data["filter"] = queryset._hints["filter"]
-            return Response(response.data)
-        serializer = self.get_serializer(grouped_queryset, many=True)
-        return Response(serializer.data)
-
-
-@extend_schema_view(
-    post=extend_schema(
-        request=PolymorphicProxySerializer(
-            component_name="ProductCreation",
-            serializers=[ProductCreateSerializer, ProductColorStringSerializer],
-            resource_type_field_name="color",
-        ),
-        responses=ProductListSerializer(),
-    ),
-    get=extend_schema(responses=ProductStorageListSerializer()),
-)
-class StorageProductListView(generics.ListCreateAPIView):
-    serializer_class = ProductSerializer
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-    pagination_class = ProductListPagination
-    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
-    search_fields = ["name", "free_description"]
-    ordering_fields = ["modified_date", "id"]
-    ordering = ["-modified_date", "-id"]
-    filterset_class = ProductFilter
-
-    def get_queryset(self):
-        queryset = Product.objects.all()
-        all_products = self.request.query_params.get("all")
-        if not is_in_group(self.request.user, "storage_group") or all_products is None:
-            queryset = queryset.filter(available=True)
-        return queryset
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-    def create(self, request, *args, **kwargs):
-        request_data = request.data
-        productinstance = color_check_create(request_data)
-        try:
-            productinstance["group_id"] = Product.objects.latest("id").id + 1
-        except ObjectDoesNotExist:
-            productinstance["group_id"] = 1
-        modified_request = [productinstance] * int(request.data["amount"])
-        serializer = ProductSerializer(data=modified_request, many=True)
-        serializer.is_valid(raise_exception=True)
-        products = serializer.save()
-        picture_ids = []
-        for file in request.FILES.getlist("pictures[]"):
-            ext = file.content_type.split("/")[1]
-            pic_serializer = PictureSerializer(
-                data={
-                    "picture_address": ContentFile(
-                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
-                    )
-                }
-            )
-            pic_serializer.is_valid(raise_exception=True)
-            self.perform_create(pic_serializer)
-            picture_ids.append(pic_serializer.data["id"])
-
-        for product in products:
-            for picture_id in picture_ids:
-                product.pictures.add(picture_id)
-
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
+#     def list(self, request, *args, **kwargs):
+#         queryset = self.filter_queryset(self.get_queryset())
+#         unique_groupids = (
+#             queryset.values("id")
+#             .order_by("group_id", "-modified_date")
+#             .distinct("group_id")
+#         )
+#         grouped_queryset = queryset.filter(id__in=unique_groupids)
+#         amounts = (
+#             queryset.values("group_id")
+#             .order_by("group_id")
+#             .annotate(amount=Count("group_id"))
+#         )
+#         page = self.paginate_queryset(grouped_queryset)
+#         if page is not None:
+#             serializer = self.get_serializer(page, many=True)
+#             for product in serializer.data:
+#                 product["amount"] = amounts.filter(group_id=product["group_id"])[0][
+#                     "amount"
+#                 ]
+#             response = self.get_paginated_response(serializer.data)
+#             if queryset._hints:
+#                 response.data["filter"] = queryset._hints["filter"]
+#             return Response(response.data)
+#         serializer = self.get_serializer(grouped_queryset, many=True)
+#         return Response(serializer.data)
 
 
-@extend_schema_view(
-    get=extend_schema(
-        responses=ProductListSerializer(),
-    ),
-    put=extend_schema(
-        request=ProductUpdateSerializer(), responses=ProductUpdateSerializer()
-    ),
-    patch=extend_schema(exclude=True),
-)
-class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+# @extend_schema_view(
+#     post=extend_schema(
+#         request=PolymorphicProxySerializer(
+#             component_name="ProductCreation",
+#             serializers=[ProductCreateSerializer, ProductColorStringSerializer],
+#             resource_type_field_name="color",
+#         ),
+#         responses=ProductListSerializer(),
+#     ),
+#     get=extend_schema(responses=ProductStorageListSerializer()),
+# )
+# class StorageProductListView(generics.ListCreateAPIView):
+#     serializer_class = ProductSerializer
+#     authentication_classes = [
+#         SessionAuthentication,
+#         BasicAuthentication,
+#         JWTAuthentication,
+#         CustomJWTAuthentication,
+#     ]
+#     pagination_class = ProductListPagination
+#     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+#     search_fields = ["name", "free_description"]
+#     ordering_fields = ["modified_date", "id"]
+#     ordering = ["-modified_date", "-id"]
+#     filterset_class = ProductFilter
 
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop("partial", False)
-        instance = self.get_object()
-        serializer = ProductUpdateSerializer(
-            instance, data=request.data, partial=partial
-        )
-        serializer.is_valid(raise_exception=True)
-        if "modify_date" in request.data:
-            serializer.save(modified_date=timezone.now())
-        else:
-            serializer.save()
-        data = serializer.data
+#     def get_queryset(self):
+#         queryset = Product.objects.all()
+#         all_products = self.request.query_params.get("all")
+#         if not is_in_group(self.request.user, "storage_group") or all_products is None:
+#             queryset = queryset.filter(available=True)
+#         return queryset
 
-        if getattr(instance, "_prefetched_objects_cache", None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
-            # forcibly invalidate the prefetch cache on the instance.
-            instance._prefetched_objects_cache = {}
+#     def list(self, request, *args, **kwargs):
+#         queryset = self.filter_queryset(self.get_queryset())
+#         page = self.paginate_queryset(queryset)
+#         if page is not None:
+#             serializer = self.get_serializer(page, many=True)
+#             return self.get_paginated_response(serializer.data)
+#         serializer = self.get_serializer(queryset, many=True)
+#         return Response(serializer.data)
 
-        return Response(data)
+#     def create(self, request, *args, **kwargs):
+#         request_data = request.data
+#         productinstance = color_check_create(request_data)
+#         try:
+#             productinstance["group_id"] = Product.objects.latest("id").id + 1
+#         except ObjectDoesNotExist:
+#             productinstance["group_id"] = 1
+#         modified_request = [productinstance] * int(request.data["amount"])
+#         serializer = ProductSerializer(data=modified_request, many=True)
+#         serializer.is_valid(raise_exception=True)
+#         products = serializer.save()
+#         picture_ids = []
+#         for file in request.FILES.getlist("pictures[]"):
+#             ext = file.content_type.split("/")[1]
+#             pic_serializer = PictureSerializer(
+#                 data={
+#                     "picture_address": ContentFile(
+#                         file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+#                     )
+#                 }
+#             )
+#             pic_serializer.is_valid(raise_exception=True)
+#             self.perform_create(pic_serializer)
+#             picture_ids.append(pic_serializer.data["id"])
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        data = serializer.data
-        amount = self.queryset.filter(group_id=data["group_id"], available=True).count()
-        data["amount"] = amount
-        return Response(data)
+#         for product in products:
+#             for picture_id in picture_ids:
+#                 product.pictures.add(picture_id)
+
+#         headers = self.get_success_headers(serializer.data)
+#         return Response(
+#             serializer.data, status=status.HTTP_201_CREATED, headers=headers
+#         )
+
+
+# @extend_schema_view(
+#     get=extend_schema(
+#         responses=ProductListSerializer(),
+#     ),
+#     put=extend_schema(
+#         request=ProductUpdateSerializer(), responses=ProductUpdateSerializer()
+#     ),
+#     patch=extend_schema(exclude=True),
+# )
+# class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Product.objects.all()
+#     serializer_class = ProductSerializer
+
+#     def update(self, request, *args, **kwargs):
+#         partial = kwargs.pop("partial", False)
+#         instance = self.get_object()
+#         serializer = ProductUpdateSerializer(
+#             instance, data=request.data, partial=partial
+#         )
+#         serializer.is_valid(raise_exception=True)
+#         if "modify_date" in request.data:
+#             serializer.save(modified_date=timezone.now())
+#         else:
+#             serializer.save()
+#         data = serializer.data
+
+#         if getattr(instance, "_prefetched_objects_cache", None):
+#             # If 'prefetch_related' has been applied to a queryset, we need to
+#             # forcibly invalidate the prefetch cache on the instance.
+#             instance._prefetched_objects_cache = {}
+
+#         return Response(data)
+
+#     def retrieve(self, request, *args, **kwargs):
+#         instance = self.get_object()
+#         serializer = self.get_serializer(instance)
+#         data = serializer.data
+#         amount = self.queryset.filter(group_id=data["group_id"], available=True).count()
+#         data["amount"] = amount
+#         return Response(data)
 
 
 class ColorListView(generics.ListCreateAPIView):
@@ -338,11 +338,12 @@ class ProductStorageTransferView(APIView):
 
 class ShoppingCartAvailableAmountList(APIView):
     """View for last step of modifying products in shopping cart before ordering"""
+
     authentication_classes = [
-    SessionAuthentication,
-    BasicAuthentication,
-    JWTAuthentication,
-    CustomJWTAuthentication,
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     serializer_class = ShoppingCartAvailableAmountListSerializer(many=True)
 
@@ -359,10 +360,13 @@ class ShoppingCartAvailableAmountList(APIView):
         for product in cartserializer.data["products"]:
             if product["group_id"] not in duplicate_checker:
                 group = product["group_id"]
-                amount = Product.objects.filter(group_id=product["group_id"], available=True).count()
+                amount = Product.objects.filter(
+                    group_id=product["group_id"], available=True
+                ).count()
                 pair = {"id": group, "amount": amount}
                 group_ids.append(pair)
                 duplicate_checker.append(group)
-        returnserializer = ShoppingCartAvailableAmountListSerializer(group_ids, many=True)
+        returnserializer = ShoppingCartAvailableAmountListSerializer(
+            group_ids, many=True
+        )
         return Response(returnserializer.data)
-

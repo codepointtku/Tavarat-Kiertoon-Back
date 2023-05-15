@@ -275,13 +275,30 @@ class ProductFilter(filters.FilterSet):
 #         return Response(data)
 
 
-class ProductItemsListView(generics.ListCreateAPIView):
+class ProductItemListPagination(PageNumberPagination):
+    page_size = 30
+    page_size_query_param = "page_size"
+
+
+class ProductItemListFilter(filters.FilterSet):
+    product = filters.ModelMultipleChoiceFilter(queryset=Product.objects.all())
+    storage = filters.ModelMultipleChoiceFilter(queryset=Storage.objects.all())
+    available = filters.BooleanFilter()
+    shelf_id = filters.AllValuesFilter()
+
+
+class ProductItemsListView(generics.ListAPIView):
     """
     Lists all Product items
     """
 
     queryset = ProductItem.objects.all()
     serializer_class = ProductItemsSerializer
+    pagination_class = ProductListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["modified_date", "id", "available", "product", "storage"]
+    ordering = ["-modified_date", "-id"]
+    filterset_class = ProductItemListFilter
 
 
 class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):

@@ -25,7 +25,7 @@ from orders.serializers import ShoppingCartDetailSerializer
 from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
-from .models import Color, Picture, Product, Storage
+from .models import Color, Picture, Product, ProductItem, Storage
 from .serializers import (
     ColorSerializer,
     PictureSerializer,
@@ -111,48 +111,75 @@ class ProductFilter(filters.FilterSet):
 
 
 # @extend_schema_view(get=extend_schema(responses=ProductListSerializer))
-# class ProductListView(generics.ListAPIView):
-#     queryset = Product.objects.filter(available=True)
-#     serializer_class = ProductSerializer
-#     authentication_classes = [
-#         SessionAuthentication,
-#         BasicAuthentication,
-#         JWTAuthentication,
-#         CustomJWTAuthentication,
-#     ]
-#     pagination_class = ProductListPagination
-#     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
-#     search_fields = ["name", "free_description"]
-#     ordering_fields = ["modified_date", "id"]
-#     ordering = ["-modified_date", "-id"]
-#     filterset_class = ProductFilter
+class ProductListView(generics.ListCreateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    pagination_class = ProductListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    search_fields = ["name", "free_description"]
+    ordering_fields = ["id"]
+    ordering = ["-id"]
+    filterset_class = ProductFilter
 
-#     def list(self, request, *args, **kwargs):
-#         queryset = self.filter_queryset(self.get_queryset())
-#         unique_groupids = (
-#             queryset.values("id")
-#             .order_by("group_id", "-modified_date")
-#             .distinct("group_id")
-#         )
-#         grouped_queryset = queryset.filter(id__in=unique_groupids)
-#         amounts = (
-#             queryset.values("group_id")
-#             .order_by("group_id")
-#             .annotate(amount=Count("group_id"))
-#         )
-#         page = self.paginate_queryset(grouped_queryset)
-#         if page is not None:
-#             serializer = self.get_serializer(page, many=True)
-#             for product in serializer.data:
-#                 product["amount"] = amounts.filter(group_id=product["group_id"])[0][
-#                     "amount"
-#                 ]
-#             response = self.get_paginated_response(serializer.data)
-#             if queryset._hints:
-#                 response.data["filter"] = queryset._hints["filter"]
-#             return Response(response.data)
-#         serializer = self.get_serializer(grouped_queryset, many=True)
-#         return Response(serializer.data)
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            if queryset._hints:
+                response.data["filter"] = queryset._hints["filter"]
+            return Response(response.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    def create(self, request, *args, **kwargs):
+        request_data = request.data
+        productinstance = color_check_create(request_data)
+        serializer = ProductCreateSerializer(data=productinstance)
+        serializer.is_valid(raise_exception=True)
+
+        product_item = serializer.data.pop("product_item")
+        amount = serializer.data.pop("amount")
+        print(serializer.data)
+        product = Product.objects.create(**serializer.data)
+
+        for i in range(amount):
+            ProductItem.objects.create(product=product, **product_item)
+        return product
+
+        modified_request = [product_item] * amount
+        serializer = ProductSerializer(data=modified_request, many=True)
+        serializer.is_valid(raise_exception=True)
+        products = serializer.save()
+        picture_ids = []
+        for file in request.FILES.getlist("pictures[]"):
+            ext = file.content_type.split("/")[1]
+            pic_serializer = PictureSerializer(
+                data={
+                    "picture_address": ContentFile(
+                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                    )
+                }
+            )
+            pic_serializer.is_valid(raise_exception=True)
+            self.perform_create(pic_serializer)
+            picture_ids.append(pic_serializer.data["id"])
+
+        for product in products:
+            for picture_id in picture_ids:
+                product.pictures.add(picture_id)
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 
 # @extend_schema_view(

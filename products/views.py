@@ -110,7 +110,7 @@ class ProductFilter(filters.FilterSet):
         return or_queryset
 
 
-# @extend_schema_view(get=extend_schema(responses=ProductListSerializer))
+@extend_schema_view(post=extend_schema(request=ProductCreateSerializer))
 class ProductListView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -139,20 +139,25 @@ class ProductListView(generics.ListCreateAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    def create(self, request, *args, **kwargs):
-        request_data = request.data
-        productinstance = color_check_create(request_data)
-        serializer = ProductCreateSerializer(data=productinstance)
+    def post(self, request, *args, **kwargs):
+        serializer = ProductCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_201_CREATED)
+    # def create(self, request, *args, **kwargs):
+    #     request_data = request.data
+    #     productinstance = color_check_create(request_data)
+    #     serializer = ProductCreateSerializer(data=productinstance)
+    #     serializer.is_valid(raise_exception=True)
 
-        product_item = serializer.data.pop("product_item")
-        amount = serializer.data.pop("amount")
-        print(serializer.data)
-        product = Product.objects.create(**serializer.data)
+    #     product_item = serializer.data.pop("product_item")
+    #     amount = serializer.data.pop("amount")
+    #     print(serializer.data)
+    #     product = Product.objects.create(**serializer.data)
 
-        for i in range(amount):
-            ProductItem.objects.create(product=product, **product_item)
-        return product
+    #     for i in range(amount):
+    #         ProductItem.objects.create(product=product, **product_item)
+    #     return product
 
         modified_request = [product_item] * amount
         serializer = ProductSerializer(data=modified_request, many=True)

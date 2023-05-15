@@ -35,6 +35,16 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
+    
+    def create(self, validated_data):
+        product_item = validated_data.pop("product_item")
+        amount = validated_data.pop("amount")
+
+        product = Product.objects.create(**validated_data)
+
+        for i in range(amount):
+            ProductItem.objects.create(product=product, **product_item)
+        return product
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):

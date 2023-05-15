@@ -352,7 +352,7 @@ class BikeAmountSchemaCreateSerializer(serializers.ModelSerializer):
 
 
 class BikePackageCreateResponseSerializer(serializers.ModelSerializer):
-    bikes = BikeAmountSchemaCreateSerializer()
+    bikes = BikeAmountSchemaCreateSerializer(many=True)
 
     class Meta:
         model = BikePackage

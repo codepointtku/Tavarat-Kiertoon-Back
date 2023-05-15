@@ -152,17 +152,22 @@ class OrderListView(ListCreateAPIView):
     ordering_fields = ["id"]
     ordering = ["-id"]
     filterset_class = OrderFilter
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
 
     def post(self, request, *args, **kwargs):
-        user_id = request.data["user"]
-        available_products_ids = product_availibility_check(user_id)
+        user = request.user
         serializer = OrderSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             order = Order.objects.get(id=serializer.data["id"])
-            for product_id in available_products_ids:
-                order.products.add(product_id)
-            updated_serializer = OrderSerializer(order).data
+            shopping_cart = ShoppingCart.objects.get(user=user.id)
+            for product in shopping_cart.products.all():
+                order.products.add(product)
             subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (
                 "Hei!\n"
@@ -170,9 +175,8 @@ class OrderListView(ListCreateAPIView):
                 f"Tilausnumeronne on {order.id}.\n\n"
                 "Terveisin Tavarat kieroon väki!"
             )
-            user = CustomUser.objects.get(id=user_id)
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
-            return Response(updated_serializer, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

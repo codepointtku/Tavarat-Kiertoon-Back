@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Color, Picture, Product, Storage
+from .models import Color, Picture, Product, ProductItem, Storage
 
 
 class PictureSerializer(serializers.ModelSerializer):
@@ -138,3 +138,9 @@ class StorageSerializer(serializers.ModelSerializer):
 class ShoppingCartAvailableAmountListSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     amount = serializers.IntegerField()
+
+
+class ProductItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductItem
+        fields = "__all__"

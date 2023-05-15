@@ -31,6 +31,7 @@ from .serializers import (
     PictureSerializer,
     ProductColorStringSerializer,
     ProductCreateSerializer,
+    ProductItemSerializer,
     ProductListSerializer,
     ProductSerializer,
     ProductStorageListSerializer,

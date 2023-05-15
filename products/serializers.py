@@ -133,3 +133,8 @@ class StorageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Storage
         fields = "__all__"
+
+
+class ShoppingCartAvailableAmountListSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    amount = serializers.IntegerField()

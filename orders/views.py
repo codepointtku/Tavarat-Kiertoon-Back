@@ -101,8 +101,8 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
             instance = ShoppingCart.objects.get(user=request.user)
         except ObjectDoesNotExist:
             return Response("Shopping cart for this user does not exist")
-        # if amount is 0, clear users ShoppingCart
-        if request.data["amount"] == 0:
+        # if amount is -1, clear users ShoppingCart
+        if request.data["amount"] == -1:
             instance.products.clear()
             updatedinstance = ShoppingCart.objects.get(user=request.user)
             detailserializer = ShoppingCartDetailSerializer(updatedinstance)
@@ -114,17 +114,17 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         removable_itemset = instance.products.filter(group_id=cartproduct.group_id)
         amount = request.data["amount"]
 
-        # front sends either a negative or a positive amount
-        if amount > 0:
+        #comparing amount to number of products already in shoppingcart, proceeding accordingly
+        if len(removable_itemset) < amount:
+            amount -= len(removable_itemset)
             if len(available_itemset) < amount:
                 amount = len(available_itemset)
             for i in range(amount):
                 instance.products.add(available_itemset[i])
+        
         else:
-            # if amount is negative, conversion to positive for iterating over removable_itemset
-            amount *= -1
-            if amount > len(removable_itemset):
-                amount = len(removable_itemset)
+            amount -= len(removable_itemset)
+            amount *= -1       
             for i in range(amount):
                 instance.products.remove(removable_itemset[i])
 

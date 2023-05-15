@@ -161,3 +161,6 @@ class ProductItemUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductItem
         fields = "__all__"
+        extra_kwargs = {
+            "modified_date": {"read_only": True},
+        }

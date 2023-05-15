@@ -309,6 +309,31 @@ class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ProductItem.objects.all()
     serializer_class = ProductItemUpdateSerializer
 
+    def update(self, request, *args, **kwargs):
+        """
+        as modified date is read only and needs to be updated in only very specific situations.
+        copypasted the functions from librarys. (mixins.UpdateModelMixin)
+        when the "modify_date" value field is found in request body, only then the modified date is updated.
+        """
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = ProductItemUpdateSerializer(
+            instance, data=request.data, partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        if "modify_date" in request.data:
+            serializer.save(modified_date=timezone.now())
+        else:
+            serializer.save()
+        data = serializer.data
+
+        if getattr(instance, "_prefetched_objects_cache", None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(data)
+
 
 class ColorListView(generics.ListCreateAPIView):
     queryset = Color.objects.all()

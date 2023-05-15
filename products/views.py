@@ -28,6 +28,7 @@ from users.views import CustomJWTAuthentication
 from .models import Color, Picture, Product, ProductItem, Storage
 from .serializers import (
     ColorSerializer,
+    PictureCreateSerializer,
     PictureSerializer,
     ProductColorStringSerializer,
     ProductCreateSerializer,
@@ -138,26 +139,26 @@ class ProductListView(generics.ListCreateAPIView):
             return Response(response.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
+
     def post(self, request, *args, **kwargs):
         serializer = ProductCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_201_CREATED)
-    # def create(self, request, *args, **kwargs):
-    #     request_data = request.data
-    #     productinstance = color_check_create(request_data)
-    #     serializer = ProductCreateSerializer(data=productinstance)
-    #     serializer.is_valid(raise_exception=True)
+        # def create(self, request, *args, **kwargs):
+        #     request_data = request.data
+        #     productinstance = color_check_create(request_data)
+        #     serializer = ProductCreateSerializer(data=productinstance)
+        #     serializer.is_valid(raise_exception=True)
 
-    #     product_item = serializer.data.pop("product_item")
-    #     amount = serializer.data.pop("amount")
-    #     print(serializer.data)
-    #     product = Product.objects.create(**serializer.data)
+        #     product_item = serializer.data.pop("product_item")
+        #     amount = serializer.data.pop("amount")
+        #     print(serializer.data)
+        #     product = Product.objects.create(**serializer.data)
 
-    #     for i in range(amount):
-    #         ProductItem.objects.create(product=product, **product_item)
-    #     return product
+        #     for i in range(amount):
+        #         ProductItem.objects.create(product=product, **product_item)
+        #     return product
 
         modified_request = [product_item] * amount
         serializer = ProductSerializer(data=modified_request, many=True)
@@ -166,7 +167,7 @@ class ProductListView(generics.ListCreateAPIView):
         picture_ids = []
         for file in request.FILES.getlist("pictures[]"):
             ext = file.content_type.split("/")[1]
-            pic_serializer = PictureSerializer(
+            pic_serializer = PictureCreateSerializer(
                 data={
                     "picture_address": ContentFile(
                         file.read(), name=f"{timezone.now().timestamp()}.{ext}"
@@ -258,7 +259,7 @@ class ProductListView(generics.ListCreateAPIView):
 #         picture_ids = []
 #         for file in request.FILES.getlist("pictures[]"):
 #             ext = file.content_type.split("/")[1]
-#             pic_serializer = PictureSerializer(
+#             pic_serializer = PictureCreateSerializer(
 #                 data={
 #                     "picture_address": ContentFile(
 #                         file.read(), name=f"{timezone.now().timestamp()}.{ext}"
@@ -363,7 +364,7 @@ class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class PictureListView(generics.ListCreateAPIView):
     queryset = Picture.objects.all()
-    serializer_class = PictureSerializer
+    serializer_class = PictureCreateSerializer
 
     def create(self, request, *args, **kwargs):
         for file in request.FILES.values():

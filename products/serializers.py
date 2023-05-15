@@ -14,6 +14,12 @@ class PictureSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class PictureCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Picture
+        fields = "__all__"
+
+
 class ProductSerializer(serializers.ModelSerializer):
     pictures = PictureSerializer(many=True, read_only=True)
 
@@ -24,7 +30,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ProductItemSerializer(serializers.ModelSerializer):
     class Meta:
-        model= ProductItem
+        model = ProductItem
         fields = "__all__"
 
 
@@ -35,7 +41,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
-    
+
     def create(self, validated_data):
         product_item = validated_data.pop("product_item")
         amount = validated_data.pop("amount")
@@ -161,7 +167,8 @@ class StorageSchemaResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Storage
         fields = "__all__"
-        extra_kwargs = {"name": {"required": True},
+        extra_kwargs = {
+            "name": {"required": True},
             "address": {"required": True},
             "in_use": {"required": True},
         }

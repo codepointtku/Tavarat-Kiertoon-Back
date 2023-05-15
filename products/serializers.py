@@ -141,6 +141,13 @@ class ShoppingCartAvailableAmountListSerializer(serializers.Serializer):
 
 
 class ProductItemSerializer(serializers.ModelSerializer):
+    """
+    serializer for product items
+    """
+
+    product = ProductSerializer(read_only=True)
+    storage = StorageSerializer(read_only=True)
+
     class Meta:
         model = ProductItem
         fields = "__all__"

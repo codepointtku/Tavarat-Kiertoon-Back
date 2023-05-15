@@ -25,7 +25,7 @@ from orders.serializers import ShoppingCartDetailSerializer
 from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
-from .models import Color, Picture, Product, Storage
+from .models import Color, Picture, Product, ProductItem, Storage
 from .serializers import (
     ColorSerializer,
     PictureSerializer,
@@ -272,6 +272,15 @@ class ProductFilter(filters.FilterSet):
 #         amount = self.queryset.filter(group_id=data["group_id"], available=True).count()
 #         data["amount"] = amount
 #         return Response(data)
+
+
+class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    View for modifying single Product item
+    """
+
+    queryset = ProductItem.objects.all()
+    serializer_class = ProductItemSerializer
 
 
 class ColorListView(generics.ListCreateAPIView):

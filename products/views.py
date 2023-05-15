@@ -140,11 +140,11 @@ class ProductListView(generics.ListCreateAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def post(self, request, *args, **kwargs):
-        serializer = ProductCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(status=status.HTTP_201_CREATED)
+    # def post(self, request, *args, **kwargs):
+    #     serializer = ProductCreateSerializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save()
+    #     return Response(status=status.HTTP_201_CREATED)
         # def create(self, request, *args, **kwargs):
         #     request_data = request.data
         #     productinstance = color_check_create(request_data)

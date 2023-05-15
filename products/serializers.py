@@ -22,10 +22,15 @@ class PictureCreateSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     pictures = PictureSerializer(many=True, read_only=True)
+    amount = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = "__all__"
+
+    def get_amount(self, obj):
+        product_amount = ProductItem.objects.filter(product=obj.id).count()
+        return product_amount
 
 
 class ProductItemSerializer(serializers.ModelSerializer):
@@ -36,6 +41,7 @@ class ProductItemSerializer(serializers.ModelSerializer):
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     product_item = ProductItemSerializer()
+    pictures = PictureCreateSerializer(many=True)
     amount = serializers.IntegerField()
 
     class Meta:

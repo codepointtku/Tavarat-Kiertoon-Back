@@ -87,30 +87,30 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
             return Response("Shopping cart for this user does not exist")
         # if amount is -1, clear users ShoppingCart
         if request.data["amount"] == -1:
-            instance.products.clear()
+            instance.productitems.clear()
             updatedinstance = ShoppingCart.objects.get(user=request.user)
             detailserializer = ShoppingCartDetailSerializer(updatedinstance)
             return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
-        cartproduct = Product.objects.get(id=request.data["products"])
+        cartproduct = Product.objects.get(id=request.data["productitems"])
         itemset = Product.objects.filter(group_id=cartproduct.group_id, available=True)
-        available_itemset = itemset.exclude(id__in=instance.products.values("id"))
-        removable_itemset = instance.products.filter(group_id=cartproduct.group_id)
+        available_itemset = itemset.exclude(id__in=instance.productitems.values("id"))
+        removable_itemset = instance.productitems.filter(group_id=cartproduct.group_id)
         amount = request.data["amount"]
 
-        # comparing amount to number of products already in shoppingcart, proceeding accordingly
+        # comparing amount to number of productitems already in shoppingcart, proceeding accordingly
         if len(removable_itemset) < amount:
             amount -= len(removable_itemset)
             if len(available_itemset) < amount:
                 amount = len(available_itemset)
             for i in range(amount):
-                instance.products.add(available_itemset[i])
+                instance.productitems.add(available_itemset[i])
 
         else:
             amount -= len(removable_itemset)
             amount *= -1
             for i in range(amount):
-                instance.products.remove(removable_itemset[i])
+                instance.productitems.remove(removable_itemset[i])
 
         updatedinstance = ShoppingCart.objects.get(user=request.user)
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)
@@ -166,8 +166,8 @@ class OrderListView(ListCreateAPIView):
             serializer.save()
             order = Order.objects.get(id=serializer.data["id"])
             shopping_cart = ShoppingCart.objects.get(user=user.id)
-            for product in shopping_cart.products.all():
-                order.products.add(product)
+            for productitem in shopping_cart.productitems.all():
+                order.productitems.add(productitem)
             subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (
                 "Hei!\n"
@@ -197,9 +197,9 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        instance.products.clear()
-        for product in request.data["products"]:
-            instance.products.add(product)
+        instance.productitems.clear()
+        for product in request.data["productitems"]:
+            instance.productitems.add(product)
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.

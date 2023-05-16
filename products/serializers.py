@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Color, Picture, Product, Storage
+from .models import Color, Picture, Product, ProductItem, Storage
 
 
 class PictureSerializer(serializers.ModelSerializer):
@@ -139,7 +139,8 @@ class StorageSchemaResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Storage
         fields = "__all__"
-        extra_kwargs = {"name": {"required": True},
+        extra_kwargs = {
+            "name": {"required": True},
             "address": {"required": True},
             "in_use": {"required": True},
         }
@@ -148,3 +149,30 @@ class StorageSchemaResponseSerializer(serializers.ModelSerializer):
 class ShoppingCartAvailableAmountListSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     amount = serializers.IntegerField()
+
+
+class ProductItemSerializer(serializers.ModelSerializer):
+    """
+    serializer for product items, for listing purposes
+    """
+
+    product = ProductSerializer(read_only=True)
+    storage = StorageSerializer(read_only=True)
+
+    class Meta:
+        model = ProductItem
+        fields = "__all__"
+
+
+class ProductItemUpdateSerializer(serializers.ModelSerializer):
+    """
+    serializer for product items for purpose of updating it.
+    """
+
+    class Meta:
+        model = ProductItem
+        fields = "__all__"
+        extra_kwargs = {
+            "modified_date": {"read_only": True},
+            "product": {"read_only": True},
+        }

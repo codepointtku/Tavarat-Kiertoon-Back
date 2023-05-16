@@ -116,6 +116,7 @@ class ProductFilter(filters.FilterSet):
 @extend_schema_view(post=extend_schema(request=ProductCreateSerializer))
 class ProductListView(generics.ListCreateAPIView):
     """View for listing and creating products. Create includes creation of ProductItem and Picture"""
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     authentication_classes = [
@@ -144,7 +145,8 @@ class ProductListView(generics.ListCreateAPIView):
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        serializer = ProductCreateSerializer(data=request.data)
+        color_checked_data = color_check_create(request.data)
+        serializer = ProductCreateSerializer(data=color_checked_data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_201_CREATED)
@@ -189,6 +191,7 @@ class ProductListView(generics.ListCreateAPIView):
 )
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     """View for retrieving, updating, (destroying) a single Product"""
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 

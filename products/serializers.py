@@ -61,7 +61,6 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         
         for i in range(amount):
             ProductItem.objects.create(product=product, **product_item)
-            print(i)
         return product
 
 

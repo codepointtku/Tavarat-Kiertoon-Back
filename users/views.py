@@ -449,9 +449,9 @@ class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     """
 
     authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
+        # SessionAuthentication,
+        # BasicAuthentication,
+        # JWTAuthentication,
         CustomJWTAuthentication,
     ]
 
@@ -474,33 +474,6 @@ class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
 
         serializer = UserFullSerializer(user)
 
-        return Response(serializer.data)
-
-
-@extend_schema(responses=UserFullResponseSchemaSerializer)
-class UserLoggedInDetailView(APIView):
-    """
-    Get logged in users info
-    """
-
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-
-    required_groups = {
-        "GET": ["user_group"],
-        # "POST": ["user_group"],
-        "PUT": ["user_group"],
-    }
-    queryset = CustomUser.objects.all()
-    serializer_class = UserFullSerializer
-
-    def get(self, request, format=None):
-        serializer = self.serializer_class(request.user)
         return Response(serializer.data)
 
 
@@ -553,11 +526,14 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = GroupPermissionsSerializer
 
 
-@extend_schema(responses=UserUpdateReturnSchemaSerializer)
+@extend_schema_view(
+    get=extend_schema(responses=UserFullResponseSchemaSerializer),
+    put=extend_schema(responses=UserUpdateReturnSchemaSerializer),
+)
 class UserUpdateInfoView(APIView):
     """
     Get logged in users information and update it.
-    only fields that can be changed.
+    only some fields can be changed.
     """
 
     authentication_classes = [
@@ -572,16 +548,14 @@ class UserUpdateInfoView(APIView):
         "GET": ["user_group"],
         "POST": ["user_group"],
         "PUT": ["user_group"],
-        "PATCH": ["user_group"],
     }
 
     serializer_class = UserUpdateSerializer
     queryset = User.objects.all()
 
     def get(self, request, format=None):
-        user = User.objects.get(id=request.user.id)
-        serialized_data = self.serializer_class(user)
-        return Response(serialized_data.data)
+        serializer = UserFullSerializer(request.user)
+        return Response(serializer.data)
 
     def put(self, request, format=None):
         serializer = self.serializer_class(

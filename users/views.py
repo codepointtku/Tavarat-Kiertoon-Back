@@ -437,51 +437,15 @@ class UserDetailsListView(generics.ListAPIView):
     serializer_class = UserFullSerializer
 
 
-# @extend_schema(responses=UserFullResponseSchemaSerializer)
-# class UserSingleGetView(APIView):
-#     """
-#     Get single user with all database fields, no POST here
-#     """
-
-#     # authentication_classes = [SessionAuthentication, BasicAuthentication]
-#     authentication_classes = [
-#         SessionAuthentication,
-#         BasicAuthentication,
-#         JWTAuthentication,
-#         CustomJWTAuthentication,
-#     ]
-#     permission_classes = [IsAuthenticated, HasGroupPermission]
-
-#     required_groups = {
-#         "GET": ["admin_group"],
-#         "POST": ["admin_group"],
-#         "PUT": ["admin_group"],
-#     }
-
-#     queryset = CustomUser.objects.all()
-#     serializer_class = UserFullSerializer
-
-#     def get(self, request, pk, format=None):
-#         try:
-#             user = CustomUser.objects.get(pk=pk)
-#         except CustomUser.DoesNotExist:
-#             return Response("no such user", status=status.HTTP_204_NO_CONTENT)
-
-#         serializer = UserFullSerializer(user)
-
-#         return Response(serializer.data)
-
-
 @extend_schema_view(
     patch=extend_schema(exclude=True),
     get=extend_schema(responses=UserFullResponseSchemaSerializer),
 )
-# @extend_schema(responses=UserFullResponseSchemaSerializer)
-# @extend_schema_view(get=extend_schema(responses=UserFullResponseSchemaSerializer))
 @extend_schema(responses=UserUpdateReturnSchemaSerializer)
 class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     """
-    Get specific users info for updating, field that can be updated
+    Get specific users info,
+    only some field can be updated
     """
 
     authentication_classes = [

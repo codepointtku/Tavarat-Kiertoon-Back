@@ -53,7 +53,7 @@ from products.views import (
     StorageListView,
     StorageProductListView,
 )
-from users.views import (  # GroupNameView,; GroupPermissionCheckView,; UserAddressListView,; UserDetailLimitedView,; UserDetailsListLimitedView,; UserSingleGetView,
+from users.views import (
     GroupListView,
     GroupPermissionUpdateView,
     UserActivationView,
@@ -108,7 +108,6 @@ urlpatterns = [
     path("user/address/edit/", UserAddressEditView.as_view()),
     path("user/address/edit/<int:pk>/", UserAddressEditDeleteView.as_view()),
     path("users/create/", UserCreateListView.as_view()),
-    # path("users/<int:pk>/", UserSingleGetView.as_view()),
     path("users/<int:pk>/", UserUpdateSingleView.as_view()),
     path("users/<int:pk>/groups/permission/", GroupPermissionUpdateView.as_view()),
     path("users/address/<int:pk>/", UserAddressAdminEditView.as_view()),

@@ -301,6 +301,16 @@ class ColorDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Color.objects.all()
     serializer_class = ColorSerializer
 
+    def put(self, request, *args, **kwargs):
+        if self.get_object().default:
+            return Response("Cant modify default colors", status=405)
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        if self.get_object().default:
+            return Response("Cant modify default colors", status=405)
+        return self.partial_update(request, *args, **kwargs)
+
     def delete(self, request, *args, **kwargs):
         if self.get_object().default:
             return Response("Cant delete default colors", status=405)

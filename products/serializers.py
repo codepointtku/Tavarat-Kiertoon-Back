@@ -38,14 +38,14 @@ class ProductSerializer(serializers.ModelSerializer):
         return total_product_amount
 
 
-class ProductItemSerializer(serializers.ModelSerializer):
+class ProductItemCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductItem
         fields = "__all__"
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
-    product_item = ProductItemSerializer()
+    product_item = ProductItemCreateSerializer()
     pictures = PictureCreateSerializer(many=True, required=False)
     amount = serializers.IntegerField()
 

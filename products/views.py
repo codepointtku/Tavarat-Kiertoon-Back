@@ -34,7 +34,7 @@ from .serializers import (
     ProductCreateSerializer,
     ProductItemSerializer,
     ProductItemUpdateSerializer,
-    ProductListSerializer,
+    # ProductListSerializer,
     ProductSerializer,
     # ProductStorageListSerializer,
     ProductStorageTransferSerializer,

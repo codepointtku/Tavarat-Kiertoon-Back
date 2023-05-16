@@ -32,9 +32,9 @@ from .serializers import (
     PictureSerializer,
     ProductColorStringSerializer,
     ProductCreateSerializer,
-    ProductListSerializer,
+    # ProductListSerializer,
     ProductSerializer,
-    ProductStorageListSerializer,
+    # ProductStorageListSerializer,
     ProductStorageTransferSerializer,
     ProductUpdateSerializer,
     ShoppingCartAvailableAmountListSerializer,
@@ -189,9 +189,9 @@ class ProductListView(generics.ListCreateAPIView):
 
 
 @extend_schema_view(
-    get=extend_schema(
-        responses=ProductListSerializer(),
-    ),
+    # get=extend_schema(
+    #     responses=ProductListSerializer(),
+    # ),
     put=extend_schema(
         request=ProductUpdateSerializer(), responses=ProductUpdateSerializer()
     ),
@@ -289,9 +289,9 @@ class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PictureSerializer
 
 
-@extend_schema_view(
-    put=extend_schema(responses=ProductStorageListSerializer(many=True))
-)
+# @extend_schema_view(
+#     put=extend_schema(responses=ProductStorageListSerializer(many=True))
+# )
 class ProductStorageTransferView(APIView):
     """View for transfering list of products to different storage"""
 

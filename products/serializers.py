@@ -23,14 +23,19 @@ class PictureCreateSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     pictures = PictureSerializer(many=True, read_only=True)
     amount = serializers.SerializerMethodField()
+    total_amount = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = "__all__"
 
     def get_amount(self, obj):
-        product_amount = ProductItem.objects.filter(product=obj.id).count()
+        product_amount = ProductItem.objects.filter(product=obj.id, available=True).count()
         return product_amount
+
+    def get_total_amount(self, obj):
+        total_product_amount = ProductItem.objects.filter(product=obj.id).count()
+        return total_product_amount
 
 
 class ProductItemSerializer(serializers.ModelSerializer):

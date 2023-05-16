@@ -41,7 +41,7 @@ class ProductItemSerializer(serializers.ModelSerializer):
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     product_item = ProductItemSerializer()
-    pictures = PictureCreateSerializer(many=True)
+    pictures = PictureCreateSerializer(many=True, required=False)
     amount = serializers.IntegerField()
 
     class Meta:
@@ -53,14 +53,15 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         amount = validated_data.pop("amount")
 
         product = Product.objects.create(**validated_data)
-
+        
         for i in range(amount):
             ProductItem.objects.create(product=product, **product_item)
+            print(i)
         return product
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
-    modify_date = serializers.CharField(required=False)
+    # modify_date = serializers.CharField(required=False)
 
     class Meta:
         model = Product

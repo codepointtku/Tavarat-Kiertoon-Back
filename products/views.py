@@ -226,7 +226,7 @@ class ProductItemListFilter(filters.FilterSet):
     shelf_id = filters.AllValuesFilter()
 
 
-class ProductItemsListView(generics.ListAPIView):
+class ProductItemListView(generics.ListAPIView):
     """
     Lists all Product items
     """

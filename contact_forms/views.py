@@ -15,7 +15,7 @@ from .serializers import (
     post=extend_schema(responses=ContactFormResponseSerializer),
 )
 class ContactFormListView(ListCreateAPIView):
-    queryset = ContactForm.objects.all()
+    queryset = ContactForm.objects.all().order_by("-id")
     serializer_class = ContactFormSerializer
 
 
@@ -30,7 +30,7 @@ class ContactFormDetailView(RetrieveUpdateDestroyAPIView):
 
 
 class ContactListView(ListCreateAPIView):
-    queryset = Contact.objects.all()
+    queryset = Contact.objects.all().order_by("-id")
     serializer_class = ContactSerializer
 
 

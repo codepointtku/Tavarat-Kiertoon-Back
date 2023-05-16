@@ -30,7 +30,9 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_amount(self, obj):
-        product_amount = ProductItem.objects.filter(product=obj.id, available=True).count()
+        product_amount = ProductItem.objects.filter(
+            product=obj.id, available=True
+        ).count()
         return product_amount
 
     def get_total_amount(self, obj):
@@ -58,14 +60,40 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         amount = validated_data.pop("amount")
 
         product = Product.objects.create(**validated_data)
-        
+
         for i in range(amount):
             ProductItem.objects.create(product=product, **product_item)
         return product
 
 
-class ProductUpdateSerializer(serializers.ModelSerializer):
+class ProductItemCreateSchemaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductItem
+        exclude = ["modified_date", "product"]
+        extra_kwargs = {
+            "available": {"required": True},
+            "barcode": {"required": True},
+            "storage": {"required": True},
+        }
 
+
+class ProductCreateSchemaSerializer(serializers.ModelSerializer):
+    product_item = ProductItemCreateSchemaSerializer()
+    amount = serializers.IntegerField()
+    color = serializers.CharField()
+
+    class Meta:
+        model = Product
+        exclude = ["pictures"]
+        extra_kwargs = {
+            "name": {"required": True},
+            "amount": {"required": True},
+            "category": {"required": True},
+            "color": {"required": True},
+        }
+
+
+class ProductUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"

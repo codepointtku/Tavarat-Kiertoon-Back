@@ -61,7 +61,6 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
-    # modify_date = serializers.CharField(required=False)
 
     class Meta:
         model = Product

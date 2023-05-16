@@ -18,19 +18,14 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
-    PolymorphicProxySerializer,
-)
 
 from categories.models import Category
+from orders.models import ShoppingCart
+from orders.serializers import ShoppingCartDetailSerializer
 from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
 from .models import Color, Picture, Product, Storage
-from orders.models import ShoppingCart
-from orders.serializers import ShoppingCartDetailSerializer
 from .serializers import (
     ColorSerializer,
     PictureSerializer,
@@ -41,9 +36,9 @@ from .serializers import (
     ProductStorageListSerializer,
     ProductStorageTransferSerializer,
     ProductUpdateSerializer,
-    StorageSerializer,
-    StorageSchemaResponseSerializer,
     ShoppingCartAvailableAmountListSerializer,
+    StorageSchemaResponseSerializer,
+    StorageSerializer,
 )
 
 
@@ -306,6 +301,11 @@ class ColorDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Color.objects.all()
     serializer_class = ColorSerializer
 
+    def delete(self, request, *args, **kwargs):
+        if self.get_object().default:
+            return Response("Cant delete default colors", status=405)
+        return self.destroy(request, *args, **kwargs)
+
 
 @extend_schema_view(
     get=extend_schema(
@@ -382,11 +382,12 @@ class ProductStorageTransferView(APIView):
 
 class ShoppingCartAvailableAmountList(APIView):
     """View for last step of modifying products in shopping cart before ordering"""
+
     authentication_classes = [
-    SessionAuthentication,
-    BasicAuthentication,
-    JWTAuthentication,
-    CustomJWTAuthentication,
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
     ]
     serializer_class = ShoppingCartAvailableAmountListSerializer(many=True)
 
@@ -403,10 +404,13 @@ class ShoppingCartAvailableAmountList(APIView):
         for product in cartserializer.data["products"]:
             if product["group_id"] not in duplicate_checker:
                 group = product["group_id"]
-                amount = Product.objects.filter(group_id=product["group_id"], available=True).count()
+                amount = Product.objects.filter(
+                    group_id=product["group_id"], available=True
+                ).count()
                 pair = {"id": group, "amount": amount}
                 group_ids.append(pair)
                 duplicate_checker.append(group)
-        returnserializer = ShoppingCartAvailableAmountListSerializer(group_ids, many=True)
+        returnserializer = ShoppingCartAvailableAmountListSerializer(
+            group_ids, many=True
+        )
         return Response(returnserializer.data)
-

@@ -11,24 +11,28 @@ from drf_spectacular.utils import extend_schema_view, extend_schema
 
 from bikes.models import Bike, BikePackage, BikeRental, BikeStock, BikeAmount
 from bikes.serializers import (
-    BikeAmountSerializer,
     BikeAmountListSerializer,
     BikePackageSerializer,
+    BikePackageSchemaResponseSerializer,
+    BikePackageCreateResponseSerializer,
     BikeRentalSerializer,
     BikeSerializer,
     BikeStockListSerializer,
     BikeStockDetailSerializer,
     BikeRentalSchemaPostSerializer,
+    BikeRentalSchemaResponseSerializer,
     BikeStockCreateSerializer,
+    BikeStockSchemaCreateUpdateSerializer,
     BikeModelSerializer,
     BikeModelCreateSerializer,
+    BikeModelSchemaResponseSerializer,
     MainBikeListSchemaSerializer
 )
 
 @extend_schema_view(
     post=extend_schema(
         request=BikeModelCreateSerializer,
-        responses=BikeModelCreateSerializer
+        responses=BikeModelSchemaResponseSerializer
     )
 )
 class BikeModelListView(generics.ListCreateAPIView):
@@ -40,12 +44,15 @@ class BikeModelListView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
 
 @extend_schema_view(
     put=extend_schema(
         request=BikeModelCreateSerializer,
-        responses=BikeModelCreateSerializer
+        responses=BikeModelSchemaResponseSerializer
+    ),
+    patch=extend_schema(
+        exclude=True
     )
 )
 class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -63,7 +70,7 @@ class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
 @extend_schema_view(
     post=extend_schema(
         request=BikeStockCreateSerializer,
-        responses=BikeStockCreateSerializer
+        responses=BikeStockSchemaCreateUpdateSerializer
     )
 )
 class BikeStockListView(generics.ListCreateAPIView):
@@ -81,7 +88,10 @@ class BikeStockListView(generics.ListCreateAPIView):
 @extend_schema_view(
     put=extend_schema(
         request=BikeStockCreateSerializer,
-        responses=BikeStockCreateSerializer
+        responses=BikeStockSchemaCreateUpdateSerializer
+    ),
+    patch=extend_schema(
+        exclude=True
     )
 )
 class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -198,7 +208,15 @@ class MainBikeList(generics.ListAPIView):
         )
 
 
-@extend_schema_view(post=extend_schema(request=BikeRentalSchemaPostSerializer))
+@extend_schema_view(
+    get=extend_schema(
+        responses=BikeRentalSchemaResponseSerializer
+    ),
+    post=extend_schema(
+        request=BikeRentalSchemaPostSerializer,
+        responses=BikeRentalSchemaResponseSerializer
+    )
+)
 class RentalListView(generics.ListCreateAPIView):
     queryset = BikeRental.objects.all()
     serializer_class = BikeRentalSerializer
@@ -234,6 +252,11 @@ class RentalListView(generics.ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        responses=BikeRentalSchemaResponseSerializer
+    ),
+)
 class RentalDetailView(generics.RetrieveAPIView):
     queryset = BikeRental.objects.all()
     serializer_class = BikeRentalSerializer
@@ -244,13 +267,31 @@ class BikeAmountListView(generics.ListAPIView):
     serializer_class = BikeAmountListSerializer
 
 
+@extend_schema_view(
+    get=extend_schema(
+        responses=BikePackageSchemaResponseSerializer()
+    ),
+    post=extend_schema(
+        request=BikePackageCreateResponseSerializer(),
+        responses=BikePackageSchemaResponseSerializer()
+    ),
+)
 class BikePackageListView(generics.ListCreateAPIView):
     queryset = BikePackage.objects.all()
     serializer_class = BikePackageSerializer
 
 
+@extend_schema_view(
+    get=extend_schema(
+        responses=BikePackageSchemaResponseSerializer()
+    ),
+    put=extend_schema(
+        responses=BikePackageSchemaResponseSerializer()
+    ),
+    patch=extend_schema(
+        exclude=True
+    ),
+)
 class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikePackage.objects.all()
     serializer_class = BikePackageSerializer
-
-

@@ -135,6 +135,17 @@ class StorageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class StorageSchemaResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Storage
+        fields = "__all__"
+        extra_kwargs = {
+            "name": {"required": True},
+            "address": {"required": True},
+            "in_use": {"required": True},
+        }
+
+
 class ShoppingCartAvailableAmountListSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     amount = serializers.IntegerField()

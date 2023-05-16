@@ -188,15 +188,15 @@ class ProductListView(generics.ListCreateAPIView):
         # # )
 
 
-# @extend_schema_view(
-#     get=extend_schema(
-#         responses=ProductListSerializer(),
-#     ),
-#     put=extend_schema(
-#         request=ProductUpdateSerializer(), responses=ProductUpdateSerializer()
-#     ),
-#     patch=extend_schema(exclude=True),
-# )
+@extend_schema_view(
+    get=extend_schema(
+        responses=ProductListSerializer(),
+    ),
+    put=extend_schema(
+        request=ProductUpdateSerializer(), responses=ProductUpdateSerializer()
+    ),
+    patch=extend_schema(exclude=True),
+)
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -300,7 +300,7 @@ class ProductStorageTransferView(APIView):
     def put(self, request, *args, **kwargs):
         storage = Storage.objects.get(id=request.data["storage"])
         products = Product.objects.filter(id__in=request.data["products"])
-        products.update(storages=storage)
+        products.update(storage=storage)
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
 

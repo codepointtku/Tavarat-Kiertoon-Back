@@ -1,7 +1,7 @@
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
-from products.serializers import ProductSerializer
+from products.serializers import ProductItemSerializer
 
 from .models import Order, ShoppingCart
 
@@ -21,7 +21,7 @@ class ShoppingCartResponseSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartDetailSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
+    products = ProductItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = ShoppingCart
@@ -60,7 +60,7 @@ class OrderResponseSerializer(serializers.ModelSerializer):
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
+    products = ProductItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order
@@ -75,7 +75,7 @@ class OrderDetailRequestSerializer(serializers.ModelSerializer):
 
 
 class OrderDetailResponseSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
+    products = ProductItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order

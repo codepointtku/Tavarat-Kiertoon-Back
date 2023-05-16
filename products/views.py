@@ -115,6 +115,7 @@ class ProductFilter(filters.FilterSet):
 
 @extend_schema_view(post=extend_schema(request=ProductCreateSerializer))
 class ProductListView(generics.ListCreateAPIView):
+    """View for listing and creating products. Create includes creation of ProductItem and Picture"""
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     authentication_classes = [
@@ -147,21 +148,8 @@ class ProductListView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_201_CREATED)
-        # def create(self, request, *args, **kwargs):
-        #     request_data = request.data
-        #     productinstance = color_check_create(request_data)
-        #     serializer = ProductCreateSerializer(data=productinstance)
-        #     serializer.is_valid(raise_exception=True)
 
-        #     product_item = serializer.data.pop("product_item")
-        #     amount = serializer.data.pop("amount")
-        #     print(serializer.data)
-        #     product = Product.objects.create(**serializer.data)
-
-        #     for i in range(amount):
-        #         ProductItem.objects.create(product=product, **product_item)
-        #     return product
-
+        """ Picture creation logic in Product create, not in use for now"""
         # # modified_request = [product_item] * amount
         # # serializer = ProductSerializer(data=modified_request, many=True)
         # # serializer.is_valid(raise_exception=True)
@@ -200,6 +188,7 @@ class ProductListView(generics.ListCreateAPIView):
     patch=extend_schema(exclude=True),
 )
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """View for retrieving, updating, (destroying) a single Product"""
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
@@ -368,7 +357,7 @@ class ProductStorageTransferView(APIView):
 
 
 class ShoppingCartAvailableAmountList(APIView):
-    """View for last step of modifying products in shopping cart before ordering"""
+    """View for getting Products in users shopping cart and their available amounts for ProductItems not already in shopping cart"""
 
     authentication_classes = [
         SessionAuthentication,
@@ -386,18 +375,18 @@ class ShoppingCartAvailableAmountList(APIView):
         except ObjectDoesNotExist:
             return Response("Shopping cart for this user does not exist")
         cartserializer = ShoppingCartDetailSerializer(instance)
-        group_ids = []
+        product_ids = []
         duplicate_checker = []
-        for product in cartserializer.data["products"]:
-            if product["group_id"] not in duplicate_checker:
-                group = product["group_id"]
-                amount = Product.objects.filter(
-                    group_id=product["group_id"], available=True
+        for Product_item in cartserializer.data["products"]:
+            if Product_item["product"]["id"] not in duplicate_checker:
+                product_id = Product_item["product"]["id"]
+                amount = ProductItem.objects.filter(
+                    product=product_id, available=True
                 ).count()
-                pair = {"id": group, "amount": amount}
-                group_ids.append(pair)
-                duplicate_checker.append(group)
+                pair = {"id": product_id, "amount": amount}
+                product_ids.append(pair)
+                duplicate_checker.append(product_id)
         returnserializer = ShoppingCartAvailableAmountListSerializer(
-            group_ids, many=True
+            product_ids, many=True
         )
         return Response(returnserializer.data)

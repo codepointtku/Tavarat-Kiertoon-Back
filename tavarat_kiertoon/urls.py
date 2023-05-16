@@ -109,7 +109,7 @@ urlpatterns = [
     path("user/address/edit/<int:pk>/", UserAddressEditDeleteView.as_view()),
     path("users/create/", UserCreateListView.as_view()),
     # path("users/<int:pk>/", UserSingleGetView.as_view()),
-    path("users/<int:pk>/edit/", UserUpdateSingleView.as_view()),
+    path("users/<int:pk>/", UserUpdateSingleView.as_view()),
     path("users/<int:pk>/groups/permission/", GroupPermissionUpdateView.as_view()),
     path("users/address/<int:pk>/", UserAddressAdminEditView.as_view()),
     path("users/groups/", GroupListView.as_view()),

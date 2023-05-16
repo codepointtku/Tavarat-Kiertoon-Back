@@ -40,7 +40,7 @@ from orders.views import (
     ShoppingCartDetailView,
     ShoppingCartListView,
 )
-from products.views import (  # ProductDetailView,; StorageProductListView,
+from products.views import (  ProductDetailView, #StorageProductListView,
     ProductListView,
     ColorDetailView,
     ColorListView,
@@ -88,7 +88,7 @@ urlpatterns = [
     path("orders/<int:pk>/", OrderDetailView.as_view()),
     path("orders/user/", OrderSelfListView.as_view()),
     path("products/", ProductListView.as_view()),
-    # path("products/<int:pk>/", ProductDetailView.as_view()),
+    path("products/<int:pk>/", ProductDetailView.as_view()),
     path("products/transfer/", ProductStorageTransferView.as_view()),
     path("contact_forms/", ContactFormListView.as_view()),
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),

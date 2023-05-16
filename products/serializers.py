@@ -153,7 +153,7 @@ class ShoppingCartAvailableAmountListSerializer(serializers.Serializer):
 
 class ProductItemsSerializer(serializers.ModelSerializer):
     """
-    serializer for product items
+    serializer for product items, for listing purposes
     """
 
     product = ProductSerializer(read_only=True)
@@ -166,7 +166,7 @@ class ProductItemsSerializer(serializers.ModelSerializer):
 
 class ProductItemUpdateSerializer(serializers.ModelSerializer):
     """
-    serializer for product items
+    serializer for product items for purpose of updating it.
     """
 
     class Meta:

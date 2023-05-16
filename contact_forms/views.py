@@ -1,6 +1,8 @@
+from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.pagination import PageNumberPagination
 
 from .models import Contact, ContactForm
 from .serializers import (
@@ -9,8 +11,20 @@ from .serializers import (
     ContactSerializer,
 )
 
-
 # Create your views here.
+
+
+class ContactFormListPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = "page_size"
+
+
+class ContactFormFilter(filters.FilterSet):
+    class Meta:
+        model = ContactForm
+        fields = ["status"]
+
+
 @extend_schema_view(
     get=extend_schema(responses=ContactFormResponseSerializer),
     post=extend_schema(responses=ContactFormResponseSerializer),
@@ -18,9 +32,11 @@ from .serializers import (
 class ContactFormListView(ListCreateAPIView):
     queryset = ContactForm.objects.all()
     serializer_class = ContactFormSerializer
-    filter_backends = [OrderingFilter]
+    filter_backends = [OrderingFilter, filters.DjangoFilterBackend]
     ordering_fields = ["id"]
     ordering = ["-id"]
+    filterset_class = ContactFormFilter
+    pagination_class = ContactFormListPagination
 
 
 @extend_schema_view(

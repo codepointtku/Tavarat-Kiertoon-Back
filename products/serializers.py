@@ -151,7 +151,7 @@ class ShoppingCartAvailableAmountListSerializer(serializers.Serializer):
     amount = serializers.IntegerField()
 
 
-class ProductItemsSerializer(serializers.ModelSerializer):
+class ProductItemSerializer(serializers.ModelSerializer):
     """
     serializer for product items, for listing purposes
     """
@@ -174,4 +174,5 @@ class ProductItemUpdateSerializer(serializers.ModelSerializer):
         fields = "__all__"
         extra_kwargs = {
             "modified_date": {"read_only": True},
+            "product": {"read_only": True},
         }

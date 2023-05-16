@@ -31,7 +31,7 @@ from .serializers import (
     PictureSerializer,
     ProductColorStringSerializer,
     ProductCreateSerializer,
-    ProductItemsSerializer,
+    ProductItemSerializer,
     ProductItemUpdateSerializer,
     ProductListSerializer,
     ProductSerializer,
@@ -309,7 +309,7 @@ class ProductItemsListView(generics.ListAPIView):
     """
 
     queryset = ProductItem.objects.all()
-    serializer_class = ProductItemsSerializer
+    serializer_class = ProductItemSerializer
     pagination_class = ProductListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["modified_date", "id", "available", "product", "storage"]

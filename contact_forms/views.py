@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
 from .models import Contact, ContactForm
@@ -8,37 +8,25 @@ from .serializers import (
     ContactSerializer,
 )
 
+
 # Create your views here.
-
-
+@extend_schema_view(
+    get=extend_schema(responses=ContactFormResponseSerializer),
+    post=extend_schema(responses=ContactFormResponseSerializer),
+)
 class ContactFormListView(ListCreateAPIView):
     queryset = ContactForm.objects.all()
     serializer_class = ContactFormSerializer
 
-    @extend_schema(responses=ContactFormResponseSerializer)
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-    @extend_schema(responses=ContactFormResponseSerializer)
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
+@extend_schema_view(
+    get=extend_schema(responses=ContactFormResponseSerializer),
+    put=extend_schema(responses=ContactFormResponseSerializer),
+    patch=extend_schema(exclude=True),
+)
 class ContactFormDetailView(RetrieveUpdateDestroyAPIView):
     queryset = ContactForm.objects.all()
     serializer_class = ContactFormSerializer
-
-    @extend_schema(responses=ContactFormResponseSerializer)
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    @extend_schema(responses=ContactFormResponseSerializer)
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    @extend_schema(methods=["PATCH"], exclude=True)
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
 
 
 class ContactListView(ListCreateAPIView):
@@ -46,10 +34,7 @@ class ContactListView(ListCreateAPIView):
     serializer_class = ContactSerializer
 
 
+@extend_schema_view(patch=extend_schema(exclude=True))
 class ContactDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
-
-    @extend_schema(methods=["PATCH"], exclude=True)
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)

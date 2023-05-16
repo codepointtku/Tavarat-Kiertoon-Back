@@ -6,6 +6,11 @@ from django.core.files.base import ContentFile
 from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
+from drf_spectacular.utils import (
+    PolymorphicProxySerializer,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
@@ -13,10 +18,10 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from drf_spectacular.utils import(
+from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
-    PolymorphicProxySerializer
+    PolymorphicProxySerializer,
 )
 
 from categories.models import Category
@@ -24,17 +29,21 @@ from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
 from .models import Color, Picture, Product, Storage
+from orders.models import ShoppingCart
+from orders.serializers import ShoppingCartDetailSerializer
 from .serializers import (
     ColorSerializer,
     PictureSerializer,
+    ProductColorStringSerializer,
+    ProductCreateSerializer,
+    ProductListSerializer,
     ProductSerializer,
     ProductStorageListSerializer,
     ProductStorageTransferSerializer,
-    ProductListSerializer,
-    ProductColorStringSerializer,
-    ProductCreateSerializer,
     ProductUpdateSerializer,
     StorageSerializer,
+    StorageSchemaResponseSerializer,
+    ShoppingCartAvailableAmountListSerializer,
 )
 
 
@@ -106,12 +115,7 @@ class ProductFilter(filters.FilterSet):
         return or_queryset
 
 
-@extend_schema_view(
-    get=extend_schema(
-        responses=
-            ProductListSerializer
-    )
-)
+@extend_schema_view(get=extend_schema(responses=ProductListSerializer))
 class ProductListView(generics.ListAPIView):
     queryset = Product.objects.filter(available=True)
     serializer_class = ProductSerializer
@@ -159,18 +163,13 @@ class ProductListView(generics.ListAPIView):
 @extend_schema_view(
     post=extend_schema(
         request=PolymorphicProxySerializer(
-                    component_name="ProductCreation",
-                    serializers=[
-                        ProductCreateSerializer,
-                        ProductColorStringSerializer
-                    ],
-                    resource_type_field_name="color",
+            component_name="ProductCreation",
+            serializers=[ProductCreateSerializer, ProductColorStringSerializer],
+            resource_type_field_name="color",
         ),
-        responses=ProductListSerializer()
+        responses=ProductStorageListSerializer(many=True),
     ),
-    get=extend_schema(
-        responses=ProductStorageListSerializer()
-    )
+    get=extend_schema(responses=ProductListSerializer()),
 )
 class StorageProductListView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
@@ -196,9 +195,24 @@ class StorageProductListView(generics.ListCreateAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
+        unique_groupids = (
+            queryset.values("id")
+            .order_by("group_id", "-modified_date")
+            .distinct("group_id")
+        )
+        grouped_queryset = queryset.filter(id__in=unique_groupids)
+        amounts = (
+            queryset.values("group_id")
+            .order_by("group_id")
+            .annotate(amount=Count("group_id"))
+        )
+        page = self.paginate_queryset(grouped_queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
+            for product in serializer.data:
+                product["amount"] = amounts.filter(group_id=product["group_id"])[0][
+                    "amount"
+                ]
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -237,17 +251,15 @@ class StorageProductListView(generics.ListCreateAPIView):
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
+
 @extend_schema_view(
     get=extend_schema(
         responses=ProductListSerializer(),
     ),
     put=extend_schema(
-        request=ProductUpdateSerializer(),
-        responses=ProductUpdateSerializer()
+        request=ProductUpdateSerializer(), responses=ProductUpdateSerializer()
     ),
-    patch=extend_schema(
-        exclude=True
-    )
+    patch=extend_schema(exclude=True),
 )
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
@@ -256,7 +268,9 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = ProductUpdateSerializer(instance, data=request.data, partial=partial)
+        serializer = ProductUpdateSerializer(
+            instance, data=request.data, partial=partial
+        )
         serializer.is_valid(raise_exception=True)
         if "modify_date" in request.data:
             serializer.save(modified_date=timezone.now())
@@ -285,16 +299,36 @@ class ColorListView(generics.ListCreateAPIView):
     serializer_class = ColorSerializer
 
 
+@extend_schema_view(
+    patch=extend_schema(exclude=True),
+)
 class ColorDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Color.objects.all()
     serializer_class = ColorSerializer
 
 
+@extend_schema_view(
+    get=extend_schema(
+        responses=StorageSchemaResponseSerializer(),
+    ),
+    post=extend_schema(
+        responses=StorageSchemaResponseSerializer(),
+    ),
+)
 class StorageListView(generics.ListCreateAPIView):
     queryset = Storage.objects.all()
     serializer_class = StorageSerializer
 
 
+@extend_schema_view(
+    get=extend_schema(
+        responses=StorageSchemaResponseSerializer(),
+    ),
+    patch=extend_schema(exclude=True),
+    put=extend_schema(
+        responses=StorageSchemaResponseSerializer(),
+    ),
+)
 class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Storage.objects.all()
     serializer_class = StorageSerializer
@@ -322,18 +356,20 @@ class PictureListView(generics.ListCreateAPIView):
         )
 
 
+@extend_schema_view(
+    patch=extend_schema(exclude=True),
+)
 class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Picture.objects.all()
     serializer_class = PictureSerializer
 
 
 @extend_schema_view(
-    put=extend_schema(
-        responses=ProductSerializer(many=True)
-    )
+    put=extend_schema(responses=ProductStorageListSerializer(many=True))
 )
 class ProductStorageTransferView(APIView):
     """View for transfering list of products to different storage"""
+
     serializer_class = ProductStorageTransferSerializer
 
     def put(self, request, *args, **kwargs):
@@ -342,3 +378,35 @@ class ProductStorageTransferView(APIView):
         products.update(storages=storage)
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
+
+
+class ShoppingCartAvailableAmountList(APIView):
+    """View for last step of modifying products in shopping cart before ordering"""
+    authentication_classes = [
+    SessionAuthentication,
+    BasicAuthentication,
+    JWTAuthentication,
+    CustomJWTAuthentication,
+    ]
+    serializer_class = ShoppingCartAvailableAmountListSerializer(many=True)
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return Response("You must be logged in to see your shoppingcart")
+        try:
+            instance = ShoppingCart.objects.get(user=request.user)
+        except ObjectDoesNotExist:
+            return Response("Shopping cart for this user does not exist")
+        cartserializer = ShoppingCartDetailSerializer(instance)
+        group_ids = []
+        duplicate_checker = []
+        for product in cartserializer.data["products"]:
+            if product["group_id"] not in duplicate_checker:
+                group = product["group_id"]
+                amount = Product.objects.filter(group_id=product["group_id"], available=True).count()
+                pair = {"id": group, "amount": amount}
+                group_ids.append(pair)
+                duplicate_checker.append(group)
+        returnserializer = ShoppingCartAvailableAmountListSerializer(group_ids, many=True)
+        return Response(returnserializer.data)
+

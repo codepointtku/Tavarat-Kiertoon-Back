@@ -32,7 +32,9 @@ from .serializers import (
     PictureSerializer,
     ProductColorStringSerializer,
     ProductCreateSerializer,
-    # ProductListSerializer,
+    ProductItemSerializer,
+    ProductItemUpdateSerializer,
+    ProductListSerializer,
     ProductSerializer,
     # ProductStorageListSerializer,
     ProductStorageTransferSerializer,
@@ -209,6 +211,66 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        data = serializer.data
+
+        if getattr(instance, "_prefetched_objects_cache", None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(data)
+
+
+class ProductItemListPagination(PageNumberPagination):
+    page_size = 30
+    page_size_query_param = "page_size"
+
+
+class ProductItemListFilter(filters.FilterSet):
+    product = filters.ModelMultipleChoiceFilter(queryset=Product.objects.all())
+    storage = filters.ModelMultipleChoiceFilter(queryset=Storage.objects.all())
+    available = filters.BooleanFilter()
+    shelf_id = filters.AllValuesFilter()
+
+
+class ProductItemsListView(generics.ListAPIView):
+    """
+    Lists all Product items
+    """
+
+    queryset = ProductItem.objects.all()
+    serializer_class = ProductItemSerializer
+    pagination_class = ProductListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["modified_date", "id", "available", "product", "storage"]
+    ordering = ["-modified_date", "-id"]
+    filterset_class = ProductItemListFilter
+
+
+class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    View for modifying single Product item
+    """
+
+    queryset = ProductItem.objects.all()
+    serializer_class = ProductItemUpdateSerializer
+
+    def update(self, request, *args, **kwargs):
+        """
+        as modified date is read only and needs to be updated in only very specific situations.
+        copypasted the functions from librarys. (mixins.UpdateModelMixin)
+        when the "modify_date" value field is found in request body, only then the modified date is updated.
+        """
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = ProductItemUpdateSerializer(
+            instance, data=request.data, partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        if "modify_date" in request.data:
+            serializer.save(modified_date=timezone.now())
+        else:
+            serializer.save()
         data = serializer.data
 
         if getattr(instance, "_prefetched_objects_cache", None):

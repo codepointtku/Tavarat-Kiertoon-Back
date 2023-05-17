@@ -159,7 +159,7 @@ class UserCreateListView(APIView):
                 # back urls are only for testing purposes and to ease development to quickly access right urls
                 # should be removed when in deplayment stage from response
                 back_activate_url = "http://127.0.0.1:8000/users/activate/"
-                activate_url_back = f"{back_activate_url}{uid}/{token_for_user}/"
+                activate_url_back = f"back: {back_activate_url}     front: {settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"#{uid}/{token_for_user}/"
                 activate_url = (
                     f"{settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"
                 )

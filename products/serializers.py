@@ -127,6 +127,7 @@ class ColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Color
         fields = "__all__"
+        read_only_fields = ["default"]
 
 
 class StorageSerializer(serializers.ModelSerializer):
@@ -139,7 +140,8 @@ class StorageSchemaResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Storage
         fields = "__all__"
-        extra_kwargs = {"name": {"required": True},
+        extra_kwargs = {
+            "name": {"required": True},
             "address": {"required": True},
             "in_use": {"required": True},
         }

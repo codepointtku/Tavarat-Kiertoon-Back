@@ -108,7 +108,7 @@ def create_colors():
     """Creates color objects from the list."""
     colors = ["Punainen", "Sininen", "Vihreä", "Musta", "Valkoinen", "Ruskea"]
     for color in colors:
-        color_object = Color(name=color)
+        color_object = Color(name=color, default=True)
         color_object.save()
 
 

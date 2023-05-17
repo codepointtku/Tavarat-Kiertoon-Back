@@ -12,6 +12,7 @@ class Color(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255)
+    default = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f"Color: {self.name}({self.id})"
@@ -45,15 +46,11 @@ class Product(models.Model):
     id = models.BigAutoField(primary_key=True)
     available = models.BooleanField(default=False)
     barcode = models.CharField(max_length=255, default="")
-    category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, null=True
-    )
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     group_id = models.CharField(max_length=255, default="")
     name = models.CharField(max_length=255)
     price = models.FloatField(default=0.0)
-    storages = models.ForeignKey(
-        Storage, on_delete=models.SET_NULL, null=True
-    )
+    storages = models.ForeignKey(Storage, on_delete=models.SET_NULL, null=True)
     shelf_id = models.IntegerField(blank=True, null=True)
     free_description = models.TextField(default="", blank=True)
     pictures = models.ManyToManyField(Picture, blank=True)

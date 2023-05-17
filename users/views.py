@@ -329,62 +329,6 @@ class UserTokenRefreshView(TokenViewBase):
 
         return response
 
-
-@extend_schema(exclude=True)
-class UserLoginTestView(APIView):
-    """
-    this view is mainly used for testing purposes
-    will be removed later.
-    """
-
-    authentication_classes = [
-        #     #SessionAuthentication,
-        #     #BasicAuthentication,
-        #     #JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "GET": ["user_group"],
-        "POST": ["user_group"],
-        "PUT": ["user_group"],
-        "PATCH": ["user_group"],
-    }
-
-    queryset = CustomUser.objects.all()
-    serializer_class = UserPasswordSerializer
-
-    def get(self, request):
-        print("testing things, on the page now GET")
-        print(request.COOKIES)
-        content = {
-            "user": str(request.user),  # `django.contrib.auth.User` instance.
-            "auth": str(request.auth),  # None
-        }
-        print(content)
-        serializer_group = UserLimitedSerializer(request.user)
-
-        return Response(
-            {
-                "cookies": request.COOKIES,
-                "user": content,
-                "groups": serializer_group.data["groups"],
-            }
-        )
-
-    def post(self, request):
-        print("testing things POST")
-        print(request.COOKIES)
-        content = {
-            "user": str(request.user),  # `django.contrib.auth.User` instance.
-            "auth": str(request.auth),  # None
-        }
-        print(content)
-        serializer_class = UserPasswordSerializer
-
-        return Response(request.COOKIES)
-
-
 class UserLogoutView(APIView):
     """
     Logs out the user and (flush session just in case, mainly for use in testing at back)

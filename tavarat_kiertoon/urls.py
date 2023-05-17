@@ -115,10 +115,6 @@ urlpatterns = [
     path("users/activate/", UserActivationView.as_view()),
     path("users/password/resetemail/", UserPasswordResetMailView.as_view()),
     path(
-        "users/password/reset/<str:uidb64>/<str:token>/",
-        UserPasswordResetMailValidationView.as_view(),
-    ),
-    path(
         "users/password/reset/",
         UserPasswordResetMailValidationView.as_view(),
     ),

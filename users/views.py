@@ -43,7 +43,6 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     UserCreateSerializer,
     UserFullResponseSchemaSerializer,
     UserFullSerializer,
-    UserLimitedSerializer,
     UserLoginPostSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
@@ -658,7 +657,7 @@ class UserPasswordResetMailView(APIView):
             # back urls are only for testing purposes and to ease development to quickly access right urls
             # should be removed when in deplayment stage from response
             back_reset_url = "http://127.0.0.1:8000/users/password/reset/"
-            reset_url_back = f"{back_reset_url}{uid}/{token_for_user}/"
+            reset_url_back = f"{back_reset_url}"#{uid}/{token_for_user}/"
             reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
             message = "heres the password reset link you requested: " + reset_url
 
@@ -702,7 +701,6 @@ class UserPasswordResetMailValidationView(APIView):
     View that handless the password reset producre and updates the pw.
     needs the uid and user token created in UserPasswordResetMailView.
     Also activates the user if for some reason its been activated or needs to bew reactivated.
-    the 'uidb64'/'token' variant and GET method is only for testing and should not be used in deployment so DO NOT USE
     """
 
     serializer_class = UserPasswordChangeEmailValidationSerializer
@@ -730,31 +728,3 @@ class UserPasswordResetMailValidationView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
-
-    # get is used in testing should not be needed in deployment, will be removed later
-    @extend_schema(
-        exclude=True,
-        responses=inline_serializer(
-            name="test returns",
-            fields={
-                "msg": serializers.CharField(),
-                "uid": serializers.CharField(),
-                "token": serializers.CharField(),
-            },
-        ),
-    )
-    def get(self, request, *args, **kwargs):
-        if "uidb64" not in kwargs or "token" not in kwargs:
-            return Response(
-                "The URL path must contain 'uidb64' and 'token' parameters."
-            )
-
-        response = Response()
-        response.data = {
-            "msg: ": "MAGICC!!!!",
-            "uid": kwargs["uidb64"],
-            "token": kwargs["token"],
-        }
-        response.status_code = status.HTTP_200_OK
-
-        return response

@@ -137,7 +137,7 @@ class ProductUpdateSchemaResponseSerializer(ProductUpdateSerializer):
 
 class ProductStorageTransferSerializer(serializers.Serializer):
     storage = serializers.IntegerField()
-    products = serializers.ListField(child=serializers.IntegerField())
+    product_items = serializers.ListField(child=serializers.IntegerField())
 
 
 class ColorSerializer(serializers.ModelSerializer):

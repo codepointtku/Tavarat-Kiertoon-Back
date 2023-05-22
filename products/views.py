@@ -373,9 +373,9 @@ class ProductStorageTransferView(APIView):
 
     def put(self, request, *args, **kwargs):
         storage = Storage.objects.get(id=request.data["storage"])
-        products = Product.objects.filter(id__in=request.data["products"])
-        products.update(storage=storage)
-        serializer = ProductSerializer(products, many=True)
+        product_items = ProductItem.objects.filter(id__in=request.data["product_items"])
+        product_items.update(storage=storage)
+        serializer = ProductItemSerializer(product_items, many=True)
         return Response(serializer.data)
 
 

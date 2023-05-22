@@ -363,9 +363,9 @@ class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PictureSerializer
 
 
-# @extend_schema_view(
-#     put=extend_schema(responses=ProductStorageListSerializer(many=True))
-# )
+@extend_schema_view(
+    put=extend_schema(responses=ProductItemSchemaResponseSerializer(many=True))
+)
 class ProductStorageTransferView(APIView):
     """View for transfering list of products to different storage"""
 

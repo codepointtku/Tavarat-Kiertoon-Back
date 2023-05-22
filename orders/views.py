@@ -92,12 +92,13 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
             detailserializer = ShoppingCartDetailSerializer(updatedinstance)
             return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
-        changeable_product = ProductItem.objects.get(id=request.data["product_items"])
-        itemset = ProductItem.product_set.filter(available=True)
-        available_itemset = itemset.exclude(id__in=instance.product_items.values("id"))
-        removable_itemset = instance.product_items.filter(
-            product=changeable_product.product
+        changeable_product_item = ProductItem.objects.get(
+            id=request.data["product_items"]
         )
+        changeable_product = changeable_product_item.product
+        itemset = ProductItem.objects.filter(product=changeable_product, available=True)
+        available_itemset = itemset.exclude(id__in=instance.product_items.values("id"))
+        removable_itemset = instance.product_items.filter(product=changeable_product)
         amount = request.data["amount"]
 
         # comparing amount to number of product_items already in shoppingcart, proceeding accordingly

@@ -62,6 +62,7 @@ from users.views import (
     UserAddressEditView,
     UserCreateListView,
     UserDetailsListView,
+    UserEmailChangeView,
     UserLoginTestView,
     UserLoginView,
     UserLogoutView,
@@ -130,6 +131,7 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swag",
     ),
+    path("users/emailchange/", UserEmailChangeView.as_view()),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

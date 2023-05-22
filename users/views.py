@@ -840,3 +840,7 @@ class UserPasswordResetMailValidationView(APIView):
         response.status_code = status.HTTP_200_OK
 
         return response
+
+
+class UserEmailChangeView(APIView):
+    serializer_class = None

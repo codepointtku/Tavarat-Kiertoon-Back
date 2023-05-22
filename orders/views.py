@@ -92,10 +92,10 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
             detailserializer = ShoppingCartDetailSerializer(updatedinstance)
             return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
-        changeable_product_item = ProductItem.objects.get(
+        # changeable_cart_item = ProductItem.objects.get(id=request.data["product_items"])
+        changeable_product = ProductItem.objects.get(
             id=request.data["product_items"]
-        )
-        changeable_product = changeable_product_item.product
+        ).product
         itemset = ProductItem.objects.filter(product=changeable_product, available=True)
         available_itemset = itemset.exclude(id__in=instance.product_items.values("id"))
         removable_itemset = instance.product_items.filter(product=changeable_product)

@@ -7,7 +7,6 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import (
-    PolymorphicProxySerializer,
     extend_schema,
     extend_schema_view,
 )
@@ -32,6 +31,7 @@ from .serializers import (
     PictureSerializer,
     ProductCreateSchemaSerializer,
     ProductCreateSerializer,
+    ProductItemSchemaResponseSerializer,
     ProductItemSerializer,
     ProductItemUpdateSerializer,
     ProductSchemaResponseSerializer,
@@ -231,6 +231,9 @@ class ProductItemListFilter(filters.FilterSet):
     shelf_id = filters.AllValuesFilter()
 
 
+@extend_schema_view(
+    get=extend_schema(responses=ProductItemSchemaResponseSerializer()),
+)
 class ProductItemListView(generics.ListAPIView):
     """
     Lists all Product items

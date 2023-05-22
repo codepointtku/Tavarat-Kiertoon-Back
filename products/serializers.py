@@ -181,6 +181,21 @@ class ProductItemSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ProductItemSchemaResponseSerializer(serializers.ModelSerializer):
+    product = ProductSchemaResponseSerializer(read_only=True)
+    storage = StorageSchemaResponseSerializer(read_only=True)
+
+    class Meta:
+        model = ProductItem
+        fields = "__all__"
+        extra_kwargs = {
+            "available": {"required": True},
+            "modified_date": {"required": True},
+            "shelf_id": {"required": True},
+            "barcode": {"required": True},
+        }
+
+
 class ProductItemUpdateSerializer(serializers.ModelSerializer):
     """
     serializer for product items for purpose of updating it.

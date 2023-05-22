@@ -48,7 +48,7 @@ class TestOrders(TestCase):
             name="subcoffee2", parent=cls.test_parentcategory
         )
         cls.test_product1 = Product.objects.create(
-            category=cls.test_category,
+            category=cls.test_category1,
             name="nahkasohva",
             price=0,
             free_description="tämä sohva on nahkainen",
@@ -56,7 +56,7 @@ class TestOrders(TestCase):
             weight=50,
         )
         cls.test_product2 = Product.objects.create(
-            category=cls.test_category,
+            category=cls.test_category2,
             name="sohvanahka",
             price=0,
             free_description="tämä nahka on sohvainen",
@@ -92,19 +92,19 @@ class TestOrders(TestCase):
             barcode=1235,
         )
         cls.test_order = Order.objects.create(
-            user=cls.test_user, phone_number="1234567890"
+            user=cls.test_user1, phone_number="1234567890"
         )
         cls.test_order.product_items.set(
             [ProductItem.objects.get(id=cls.test_product_item1.id)]
         )
-        cls.test_shoppingcart = ShoppingCart.objects.create(user=cls.test_user)
+        cls.test_shoppingcart = ShoppingCart.objects.create(user=cls.test_user1)
         cls.test_shoppingcart.product_items.set(
             ProductItem.objects.filter(product=cls.test_product2)
         )
 
     def test_post_shopping_cart(self):
         url = "/shopping_carts/"
-        data = {"user": self.test_user.id, "products": [self.test_product.id]}
+        data = {"user": self.test_user1.id, "products": [self.test_product_item1.id]}
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
@@ -144,7 +144,7 @@ class TestOrders(TestCase):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
         response = self.client.get(url)
-        self.assertEqual(response.json()["user"], self.test_user.id)
+        self.assertEqual(response.json()["user"], self.test_user1.id)
 
     def test_empty_shopping_cart(self):
         url = "/shopping_cart/"
@@ -152,26 +152,26 @@ class TestOrders(TestCase):
         data = {"amount": -1}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
-        self.assertEqual(response.json()["products"], [])
+        self.assertEqual(response.json()["product_items"], [])
 
     def test_add_to_shopping_cart(self):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
-        data = {"products": self.test_product1.id, "amount": 1}
+        data = {"product_items": self.test_product_item1.id, "amount": 1}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
 
     def test_add_to_shopping_cart_amountovermax(self):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
-        data = {"products": self.test_product1.id, "amount": 10}
+        data = {"product_items": self.test_product_item1.id, "amount": 10}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
 
     def test_remove_from_shopping_cart(self):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
-        data = {"products": self.test_product.id, "amount": 0}
+        data = {"product_items": self.test_product_item1.id, "amount": 0}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
 
@@ -184,7 +184,7 @@ class TestOrders(TestCase):
         url = "/orders/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
-            "user": self.test_user.id,
+            "user": self.test_user1.id,
             "status": "Waiting",
             "delivery_address": "kuja123",
             "contact": "Antero Alakulo",

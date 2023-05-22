@@ -701,7 +701,7 @@ class UserPasswordResetMailValidationView(APIView):
     """
     View that handless the password reset producre and updates the pw.
     needs the uid and user token created in UserPasswordResetMailView.
-    Also activates the user if for some reason its been activated or needs to bew reactivated.
+    Also activates the user if for some reason its been activated or needs to be reactivated.
     """
 
     serializer_class = UserPasswordChangeEmailValidationSerializer

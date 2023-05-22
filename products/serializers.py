@@ -29,13 +29,13 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = "__all__"
 
-    def get_amount(self, obj):
+    def get_amount(self, obj) -> int:
         product_amount = ProductItem.objects.filter(
             product=obj.id, available=True
         ).count()
         return product_amount
 
-    def get_total_amount(self, obj):
+    def get_total_amount(self, obj) -> int:
         total_product_amount = ProductItem.objects.filter(product=obj.id).count()
         return total_product_amount
 

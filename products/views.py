@@ -116,8 +116,11 @@ class ProductFilter(filters.FilterSet):
 
 
 @extend_schema_view(
-    post=extend_schema(request=ProductCreateSchemaSerializer()),
-    get=extend_schema(responses=ProductSchemaResponseSerializer())
+    post=extend_schema(
+        request=ProductCreateSchemaSerializer(),
+        responses=ProductSchemaResponseSerializer(),
+    ),
+    get=extend_schema(responses=ProductSchemaResponseSerializer()),
 )
 class ProductListView(generics.ListCreateAPIView):
     """View for listing and creating products. Create includes creation of ProductItem and Picture"""

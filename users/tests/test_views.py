@@ -109,10 +109,9 @@ class TestUsers(TestCase):
             "/user/",
             "/users/groups/",
             f"/users/{user_for_testing.id}/groups/permission/",
-            "/user/edit/",
-            f"/users/{user_for_testing.id}/edit/",
+            f"/users/{user_for_testing.id}/",
             "/user/address/edit/",
-            f"/user/address/edit/{address_for_testing.id}/delete/",
+            f"/user/address/edit/{address_for_testing.id}/",
             f"/users/address/{address_for_testing.id}/",
             "/users/password/resetemail/",
             "/users/password/reset/",
@@ -421,12 +420,12 @@ class TestUsers(TestCase):
         url = "/users/1/"
         response = self.client.get(url, content_type="application/json")
         self.assertEqual(
-            response.status_code, 403, "without logging in should be forbidden"
+            response.status_code, 401, "without logging in should be unauthorized"
         )
-        url = "/users/52165445764567467668745983495834956349856394568934659834659834698596516/"
+        url = "/users/99999952165445764567467668745983495834956349856394568934659834659834698596516/"
         response = self.client.get(url, content_type="application/json")
         self.assertEqual(
-            response.status_code, 403, "without logging in should be forbidden"
+            response.status_code, 401, "without logging in should be unauthorized"
         )
 
         url = "/users/"
@@ -471,7 +470,7 @@ class TestUsers(TestCase):
         # anonymous
         response = self.client.get(url, content_type="application/json")
         self.assertEqual(
-            response.status_code, 403, "wihtout logging in should be forbidden"
+            response.status_code, 401, "wihtout logging in should be unauthorized"
         )
 
         # normal user
@@ -578,7 +577,7 @@ class TestUsers(TestCase):
         """
         test for users changing their own info
         """
-        url = "/user/edit/"
+        url = "/user/"
 
         # test without logging in (forbidden response)
         response = self.client.put(url)
@@ -611,7 +610,7 @@ class TestUsers(TestCase):
 
         # get existing users id for testing
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
-        url = f"/users/{user_for_testing.id}/edit/"
+        url = f"/users/{user_for_testing.id}/"
 
         # test response when not logged in
         response = self.client.get(url)
@@ -748,7 +747,7 @@ class TestUsers(TestCase):
             "id": address1.id,
         }
 
-        url = f"/user/address/edit/{address1.id}/delete/"
+        url = f"/user/address/edit/{address1.id}/"
         # testing that non owner of address delete should not go through
         self.login_test_admin()
         response = self.client.delete(url, data=data, content_type="application/json")

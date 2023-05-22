@@ -463,29 +463,34 @@ class UserDetailsListView(generics.ListAPIView):
     serializer_class = UserFullSerializer
 
 
-@extend_schema(responses=UserFullResponseSchemaSerializer)
-class UserSingleGetView(APIView):
+@extend_schema_view(
+    patch=extend_schema(exclude=True),
+    get=extend_schema(responses=UserFullResponseSchemaSerializer),
+)
+@extend_schema(responses=UserUpdateReturnSchemaSerializer)
+class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     """
-    Get single user with all database fields, no POST here
+    Get specific users info,
+    only some field can be updated
     """
 
-    # authentication_classes = [SessionAuthentication, BasicAuthentication]
     authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
+        # SessionAuthentication,
+        # BasicAuthentication,
+        # JWTAuthentication,
         CustomJWTAuthentication,
     ]
-    permission_classes = [IsAuthenticated, HasGroupPermission]
 
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["admin_group"],
         "POST": ["admin_group"],
         "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
     }
 
-    queryset = CustomUser.objects.all()
-    serializer_class = UserFullSerializer
+    serializer_class = UserUpdateSerializer
+    queryset = User.objects.all()
 
     def get(self, request, pk, format=None):
         try:
@@ -495,33 +500,6 @@ class UserSingleGetView(APIView):
 
         serializer = UserFullSerializer(user)
 
-        return Response(serializer.data)
-
-
-@extend_schema(responses=UserFullResponseSchemaSerializer)
-class UserLoggedInDetailView(APIView):
-    """
-    Get logged in users info
-    """
-
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-
-    required_groups = {
-        "GET": ["user_group"],
-        # "POST": ["user_group"],
-        "PUT": ["user_group"],
-    }
-    queryset = CustomUser.objects.all()
-    serializer_class = UserFullSerializer
-
-    def get(self, request, format=None):
-        serializer = self.serializer_class(request.user)
         return Response(serializer.data)
 
 
@@ -574,11 +552,14 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = GroupPermissionsSerializer
 
 
-@extend_schema(responses=UserUpdateReturnSchemaSerializer)
+@extend_schema_view(
+    get=extend_schema(responses=UserFullResponseSchemaSerializer),
+    put=extend_schema(responses=UserUpdateReturnSchemaSerializer),
+)
 class UserUpdateInfoView(APIView):
     """
     Get logged in users information and update it.
-    only fields that can be changed.
+    only some fields can be changed.
     """
 
     authentication_classes = [
@@ -593,16 +574,14 @@ class UserUpdateInfoView(APIView):
         "GET": ["user_group"],
         "POST": ["user_group"],
         "PUT": ["user_group"],
-        "PATCH": ["user_group"],
     }
 
     serializer_class = UserUpdateSerializer
     queryset = User.objects.all()
 
     def get(self, request, format=None):
-        user = User.objects.get(id=request.user.id)
-        serialized_data = self.serializer_class(user)
-        return Response(serialized_data.data)
+        serializer = UserFullSerializer(request.user)
+        return Response(serializer.data)
 
     def put(self, request, format=None):
         serializer = self.serializer_class(
@@ -611,32 +590,6 @@ class UserUpdateInfoView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-@extend_schema_view(patch=extend_schema(exclude=True))
-@extend_schema(responses=UserUpdateReturnSchemaSerializer)
-class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
-    """
-    Get specific users info for updating, field that can be updated
-    """
-
-    authentication_classes = [
-        # SessionAuthentication,
-        # BasicAuthentication,
-        # JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-    }
-
-    serializer_class = UserUpdateSerializer
-    queryset = User.objects.all()
 
 
 class UserAddressEditView(APIView, ListModelMixin):

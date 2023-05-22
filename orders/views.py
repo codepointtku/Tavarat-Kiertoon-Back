@@ -17,8 +17,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from products.models import Product, ProductItem
-from users.models import CustomUser
+from products.models import ProductItem
 from users.views import CustomJWTAuthentication
 
 from .models import Order, ShoppingCart

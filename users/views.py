@@ -12,10 +12,13 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
+from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.filters import OrderingFilter
 from rest_framework.mixins import ListModelMixin
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -357,6 +360,22 @@ class UserLogoutView(APIView):
         return response
 
 
+class UserListPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = "page_size"
+
+
+# class UserFilter(filters.FilterSet):
+#     class Meta:
+#         model = CustomUser
+#         fields = [
+#             "name",
+#             "email",
+#             "phone_number",
+#             "username",
+#         ]
+
+
 @extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserDetailsListView(generics.ListAPIView):
     """
@@ -370,6 +389,13 @@ class UserDetailsListView(generics.ListAPIView):
         CustomJWTAuthentication,
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
+
+    pagination_class = UserListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+
+    ordering_fields = ["id", "is_active", "creation_date", "last_login"]
+    ordering = ["id"]
+    # filterset_class = UserFilter
 
     required_groups = {
         "GET": ["admin_group"],

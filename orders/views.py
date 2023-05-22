@@ -91,7 +91,6 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
             detailserializer = ShoppingCartDetailSerializer(updatedinstance)
             return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
-        # changeable_cart_item = ProductItem.objects.get(id=request.data["product_items"])
         changeable_product = ProductItem.objects.get(
             id=request.data["product_items"]
         ).product
@@ -168,8 +167,8 @@ class OrderListView(ListCreateAPIView):
             serializer.save()
             order = Order.objects.get(id=serializer.data["id"])
             shopping_cart = ShoppingCart.objects.get(user=user.id)
-            for productitem in shopping_cart.product_items.all():
-                order.product_items.add(productitem)
+            for product_item in shopping_cart.product_items.all():
+                order.product_items.add(product_item)
             subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (
                 "Hei!\n"

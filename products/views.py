@@ -31,6 +31,8 @@ from .serializers import (
     PictureSerializer,
     ProductCreateSchemaSerializer,
     ProductCreateSerializer,
+    ProductItemDetailSchemaResponseSerializer,
+    ProductItemUpdateSchemaResponseSerializer,
     ProductItemSchemaResponseSerializer,
     ProductItemSerializer,
     ProductItemUpdateSerializer,
@@ -191,7 +193,8 @@ class ProductListView(generics.ListCreateAPIView):
         responses=ProductSchemaResponseSerializer(),
     ),
     put=extend_schema(
-        request=ProductUpdateSerializer(), responses=ProductUpdateSchemaResponseSerializer()
+        request=ProductUpdateSerializer(),
+        responses=ProductUpdateSchemaResponseSerializer(),
     ),
     patch=extend_schema(exclude=True),
 )
@@ -248,6 +251,14 @@ class ProductItemListView(generics.ListAPIView):
     filterset_class = ProductItemListFilter
 
 
+@extend_schema_view(
+    get=extend_schema(responses=ProductItemDetailSchemaResponseSerializer()),
+    put=extend_schema(
+        request=ProductItemUpdateSchemaResponseSerializer(),
+        responses=ProductItemDetailSchemaResponseSerializer(),
+    ),
+    patch=extend_schema(exclude=True),
+)
 class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     View for modifying single Product item

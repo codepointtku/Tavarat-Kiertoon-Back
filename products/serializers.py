@@ -131,7 +131,7 @@ class ProductUpdateSchemaResponseSerializer(ProductUpdateSerializer):
             "price": {"required": True},
             "free_description": {"required": True},
             "measurements": {"required": True},
-            "weight": {"required": True},            
+            "weight": {"required": True},
         }
 
 
@@ -207,4 +207,33 @@ class ProductItemUpdateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "modified_date": {"read_only": True},
             "product": {"read_only": True},
+        }
+
+
+class ProductItemDetailSchemaResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductItem
+        fields = "__all__"
+        extra_kwargs = {
+            "available": {"required": True},
+            "modified_date": {"required": True},
+            "shelf_id": {"required": True},
+            "barcode": {"required": True},
+            "product": {"required": True},
+            "storage": {"required": True},
+        }
+
+
+class ProductItemUpdateSchemaResponseSerializer(serializers.ModelSerializer):
+    modify_date = serializers.CharField()
+
+    class Meta:
+        model = ProductItem
+        exclude = ["modified_date", "product"]
+        extra_kwargs = {
+            "available": {"required": True},
+            "modify_date": {"required": True},
+            "shelf_id": {"required": True},
+            "barcode": {"required": True},
+            "storage": {"required": True},
         }

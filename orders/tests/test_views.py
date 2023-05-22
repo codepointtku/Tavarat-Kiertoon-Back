@@ -64,40 +64,42 @@ class TestOrders(TestCase):
             weight=50,
         )
         cls.test_product_item1 = ProductItem.objects.create(
-            product = cls.test_product1
-            available = True
-            storage = cls.test_storage1
-            shelf_id = 1
-            barcode = 1234
+            product=cls.test_product1,
+            available=True,
+            storage=cls.test_storage1,
+            shelf_id=1,
+            barcode=1234,
         )
         cls.test_product_item2 = ProductItem.objects.create(
-            product = cls.test_product1
-            available = True
-            storage = cls.test_storage1
-            shelf_id = 1
-            barcode = 1234
+            product=cls.test_product1,
+            available=True,
+            storage=cls.test_storage1,
+            shelf_id=1,
+            barcode=1234,
         )
         cls.test_product_item3 = ProductItem.objects.create(
-            product = cls.test_product2
-            available = True
-            storage = cls.test_storage2
-            shelf_id = 2
-            barcode = 1235
+            product=cls.test_product2,
+            available=True,
+            storage=cls.test_storage2,
+            shelf_id=2,
+            barcode=1235,
         )
         cls.test_product_item4 = ProductItem.objects.create(
-            product = cls.test_product2
-            available = True
-            storage = cls.test_storage2
-            shelf_id = 2
-            barcode = 1235
+            product=cls.test_product2,
+            available=True,
+            storage=cls.test_storage2,
+            shelf_id=2,
+            barcode=1235,
         )
         cls.test_order = Order.objects.create(
             user=cls.test_user, phone_number="1234567890"
         )
-        cls.test_order.products.set([Product.objects.get(id=cls.test_product1.id)])
+        cls.test_order.product_items.set(
+            [ProductItem.objects.get(id=cls.test_product_item1.id)]
+        )
         cls.test_shoppingcart = ShoppingCart.objects.create(user=cls.test_user)
-        cls.test_shoppingcart.products.set(
-            [Product.objects.get(id=cls.test_product.id)]
+        cls.test_shoppingcart.product_items.set(
+            ProductItem.objects.filter(product=cls.test_product2)
         )
 
     def test_post_shopping_cart(self):

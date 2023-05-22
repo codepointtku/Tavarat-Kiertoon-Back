@@ -201,8 +201,8 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         instance.product_items.clear()
-        for product in request.data["product_items"]:
-            instance.product_items.add(product)
+        for product_item in request.data["product_items"]:
+            instance.product_items.add(product_item)
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.

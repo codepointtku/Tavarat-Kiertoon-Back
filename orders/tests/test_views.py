@@ -224,7 +224,7 @@ class TestOrders(TestCase):
             "delivery_date": "2023-04-25T05:40:41.404Z",
             "phone_number": "11212121",
             "user": self.test_user1.id,
-            "products": [],
+            "product_items": [],
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(
@@ -242,17 +242,21 @@ class TestOrders(TestCase):
             "delivery_date": "2023-04-25T05:40:41.404Z",
             "phone_number": "11212121",
             "user": self.test_user1.id,
-            "products": [product.id for product in self.test_order.products.all()],
+            "product_items": [
+                product_item.id for product_item in self.test_order.product_items.all()
+            ],
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
 
         data = {
             "status": "Waiting",
-            "user": self.test_user.id,
+            "user": self.test_user1.id,
             "phone_number": "11212121",
             "delivery_date": "asd",
-            "products": [product.id for product in self.test_order.products.all()],
+            "products": [
+                product_item.id for product_item in self.test_order.product_items.all()
+            ],
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)

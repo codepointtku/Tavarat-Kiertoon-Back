@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from categories.models import Category
 from orders.models import Order, ShoppingCart
-from products.models import Color, Product, Storage
+from products.models import Color, Product, ProductItem, Storage
 from users.models import CustomUser
 
 
@@ -48,27 +48,22 @@ class TestOrders(TestCase):
             name="subcoffee2", parent=cls.test_parentcategory
         )
         cls.test_product = Product.objects.create(
-            name="nahkasohva",
-            group_id=1,
-            price=0,
             category=cls.test_category,
-            color=cls.test_color,
-            storages=cls.test_storage,
-            available=True,
+            name="nahkasohva",
+            price=0,
             free_description="tämä sohva on nahkainen",
+            color=cls.test_color,
             weight=50,
         )
         cls.test_product1 = Product.objects.create(
-            name="sohvanahka",
-            group_id=909,
-            price=0,
             category=cls.test_category,
-            color=cls.test_color,
-            storages=cls.test_storage,
-            available=True,
+            name="sohvanahka",
+            price=0,
             free_description="tämä nahka on sohvainen",
+            color=cls.test_color,
             weight=50,
         )
+        cls.test_product_item = ProductItem
         cls.test_order = Order.objects.create(
             user=cls.test_user, phone_number="1234567890"
         )

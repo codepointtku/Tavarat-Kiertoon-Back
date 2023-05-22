@@ -9,7 +9,7 @@ from users.models import CustomUser
 class TestOrders(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.test_user = CustomUser.objects.create_user(
+        cls.test_user1 = CustomUser.objects.create_user(
             first_name="Kahvi",
             last_name="Make",
             email="kahvimake@turku.fi",
@@ -20,10 +20,10 @@ class TestOrders(TestCase):
             city="Puuhamaa",
             username="kahvimake@turku.fi",
         )
-        cls.test_user.is_active = True
-        cls.test_user.save()
+        cls.test_user1.is_active = True
+        cls.test_user1.save()
 
-        cls.test_user1 = CustomUser.objects.create_user(
+        cls.test_user2 = CustomUser.objects.create_user(
             first_name="Kahvimpi",
             last_name="Markus",
             email="kahvimarkus@turku.fi",
@@ -34,20 +34,20 @@ class TestOrders(TestCase):
             city="Puuhamaa",
             username="kahvimarkus@turku.fi",
         )
-        cls.test_user1.is_active = True
-        cls.test_user1.save()
+        cls.test_user2.is_active = True
+        cls.test_user2.save()
 
         cls.test_color = Color.objects.create(name="punainen")
-        cls.test_storage = Storage.objects.create(name="mokkavarasto")
-        cls.test_storage1 = Storage.objects.create(name="italiangoldstorage")
+        cls.test_storage1 = Storage.objects.create(name="mokkavarasto")
+        cls.test_storage2 = Storage.objects.create(name="italiangoldstorage")
         cls.test_parentcategory = Category.objects.create(name="coffee")
-        cls.test_category = Category.objects.create(
+        cls.test_category1 = Category.objects.create(
             name="subcoffee", parent=cls.test_parentcategory
         )
-        cls.test_category1 = Category.objects.create(
+        cls.test_category2 = Category.objects.create(
             name="subcoffee2", parent=cls.test_parentcategory
         )
-        cls.test_product = Product.objects.create(
+        cls.test_product1 = Product.objects.create(
             category=cls.test_category,
             name="nahkasohva",
             price=0,
@@ -55,7 +55,7 @@ class TestOrders(TestCase):
             color=cls.test_color,
             weight=50,
         )
-        cls.test_product1 = Product.objects.create(
+        cls.test_product2 = Product.objects.create(
             category=cls.test_category,
             name="sohvanahka",
             price=0,
@@ -63,7 +63,34 @@ class TestOrders(TestCase):
             color=cls.test_color,
             weight=50,
         )
-        cls.test_product_item = ProductItem
+        cls.test_product_item1 = ProductItem.objects.create(
+            product = cls.test_product1
+            available = True
+            storage = cls.test_storage1
+            shelf_id = 1
+            barcode = 1234
+        )
+        cls.test_product_item2 = ProductItem.objects.create(
+            product = cls.test_product1
+            available = True
+            storage = cls.test_storage1
+            shelf_id = 1
+            barcode = 1234
+        )
+        cls.test_product_item3 = ProductItem.objects.create(
+            product = cls.test_product2
+            available = True
+            storage = cls.test_storage2
+            shelf_id = 2
+            barcode = 1235
+        )
+        cls.test_product_item4 = ProductItem.objects.create(
+            product = cls.test_product2
+            available = True
+            storage = cls.test_storage2
+            shelf_id = 2
+            barcode = 1235
+        )
         cls.test_order = Order.objects.create(
             user=cls.test_user, phone_number="1234567890"
         )

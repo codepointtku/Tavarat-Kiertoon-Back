@@ -234,10 +234,8 @@ class SubSerializerForGroupsSchema(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        #fields = "__all__"
-        exclude = [
-            "permissions"
-        ]
+        # fields = "__all__"
+        exclude = ["permissions"]
 
 
 class UserFullSerializer(serializers.ModelSerializer):
@@ -362,6 +360,7 @@ class UserAddressPutRequestSerializer(UserAddressSerializer):
 class MessageSerializer(serializers.Serializer):
     message = serializers.CharField(max_length=255)
 
+
 class UserFullResponseSchemaSerializer(serializers.ModelSerializer):
     """
     FOR SCHEMA, Serializer for users, all database fields
@@ -378,13 +377,15 @@ class UserFullResponseSchemaSerializer(serializers.ModelSerializer):
             "is_staff",
             "is_superuser",
             "user_permissions",
-        ]       
-        extra_kwargs = {"last_login": {"required": True},
+        ]
+        extra_kwargs = {
+            "last_login": {"required": True},
             "first_name": {"required": True},
             "last_name": {"required": True},
             "phone_number": {"required": True},
-            "is_active" : {"required": True},
+            "is_active": {"required": True},
         }
+
 
 class UserUpdateReturnSchemaSerializer(serializers.ModelSerializer):
     """
@@ -393,22 +394,28 @@ class UserUpdateReturnSchemaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["first_name","last_name", "phone_number"]
-        extra_kwargs = {"first_name": {"required": True}, "last_name": {"required": True},
+        fields = ["first_name", "last_name", "phone_number"]
+        extra_kwargs = {
+            "first_name": {"required": True},
+            "last_name": {"required": True},
             "phone_number": {"required": True},
         }
+
 
 class GroupPermissionsResponseSchemaSerializer(serializers.ModelSerializer):
     """
     FOR SCHEMA
     """
+
     class Meta:
         model = CustomUser
         fields = [
             "groups",
         ]
-        extra_kwargs = {"groups": {"required": True},
+        extra_kwargs = {
+            "groups": {"required": True},
         }
+
 
 class UserCreateReturnResponseSchemaSerializer(serializers.ModelSerializer):
     """
@@ -430,6 +437,7 @@ class UserCreateReturnResponseSchemaSerializer(serializers.ModelSerializer):
             "phone_number",
             "message",
         ]
+
 
 class UsersLoginRefreshResponseSchemaSerializer(serializers.ModelSerializer):
     """

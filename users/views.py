@@ -144,7 +144,7 @@ class UserCreateListView(APIView):
             cart_obj.save()
 
             # create email verification for user creation
-            if settings.TEST_DEBUG: #settings.DEBUG:
+            if settings.TEST_DEBUG:  # settings.DEBUG:
                 print("debug päällä, activating user without email")
                 activate_url_back = (
                     "debug on, auto activated no need to viist activaion place"
@@ -159,7 +159,7 @@ class UserCreateListView(APIView):
                 # back urls are only for testing purposes and to ease development to quickly access right urls
                 # should be removed when in deplayment stage from response
                 back_activate_url = "http://127.0.0.1:8000/users/activate/"
-                activate_url_back = f"back: {back_activate_url}     front: {settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"#{uid}/{token_for_user}/"
+                activate_url_back = f"back: {back_activate_url}     front: {settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"  # {uid}/{token_for_user}/"
                 activate_url = (
                     f"{settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"
                 )
@@ -327,6 +327,7 @@ class UserTokenRefreshView(TokenViewBase):
         response.data = response_data.data
 
         return response
+
 
 class UserLogoutView(APIView):
     """
@@ -657,7 +658,7 @@ class UserPasswordResetMailView(APIView):
             # back urls are only for testing purposes and to ease development to quickly access right urls
             # should be removed when in deplayment stage from response
             back_reset_url = "http://127.0.0.1:8000/users/password/reset/"
-            reset_url_back = f"{back_reset_url}"#{uid}/{token_for_user}/"
+            reset_url_back = f"{back_reset_url}"  # {uid}/{token_for_user}/"
             reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
             message = "heres the password reset link you requested: " + reset_url
 
@@ -728,4 +729,3 @@ class UserPasswordResetMailValidationView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
-        

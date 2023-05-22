@@ -40,6 +40,20 @@ class ProductSerializer(serializers.ModelSerializer):
         return total_product_amount
 
 
+class ProductSchemaResponseSerializer(ProductSerializer):
+    class Meta:
+        model = Product
+        fields = "__all__"
+        extra_kwargs = {
+            "price": {"required": True},
+            "free_description": {"required": True},
+            "measurements": {"required": True},
+            "weight": {"required": True},
+            "category": {"required": True},
+            "color": {"required": True},
+        }
+
+
 class ProductItemCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductItem

@@ -36,6 +36,7 @@ from .serializers import (
     ProductItemSerializer,
     ProductItemUpdateSerializer,
     # ProductListSerializer,
+    ProductSchemaResponseSerializer,
     ProductSerializer,
     # ProductStorageListSerializer,
     ProductStorageTransferSerializer,
@@ -114,7 +115,10 @@ class ProductFilter(filters.FilterSet):
         return or_queryset
 
 
-@extend_schema_view(post=extend_schema(request=ProductCreateSchemaSerializer()))
+@extend_schema_view(
+    post=extend_schema(request=ProductCreateSchemaSerializer()),
+    get=extend_schema(responses=ProductSchemaResponseSerializer())
+)
 class ProductListView(generics.ListCreateAPIView):
     """View for listing and creating products. Create includes creation of ProductItem and Picture"""
 

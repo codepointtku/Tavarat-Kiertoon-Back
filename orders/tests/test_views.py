@@ -104,7 +104,10 @@ class TestOrders(TestCase):
 
     def test_post_shopping_cart(self):
         url = "/shopping_carts/"
-        data = {"user": self.test_user1.id, "products": [self.test_product_item1.id]}
+        data = {
+            "user": self.test_user1.id,
+            "product_items": [self.test_product_item1.id],
+        }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
@@ -194,7 +197,7 @@ class TestOrders(TestCase):
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
-        data = {"user": self.test_user.id}
+        data = {"user": self.test_user1.id}
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
 
@@ -220,11 +223,14 @@ class TestOrders(TestCase):
             "order_info": "string",
             "delivery_date": "2023-04-25T05:40:41.404Z",
             "phone_number": "11212121",
-            "user": self.test_user.id,
+            "user": self.test_user1.id,
             "products": [],
         }
         response = self.client.put(url, data, content_type="application/json")
-        self.assertEqual([product.id for product in self.test_order.products.all()], [])
+        self.assertEqual(
+            [product_item.id for product_item in self.test_order.product_items.all()],
+            [],
+        )
 
     def test_update_order(self):
         url = f"/orders/{self.test_order.id}/"
@@ -235,7 +241,7 @@ class TestOrders(TestCase):
             "order_info": "string",
             "delivery_date": "2023-04-25T05:40:41.404Z",
             "phone_number": "11212121",
-            "user": self.test_user.id,
+            "user": self.test_user1.id,
             "products": [product.id for product in self.test_order.products.all()],
         }
         response = self.client.put(url, data, content_type="application/json")

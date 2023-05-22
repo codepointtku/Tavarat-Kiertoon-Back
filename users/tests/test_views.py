@@ -591,12 +591,12 @@ class TestUsers(TestCase):
         self.assertEqual(response.status_code, 200, "should have access user")
 
         # testing changing the info if succesfull in database
-        data = {"name": "Kinkku Kinkku!222", "phone_number": "kinkku!2222"}
+        data = {"first_name": "Kinkku", "last_name": "Kinkku!222", "phone_number": "kinkku!2222"}
         response = self.client.put(url, data, content_type="application/json")
         user2 = CustomUser.objects.get(id=user.id)
 
         # check the changed data is the same data as the changed data instead that just the data has changed.
-        self.assertNotEqual(user.name, user2.name, "user name should have changed")
+        self.assertNotEqual(user.first_name, user2.first_name, "user name should have changed")
         self.assertNotEqual(
             user.phone_number,
             user2.phone_number,
@@ -639,15 +639,15 @@ class TestUsers(TestCase):
 
         # changing the user info
         user1 = CustomUser.objects.get(username="testi1@turku.fi")
-        user1_info = [user1.name, user1.phone_number]
-        data = {"name": "Kinkku Kinkku!222", "phone_number": "2222222"}
+        user1_info = [user1.first_name, user1.phone_number]
+        data = {"first_name": "Kinkku Kinkku!222", "phone_number": "2222222"}
         response = self.client.put(url, data, content_type="application/json")
 
         # cheking that the info has changed in database
         user2 = CustomUser.objects.get(username="testi1@turku.fi")
-        user2_info = [user2.name, user2.phone_number]
+        user2_info = [user2.first_name, user2.phone_number]
         self.assertNotEqual(user1_info, user2_info, "users info should have cahnged")
-        self.assertEqual(user2.name, "Kinkku Kinkku!222", "user info changeed wrongly")
+        self.assertEqual(user2.first_name, "Kinkku Kinkku!222", "user info changeed wrongly")
         self.assertEqual(user2.phone_number, "2222222", "user info changeed wrongly")
 
     def test_user_address(self):

@@ -1,19 +1,17 @@
 from django.conf import settings
-from django.contrib.auth import authenticate, forms, get_user_model, login, logout
+from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.http import Http404
 from django.middleware import csrf
-from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
@@ -33,7 +31,7 @@ from orders.models import ShoppingCart
 from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
-from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSerializer,; UserNamesSerializer,
+from .serializers import (
     GroupNameSerializer,
     GroupPermissionsResponseSchemaSerializer,
     GroupPermissionsSerializer,
@@ -49,7 +47,6 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     UserLoginPostSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
-    UserPasswordSerializer,
     UsersLoginRefreshResponseSchemaSerializer,
     UsersLoginRefreshResponseSerializer,
     UserTokenValidationSerializer,
@@ -226,7 +223,6 @@ class UserLoginView(APIView):
     Login with jwt token and as http only cookie
     """
 
-    # serializer_class = UserPasswordSerializer
     serializer_class = UserLoginPostSerializer
 
     @extend_schema(

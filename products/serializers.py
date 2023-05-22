@@ -111,6 +111,28 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
+        extra_kwargs = {
+            "name": {"required": True},
+            "category": {"required": True},
+            "color": {"required": True},
+            "pictures": {"required": True},
+        }
+
+
+class ProductUpdateSchemaResponseSerializer(ProductUpdateSerializer):
+    class Meta:
+        model = Product
+        fields = "__all__"
+        extra_kwargs = {
+            "name": {"required": True},
+            "category": {"required": True},
+            "color": {"required": True},
+            "pictures": {"required": True},
+            "price": {"required": True},
+            "free_description": {"required": True},
+            "measurements": {"required": True},
+            "weight": {"required": True},            
+        }
 
 
 # class ProductListSerializer(serializers.ModelSerializer):

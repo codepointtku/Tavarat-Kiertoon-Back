@@ -41,6 +41,7 @@ from .serializers import (
     # ProductStorageListSerializer,
     ProductStorageTransferSerializer,
     ProductUpdateSerializer,
+    ProductUpdateSchemaResponseSerializer,
     ShoppingCartAvailableAmountListSerializer,
     StorageSchemaResponseSerializer,
     StorageSerializer,
@@ -189,11 +190,11 @@ class ProductListView(generics.ListCreateAPIView):
 
 
 @extend_schema_view(
-    # get=extend_schema(
-    #     responses=ProductListSerializer(),
-    # ),
+    get=extend_schema(
+        responses=ProductSchemaResponseSerializer(),
+    ),
     put=extend_schema(
-        request=ProductUpdateSerializer(), responses=ProductUpdateSerializer()
+        request=ProductUpdateSerializer(), responses=ProductUpdateSchemaResponseSerializer()
     ),
     patch=extend_schema(exclude=True),
 )

@@ -144,7 +144,10 @@ class TestOrders(TestCase):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
         response = self.client.get(url)
-        self.assertEqual(response.json()["user"], self.test_user1.id)
+        self.assertEqual(
+            response.json()["user"],
+            CustomUser.objects.get(username="kahvimake@turku.fi").id,
+        )
 
     def test_empty_shopping_cart(self):
         url = "/shopping_cart/"
@@ -211,6 +214,7 @@ class TestOrders(TestCase):
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
+        self.assertEqual(Order.objects.all().count(), 2)
 
         data = {"user": self.test_user1.id}
         response = self.client.post(url, data, content_type="application/json")
@@ -228,6 +232,10 @@ class TestOrders(TestCase):
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()[0]["user"],
+            CustomUser.objects.get(username="kahvimake@turku.fi").id,
+        )
 
     def test_remove_products_from_order(self):
         url = f"/orders/{self.test_order.id}/"
@@ -243,7 +251,7 @@ class TestOrders(TestCase):
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(
-            [product_item.id for product_item in self.test_order.product_items.all()],
+            response.json()["product_items"],
             [],
         )
 

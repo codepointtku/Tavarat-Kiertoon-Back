@@ -25,7 +25,7 @@ from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
 from .models import Color, Picture, Product, ProductItem, Storage
-from .serializers import (
+from .serializers import (  # ProductListSerializer,; ProductStorageListSerializer,
     ColorSerializer,
     PictureCreateSerializer,
     PictureSerializer,
@@ -38,6 +38,7 @@ from .serializers import (
     ProductItemUpdateSerializer,
     ProductSchemaResponseSerializer,
     ProductSerializer,
+    # ProductStorageListSerializer,
     ProductStorageTransferSerializer,
     ProductUpdateSerializer,
     ProductUpdateSchemaResponseSerializer,
@@ -400,9 +401,9 @@ class ShoppingCartAvailableAmountList(APIView):
         cartserializer = ShoppingCartDetailSerializer(instance)
         product_ids = []
         duplicate_checker = []
-        for Product_item in cartserializer.data["products"]:
-            if Product_item["product"]["id"] not in duplicate_checker:
-                product_id = Product_item["product"]["id"]
+        for product_item in cartserializer.data["product_items"]:
+            if product_item["product"]["id"] not in duplicate_checker:
+                product_id = product_item["product"]["id"]
                 amount = ProductItem.objects.filter(
                     product=product_id, available=True
                 ).count()

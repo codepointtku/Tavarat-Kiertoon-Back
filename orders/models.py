@@ -9,7 +9,7 @@ from users.models import CustomUser
 class ShoppingCart(models.Model):
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-    products = models.ManyToManyField(ProductItem)
+    product_items = models.ManyToManyField(ProductItem)  # product_items?
     date = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
@@ -21,7 +21,7 @@ class Order(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-    products = models.ManyToManyField(ProductItem, blank=True)
+    product_items = models.ManyToManyField(ProductItem, blank=True)
     status = models.CharField(max_length=255)
     delivery_address = models.CharField(max_length=255)
     contact = models.CharField(max_length=255)

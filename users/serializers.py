@@ -6,7 +6,7 @@ from django.utils.http import urlsafe_base64_decode
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers, status
 
-from .custom_functions import custom_time_token_generator
+from .custom_functions import custom_time_token_generator, validate_email_domain
 from .models import CustomUser, UserAddress
 
 User = get_user_model()
@@ -338,6 +338,21 @@ class NewEmailSerializer(serializers.Serializer):
     """
 
     new_email = serializers.CharField(max_length=255)
+
+    def validate_new_email(self, value):
+        """
+        validating the new amil address
+        """
+        if "@" not in value:
+            msg = "not an email address (no @)"
+            raise serializers.ValidationError(msg)
+
+        email_split = value.split("@")
+        if not validate_email_domain(email_split[1]):
+            msg = "not valid domain for email"
+            raise serializers.ValidationError(msg)
+
+        return value
 
 
 # -----------------------------------------------------------------------

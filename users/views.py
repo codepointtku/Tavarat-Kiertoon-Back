@@ -878,6 +878,6 @@ class UserEmailChangeView(APIView):
 
         else:
             return Response(
-                "non valid email",
+                f"non valid email: {serializer.errors}",
                 status=status.HTTP_200_OK,
             )

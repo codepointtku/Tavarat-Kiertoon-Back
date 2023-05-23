@@ -16,7 +16,7 @@ class TestOrders(TestCase):
             phone_number="1112223344",
             password="asd123",
             address="Karvakuja 1",
-            zip_code="100500",
+            zip_code="100100",
             city="Puuhamaa",
             username="kahvimake@turku.fi",
         )

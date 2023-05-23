@@ -219,6 +219,7 @@ class TestOrders(TestCase):
         data = {"user": self.test_user1.id}
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(Order.objects.all().count(), 2)
 
     def test_get_order(self):
         url = f"/orders/{self.test_order.id}/"

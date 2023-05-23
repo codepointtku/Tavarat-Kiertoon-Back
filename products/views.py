@@ -152,12 +152,13 @@ class ProductListView(generics.ListCreateAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def post(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         color_checked_data = color_check_create(request.data)
         serializer = ProductCreateSerializer(data=color_checked_data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(status=status.HTTP_201_CREATED)
+        productdata = serializer.save()
+        response = ProductSerializer(productdata)
+        return Response(data=response.data, status=status.HTTP_201_CREATED)
 
         """ Picture creation logic in Product create, not in use for now"""
         # # modified_request = [product_item] * amount

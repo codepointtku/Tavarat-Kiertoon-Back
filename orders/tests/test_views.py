@@ -258,11 +258,16 @@ class TestOrders(TestCase):
             "phone_number": "11212121",
             "user": self.test_user1.id,
             "product_items": [
-                product_item.id for product_item in self.test_order.product_items.all()
+                product_item.id
+                for product_item in self.test_shoppingcart.product_items.all()
             ],
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
+        self.assertQuerysetEqual(
+            self.test_shoppingcart.product_items.all().order_by("id"),
+            self.test_order.product_items.all().order_by("id"),
+        )
 
         data = {
             "status": "Waiting",

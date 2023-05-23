@@ -116,10 +116,13 @@ class TestProducts(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(ProductItem.objects.all().count(), 20)
 
-    # def test_get_products_search(self):
-    #     url = "/products/?search=sohva"
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, 200)
+    def test_get_products_search(self):
+        url = f"/products/?search={self.test_product.name}"
+        response = self.client.get(url)
+        print("ASD")
+        # print(json(response.content))
+        self.assertEqual(response.status_code, 200)
+        # self.assertEqual(json.content.results.count(), 1)
 
     # def test_get_products_search_multiple_parameters(self):
     #     url = f"/products/?search=sohva&color={self.test_color.id}"

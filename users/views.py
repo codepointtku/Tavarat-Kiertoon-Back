@@ -145,9 +145,9 @@ class UserCreateListView(APIView):
 
             # create email verification for user creation
             if settings.TEST_DEBUG:  # settings.DEBUG:
-                print("debug päällä, activating user without email")
+                # print("debug päällä, activating user without email")
                 activate_url_back = (
-                    "debug on, auto activated no need to viist activaion place"
+                    "debug on, user auto activated no need to visit activation place"
                 )
                 user.is_active = True
                 user.save()

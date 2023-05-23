@@ -297,6 +297,9 @@ class BikeTypeListView(generics.ListCreateAPIView):
     serializer_class = BikeTypeSerializer
 
 
+@extend_schema_view(
+    patch=extend_schema(exclude=True),
+)
 class BikeTypeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeType.objects.all()
     serializer_class = BikeTypeSerializer
@@ -307,6 +310,9 @@ class BikeBrandListView(generics.ListCreateAPIView):
     serializer_class = BikeBrandSerializer
 
 
+@extend_schema_view(
+    patch=extend_schema(exclude=True),
+)
 class BikeBrandDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeBrand.objects.all()
     serializer_class = BikeBrandSerializer
@@ -317,6 +323,9 @@ class BikeSizeListView(generics.ListCreateAPIView):
     serializer_class = BikeSizeSerializer
 
 
+@extend_schema_view(
+    patch=extend_schema(exclude=True),
+)
 class BikeSizeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeSize.objects.all()
     serializer_class = BikeSizeSerializer

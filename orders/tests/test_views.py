@@ -163,6 +163,11 @@ class TestOrders(TestCase):
         data = {"product": self.test_product1.id, "amount": 1}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
+        self.assertEqual(
+            self.test_shoppingcart.product_items.filter(
+                product=self.test_product1
+            ).count()
+        )
 
     def test_add_to_shopping_cart_amountovermax(self):
         url = "/shopping_cart/"

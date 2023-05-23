@@ -108,12 +108,13 @@ class TestProducts(TestCase):
         url = "/products/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(Product.objects.all().count(), 2)
 
-
-    # def test_get_storageview_products(self):
-    #     url = "/storage/products/"
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, 200)
+    def test_get_productitems(self):
+        url = "/products/items/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(ProductItem.objects.all().count(), 20)
 
     # def test_get_products_search(self):
     #     url = "/products/?search=sohva"

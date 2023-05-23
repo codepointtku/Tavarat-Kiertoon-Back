@@ -63,32 +63,26 @@ class TestOrders(TestCase):
             color=cls.test_color,
             weight=50,
         )
-        for i in range(5):
+        for i in range(13):
             available = True
             if i % 5 == 0:
                 available = False
-            cls.test_product_item1 = ProductItem.objects.create(
-                product=cls.test_product1,
-                available=available,
-                storage=cls.test_storage1,
-                shelf_id=1,
-                barcode=1234,
-            )
-
-        cls.test_product_item3 = ProductItem.objects.create(
-            product=cls.test_product2,
-            available=True,
-            storage=cls.test_storage2,
-            shelf_id=2,
-            barcode=1235,
-        )
-        cls.test_product_item4 = ProductItem.objects.create(
-            product=cls.test_product2,
-            available=True,
-            storage=cls.test_storage2,
-            shelf_id=2,
-            barcode=1235,
-        )
+            if i <= 5:
+                cls.test_product_item1 = ProductItem.objects.create(
+                    product=cls.test_product1,
+                    available=available,
+                    storage=cls.test_storage1,
+                    shelf_id=1,
+                    barcode=1234,
+                )
+            else:
+                cls.test_product_item2 = ProductItem.objects.create(
+                    product=cls.test_product2,
+                    available=available,
+                    storage=cls.test_storage2,
+                    shelf_id=2,
+                    barcode=1235,
+                )
         cls.test_order = Order.objects.create(
             user=cls.test_user1, phone_number="1234567890"
         )
@@ -98,6 +92,11 @@ class TestOrders(TestCase):
         cls.test_shoppingcart = ShoppingCart.objects.create(user=cls.test_user1)
         cls.test_shoppingcart.product_items.set(
             ProductItem.objects.filter(product=cls.test_product2)
+        )
+        cls.test_shoppingcart.product_items.add(
+            ProductItem.objects.filter(
+                product=cls.test_product1, available=True
+            ).first()
         )
 
     def test_post_shopping_cart(self):
@@ -158,14 +157,14 @@ class TestOrders(TestCase):
     def test_add_to_shopping_cart(self):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
-        data = {"product": self.test_product1.id, "amount": 1}
+        data = {"product": self.test_product1.id, "amount": 2}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
         self.assertEqual(
             self.test_shoppingcart.product_items.filter(
                 product=self.test_product1
             ).count(),
-            1,
+            2,
         )
 
     def test_add_to_shopping_cart_amountovermax(self):
@@ -187,6 +186,11 @@ class TestOrders(TestCase):
         data = {"product": self.test_product1.id, "amount": 0}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
+        print(
+            self.test_shoppingcart.product_items.filter(
+                product=self.test_product1
+            ).count()
+        )
 
     def test_get_orders(self):
         url = "/orders/?status=Waiting"

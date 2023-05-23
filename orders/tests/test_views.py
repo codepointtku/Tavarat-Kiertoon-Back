@@ -63,20 +63,18 @@ class TestOrders(TestCase):
             color=cls.test_color,
             weight=50,
         )
-        cls.test_product_item1 = ProductItem.objects.create(
-            product=cls.test_product1,
-            available=True,
-            storage=cls.test_storage1,
-            shelf_id=1,
-            barcode=1234,
-        )
-        cls.test_product_item2 = ProductItem.objects.create(
-            product=cls.test_product1,
-            available=True,
-            storage=cls.test_storage1,
-            shelf_id=1,
-            barcode=1234,
-        )
+        for i in range(5):
+            available = True
+            if i % 5 == 0:
+                available = False
+            cls.test_product_item1 = ProductItem.objects.create(
+                product=cls.test_product1,
+                available=available,
+                storage=cls.test_storage1,
+                shelf_id=1,
+                barcode=1234,
+            )
+
         cls.test_product_item3 = ProductItem.objects.create(
             product=cls.test_product2,
             available=True,
@@ -166,7 +164,8 @@ class TestOrders(TestCase):
         self.assertEqual(
             self.test_shoppingcart.product_items.filter(
                 product=self.test_product1
-            ).count()
+            ).count(),
+            1,
         )
 
     def test_add_to_shopping_cart_amountovermax(self):

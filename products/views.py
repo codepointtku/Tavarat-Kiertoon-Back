@@ -25,7 +25,7 @@ from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
 from .models import Color, Picture, Product, ProductItem, Storage
-from .serializers import (  # ProductListSerializer,; ProductStorageListSerializer,
+from .serializers import (
     ColorSerializer,
     PictureCreateSerializer,
     PictureSerializer,
@@ -38,7 +38,6 @@ from .serializers import (  # ProductListSerializer,; ProductStorageListSerializ
     ProductItemUpdateSerializer,
     ProductSchemaResponseSerializer,
     ProductSerializer,
-    # ProductStorageListSerializer,
     ProductStorageTransferSerializer,
     ProductUpdateSerializer,
     ProductUpdateSchemaResponseSerializer,

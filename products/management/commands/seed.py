@@ -23,7 +23,6 @@ from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
 from orders.models import Order, ShoppingCart
-from orders.views import product_availibility_check
 from products.models import Color, Picture, Product, ProductItem, Storage
 from users.models import CustomUser, UserAddress
 
@@ -733,14 +732,14 @@ def create_shopping_carts():
         cart_obj = ShoppingCart(user=user)
         cart_obj.save()
     queryset = ShoppingCart.objects.all()
-    products = [
+    product_items = [
         product_item.id for product_item in ProductItem.objects.filter(available=True)
     ]
     for query in queryset:
         if query.user.username == "super":
-            query.products.set(random.sample(products, 5))
+            query.product_items.set(random.sample(product_items, 5))
         else:
-            query.products.set(random.sample(products, random.randint(1, 6)))
+            query.product_items.set(random.sample(product_items, random.randint(1, 6)))
 
 
 def create_orders():
@@ -792,8 +791,8 @@ def create_orders():
             phone_number=user.phone_number,
         )
         order_obj.save()
-        for product_id in product_availibility_check(user.id):
-            order_obj.products.add(product_id)
+        for product_id in ShoppingCart.objects.get(user=user).product_items.all():
+            order_obj.product_items.add(product_id)
 
 
 def create_bulletins():

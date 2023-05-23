@@ -17,8 +17,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from products.models import Product
-from users.models import CustomUser
+from products.models import Product, ProductItem
 from users.views import CustomJWTAuthentication
 
 from .models import Order, ShoppingCart
@@ -35,23 +34,7 @@ from .serializers import (
     ShoppingCartSerializer,
 )
 
-
 # Create your views here.
-def product_availibility_check(user_id):
-    shopping_cart = ShoppingCart.objects.get(user_id=user_id)
-    product_list = shopping_cart.products.all()
-    product_ids = [product.id for product in product_list]
-
-    def available_product(product: object):
-        for same_product in Product.objects.filter(group_id=product.group_id):
-            if same_product.available and same_product.id not in product_ids:
-                product_ids.append(same_product.id)
-                return same_product.id
-
-    return [
-        product.id if product.available else available_product(product)
-        for product in product_list
-    ]
 
 
 @extend_schema_view(
@@ -103,30 +86,30 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
             return Response("Shopping cart for this user does not exist")
         # if amount is -1, clear users ShoppingCart
         if request.data["amount"] == -1:
-            instance.products.clear()
+            instance.product_items.clear()
             updatedinstance = ShoppingCart.objects.get(user=request.user)
             detailserializer = ShoppingCartDetailSerializer(updatedinstance)
             return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
-        cartproduct = Product.objects.get(id=request.data["products"])
-        itemset = Product.objects.filter(group_id=cartproduct.group_id, available=True)
-        available_itemset = itemset.exclude(id__in=instance.products.values("id"))
-        removable_itemset = instance.products.filter(group_id=cartproduct.group_id)
+        changeable_product = Product.objects.get(id=request.data["product"])
+        itemset = ProductItem.objects.filter(product=changeable_product, available=True)
+        available_itemset = itemset.exclude(id__in=instance.product_items.values("id"))
+        removable_itemset = instance.product_items.filter(product=changeable_product)
         amount = request.data["amount"]
 
-        #comparing amount to number of products already in shoppingcart, proceeding accordingly
+        # comparing amount to number of product_items already in shoppingcart, proceeding accordingly
         if len(removable_itemset) < amount:
             amount -= len(removable_itemset)
             if len(available_itemset) < amount:
                 amount = len(available_itemset)
             for i in range(amount):
-                instance.products.add(available_itemset[i])
-        
+                instance.product_items.add(available_itemset[i])
+
         else:
             amount -= len(removable_itemset)
-            amount *= -1       
+            amount *= -1
             for i in range(amount):
-                instance.products.remove(removable_itemset[i])
+                instance.product_items.remove(removable_itemset[i])
 
         updatedinstance = ShoppingCart.objects.get(user=request.user)
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)
@@ -168,17 +151,22 @@ class OrderListView(ListCreateAPIView):
     ordering_fields = ["id"]
     ordering = ["-id"]
     filterset_class = OrderFilter
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
 
     def post(self, request, *args, **kwargs):
-        user_id = request.data["user"]
-        available_products_ids = product_availibility_check(user_id)
+        user = request.user
         serializer = OrderSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             order = Order.objects.get(id=serializer.data["id"])
-            for product_id in available_products_ids:
-                order.products.add(product_id)
-            updated_serializer = OrderSerializer(order).data
+            shopping_cart = ShoppingCart.objects.get(user=user.id)
+            for product_item in shopping_cart.product_items.all():
+                order.product_items.add(product_item)
             subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (
                 "Hei!\n"
@@ -186,9 +174,8 @@ class OrderListView(ListCreateAPIView):
                 f"Tilausnumeronne on {order.id}.\n\n"
                 "Terveisin Tavarat kieroon väki!"
             )
-            user = CustomUser.objects.get(id=user_id)
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
-            return Response(updated_serializer, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -209,9 +196,9 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        instance.products.clear()
-        for product in request.data["products"]:
-            instance.products.add(product)
+        instance.product_items.clear()
+        for product_item in request.data["product_items"]:
+            instance.product_items.add(product_item)
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.

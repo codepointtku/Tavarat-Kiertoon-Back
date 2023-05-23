@@ -160,21 +160,21 @@ class TestOrders(TestCase):
     def test_add_to_shopping_cart(self):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
-        data = {"product_items": self.test_product_item1.id, "amount": 1}
+        data = {"product": self.test_product1.id, "amount": 1}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
 
     def test_add_to_shopping_cart_amountovermax(self):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
-        data = {"product_items": self.test_product_item1.id, "amount": 10}
+        data = {"product": self.test_product1.id, "amount": 10}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
 
     def test_remove_from_shopping_cart(self):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
-        data = {"product_items": self.test_product_item1.id, "amount": 0}
+        data = {"product": self.test_product1.id, "amount": 0}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
 

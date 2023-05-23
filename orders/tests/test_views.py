@@ -174,6 +174,12 @@ class TestOrders(TestCase):
         data = {"product": self.test_product1.id, "amount": 10}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
+        self.assertEqual(
+            self.test_shoppingcart.product_items.filter(
+                product=self.test_product1
+            ).count(),
+            4,
+        )
 
     def test_remove_from_shopping_cart(self):
         url = "/shopping_cart/"

@@ -17,7 +17,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from products.models import ProductItem
+from products.models import Product, ProductItem
 from users.views import CustomJWTAuthentication
 
 from .models import Order, ShoppingCart
@@ -91,9 +91,7 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
             detailserializer = ShoppingCartDetailSerializer(updatedinstance)
             return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
 
-        changeable_product = ProductItem.objects.get(
-            id=request.data["product_items"]
-        ).product
+        changeable_product = Product.objects.get(id=request.data["product"])
         itemset = ProductItem.objects.filter(product=changeable_product, available=True)
         available_itemset = itemset.exclude(id__in=instance.product_items.values("id"))
         removable_itemset = instance.product_items.filter(product=changeable_product)

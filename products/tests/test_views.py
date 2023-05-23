@@ -7,7 +7,7 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from categories.models import Category
-from products.models import Color, Picture, Product, Storage
+from products.models import Color, Picture, Product, ProductItem, Storage
 
 TEST_DIR = "testmedia/"
 
@@ -19,12 +19,12 @@ class TestProducts(TestCase):
         cls.test_color = Color.objects.create(name="punainen")
         cls.test_storage = Storage.objects.create(name="mokkavarasto")
         cls.test_storage1 = Storage.objects.create(name="italiangoldstorage")
-        cls.test_parentcategory = Category.objects.create(name="coffee")
+        cls.test_parentcategory = Category.objects.create(name="huonekalut")
         cls.test_category = Category.objects.create(
-            name="subcoffee", parent=cls.test_parentcategory
+            name="istuttavat huonekalut", parent=cls.test_parentcategory
         )
         cls.test_category1 = Category.objects.create(
-            name="subcoffee2", parent=cls.test_parentcategory
+            name="sohvat", parent=cls.test_category
         )
 
         result = urllib.request.urlretrieve("https://picsum.photos/200")
@@ -41,17 +41,17 @@ class TestProducts(TestCase):
         cls.test_product = Product.objects.create(
             name="nahkasohva",
             price=0,
-            category=cls.test_category,
+            category=cls.test_category1,
             color=cls.test_color,
             storages=cls.test_storage,
-            available=True,
             free_description="tämä sohva on nahkainen",
+            measurements="210x100x90"
             weight=50,
         )
         cls.test_product1 = Product.objects.create(
             name="sohvanahka",
             price=0,
-            category=cls.test_category,
+            category=cls.test_category1,
             color=cls.test_color,
             storages=cls.test_storage,
             available=True,
@@ -67,6 +67,7 @@ class TestProducts(TestCase):
                     Picture.objects.get(id=cls.test_picture1.id),
                 ],
             )
+
 
     def test_get_colors(self):
         url = "/colors/"

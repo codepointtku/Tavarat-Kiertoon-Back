@@ -31,6 +31,7 @@ from rest_framework_simplejwt.views import TokenViewBase
 from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
+from .custom_functions import validate_email_domain
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
 from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSerializer,; UserNamesSerializer,
@@ -38,6 +39,7 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     GroupPermissionsResponseSchemaSerializer,
     GroupPermissionsSerializer,
     MessageSerializer,
+    NewEmailSerializer,
     UserAddressPostRequestSerializer,
     UserAddressPutRequestSerializer,
     UserAddressSerializer,
@@ -61,11 +63,11 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
 User = get_user_model()
 
 
-def validate_email_domain(email_domain):
-    # print("email domain: ", email_domain, "valid email domains: " , settings.VALID_EMAIL_DOMAINS)
-    if email_domain in settings.VALID_EMAIL_DOMAINS:
-        return True
-    return False
+# def validate_email_domain(email_domain):
+#     # print("email domain: ", email_domain, "valid email domains: " , settings.VALID_EMAIL_DOMAINS)
+#     if email_domain in settings.VALID_EMAIL_DOMAINS:
+#         return True
+#     return False
 
 
 def get_tokens_for_user(user):
@@ -843,4 +845,39 @@ class UserPasswordResetMailValidationView(APIView):
 
 
 class UserEmailChangeView(APIView):
-    serializer_class = None
+    authentication_classes = [
+        # SessionAuthentication,
+        # BasicAuthentication,
+        # JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "POST": ["user_group"],
+    }
+
+    serializer_class = NewEmailSerializer
+
+    def post(self, request, format=None):
+        serializer = self.serializer_class(data=request.data)
+
+        if serializer.is_valid():
+            print(request.user.id)
+            token_generator = default_token_generator
+            token_for_user = token_generator.make_token(user=request.user)
+            uid = urlsafe_base64_encode(force_bytes(request.user.id))
+            new_email = urlsafe_base64_encode(force_bytes(serializer.data["new_email"]))
+
+            print(new_email)
+
+            return Response(
+                "dude im fairy let me in",
+                status=status.HTTP_200_OK,
+            )
+
+        else:
+            return Response(
+                "non valid email",
+                status=status.HTTP_200_OK,
+            )

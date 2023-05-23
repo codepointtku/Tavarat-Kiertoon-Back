@@ -149,8 +149,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
     Serializer for users, in specific format for user creation
     """
 
-    first_name = serializers.CharField(max_length=100)
-    last_name = serializers.CharField(max_length=155)
+    first_name = serializers.CharField(max_length=255)
+    last_name = serializers.CharField(max_length=255)
     phone_number = serializers.CharField(max_length=50)
     address = serializers.CharField(max_length=255)
     zip_code = serializers.CharField(max_length=10)
@@ -183,8 +183,8 @@ class UserCreateReturnSerializer(serializers.ModelSerializer):
     Serializer for users, in specific format for user creation
     """
 
-    first_name = serializers.CharField(max_length=100)
-    last_name = serializers.CharField(max_length=155)
+    first_name = serializers.CharField(max_length=255)
+    last_name = serializers.CharField(max_length=255)
     phone_number = serializers.CharField(max_length=50)
 
     message = serializers.CharField(default="Some message", max_length=255)
@@ -214,7 +214,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["name", "phone_number"]
+        fields = ["first_name", "last_name", "phone_number"]
 
 
 class SubSerializerForGroups(serializers.ModelSerializer):
@@ -277,7 +277,8 @@ class UserLimitedSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "last_login",
-            "name",
+            "first_name",
+            "last_name",
             "email",
             "phone_number",
             "phone_number",
@@ -379,7 +380,8 @@ class UserFullResponseSchemaSerializer(serializers.ModelSerializer):
             "user_permissions",
         ]       
         extra_kwargs = {"last_login": {"required": True},
-            "name": {"required": True},
+            "first_name": {"required": True},
+            "last_name": {"required": True},
             "phone_number": {"required": True},
             "is_active" : {"required": True},
         }
@@ -391,8 +393,8 @@ class UserUpdateReturnSchemaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["name", "phone_number"]
-        extra_kwargs = {"name": {"required": True},
+        fields = ["first_name","last_name", "phone_number"]
+        extra_kwargs = {"first_name": {"required": True}, "last_name": {"required": True},
             "phone_number": {"required": True},
         }
 
@@ -413,8 +415,8 @@ class UserCreateReturnResponseSchemaSerializer(serializers.ModelSerializer):
     FOR SCHEMA, Serializer for users, in specific format for user creation
     """
 
-    first_name = serializers.CharField(max_length=100)
-    last_name = serializers.CharField(max_length=155)
+    first_name = serializers.CharField(max_length=255)
+    last_name = serializers.CharField(max_length=255)
     phone_number = serializers.CharField(max_length=50)
 
     message = serializers.CharField(max_length=255, required=True)

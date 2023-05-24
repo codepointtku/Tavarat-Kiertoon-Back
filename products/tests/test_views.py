@@ -7,7 +7,9 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from categories.models import Category
+from orders.models import ShoppingCart
 from products.models import Color, Picture, Product, ProductItem, Storage
+from users.models import CustomUser
 
 TEST_DIR = "testmedia/"
 
@@ -84,6 +86,39 @@ class TestProducts(TestCase):
                 shelf_id="12b",
                 barcode=f"2000000{productitem}",
             )
+
+        cls.test_user1 = CustomUser.objects.create_user(
+            first_name="Kahvi",
+            last_name="Make",
+            email="kahvimake@turku.fi",
+            phone_number="1112223344",
+            password="asd123",
+            address="Karvakuja 1",
+            zip_code="100500",
+            city="Puuhamaa",
+            username="kahvimake@turku.fi",
+        )
+        cls.test_user1.is_active = True
+        cls.test_user1.save()
+
+        cls.test_user2 = CustomUser.objects.create_user(
+            first_name="Kahvimpi",
+            last_name="Markus",
+            email="kahvimarkus@turku.fi",
+            phone_number="1112223323",
+            password="qwe456",
+            address="Karvakuja 2",
+            zip_code="100500",
+            city="Puuhamaa",
+            username="kahvimarkus@turku.fi",
+        )
+        cls.test_user2.is_active = True
+        cls.test_user2.save()
+
+        cls.test_shoppingcart = ShoppingCart.objects.create(user=cls.test_user1)
+        cls.test_shoppingcart.product_items.set(
+            ProductItem.objects.filter(product=cls.test_product1)
+        )
 
     def test_get_colors(self):
         url = "/colors/"

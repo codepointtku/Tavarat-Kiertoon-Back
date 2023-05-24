@@ -67,27 +67,23 @@ class TestProducts(TestCase):
                 ],
             )
 
-        barcode = 10000001
         for productitem in range(10):
             cls.test_product_item = ProductItem.objects.create(
                 product=cls.test_product,
                 storage=cls.test_storage,
                 available=True,
                 shelf_id="12a",
-                barcode=str(barcode),
+                barcode=f"1000000{productitem}",
             )
-            barcode +=1
 
-        barcode = 20000001
         for productitem in range(10):
-            cls.test_product_item2 = ProductItem.objects.create(
+            cls.test_product_item1 = ProductItem.objects.create(
                 product=cls.test_product1,
-                storage=cls.test_storage1,
+                storage=cls.test_storage,
                 available=True,
                 shelf_id="12b",
-                barcode=str(barcode),
+                barcode=f"2000000{productitem}",
             )
-            barcode +=1
 
     def test_get_colors(self):
         url = "/colors/"
@@ -236,43 +232,43 @@ class TestProducts(TestCase):
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
-    # def test_update_products_storage(self):
-    #     url = f"/products/transfer/"
-    #     data = {
-    #         "products": [self.test_product.id, self.test_picture1.id],
-    #         "storage": self.test_storage1.id
-    #     }
-    #     response = self.client.put(url, data, content_type="application/json")
-    #     self.assertEqual(response.status_code, 200)
+    def test_update_products_storage(self):
+        url = f"/products/transfer/"
+        data = {
+            "product_items": [self.test_product_item.id, self.test_product_item1.id],
+            "storage": self.test_storage1.id
+        }
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
 
-    # def test_update_product_name(self):
-    #     url = f"/products/{self.test_product.id}/"
-    #     data = {"name": "kahvisohva"}
-    #     response = self.client.put(url, data, content_type="application/json")
-    #     self.assertEqual(response.status_code, 200)
+    def test_update_product_name(self):
+        url = f"/products/{self.test_product.id}/"
+        data = {"name": "kahvisohva"}
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
 
-    # def test_self_color_string(self):
-    #     self.assertEqual(
-    #         str(self.test_color), f"Color: {self.test_color.name}({self.test_color.id})"
-    #     )
+    def test_self_color_string(self):
+        self.assertEqual(
+            str(self.test_color), f"Color: {self.test_color.name}({self.test_color.id})"
+        )
 
-    # def test_self_storage_string(self):
-    #     self.assertEqual(
-    #         str(self.test_storage),
-    #         f"Storage: {self.test_storage.name}({self.test_storage.id})",
-    #     )
+    def test_self_storage_string(self):
+        self.assertEqual(
+            str(self.test_storage),
+            f"Storage: {self.test_storage.name}({self.test_storage.id})",
+        )
 
-    # def test_self_product_string(self):
-    #     self.assertEqual(
-    #         str(self.test_product),
-    #         f"Product: {self.test_product.name}({self.test_product.id})",
-    #     )
+    def test_self_product_string(self):
+        self.assertEqual(
+            str(self.test_product),
+            f"Product: {self.test_product.name}({self.test_product.id})",
+        )
 
-    # def test_self_picture_string(self):
-    #     self.assertEqual(
-    #         str(self.test_picture),
-    #         f"Picture: {basename(self.test_picture.picture_address.name)}({self.test_picture.id})",
-    #     )
+    def test_self_picture_string(self):
+        self.assertEqual(
+            str(self.test_picture),
+            f"Picture: {basename(self.test_picture.picture_address.name)}({self.test_picture.id})",
+        )
 
     def tearDownClass():
         print("\nDeleting temporary files...\n")

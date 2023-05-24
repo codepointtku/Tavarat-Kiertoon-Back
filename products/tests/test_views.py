@@ -299,6 +299,20 @@ class TestProducts(TestCase):
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
+    def test_shoppingcart_available_amount_list(self):
+        url = "/shopping_cart/available_amount/"
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_shoppingcart_available_amount_list_failed_attempts(self):
+        url = "/shopping_cart/available_amount/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.client.login(username="kahvimarkus@turku.fi", password="qwe456")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
     def test_self_color_string(self):
         self.assertEqual(
             str(self.test_color), f"Color: {self.test_color.name}({self.test_color.id})"

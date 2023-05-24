@@ -154,7 +154,7 @@ class TestProducts(TestCase):
         response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, 201)
 
-    def test_post_products_and_product_items(self):
+    def test_post_products_new_color(self):
         url = "/products/"
         data = {
             "product_item": {
@@ -196,39 +196,45 @@ class TestProducts(TestCase):
     #     response = self.client.post(url, data, format="multipart")
     #     self.assertEqual(response.status_code, 201)
 
-    # def test_post_product_color_as_string(self):
-    #     url = "/storage/products/"
-    #     colorstr = str("värikäs")
-    #     data = {
-    #         "name": "puusohva",
-    #         "price": 0,
-    #         "category": self.test_category.id,
-    #         "color": colorstr,
-    #         "storages": self.test_storage.id,
-    #         "amount": 1,
-    #         "pictures": [self.test_picture.id],
-    #         "weight": 100,
-    #         "free_description": "umpipuinen sohva",
-    #     }
-    #     response = self.client.post(url, data, content_type="application/json")
-    #     self.assertEqual(response.status_code, 201)
+    def test_post_products_existing_color(self):
+        url = "/products/"
+        data = {
+            "product_item": {
+                "available": True,
+                "shelf_id": "asd14",
+                "barcode": "40000001",
+                "storage": self.test_storage.id
+            },
+            "name": "puusohva",
+            "category": self.test_category1.id,
+            "color": str(self.test_color.id),
+            "amount": 5,
+            "weight": 100,
+            "measurements": "100x90x190",
+            "free_description": "umpipuinen sohva",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
 
-    # def test_post_product_existing_color_as_string(self):
-    #     url = "/storage/products/"
-    #     colorstr = str("punainen")
-    #     data = {
-    #         "name": "puutuoli",
-    #         "price": 0,
-    #         "category": self.test_category.id,
-    #         "color": colorstr,
-    #         "storages": self.test_storage.id,
-    #         "amount": 1,
-    #         "pictures": [self.test_picture.id],
-    #         "weight": 40,
-    #         "free_description": "kova puinen tuoli",
-    #     }
-    #     response = self.client.post(url, data, content_type="application/json")
-    #     self.assertEqual(response.status_code, 201)
+    def test_post_product_existing_color_as_string(self):
+        url = "/products/"
+        data = {
+            "product_item": {
+                "available": True,
+                "shelf_id": "asd15",
+                "barcode": "50000001",
+                "storage": self.test_storage1.id
+            },
+            "name": "puutuoli",
+            "category": self.test_category1.id,
+            "color": "punainen",
+            "amount": 7,
+            "weight": 40,
+            "measurements": "90x90x100",
+            "free_description": "kova puinen tuoli",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
 
     # def test_update_products_storage(self):
     #     url = f"/products/transfer/"

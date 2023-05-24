@@ -16,7 +16,7 @@ class TestOrders(TestCase):
             phone_number="1112223344",
             password="asd123",
             address="Karvakuja 1",
-            zip_code="100500",
+            zip_code="100100",
             city="Puuhamaa",
             username="kahvimake@turku.fi",
         )
@@ -63,34 +63,26 @@ class TestOrders(TestCase):
             color=cls.test_color,
             weight=50,
         )
-        cls.test_product_item1 = ProductItem.objects.create(
-            product=cls.test_product1,
-            available=True,
-            storage=cls.test_storage1,
-            shelf_id=1,
-            barcode=1234,
-        )
-        cls.test_product_item2 = ProductItem.objects.create(
-            product=cls.test_product1,
-            available=True,
-            storage=cls.test_storage1,
-            shelf_id=1,
-            barcode=1234,
-        )
-        cls.test_product_item3 = ProductItem.objects.create(
-            product=cls.test_product2,
-            available=True,
-            storage=cls.test_storage2,
-            shelf_id=2,
-            barcode=1235,
-        )
-        cls.test_product_item4 = ProductItem.objects.create(
-            product=cls.test_product2,
-            available=True,
-            storage=cls.test_storage2,
-            shelf_id=2,
-            barcode=1235,
-        )
+        for i in range(13):
+            available = True
+            if i % 5 == 0:
+                available = False
+            if i <= 5:
+                cls.test_product_item1 = ProductItem.objects.create(
+                    product=cls.test_product1,
+                    available=available,
+                    storage=cls.test_storage1,
+                    shelf_id=1,
+                    barcode=1234,
+                )
+            else:
+                cls.test_product_item2 = ProductItem.objects.create(
+                    product=cls.test_product2,
+                    available=available,
+                    storage=cls.test_storage2,
+                    shelf_id=2,
+                    barcode=1235,
+                )
         cls.test_order = Order.objects.create(
             user=cls.test_user1, phone_number="1234567890"
         )
@@ -100,6 +92,11 @@ class TestOrders(TestCase):
         cls.test_shoppingcart = ShoppingCart.objects.create(user=cls.test_user1)
         cls.test_shoppingcart.product_items.set(
             ProductItem.objects.filter(product=cls.test_product2)
+        )
+        cls.test_shoppingcart.product_items.add(
+            ProductItem.objects.filter(
+                product=cls.test_product1, available=True
+            ).first()
         )
 
     def test_post_shopping_cart(self):
@@ -147,7 +144,10 @@ class TestOrders(TestCase):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
         response = self.client.get(url)
-        self.assertEqual(response.json()["user"], self.test_user1.id)
+        self.assertEqual(
+            response.json()["user"],
+            CustomUser.objects.get(username="kahvimake@turku.fi").id,
+        )
 
     def test_empty_shopping_cart(self):
         url = "/shopping_cart/"
@@ -160,9 +160,15 @@ class TestOrders(TestCase):
     def test_add_to_shopping_cart(self):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
-        data = {"product": self.test_product1.id, "amount": 1}
+        data = {"product": self.test_product1.id, "amount": 2}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
+        self.assertEqual(
+            self.test_shoppingcart.product_items.filter(
+                product=self.test_product1
+            ).count(),
+            2,
+        )
 
     def test_add_to_shopping_cart_amountovermax(self):
         url = "/shopping_cart/"
@@ -170,6 +176,12 @@ class TestOrders(TestCase):
         data = {"product": self.test_product1.id, "amount": 10}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
+        self.assertEqual(
+            self.test_shoppingcart.product_items.filter(
+                product=self.test_product1
+            ).count(),
+            4,
+        )
 
     def test_remove_from_shopping_cart(self):
         url = "/shopping_cart/"
@@ -177,6 +189,12 @@ class TestOrders(TestCase):
         data = {"product": self.test_product1.id, "amount": 0}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
+        self.assertEqual(
+            self.test_shoppingcart.product_items.filter(
+                product=self.test_product1
+            ).count(),
+            0,
+        )
 
     def test_get_orders(self):
         url = "/orders/?status=Waiting"
@@ -196,10 +214,12 @@ class TestOrders(TestCase):
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
+        self.assertEqual(Order.objects.all().count(), 2)
 
         data = {"user": self.test_user1.id}
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(Order.objects.all().count(), 2)
 
     def test_get_order(self):
         url = f"/orders/{self.test_order.id}/"
@@ -213,6 +233,10 @@ class TestOrders(TestCase):
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()[0]["user"],
+            CustomUser.objects.get(username="kahvimake@turku.fi").id,
+        )
 
     def test_remove_products_from_order(self):
         url = f"/orders/{self.test_order.id}/"
@@ -228,7 +252,7 @@ class TestOrders(TestCase):
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(
-            [product_item.id for product_item in self.test_order.product_items.all()],
+            response.json()["product_items"],
             [],
         )
 
@@ -243,11 +267,16 @@ class TestOrders(TestCase):
             "phone_number": "11212121",
             "user": self.test_user1.id,
             "product_items": [
-                product_item.id for product_item in self.test_order.product_items.all()
+                product_item.id
+                for product_item in self.test_shoppingcart.product_items.all()
             ],
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
+        self.assertQuerysetEqual(
+            self.test_shoppingcart.product_items.all().order_by("id"),
+            self.test_order.product_items.all().order_by("id"),
+        )
 
         data = {
             "status": "Waiting",

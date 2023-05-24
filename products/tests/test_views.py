@@ -232,8 +232,25 @@ class TestProducts(TestCase):
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
+    def test_update_product_item(self):
+        url = f"/products/items/{self.test_product_item.id}"
+        data = {
+            "available": False,
+            "modify_date": "asd"
+        }
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+
+    def test_update_product_item_without_modify_date(self):
+        url = f"/products/items/{self.test_product_item.id}"
+        data = {
+            "available": False,
+        }
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+
     def test_update_products_storage(self):
-        url = f"/products/transfer/"
+        url = "/products/transfer/"
         data = {
             "product_items": [self.test_product_item.id, self.test_product_item1.id],
             "storage": self.test_storage1.id

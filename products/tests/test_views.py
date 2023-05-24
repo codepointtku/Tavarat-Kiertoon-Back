@@ -119,41 +119,40 @@ class TestProducts(TestCase):
     def test_get_products_search(self):
         url = f"/products/?search={self.test_product.name}"
         response = self.client.get(url)
-        print("ASD")
-        # print(json(response.content))
         self.assertEqual(response.status_code, 200)
-        # self.assertEqual(json.content.results.count(), 1)
+        self.assertEqual(response.json()["count"], 1)
 
-    # def test_get_products_search_multiple_parameters(self):
-    #     url = f"/products/?search=sohva&color={self.test_color.id}"
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, 200)
+    def test_get_products_search_multiple_parameters(self):
+        url = f"/products/?search=sohva&color={self.test_color.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["count"], 2)
 
-    # def test_get_products_paginate(self):
-    #     url = "/products/?page=1"
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, 200)
+    def test_get_products_paginate(self):
+        url = "/products/?page=1"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
 
-    # def test_get_product_by_id(self):
-    #     url = f"/products/{self.test_product.id}/"
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, 200)
+    def test_get_product_by_id(self):
+        url = f"/products/{self.test_product.id}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
 
-    # def test_get_category_products(self):
-    #     url = f"/categories/tree/"
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, 200)
+    def test_get_category_products(self):
+        url = f"/categories/tree/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
 
-    # @override_settings(MEDIA_ROOT=TEST_DIR)
-    # def test_post_picture(self):
-    #     picture = urllib.request.urlretrieve(
-    #         url="https://picsum.photos/200.jpg",
-    #         filename="testmedia/pictures/testpicture.jpeg",
-    #     )
-    #     url = "/pictures/"
-    #     data = {"file": open(picture[0], "rb")}
-    #     response = self.client.post(url, data, format="multipart")
-    #     self.assertEqual(response.status_code, 201)
+    @override_settings(MEDIA_ROOT=TEST_DIR)
+    def test_post_picture(self):
+        picture = urllib.request.urlretrieve(
+            url="https://picsum.photos/200.jpg",
+            filename="testmedia/pictures/testpicture.jpeg",
+        )
+        url = "/pictures/"
+        data = {"file": open(picture[0], "rb")}
+        response = self.client.post(url, data, format="multipart")
+        self.assertEqual(response.status_code, 201)
 
     # def test_post_multiple_products_multiple_pictures(self):
     #     url = "/storage/products/"

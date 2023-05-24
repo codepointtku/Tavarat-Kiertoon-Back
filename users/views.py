@@ -781,10 +781,11 @@ class UserEmailChangeView(APIView):
             uid = urlsafe_base64_encode(force_bytes(request.user.id))
             new_email = urlsafe_base64_encode(force_bytes(serializer.data["new_email"]))
 
+            all_taht_crap = token_for_user + " : " + uid + " : " + new_email
             print(new_email)
 
             return Response(
-                "dude im fairy let me in",
+                f"dude im fairy let me in: {all_taht_crap}",
                 status=status.HTTP_200_OK,
             )
 

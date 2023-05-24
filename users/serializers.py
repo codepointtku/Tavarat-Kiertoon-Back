@@ -361,6 +361,22 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
 
     new_email = serializers.CharField(max_length=255)
 
+    def validate(self, data):
+        new_data = super().to_representation(data)
+
+        # decoding uid and chekcing that token is valid
+        # token_generator = default_token_generator
+        token_generator = custom_time_token_generator
+        try:
+            email = urlsafe_base64_decode(data["new_email"]).decode()
+        except ValueError:
+            msg = "stuff went wrong in decoding uid or something"
+            raise serializers.ValidationError(msg)
+        
+        new_data["new_email"] = email
+
+        return new_data
+
 
 # -----------------------------------------------------------------------
 # schema serializers

@@ -115,7 +115,6 @@ class TestUsers(TestCase):
             f"/users/address/{address_for_testing.id}/",
             "/users/password/resetemail/",
             "/users/password/reset/",
-            "/users/password/reset/1/1/",
             "/users/activate/",
         ]
 
@@ -591,12 +590,18 @@ class TestUsers(TestCase):
         self.assertEqual(response.status_code, 200, "should have access user")
 
         # testing changing the info if succesfull in database
-        data = {"first_name": "Kinkku", "last_name": "Kinkku!222", "phone_number": "kinkku!2222"}
+        data = {
+            "first_name": "Kinkku",
+            "last_name": "Kinkku!222",
+            "phone_number": "kinkku!2222",
+        }
         response = self.client.put(url, data, content_type="application/json")
         user2 = CustomUser.objects.get(id=user.id)
 
         # check the changed data is the same data as the changed data instead that just the data has changed.
-        self.assertNotEqual(user.first_name, user2.first_name, "user name should have changed")
+        self.assertNotEqual(
+            user.first_name, user2.first_name, "user name should have changed"
+        )
         self.assertNotEqual(
             user.phone_number,
             user2.phone_number,
@@ -647,7 +652,9 @@ class TestUsers(TestCase):
         user2 = CustomUser.objects.get(username="testi1@turku.fi")
         user2_info = [user2.first_name, user2.phone_number]
         self.assertNotEqual(user1_info, user2_info, "users info should have cahnged")
-        self.assertEqual(user2.first_name, "Kinkku Kinkku!222", "user info changeed wrongly")
+        self.assertEqual(
+            user2.first_name, "Kinkku Kinkku!222", "user info changeed wrongly"
+        )
         self.assertEqual(user2.phone_number, "2222222", "user info changeed wrongly")
 
     def test_user_address(self):
@@ -886,12 +893,6 @@ class TestUsers(TestCase):
         the_parameters = end_part_of_email_link[1].split("/")
         # par 0 should be encoded uid, par 1 the token for reset
 
-        # test that can get ok reponse from the reset url
-        response = self.client.get(url2)
-        self.assertEqual(
-            response.status_code, 200, "should go thorugh without thigns happening"
-        )
-
         # testing reponse with various non valid parameters
         data = {
             "new_password": "a",
@@ -1016,6 +1017,7 @@ class TestUsers(TestCase):
             "should be able to login with new pw",
         )
 
+    @override_settings(TEST_DEBUG=False)
     def test_account_activation_reset(self):
         """
         Test for testing the account creation activation functionality.

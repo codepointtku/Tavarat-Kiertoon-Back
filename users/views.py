@@ -54,6 +54,7 @@ from .serializers import (
     UserTokenValidationSerializer,
     UserUpdateReturnSchemaSerializer,
     UserUpdateSerializer,
+    NewEmailFinishValidationSerializer,
 )
 
 User = get_user_model()
@@ -790,5 +791,25 @@ class UserEmailChangeView(APIView):
         else:
             return Response(
                 f"non valid email: {serializer.errors}",
+                status=status.HTTP_200_OK,
+            )
+
+class UserEmailChangeFinishView(APIView):
+
+    serializer_class = NewEmailFinishValidationSerializer
+
+    def post(self, request, format=None):
+        serializer = self.serializer_class(data=request.data)
+
+        if serializer.is_valid():
+
+            print("serializer data: ",serializer.data)
+            return Response(
+                "dude im fairy let me in",
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                f"somethign went wrong: {serializer.errors}",
                 status=status.HTTP_200_OK,
             )

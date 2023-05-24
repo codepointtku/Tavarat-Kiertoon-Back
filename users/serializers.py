@@ -353,6 +353,13 @@ class NewEmailSerializer(serializers.Serializer):
             raise serializers.ValidationError(msg)
 
         return value
+    
+class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
+    """
+    Serializer for inputting new email address
+    """
+
+    new_email = serializers.CharField(max_length=255)
 
 
 # -----------------------------------------------------------------------

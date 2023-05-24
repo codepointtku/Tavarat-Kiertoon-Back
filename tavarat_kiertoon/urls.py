@@ -70,6 +70,7 @@ from users.views import (
     UserTokenRefreshView,
     UserUpdateInfoView,
     UserUpdateSingleView,
+    UserEmailChangeFinishView,
 )
 
 urlpatterns = [
@@ -126,6 +127,8 @@ urlpatterns = [
         name="swag",
     ),
     path("users/emailchange/", UserEmailChangeView.as_view()),
+    path("users/emailchange/finish/", UserEmailChangeFinishView.as_view()),
+
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

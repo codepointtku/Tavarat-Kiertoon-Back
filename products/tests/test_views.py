@@ -154,20 +154,25 @@ class TestProducts(TestCase):
         response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, 201)
 
-    # def test_post_multiple_products_multiple_pictures(self):
-    #     url = "/storage/products/"
-    #     data = {
-    #         "name": "nahkatuoli",
-    #         "price": 0,
-    #         "category": self.test_category.id,
-    #         "color": self.test_color.id,
-    #         "storages": self.test_storage.id,
-    #         "amount": 3,
-    #         "pictures": [self.test_picture.id, self.test_picture1.id],
-    #         "available": True,
-    #     }
-    #     response = self.client.post(url, data, content_type="application/json")
-    #     self.assertEqual(response.status_code, 201)
+    def test_post_products_and_product_items(self):
+        url = "/products/"
+        data = {
+            "product_item": {
+                "available": True,
+                "shelf_id": "asd12",
+                "barcode": "30000001",
+                "storage": self.test_storage.id
+            },
+            "name": "nahkatuoli",
+            "category": self.test_category1.id,
+            "color": "ruskea",
+            "free_description": "istuttava nahkainen tuoli",
+            "measurements": "90x90x100",
+            "weight": 20,
+            "amount": 10
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
 
     # @override_settings(MEDIA_ROOT=TEST_DIR)
     # def test_post_product_with_new_picture(self):

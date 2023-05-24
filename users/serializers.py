@@ -92,6 +92,12 @@ class UserTokenValidationSerializer(serializers.Serializer):
         data["uid"] = uid
 
         return data
+    
+    """
+    CHECK CEHCK CEHCK
+    """
+#REMEMEBR TO TEST THE CONDESING WORKS PROPERLY!!!!!!!!!!
+
 
 # class UserPasswordChangeEmailValidationSerializer(serializers.Serializer):
 #     uid = serializers.CharField(max_length=255)
@@ -377,7 +383,7 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
     new_email = serializers.CharField(max_length=255)
 
     def validate(self, data):
-        new_data = super().to_representation(data)
+        new_data = super().validate(data)
 
         # decoding uid and chekcing that token is valid
         # token_generator = default_token_generator
@@ -385,7 +391,7 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
         try:
             email = urlsafe_base64_decode(data["new_email"]).decode()
         except ValueError:
-            msg = "stuff went wrong in decoding uid or something"
+            msg = "stuff went wrong in decoding email or something"
             raise serializers.ValidationError(msg)
         
         new_data["new_email"] = email

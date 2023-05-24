@@ -806,7 +806,7 @@ class UserEmailChangeFinishView(APIView):
 
             print("serializer data: ",serializer.data)
             return Response(
-                "dude im fairy let me in",
+                serializer.data,
                 status=status.HTTP_200_OK,
             )
         else:

@@ -63,7 +63,6 @@ from users.views import (
     UserCreateListView,
     UserDetailsListView,
     UserEmailChangeView,
-    UserLoginTestView,
     UserLoginView,
     UserLogoutView,
     UserPasswordResetMailValidationView,
@@ -113,14 +112,9 @@ urlpatterns = [
     path("users/groups/", GroupListView.as_view()),
     path("users/login/", UserLoginView.as_view(), name="token_obtain_pair_http"),
     path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refresh"),
-    path("users/login_check/", UserLoginTestView.as_view(), name="test_view_for_dev"),
     path("users/logout/", UserLogoutView.as_view()),
     path("users/activate/", UserActivationView.as_view()),
     path("users/password/resetemail/", UserPasswordResetMailView.as_view()),
-    path(
-        "users/password/reset/<str:uidb64>/<str:token>/",
-        UserPasswordResetMailValidationView.as_view(),
-    ),
     path(
         "users/password/reset/",
         UserPasswordResetMailValidationView.as_view(),

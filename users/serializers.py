@@ -56,46 +56,6 @@ class UserPasswordCheckEmailSerializer(serializers.Serializer):
 
         return value
 
-
-class UserPasswordChangeEmailValidationSerializer(serializers.Serializer):
-    uid = serializers.CharField(max_length=255)
-    token = serializers.CharField(max_length=255)
-    new_password = serializers.CharField(max_length=255)
-    new_password_again = serializers.CharField(max_length=255)
-
-    def validate(self, data):
-        """
-        check the correctness  of token and same password, future password validation?
-        """
-
-        if data["new_password"] != data["new_password_again"]:
-            msg = "the new password weren't same DANG"
-            raise serializers.ValidationError(msg, code="authorization")
-
-        # decoding uid and chekcing that token is valid
-        token_generator = default_token_generator
-        try:
-            uid = urlsafe_base64_decode(data["uid"]).decode()
-        except ValueError:
-            msg = "stuff went wrong in decoding uid or something"
-            raise serializers.ValidationError(msg)
-
-        try:
-            user = User.objects.get(id=uid)
-        except (ValueError, ObjectDoesNotExist):
-            msg = "something doesnt feel right about user"
-            raise serializers.ValidationError(msg)
-
-        if not token_generator.check_token(user=user, token=data["token"]):
-            msg = "something went wrong confirming email link, get now one"
-            raise serializers.ValidationError(msg)
-
-        # print("jammign that decoded uid into data insted of coded one, old: ", data)
-        data["uid"] = uid
-
-        return data
-
-
 class UserTokenValidationSerializer(serializers.Serializer):
 
     """
@@ -133,6 +93,61 @@ class UserTokenValidationSerializer(serializers.Serializer):
 
         return data
 
+# class UserPasswordChangeEmailValidationSerializer(serializers.Serializer):
+#     uid = serializers.CharField(max_length=255)
+#     token = serializers.CharField(max_length=255)
+#     new_password = serializers.CharField(max_length=255)
+#     new_password_again = serializers.CharField(max_length=255)
+
+#     def validate(self, data):
+#         """
+#         check the correctness  of token and same password, future password validation?
+#         """
+
+#         if data["new_password"] != data["new_password_again"]:
+#             msg = "the new password weren't same DANG"
+#             raise serializers.ValidationError(msg, code="authorization")
+
+#         # decoding uid and chekcing that token is valid
+#         token_generator = default_token_generator
+#         try:
+#             uid = urlsafe_base64_decode(data["uid"]).decode()
+#         except ValueError:
+#             msg = "stuff went wrong in decoding uid or something"
+#             raise serializers.ValidationError(msg)
+
+#         try:
+#             user = User.objects.get(id=uid)
+#         except (ValueError, ObjectDoesNotExist):
+#             msg = "something doesnt feel right about user"
+#             raise serializers.ValidationError(msg)
+
+#         if not token_generator.check_token(user=user, token=data["token"]):
+#             msg = "something went wrong confirming email link, get now one"
+#             raise serializers.ValidationError(msg)
+
+#         # print("jammign that decoded uid into data insted of coded one, old: ", data)
+#         data["uid"] = uid
+
+#         return data
+
+class UserPasswordChangeEmailValidationSerializer(UserTokenValidationSerializer):
+    new_password = serializers.CharField(max_length=255)
+    new_password_again = serializers.CharField(max_length=255)
+
+    def validate(self, data):
+        """
+        check the correctness  of token and same password, future password validation?
+        """
+
+        if data["new_password"] != data["new_password_again"]:
+            msg = "the new password weren't same DANG"
+            raise serializers.ValidationError(msg, code="authorization")
+
+        # decoding uid and chekcing that token is valid
+        data = super().validate(data)
+
+        return data
 
 class UserAddressSerializer(serializers.ModelSerializer):
     """

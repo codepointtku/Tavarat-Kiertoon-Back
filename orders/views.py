@@ -207,11 +207,10 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
-@extend_schema_view(get=extend_schema(responses=OrderDetailResponseSerializer))
 class OrderSelfListView(ListAPIView):
     """View for returning logged in users own orders"""
 
-    serializer_class = OrderSerializer
+    serializer_class = OrderDetailResponseSerializer
     authentication_classes = [
         SessionAuthentication,
         BasicAuthentication,

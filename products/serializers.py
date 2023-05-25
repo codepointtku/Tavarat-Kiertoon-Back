@@ -75,7 +75,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
         product = Product.objects.create(**validated_data)
 
-        for i in range(amount):
+        for _ in range(amount):
             ProductItem.objects.create(product=product, **product_item)
         return product
 
@@ -115,7 +115,7 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
             "name": {"required": True},
             "category": {"required": True},
             "color": {"required": True},
-            "pictures": {"required": True},
+            "pictures": {"read_only": True},
         }
 
 

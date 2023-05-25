@@ -29,6 +29,7 @@ from .serializers import (
     OrderResponseSerializer,
     OrderSerializer,
     ShoppingCartDetailRequestSerializer,
+    ShoppingCartDetailResponseSerializer,
     ShoppingCartDetailSerializer,
     ShoppingCartResponseSerializer,
     ShoppingCartSerializer,
@@ -56,6 +57,7 @@ class ShoppingCartListView(ListCreateAPIView):
 
 
 @extend_schema_view(
+    get=extend_schema(responses=ShoppingCartDetailResponseSerializer),
     put=extend_schema(request=ShoppingCartDetailRequestSerializer),
     patch=extend_schema(exclude=True),
 )

@@ -337,9 +337,10 @@ class TestProducts(TestCase):
             f"Picture: {basename(self.test_picture.picture_address.name)}({self.test_picture.id})",
         )
 
-    def tearDownClass():
-        print("\nDeleting temporary files...\n")
+    @classmethod
+    def tearDownClass(self):
         try:
             shutil.rmtree(TEST_DIR)
         except OSError:
             pass
+        super().tearDownClass()

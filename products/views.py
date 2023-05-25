@@ -7,7 +7,6 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import (
-    PolymorphicProxySerializer,
     extend_schema,
     extend_schema_view,
 )
@@ -26,18 +25,22 @@ from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
 from .models import Color, Picture, Product, ProductItem, Storage
-from .serializers import (  # ProductListSerializer,; ProductStorageListSerializer,
+from .serializers import (
     ColorSerializer,
     PictureCreateSerializer,
     PictureSerializer,
-    ProductColorStringSerializer,
     ProductCreateSchemaSerializer,
     ProductCreateSerializer,
+    ProductItemDetailSchemaResponseSerializer,
+    ProductItemUpdateSchemaResponseSerializer,
+    ProductItemSchemaResponseSerializer,
     ProductItemSerializer,
     ProductItemUpdateSerializer,
+    ProductSchemaResponseSerializer,
     ProductSerializer,
     ProductStorageTransferSerializer,
     ProductUpdateSerializer,
+    ProductUpdateSchemaResponseSerializer,
     ShoppingCartAvailableAmountListSerializer,
     StorageSchemaResponseSerializer,
     StorageSerializer,
@@ -112,7 +115,13 @@ class ProductFilter(filters.FilterSet):
         return or_queryset
 
 
-@extend_schema_view(post=extend_schema(request=ProductCreateSchemaSerializer()))
+@extend_schema_view(
+    post=extend_schema(
+        request=ProductCreateSchemaSerializer(),
+        responses=ProductSchemaResponseSerializer(),
+    ),
+    get=extend_schema(responses=ProductSchemaResponseSerializer()),
+)
 class ProductListView(generics.ListCreateAPIView):
     """View for listing and creating products. Create includes creation of ProductItem and Picture"""
 
@@ -143,12 +152,13 @@ class ProductListView(generics.ListCreateAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def post(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         color_checked_data = color_check_create(request.data)
         serializer = ProductCreateSerializer(data=color_checked_data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(status=status.HTTP_201_CREATED)
+        productdata = serializer.save()
+        response = ProductSerializer(productdata)
+        return Response(data=response.data, status=status.HTTP_201_CREATED)
 
         """ Picture creation logic in Product create, not in use for now"""
         # # modified_request = [product_item] * amount
@@ -180,11 +190,12 @@ class ProductListView(generics.ListCreateAPIView):
 
 
 @extend_schema_view(
-    # get=extend_schema(
-    #     responses=ProductListSerializer(),
-    # ),
+    get=extend_schema(
+        responses=ProductSchemaResponseSerializer(),
+    ),
     put=extend_schema(
-        request=ProductUpdateSerializer(), responses=ProductUpdateSerializer()
+        request=ProductUpdateSerializer(),
+        responses=ProductUpdateSchemaResponseSerializer(),
     ),
     patch=extend_schema(exclude=True),
 )
@@ -224,6 +235,9 @@ class ProductItemListFilter(filters.FilterSet):
     shelf_id = filters.AllValuesFilter()
 
 
+@extend_schema_view(
+    get=extend_schema(responses=ProductItemSchemaResponseSerializer()),
+)
 class ProductItemListView(generics.ListAPIView):
     """
     Lists all Product items
@@ -238,6 +252,14 @@ class ProductItemListView(generics.ListAPIView):
     filterset_class = ProductItemListFilter
 
 
+@extend_schema_view(
+    get=extend_schema(responses=ProductItemDetailSchemaResponseSerializer()),
+    put=extend_schema(
+        request=ProductItemUpdateSchemaResponseSerializer(),
+        responses=ProductItemDetailSchemaResponseSerializer(),
+    ),
+    patch=extend_schema(exclude=True),
+)
 class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     View for modifying single Product item
@@ -342,9 +364,9 @@ class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PictureSerializer
 
 
-# @extend_schema_view(
-#     put=extend_schema(responses=ProductStorageListSerializer(many=True))
-# )
+@extend_schema_view(
+    put=extend_schema(responses=ProductItemSchemaResponseSerializer(many=True))
+)
 class ProductStorageTransferView(APIView):
     """View for transfering list of products to different storage"""
 

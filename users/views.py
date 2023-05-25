@@ -4,6 +4,7 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.core.signing import Signer
 from django.middleware import csrf
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
@@ -37,6 +38,7 @@ from .serializers import (
     GroupPermissionsResponseSchemaSerializer,
     GroupPermissionsSerializer,
     MessageSerializer,
+    NewEmailFinishValidationSerializer,
     NewEmailSerializer,
     UserAddressPostRequestSerializer,
     UserAddressPutRequestSerializer,
@@ -54,7 +56,6 @@ from .serializers import (
     UserTokenValidationSerializer,
     UserUpdateReturnSchemaSerializer,
     UserUpdateSerializer,
-    NewEmailFinishValidationSerializer,
 )
 
 User = get_user_model()
@@ -193,7 +194,7 @@ class UserCreateListView(APIView):
 
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serialized_values.errors, status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema(responses=MessageSerializer)
@@ -779,7 +780,12 @@ class UserEmailChangeView(APIView):
             token_generator = default_token_generator
             token_for_user = token_generator.make_token(user=request.user)
             uid = urlsafe_base64_encode(force_bytes(request.user.id))
-            new_email = urlsafe_base64_encode(force_bytes(serializer.data["new_email"]))
+
+            signer = Signer(key=token_for_user)
+            signed_email = signer.sign(serializer.data["new_email"])
+            print(signed_email)
+            new_email = urlsafe_base64_encode(force_bytes(signed_email))
+            # new_email = urlsafe_base64_encode(force_bytes(serializer.data["new_email"]))
 
             all_taht_crap = token_for_user + " : " + uid + " : " + new_email
             print(new_email)
@@ -795,16 +801,15 @@ class UserEmailChangeView(APIView):
                 status=status.HTTP_200_OK,
             )
 
-class UserEmailChangeFinishView(APIView):
 
+class UserEmailChangeFinishView(APIView):
     serializer_class = NewEmailFinishValidationSerializer
 
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
-
-            print("serializer data: ",serializer.data)
+            print("serializer data: ", serializer.data)
             return Response(
                 serializer.data,
                 status=status.HTTP_200_OK,

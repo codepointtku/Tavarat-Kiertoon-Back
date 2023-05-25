@@ -29,6 +29,7 @@ from .serializers import (
     OrderResponseSerializer,
     OrderSerializer,
     ShoppingCartDetailRequestSerializer,
+    ShoppingCartDetailResponseSerializer,
     ShoppingCartDetailSerializer,
     ShoppingCartResponseSerializer,
     ShoppingCartSerializer,
@@ -56,7 +57,11 @@ class ShoppingCartListView(ListCreateAPIView):
 
 
 @extend_schema_view(
-    put=extend_schema(request=ShoppingCartDetailRequestSerializer),
+    get=extend_schema(responses=ShoppingCartDetailResponseSerializer),
+    put=extend_schema(
+        request=ShoppingCartDetailRequestSerializer,
+        responses=ShoppingCartDetailResponseSerializer,
+    ),
     patch=extend_schema(exclude=True),
 )
 class ShoppingCartDetailView(RetrieveUpdateAPIView):
@@ -175,6 +180,7 @@ class OrderListView(ListCreateAPIView):
                 "Terveisin Tavarat kieroon väki!"
             )
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
+            serializer = OrderSerializer(order)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -206,11 +212,10 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
-@extend_schema_view(get=extend_schema(responses=OrderDetailResponseSerializer))
 class OrderSelfListView(ListAPIView):
     """View for returning logged in users own orders"""
 
-    serializer_class = OrderSerializer
+    serializer_class = OrderDetailResponseSerializer
     authentication_classes = [
         SessionAuthentication,
         BasicAuthentication,

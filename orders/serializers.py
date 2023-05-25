@@ -43,8 +43,7 @@ class OrderSerializer(serializers.ModelSerializer):
 class OrderRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        exclude = ["product_items"]
-        extra_kwargs = {"user": {"required": True}}
+        exclude = ["product_items", "user"]
 
 
 class OrderResponseSerializer(serializers.ModelSerializer):

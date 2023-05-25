@@ -192,7 +192,7 @@ class TestProducts(TestCase):
                 "available": True,
                 "shelf_id": "asd12",
                 "barcode": "30000001",
-                "storage": self.test_storage.id
+                "storage": self.test_storage.id,
             },
             "name": "nahkatuoli",
             "category": self.test_category1.id,
@@ -200,7 +200,7 @@ class TestProducts(TestCase):
             "free_description": "istuttava nahkainen tuoli",
             "measurements": "90x90x100",
             "weight": 20,
-            "amount": 10
+            "amount": 10,
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
@@ -234,7 +234,7 @@ class TestProducts(TestCase):
                 "available": True,
                 "shelf_id": "asd14",
                 "barcode": "40000001",
-                "storage": self.test_storage.id
+                "storage": self.test_storage.id,
             },
             "name": "puusohva",
             "category": self.test_category1.id,
@@ -254,7 +254,7 @@ class TestProducts(TestCase):
                 "available": True,
                 "shelf_id": "asd15",
                 "barcode": "50000001",
-                "storage": self.test_storage1.id
+                "storage": self.test_storage1.id,
             },
             "name": "puutuoli",
             "category": self.test_category1.id,
@@ -269,10 +269,7 @@ class TestProducts(TestCase):
 
     def test_update_product_item(self):
         url = f"/products/items/{self.test_product_item.id}"
-        data = {
-            "available": False,
-            "modify_date": "asd"
-        }
+        data = {"available": False, "modify_date": "asd"}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
@@ -288,14 +285,18 @@ class TestProducts(TestCase):
         url = "/products/transfer/"
         data = {
             "product_items": [self.test_product_item.id, self.test_product_item1.id],
-            "storage": self.test_storage1.id
+            "storage": self.test_storage1.id,
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
     def test_update_product_name(self):
         url = f"/products/{self.test_product.id}/"
-        data = {"name": "kahvisohva"}
+        data = {
+            "name": "kahvisohva",
+            "category": self.test_category1.id,
+            "color": self.test_color.id,
+        }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
 

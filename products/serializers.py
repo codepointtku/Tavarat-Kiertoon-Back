@@ -29,15 +29,29 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = "__all__"
 
-    def get_amount(self, obj):
+    def get_amount(self, obj) -> int:
         product_amount = ProductItem.objects.filter(
             product=obj.id, available=True
         ).count()
         return product_amount
 
-    def get_total_amount(self, obj):
+    def get_total_amount(self, obj) -> int:
         total_product_amount = ProductItem.objects.filter(product=obj.id).count()
         return total_product_amount
+
+
+class ProductSchemaResponseSerializer(ProductSerializer):
+    class Meta:
+        model = Product
+        fields = "__all__"
+        extra_kwargs = {
+            "price": {"required": True},
+            "free_description": {"required": True},
+            "measurements": {"required": True},
+            "weight": {"required": True},
+            "category": {"required": True},
+            "color": {"required": True},
+        }
 
 
 class ProductItemCreateSerializer(serializers.ModelSerializer):
@@ -61,7 +75,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
         product = Product.objects.create(**validated_data)
 
-        for i in range(amount):
+        for _ in range(amount):
             ProductItem.objects.create(product=product, **product_item)
         return product
 
@@ -97,91 +111,28 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
+        extra_kwargs = {
+            "name": {"required": True},
+            "category": {"required": True},
+            "color": {"required": True},
+            "pictures": {"read_only": True},
+        }
 
 
-# class ProductListSerializer(serializers.ModelSerializer):
-#     category_name = serializers.ReadOnlyField(source="category.name")
-#     color_name = serializers.ReadOnlyField(source="color.name")
-#     storage_name = serializers.ReadOnlyField(source="storages.name")
-#     pictures = PictureSerializer(many=True, read_only=True)
-#     amount = serializers.IntegerField()
-
-#     class Meta:
-#         model = Product
-#         fields = "__all__"
-#         extra_kwargs = {
-#             "available": {"required": True},
-#             "barcode": {"required": True},
-#             "group_id": {"required": True},
-#             "price": {"required": True},
-#             "shelf_id": {"required": True},
-#             "free_description": {"required": True},
-#             "modified_date": {"required": True},
-#             "measurements": {"required": True},
-#             "weight": {"required": True},
-#             "category": {"required": True},
-#             "storages": {"required": True},
-#             "color": {"required": True},
-#         }
-
-
-# class ProductStorageListSerializer(serializers.ModelSerializer):
-#     category_name = serializers.ReadOnlyField(source="category.name")
-#     color_name = serializers.ReadOnlyField(source="color.name")
-#     storage_name = serializers.ReadOnlyField(source="storages.name")
-#     pictures = PictureSerializer(many=True, read_only=True)
-
-#     class Meta:
-#         model = Product
-#         fields = "__all__"
-#         extra_kwargs = {
-#             "available": {"required": True},
-#             "barcode": {"required": True},
-#             "group_id": {"required": True},
-#             "price": {"required": True},
-#             "shelf_id": {"required": True},
-#             "free_description": {"required": True},
-#             "modified_date": {"required": True},
-#             "measurements": {"required": True},
-#             "weight": {"required": True},
-#             "category": {"required": True},
-#             "storages": {"required": True},
-#             "color": {"required": True},
-#         }
-
-
-class ProductColorStringSerializer(serializers.ModelSerializer):
-    amount = serializers.IntegerField()
-    color = serializers.CharField()
-    pictures = serializers.FileField()
-
+class ProductUpdateSchemaResponseSerializer(ProductUpdateSerializer):
     class Meta:
         model = Product
         fields = "__all__"
         extra_kwargs = {
-            "available": {"required": True},
-            "barcode": {"required": True},
+            "name": {"required": True},
             "category": {"required": True},
-            "storages": {"required": True},
             "color": {"required": True},
+            "pictures": {"required": True},
+            "price": {"required": True},
+            "free_description": {"required": True},
+            "measurements": {"required": True},
+            "weight": {"required": True},
         }
-
-
-# class ProductCreateSerializer(serializers.ModelSerializer):
-#     amount = serializers.IntegerField()
-#     pictures = serializers.FileField()
-#     color = serializers.IntegerField()
-
-#     class Meta:
-#         model = Product
-#         fields = "__all__"
-#         extra_kwargs = {
-#             "available": {"required": True},
-#             "barcode": {"required": True},
-#             "category": {"required": True},
-#             "storages": {"required": True},
-#             "color": {"required": True},
-#         }
 
 
 class ProductStorageTransferSerializer(serializers.Serializer):
@@ -230,6 +181,21 @@ class ProductItemSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ProductItemSchemaResponseSerializer(serializers.ModelSerializer):
+    product = ProductSchemaResponseSerializer(read_only=True)
+    storage = StorageSchemaResponseSerializer(read_only=True)
+
+    class Meta:
+        model = ProductItem
+        fields = "__all__"
+        extra_kwargs = {
+            "available": {"required": True},
+            "modified_date": {"required": True},
+            "shelf_id": {"required": True},
+            "barcode": {"required": True},
+        }
+
+
 class ProductItemUpdateSerializer(serializers.ModelSerializer):
     """
     serializer for product items for purpose of updating it.
@@ -241,4 +207,32 @@ class ProductItemUpdateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "modified_date": {"read_only": True},
             "product": {"read_only": True},
+        }
+
+
+class ProductItemDetailSchemaResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductItem
+        fields = "__all__"
+        extra_kwargs = {
+            "available": {"required": True},
+            "modified_date": {"required": True},
+            "shelf_id": {"required": True},
+            "barcode": {"required": True},
+            "product": {"required": True},
+            "storage": {"required": True},
+        }
+
+
+class ProductItemUpdateSchemaResponseSerializer(serializers.ModelSerializer):
+    modify_date = serializers.CharField(required=False)
+
+    class Meta:
+        model = ProductItem
+        exclude = ["modified_date", "product"]
+        extra_kwargs = {
+            "available": {"required": True},
+            "shelf_id": {"required": True},
+            "barcode": {"required": True},
+            "storage": {"required": True},
         }

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from products.serializers import (
-    ProductItemDetailSchemaResponseSerializer,
     ProductItemSchemaResponseSerializer,
     ProductItemSerializer,
 )

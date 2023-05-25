@@ -175,6 +175,7 @@ class OrderListView(ListCreateAPIView):
                 "Terveisin Tavarat kieroon väki!"
             )
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
+            serializer = OrderSerializer(order)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

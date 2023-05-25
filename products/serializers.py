@@ -225,14 +225,13 @@ class ProductItemDetailSchemaResponseSerializer(serializers.ModelSerializer):
 
 
 class ProductItemUpdateSchemaResponseSerializer(serializers.ModelSerializer):
-    modify_date = serializers.CharField()
+    modify_date = serializers.CharField(required=False)
 
     class Meta:
         model = ProductItem
         exclude = ["modified_date", "product"]
         extra_kwargs = {
             "available": {"required": True},
-            "modify_date": {"required": True},
             "shelf_id": {"required": True},
             "barcode": {"required": True},
             "storage": {"required": True},

@@ -30,7 +30,7 @@ class ShoppingCartDetailSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartDetailRequestSerializer(serializers.Serializer):
-    product_items = serializers.IntegerField()
+    product_items = serializers.IntegerField(required=False)
     amount = serializers.IntegerField()
 
 

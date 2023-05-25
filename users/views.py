@@ -194,7 +194,7 @@ class UserCreateListView(APIView):
 
             return Response(return_serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serialized_values.errors, status=status.HTTP_204_NO_CONTENT)
+        return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(responses=MessageSerializer)
@@ -798,7 +798,7 @@ class UserEmailChangeView(APIView):
         else:
             return Response(
                 f"non valid email: {serializer.errors}",
-                status=status.HTTP_200_OK,
+                status=status.HTTP_204_NO_CONTENT,
             )
 
 
@@ -817,5 +817,5 @@ class UserEmailChangeFinishView(APIView):
         else:
             return Response(
                 f"somethign went wrong: {serializer.errors}",
-                status=status.HTTP_200_OK,
+                status=status.HTTP_204_NO_CONTENT,
             )

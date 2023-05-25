@@ -58,7 +58,10 @@ class ShoppingCartListView(ListCreateAPIView):
 
 @extend_schema_view(
     get=extend_schema(responses=ShoppingCartDetailResponseSerializer),
-    put=extend_schema(request=ShoppingCartDetailRequestSerializer),
+    put=extend_schema(
+        request=ShoppingCartDetailRequestSerializer,
+        responses=ShoppingCartDetailResponseSerializer,
+    ),
     patch=extend_schema(exclude=True),
 )
 class ShoppingCartDetailView(RetrieveUpdateAPIView):

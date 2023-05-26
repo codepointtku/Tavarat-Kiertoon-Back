@@ -811,6 +811,22 @@ class UserEmailChangeView(APIView):
 
             print(new_email)
 
+            # sending the email
+            subject = "new email address for your Tavarat Kiertoon"
+            message = (
+                "This email address has been designed as the new contact email address for an account in Tavarat Kiertoon.\n\n"
+                f"Please click the following link to finalize this email address change: {email_change_url_front} \n\n"
+                "If you did not request this password reset ignore this mail."
+            )
+
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [serializer.data["new_email"]],
+                fail_silently=False,
+            )
+
             return Response(
                 all_taht_crap,
                 status=status.HTTP_200_OK,

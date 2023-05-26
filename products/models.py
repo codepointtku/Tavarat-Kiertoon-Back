@@ -41,24 +41,30 @@ class Storage(models.Model):
 
 
 class Product(models.Model):
-    """class for making Product table for database"""
+    """class representing Product with shared attributes"""
 
     id = models.BigAutoField(primary_key=True)
-    available = models.BooleanField(default=False)
-    barcode = models.CharField(max_length=255, default="")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
-    group_id = models.CharField(max_length=255, default="")
     name = models.CharField(max_length=255)
     price = models.FloatField(default=0.0)
-    storages = models.ForeignKey(Storage, on_delete=models.SET_NULL, null=True)
-    shelf_id = models.IntegerField(blank=True, null=True)
     free_description = models.TextField(default="", blank=True)
     pictures = models.ManyToManyField(Picture, blank=True)
-    date = models.DateTimeField(auto_now_add=True)
-    modified_date = models.DateTimeField(default=timezone.now)
     measurements = models.CharField(max_length=50, default="", blank=True)
     color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True)
     weight = models.FloatField(default=0.0)
 
     def __str__(self) -> str:
         return f"Product: {self.name}({self.id})"
+
+
+class ProductItem(models.Model):
+    """Class representing single item that refers to Product"""
+
+    id = models.BigAutoField(primary_key=True)
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
+    available = models.BooleanField(default=False)
+    modified_date = models.DateTimeField(default=timezone.now)
+    storage = models.ForeignKey(Storage, on_delete=models.SET_NULL, null=True)
+    shelf_id = models.CharField(max_length=255, default="")
+    barcode = models.CharField(max_length=255, default="")
+    # log_entry

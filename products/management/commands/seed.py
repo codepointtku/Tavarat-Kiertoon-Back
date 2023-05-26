@@ -23,8 +23,7 @@ from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
 from orders.models import Order, ShoppingCart
-from orders.views import product_availibility_check
-from products.models import Color, Picture, Product, Storage
+from products.models import Color, Picture, Product, ProductItem, Storage
 from users.models import CustomUser, UserAddress
 
 # python manage.py seed
@@ -60,6 +59,7 @@ def clear_data():
     Picture.objects.all().delete()
     Storage.objects.all().delete()
     Product.objects.all().delete()
+    ProductItem.objects.all().delete()
     CustomUser.objects.all().delete()
     UserAddress.objects.all().delete()
     Bike.objects.all().delete()
@@ -312,7 +312,7 @@ def create_picture():
     picture_object.save()
 
 
-def create_products():
+def create_products_and_product_items():
     """Creates product objects from the list."""
     products = [
         {
@@ -693,29 +693,28 @@ def create_products():
     storages = Storage.objects.all()
     pictures = Picture.objects.all()
     for product in products:
-        same_products = []
-        try:
-            group_id = Product.objects.latest("id").id + 1
-        except ObjectDoesNotExist:
-            group_id = 1
+        storage = random.choice(storages)
+        barcode = product["barcode"]
         product_object = Product(
             name=product["name"],
-            group_id=group_id,
-            barcode=product["barcode"],
             free_description=product["free_description"],
             category=Category.objects.get(name=product["category"]),
             color=random.choice(colors),
-            storages=random.choice(storages),
             measurements="",
         )
+        product_object.save()
         for _ in range(
             random.choices(
                 range(1, 11), cum_weights=[10, 15, 18, 20, 21, 22, 23, 24, 25, 26]
             )[0]
         ):
-            same_products.append(copy(product_object))
-            same_products[-1].available = random.choice(true_false)
-        Product.objects.bulk_create(same_products)
+            ProductItem.objects.create(
+                product=product_object,
+                available=random.choice(true_false),
+                modified_date=timezone.now(),
+                storage=storage,
+                barcode=barcode,
+            )
     queryset = Product.objects.all()
     pictures = Picture.objects.all()
     for query in queryset:
@@ -734,12 +733,14 @@ def create_shopping_carts():
         cart_obj = ShoppingCart(user=user)
         cart_obj.save()
     queryset = ShoppingCart.objects.all()
-    products = list(Product.objects.filter(available=True))
+    product_items = [
+        product_item.id for product_item in ProductItem.objects.filter(available=True)
+    ]
     for query in queryset:
         if query.user.username == "super":
-            query.products.set(random.sample(products, 5))
+            query.product_items.set(random.sample(product_items, 5))
         else:
-            query.products.set(random.sample(products, random.randint(1, 6)))
+            query.product_items.set(random.sample(product_items, random.randint(1, 6)))
 
 
 def create_orders():
@@ -791,8 +792,8 @@ def create_orders():
             phone_number=user.phone_number,
         )
         order_obj.save()
-        for product_id in product_availibility_check(user.id):
-            order_obj.products.add(product_id)
+        for product_id in ShoppingCart.objects.get(user=user).product_items.all():
+            order_obj.product_items.add(product_id)
 
 
 def create_bulletins():
@@ -962,7 +963,7 @@ def run_seed(self, mode):
     create_users()
     for _ in range(6):
         create_picture()
-    create_products()
+    create_products_and_product_items()
     create_shopping_carts()
     create_orders()
     create_bulletins()

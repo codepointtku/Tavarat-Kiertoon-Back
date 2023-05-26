@@ -67,13 +67,17 @@ class UserTokenValidationSerializer(serializers.Serializer):
     uid = serializers.CharField(max_length=255)
     token = serializers.CharField(max_length=255)
 
+    token_generator = custom_time_token_generator
+
     def validate(self, data):
         """
         check the correctness of token
         """
         # decoding uid and chekcing that token is valid
         # token_generator = default_token_generator
-        token_generator = custom_time_token_generator
+        # token_generator = custom_time_token_generator
+        token_generator = self.token_generator
+
         try:
             uid = urlsafe_base64_decode(data["uid"]).decode()
         except ValueError:
@@ -146,6 +150,8 @@ class UserTokenValidationSerializer(serializers.Serializer):
 class UserPasswordChangeEmailValidationSerializer(UserTokenValidationSerializer):
     new_password = serializers.CharField(max_length=255)
     new_password_again = serializers.CharField(max_length=255)
+
+    token_generator = default_token_generator
 
     def validate(self, data):
         """
@@ -390,12 +396,14 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
 
     new_email = serializers.CharField(max_length=255)
 
+    token_generator = default_token_generator
+
     def validate(self, data):
         data = super().validate(data)
 
         # decoding email
         # using the same time as passwrod reset for token lifetime
-        token_generator = default_token_generator
+        token_generator = self.token_generator
         # token_generator = custom_time_token_generator
         try:
             email = urlsafe_base64_decode(data["new_email"]).decode()

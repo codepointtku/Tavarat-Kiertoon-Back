@@ -793,11 +793,26 @@ class UserEmailChangeView(APIView):
             new_email = urlsafe_base64_encode(force_bytes(signed_email))
             # new_email = urlsafe_base64_encode(force_bytes(serializer.data["new_email"]))
 
-            all_taht_crap = token_for_user + " : " + uid + " : " + new_email
+            email_unique_portion = f"{uid}/{token_for_user}/{new_email}/"
+
+            email_change_url_front = (
+                f"{settings.EMAIL_CHANGE_URL_FRONT}{email_unique_portion}"
+            )
+            email_change_url_back = "http://127.0.0.1:8000/users/emailchange/finish/"
+
+            all_taht_crap = {
+                "uid": uid,
+                "token": token_for_user,
+                "new_email": new_email,
+                "link": email_unique_portion,
+                "front": email_change_url_front,
+                "back": email_change_url_back,
+            }
+
             print(new_email)
 
             return Response(
-                f"dude im fairy let me in: {all_taht_crap}",
+                all_taht_crap,
                 status=status.HTTP_200_OK,
             )
 

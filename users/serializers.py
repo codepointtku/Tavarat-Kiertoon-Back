@@ -390,7 +390,7 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
     new_email = serializers.CharField(max_length=255)
 
     def validate(self, data):
-        new_data = super().validate(data)
+        data = super().validate(data)
 
         # decoding email
         # token_generator = default_token_generator
@@ -409,9 +409,9 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
             msg = "email was most likely tampered with, try changing email again from start"
             raise serializers.ValidationError(msg)
 
-        new_data["new_email"] = unsigned_email
+        data["new_email"] = unsigned_email
 
-        return new_data
+        return data
 
 
 # -----------------------------------------------------------------------

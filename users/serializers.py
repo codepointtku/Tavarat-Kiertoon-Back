@@ -97,6 +97,7 @@ class UserTokenValidationSerializer(serializers.Serializer):
 
     """
     CHECK CEHCK CEHCK
+    !!!! FIX TOKEN GNERATOR TIMEES!!!!!!!!!!!!
     """
 
 
@@ -393,8 +394,9 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
         data = super().validate(data)
 
         # decoding email
-        # token_generator = default_token_generator
-        token_generator = custom_time_token_generator
+        # using the same time as passwrod reset for token lifetime
+        token_generator = default_token_generator
+        # token_generator = custom_time_token_generator
         try:
             email = urlsafe_base64_decode(data["new_email"]).decode()
         except ValueError:

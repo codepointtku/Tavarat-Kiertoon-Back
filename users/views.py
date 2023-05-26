@@ -840,6 +840,10 @@ class UserEmailChangeView(APIView):
 
 
 class UserEmailChangeFinishView(APIView):
+    """
+    Validating and changing the email for user after the new email address has been sent from fonts url.
+    """
+
     serializer_class = NewEmailFinishValidationSerializer
 
     def post(self, request, format=None):
@@ -847,6 +851,20 @@ class UserEmailChangeFinishView(APIView):
 
         if serializer.is_valid():
             print("serializer data: ", serializer.data)
+
+            User = get_user_model()
+            user = User.objects.get(id=serializer.data["uid"])
+            print("users old email: ", user.email)
+            user.email = serializer.data["new_email"]
+
+            # checking if the user is normal user or not, if user name has @ = normal user
+            # normal user > username  is email adress
+
+            if "@" in user.username:
+                print("normal user as no @ in username")
+                user.username = serializer.data["new_email"]
+            user.save()
+            print("users new email: ", user.email)
             return Response(
                 serializer.data,
                 status=status.HTTP_200_OK,

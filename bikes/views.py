@@ -3,6 +3,9 @@
 import datetime
 import math
 
+from django.core.files.base import ContentFile
+from django.utils import timezone
+
 # from rest_framework.permissions import IsAdminUser
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -39,6 +42,7 @@ from bikes.serializers import (
     BikeTypeSerializer,
     BikeBrandSerializer,
     BikeSizeSerializer,
+    PictureCreateSerializer,
 )
 
 
@@ -52,7 +56,21 @@ class BikeModelListView(generics.ListCreateAPIView):
     serializer_class = BikeModelSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = BikeModelCreateSerializer(data=request.data)
+        for file in request.FILES.getlist("pictures[]"):
+            ext = file.content_type.split("/")[1]
+            pic_serializer = PictureCreateSerializer(
+                data={
+                    "picture_address": ContentFile(
+                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                    )
+                }
+            )
+            pic_serializer.is_valid(raise_exception=True)
+            bikepicture = self.perform_create(pic_serializer)
+
+        bikedata = request.data
+        bikedata["picture"] = bikepicture["id"]
+        serializer = BikeModelCreateSerializer(data=bikedata)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -70,9 +88,26 @@ class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = BikeModelCreateSerializer(instance, data=request.data)
+        for file in request.FILES.getlist("pictures[]"):
+            ext = file.content_type.split("/")[1]
+            pic_serializer = PictureCreateSerializer(
+                data={
+                    "picture_address": ContentFile(
+                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                    )
+                }
+            )
+            pic_serializer.is_valid(raise_exception=True)
+            pic_serializer.save()
+            bikepicture = pic_serializer.data["id"]
+
+        bikedata = request.data
+        print(bikepicture)
+        bikedata["picture"] = bikepicture
+        print(bikedata)
+        serializer = BikeModelCreateSerializer(instance, data=bikedata)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        self.perform_update(serializer)
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 

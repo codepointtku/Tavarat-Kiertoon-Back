@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.signing import BadSignature, Signer
 from django.utils.http import urlsafe_base64_decode
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers, status
@@ -56,6 +57,7 @@ class UserPasswordCheckEmailSerializer(serializers.Serializer):
 
         return value
 
+
 class UserTokenValidationSerializer(serializers.Serializer):
 
     """
@@ -85,18 +87,20 @@ class UserTokenValidationSerializer(serializers.Serializer):
             raise serializers.ValidationError(msg)
 
         if not token_generator.check_token(user=user, token=data["token"]):
-            msg = "something went wrong confirming email link, get now one"
+            msg = "something went wrong confirming data in email link, get now one"
             raise serializers.ValidationError(msg)
 
         # print("jammign that decoded uid into data insted of coded one, old: ", data)
         data["uid"] = uid
 
         return data
-    
+
     """
     CHECK CEHCK CEHCK
     """
-#REMEMEBR TO TEST THE CONDESING WORKS PROPERLY!!!!!!!!!!
+
+
+# REMEMEBR TO TEST THE CONDESING WORKS PROPERLY!!!!!!!!!!
 
 
 # class UserPasswordChangeEmailValidationSerializer(serializers.Serializer):
@@ -137,6 +141,7 @@ class UserTokenValidationSerializer(serializers.Serializer):
 
 #         return data
 
+
 class UserPasswordChangeEmailValidationSerializer(UserTokenValidationSerializer):
     new_password = serializers.CharField(max_length=255)
     new_password_again = serializers.CharField(max_length=255)
@@ -154,6 +159,7 @@ class UserPasswordChangeEmailValidationSerializer(UserTokenValidationSerializer)
         data = super().validate(data)
 
         return data
+
 
 class UserAddressSerializer(serializers.ModelSerializer):
     """
@@ -362,7 +368,7 @@ class NewEmailSerializer(serializers.Serializer):
 
     def validate_new_email(self, value):
         """
-        validating the new amil address
+        validating the new email address
         """
         if "@" not in value:
             msg = "not an email address (no @)"
@@ -374,7 +380,8 @@ class NewEmailSerializer(serializers.Serializer):
             raise serializers.ValidationError(msg)
 
         return value
-    
+
+
 class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
     """
     Serializer for inputting new email address
@@ -385,16 +392,24 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
     def validate(self, data):
         new_data = super().validate(data)
 
-        # decoding uid and chekcing that token is valid
+        # decoding email
         # token_generator = default_token_generator
         token_generator = custom_time_token_generator
         try:
             email = urlsafe_base64_decode(data["new_email"]).decode()
         except ValueError:
-            msg = "stuff went wrong in decoding email or something"
+            msg = "stuff went wrong in decoding the new email adress"
             raise serializers.ValidationError(msg)
-        
-        new_data["new_email"] = email
+
+        # checking that the email hasnt been tampered with
+        try:
+            signer = Signer(key=data["token"])
+            unsigned_email = signer.unsign(email)
+        except BadSignature:
+            msg = "email was most likely tampered with, try changing email again from start"
+            raise serializers.ValidationError(msg)
+
+        new_data["new_email"] = unsigned_email
 
         return new_data
 

@@ -773,14 +773,20 @@ class UserEmailChangeView(APIView):
     serializer_class = NewEmailSerializer
 
     def post(self, request, format=None):
+        # checkign that the new email adress is in allowed range before sending the change email itself
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
             print(request.user.id)
+
+            # building the link for changing hte email address
+            # Token for user and decoding the uid
             token_generator = default_token_generator
             token_for_user = token_generator.make_token(user=request.user)
             uid = urlsafe_base64_encode(force_bytes(request.user.id))
 
+            # Signing the new email address so that we can check in the change part that it hasnt been tampered.
+            # using the token that needs also to be valited and transfered as key
             signer = Signer(key=token_for_user)
             signed_email = signer.sign(serializer.data["new_email"])
             print(signed_email)

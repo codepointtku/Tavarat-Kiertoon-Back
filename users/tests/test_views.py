@@ -109,14 +109,12 @@ class TestUsers(TestCase):
             "/user/",
             "/users/groups/",
             f"/users/{user_for_testing.id}/groups/permission/",
-            "/user/edit/",
-            f"/users/{user_for_testing.id}/edit/",
+            f"/users/{user_for_testing.id}/",
             "/user/address/edit/",
-            f"/user/address/edit/{address_for_testing.id}/delete/",
+            f"/user/address/edit/{address_for_testing.id}/",
             f"/users/address/{address_for_testing.id}/",
             "/users/password/resetemail/",
             "/users/password/reset/",
-            "/users/password/reset/1/1/",
             "/users/activate/",
         ]
 
@@ -421,12 +419,12 @@ class TestUsers(TestCase):
         url = "/users/1/"
         response = self.client.get(url, content_type="application/json")
         self.assertEqual(
-            response.status_code, 403, "without logging in should be forbidden"
+            response.status_code, 401, "without logging in should be unauthorized"
         )
-        url = "/users/52165445764567467668745983495834956349856394568934659834659834698596516/"
+        url = "/users/99999952165445764567467668745983495834956349856394568934659834659834698596516/"
         response = self.client.get(url, content_type="application/json")
         self.assertEqual(
-            response.status_code, 403, "without logging in should be forbidden"
+            response.status_code, 401, "without logging in should be unauthorized"
         )
 
         url = "/users/"
@@ -471,7 +469,7 @@ class TestUsers(TestCase):
         # anonymous
         response = self.client.get(url, content_type="application/json")
         self.assertEqual(
-            response.status_code, 403, "wihtout logging in should be forbidden"
+            response.status_code, 401, "wihtout logging in should be unauthorized"
         )
 
         # normal user
@@ -578,7 +576,7 @@ class TestUsers(TestCase):
         """
         test for users changing their own info
         """
-        url = "/user/edit/"
+        url = "/user/"
 
         # test without logging in (forbidden response)
         response = self.client.put(url)
@@ -592,12 +590,18 @@ class TestUsers(TestCase):
         self.assertEqual(response.status_code, 200, "should have access user")
 
         # testing changing the info if succesfull in database
-        data = {"name": "Kinkku Kinkku!222", "phone_number": "kinkku!2222"}
+        data = {
+            "first_name": "Kinkku",
+            "last_name": "Kinkku!222",
+            "phone_number": "kinkku!2222",
+        }
         response = self.client.put(url, data, content_type="application/json")
         user2 = CustomUser.objects.get(id=user.id)
 
         # check the changed data is the same data as the changed data instead that just the data has changed.
-        self.assertNotEqual(user.name, user2.name, "user name should have changed")
+        self.assertNotEqual(
+            user.first_name, user2.first_name, "user name should have changed"
+        )
         self.assertNotEqual(
             user.phone_number,
             user2.phone_number,
@@ -611,7 +615,7 @@ class TestUsers(TestCase):
 
         # get existing users id for testing
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
-        url = f"/users/{user_for_testing.id}/edit/"
+        url = f"/users/{user_for_testing.id}/"
 
         # test response when not logged in
         response = self.client.get(url)
@@ -640,15 +644,17 @@ class TestUsers(TestCase):
 
         # changing the user info
         user1 = CustomUser.objects.get(username="testi1@turku.fi")
-        user1_info = [user1.name, user1.phone_number]
-        data = {"name": "Kinkku Kinkku!222", "phone_number": "2222222"}
+        user1_info = [user1.first_name, user1.phone_number]
+        data = {"first_name": "Kinkku Kinkku!222", "phone_number": "2222222"}
         response = self.client.put(url, data, content_type="application/json")
 
         # cheking that the info has changed in database
         user2 = CustomUser.objects.get(username="testi1@turku.fi")
-        user2_info = [user2.name, user2.phone_number]
+        user2_info = [user2.first_name, user2.phone_number]
         self.assertNotEqual(user1_info, user2_info, "users info should have cahnged")
-        self.assertEqual(user2.name, "Kinkku Kinkku!222", "user info changeed wrongly")
+        self.assertEqual(
+            user2.first_name, "Kinkku Kinkku!222", "user info changeed wrongly"
+        )
         self.assertEqual(user2.phone_number, "2222222", "user info changeed wrongly")
 
     def test_user_address(self):
@@ -748,7 +754,7 @@ class TestUsers(TestCase):
             "id": address1.id,
         }
 
-        url = f"/user/address/edit/{address1.id}/delete/"
+        url = f"/user/address/edit/{address1.id}/"
         # testing that non owner of address delete should not go through
         self.login_test_admin()
         response = self.client.delete(url, data=data, content_type="application/json")
@@ -887,12 +893,6 @@ class TestUsers(TestCase):
         the_parameters = end_part_of_email_link[1].split("/")
         # par 0 should be encoded uid, par 1 the token for reset
 
-        # test that can get ok reponse from the reset url
-        response = self.client.get(url2)
-        self.assertEqual(
-            response.status_code, 200, "should go thorugh without thigns happening"
-        )
-
         # testing reponse with various non valid parameters
         data = {
             "new_password": "a",
@@ -1017,6 +1017,7 @@ class TestUsers(TestCase):
             "should be able to login with new pw",
         )
 
+    @override_settings(TEST_DEBUG=False)
     def test_account_activation_reset(self):
         """
         Test for testing the account creation activation functionality.

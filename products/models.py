@@ -12,6 +12,7 @@ class Color(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255)
+    default = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f"Color: {self.name}({self.id})"

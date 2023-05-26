@@ -108,7 +108,7 @@ def create_colors():
     """Creates color objects from the list."""
     colors = ["Punainen", "Sininen", "Vihreä", "Musta", "Valkoinen", "Ruskea"]
     for color in colors:
-        color_object = Color(name=color)
+        color_object = Color(name=color, default=True)
         color_object.save()
 
 
@@ -275,7 +275,8 @@ def create_users():
     ]
     super = CustomUser.objects.create_superuser(username="super", password="super")
     super.phone_number = 900090009
-    super.name = "Super"
+    super.first_name = "Super"
+    super.last_name = "Super"
     super.email = "super@turku.fi"
     super.save()
     UserAddress.objects.create(

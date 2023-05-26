@@ -144,6 +144,7 @@ class ColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Color
         fields = "__all__"
+        read_only_fields = ["default"]
 
 
 class StorageSerializer(serializers.ModelSerializer):

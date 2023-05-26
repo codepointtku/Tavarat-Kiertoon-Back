@@ -1,21 +1,22 @@
 from django.conf import settings
-from django.contrib.auth import authenticate, forms, get_user_model, login, logout
+from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.http import Http404
 from django.middleware import csrf
-from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
-from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
+from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.filters import OrderingFilter
 from rest_framework.mixins import ListModelMixin
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -30,7 +31,7 @@ from orders.models import ShoppingCart
 from .authenticate import CustomJWTAuthentication
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
-from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSerializer,; UserNamesSerializer,
+from .serializers import (
     GroupNameSerializer,
     GroupPermissionsResponseSchemaSerializer,
     GroupPermissionsSerializer,
@@ -43,11 +44,9 @@ from .serializers import (  # GroupNameCheckSerializer,; GroupPermissionsNamesSe
     UserCreateSerializer,
     UserFullResponseSchemaSerializer,
     UserFullSerializer,
-    UserLimitedSerializer,
     UserLoginPostSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
-    UserPasswordSerializer,
     UsersLoginRefreshResponseSchemaSerializer,
     UsersLoginRefreshResponseSerializer,
     UserTokenValidationSerializer,
@@ -145,10 +144,10 @@ class UserCreateListView(APIView):
             cart_obj.save()
 
             # create email verification for user creation
-            if settings.DEBUG:
-                print("debug päällä, activating user without email")
+            if settings.TEST_DEBUG:  # settings.DEBUG:
+                # print("debug päällä, activating user without email")
                 activate_url_back = (
-                    "debug on, auto activated no need to viist activaion place"
+                    "debug on, user auto activated no need to visit activation place"
                 )
                 user.is_active = True
                 user.save()
@@ -160,7 +159,7 @@ class UserCreateListView(APIView):
                 # back urls are only for testing purposes and to ease development to quickly access right urls
                 # should be removed when in deplayment stage from response
                 back_activate_url = "http://127.0.0.1:8000/users/activate/"
-                activate_url_back = f"{back_activate_url}{uid}/{token_for_user}/"
+                activate_url_back = f"back: {back_activate_url}     front: {settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"  # {uid}/{token_for_user}/"
                 activate_url = (
                     f"{settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"
                 )
@@ -224,7 +223,6 @@ class UserLoginView(APIView):
     Login with jwt token and as http only cookie
     """
 
-    # serializer_class = UserPasswordSerializer
     serializer_class = UserLoginPostSerializer
 
     @extend_schema(
@@ -330,61 +328,6 @@ class UserTokenRefreshView(TokenViewBase):
         return response
 
 
-@extend_schema(exclude=True)
-class UserLoginTestView(APIView):
-    """
-    this view is mainly used for testing purposes
-    will be removed later.
-    """
-
-    authentication_classes = [
-        #     #SessionAuthentication,
-        #     #BasicAuthentication,
-        #     #JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "GET": ["user_group"],
-        "POST": ["user_group"],
-        "PUT": ["user_group"],
-        "PATCH": ["user_group"],
-    }
-
-    queryset = CustomUser.objects.all()
-    serializer_class = UserPasswordSerializer
-
-    def get(self, request):
-        print("testing things, on the page now GET")
-        print(request.COOKIES)
-        content = {
-            "user": str(request.user),  # `django.contrib.auth.User` instance.
-            "auth": str(request.auth),  # None
-        }
-        print(content)
-        serializer_group = UserLimitedSerializer(request.user)
-
-        return Response(
-            {
-                "cookies": request.COOKIES,
-                "user": content,
-                "groups": serializer_group.data["groups"],
-            }
-        )
-
-    def post(self, request):
-        print("testing things POST")
-        print(request.COOKIES)
-        content = {
-            "user": str(request.user),  # `django.contrib.auth.User` instance.
-            "auth": str(request.auth),  # None
-        }
-        print(content)
-        serializer_class = UserPasswordSerializer
-
-        return Response(request.COOKIES)
-
-
 class UserLogoutView(APIView):
     """
     Logs out the user and (flush session just in case, mainly for use in testing at back)
@@ -413,6 +356,22 @@ class UserLogoutView(APIView):
         return response
 
 
+class UserListPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = "page_size"
+
+
+# class UserFilter(filters.FilterSet):
+#     class Meta:
+#         model = CustomUser
+#         fields = [
+#             "name",
+#             "email",
+#             "phone_number",
+#             "username",
+#         ]
+
+
 @extend_schema(responses=UserFullResponseSchemaSerializer)
 class UserDetailsListView(generics.ListAPIView):
     """
@@ -427,6 +386,13 @@ class UserDetailsListView(generics.ListAPIView):
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
 
+    pagination_class = UserListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+
+    ordering_fields = ["id", "is_active", "creation_date", "last_login"]
+    ordering = ["id"]
+    # filterset_class = UserFilter
+
     required_groups = {
         "GET": ["admin_group"],
         # "POST": ["admin_group"],
@@ -437,29 +403,34 @@ class UserDetailsListView(generics.ListAPIView):
     serializer_class = UserFullSerializer
 
 
-@extend_schema(responses=UserFullResponseSchemaSerializer)
-class UserSingleGetView(APIView):
+@extend_schema_view(
+    patch=extend_schema(exclude=True),
+    get=extend_schema(responses=UserFullResponseSchemaSerializer),
+)
+@extend_schema(responses=UserUpdateReturnSchemaSerializer)
+class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
     """
-    Get single user with all database fields, no POST here
+    Get specific users info,
+    only some field can be updated
     """
 
-    # authentication_classes = [SessionAuthentication, BasicAuthentication]
     authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
+        # SessionAuthentication,
+        # BasicAuthentication,
+        # JWTAuthentication,
         CustomJWTAuthentication,
     ]
-    permission_classes = [IsAuthenticated, HasGroupPermission]
 
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["admin_group"],
         "POST": ["admin_group"],
         "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
     }
 
-    queryset = CustomUser.objects.all()
-    serializer_class = UserFullSerializer
+    serializer_class = UserUpdateSerializer
+    queryset = User.objects.all()
 
     def get(self, request, pk, format=None):
         try:
@@ -469,33 +440,6 @@ class UserSingleGetView(APIView):
 
         serializer = UserFullSerializer(user)
 
-        return Response(serializer.data)
-
-
-@extend_schema(responses=UserFullResponseSchemaSerializer)
-class UserLoggedInDetailView(APIView):
-    """
-    Get logged in users info
-    """
-
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-
-    required_groups = {
-        "GET": ["user_group"],
-        # "POST": ["user_group"],
-        "PUT": ["user_group"],
-    }
-    queryset = CustomUser.objects.all()
-    serializer_class = UserFullSerializer
-
-    def get(self, request, format=None):
-        serializer = self.serializer_class(request.user)
         return Response(serializer.data)
 
 
@@ -548,11 +492,14 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = GroupPermissionsSerializer
 
 
-@extend_schema(responses=UserUpdateReturnSchemaSerializer)
+@extend_schema_view(
+    get=extend_schema(responses=UserFullResponseSchemaSerializer),
+    put=extend_schema(responses=UserUpdateReturnSchemaSerializer),
+)
 class UserUpdateInfoView(APIView):
     """
     Get logged in users information and update it.
-    only fields that can be changed.
+    only some fields can be changed.
     """
 
     authentication_classes = [
@@ -567,16 +514,14 @@ class UserUpdateInfoView(APIView):
         "GET": ["user_group"],
         "POST": ["user_group"],
         "PUT": ["user_group"],
-        "PATCH": ["user_group"],
     }
 
     serializer_class = UserUpdateSerializer
     queryset = User.objects.all()
 
     def get(self, request, format=None):
-        user = User.objects.get(id=request.user.id)
-        serialized_data = self.serializer_class(user)
-        return Response(serialized_data.data)
+        serializer = UserFullSerializer(request.user)
+        return Response(serializer.data)
 
     def put(self, request, format=None):
         serializer = self.serializer_class(
@@ -585,32 +530,6 @@ class UserUpdateInfoView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-@extend_schema_view(patch=extend_schema(exclude=True))
-@extend_schema(responses=UserUpdateReturnSchemaSerializer)
-class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
-    """
-    Get specific users info for updating, field that can be updated
-    """
-
-    authentication_classes = [
-        # SessionAuthentication,
-        # BasicAuthentication,
-        # JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-    }
-
-    serializer_class = UserUpdateSerializer
-    queryset = User.objects.all()
 
 
 class UserAddressEditView(APIView, ListModelMixin):
@@ -761,7 +680,7 @@ class UserPasswordResetMailView(APIView):
             # back urls are only for testing purposes and to ease development to quickly access right urls
             # should be removed when in deplayment stage from response
             back_reset_url = "http://127.0.0.1:8000/users/password/reset/"
-            reset_url_back = f"{back_reset_url}{uid}/{token_for_user}/"
+            reset_url_back = f"{back_reset_url}"  # {uid}/{token_for_user}/"
             reset_url = f"{settings.PASSWORD_RESET_URL_FRONT}{uid}/{token_for_user}/"
             message = "heres the password reset link you requested: " + reset_url
 
@@ -804,8 +723,7 @@ class UserPasswordResetMailValidationView(APIView):
     """
     View that handless the password reset producre and updates the pw.
     needs the uid and user token created in UserPasswordResetMailView.
-    Also activates the user if for some reason its been activated or needs to bew reactivated.
-    the 'uidb64'/'token' variant and GET method is only for testing and should not be used in deployment so DO NOT USE
+    Also activates the user if for some reason its been activated or needs to be reactivated.
     """
 
     serializer_class = UserPasswordChangeEmailValidationSerializer
@@ -833,31 +751,3 @@ class UserPasswordResetMailValidationView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
-
-    # get is used in testing should not be needed in deployment, will be removed later
-    @extend_schema(
-        exclude=True,
-        responses=inline_serializer(
-            name="test returns",
-            fields={
-                "msg": serializers.CharField(),
-                "uid": serializers.CharField(),
-                "token": serializers.CharField(),
-            },
-        ),
-    )
-    def get(self, request, *args, **kwargs):
-        if "uidb64" not in kwargs or "token" not in kwargs:
-            return Response(
-                "The URL path must contain 'uidb64' and 'token' parameters."
-            )
-
-        response = Response()
-        response.data = {
-            "msg: ": "MAGICC!!!!",
-            "uid": kwargs["uidb64"],
-            "token": kwargs["token"],
-        }
-        response.status_code = status.HTTP_200_OK
-
-        return response

@@ -14,5 +14,11 @@ urlpatterns = [
     path("models/<int:pk>/", views.BikeModelDetailView.as_view()),
     path("packages/", views.BikePackageListView.as_view()),
     path("packages/<int:pk>/", views.BikePackageDetailView.as_view()),
-    path("packageamounts/", views.BikeAmountListView.as_view())
+    path("packageamounts/", views.BikeAmountListView.as_view()),
+    path("type/", views.BikeTypeListView.as_view()),
+    path("type/<int:pk>/", views.BikeTypeDetailView.as_view()),
+    path("brand/", views.BikeBrandListView.as_view()),
+    path("brand/<int:pk>/", views.BikeBrandDetailView.as_view()),
+    path("size/", views.BikeSizeListView.as_view()),
+    path("size/<int:pk>/", views.BikeSizeDetailView.as_view()),
 ]

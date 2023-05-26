@@ -6,10 +6,7 @@ from django.core.files.base import ContentFile
 from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
-)
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
@@ -32,15 +29,15 @@ from .serializers import (
     ProductCreateSchemaSerializer,
     ProductCreateSerializer,
     ProductItemDetailSchemaResponseSerializer,
-    ProductItemUpdateSchemaResponseSerializer,
     ProductItemSchemaResponseSerializer,
     ProductItemSerializer,
+    ProductItemUpdateSchemaResponseSerializer,
     ProductItemUpdateSerializer,
     ProductSchemaResponseSerializer,
     ProductSerializer,
     ProductStorageTransferSerializer,
-    ProductUpdateSerializer,
     ProductUpdateSchemaResponseSerializer,
+    ProductUpdateSerializer,
     ShoppingCartAvailableAmountListSerializer,
     StorageSchemaResponseSerializer,
     StorageSerializer,
@@ -305,6 +302,21 @@ class ColorListView(generics.ListCreateAPIView):
 class ColorDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Color.objects.all()
     serializer_class = ColorSerializer
+
+    def put(self, request, *args, **kwargs):
+        if self.get_object().default:
+            return Response("Cant modify default colors", status=405)
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        if self.get_object().default:
+            return Response("Cant modify default colors", status=405)
+        return self.partial_update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        if self.get_object().default:
+            return Response("Cant delete default colors", status=405)
+        return self.destroy(request, *args, **kwargs)
 
 
 @extend_schema_view(

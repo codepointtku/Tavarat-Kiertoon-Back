@@ -30,7 +30,11 @@ jobs:
       PASSWORD_RESET_URL_FRONT : http://localhost:3000/salasananpalautus/
       USER_ACTIVATION_URL_FRONT : http://localhost:3000/aktivointi/
       PASSWORD_RESET_TIMEOUT : 900
-      USER_CREATION_TIMEOUT : 1209600
+      USER_CREATION_TIMEOUT : 1209600   
+      TEST_DEBUG : True
+      ACCESS_TOKEN_LIFETIME : 15
+      REFRESH_TOKEN_LIFETIME : 12
+
     services:
       postgres:
         image: postgres:15

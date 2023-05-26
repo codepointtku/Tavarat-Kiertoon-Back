@@ -46,7 +46,8 @@ class CustomUserManager(BaseUserManager):
         user = self.model(
             email=self.normalize_email(email=email),
             phone_number=phone_number,
-            name=(first_name + " " + last_name).title(),
+            first_name=first_name.title(),
+            last_name=last_name.title(),
             username=username,
         )
 
@@ -84,7 +85,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     """class representing User in database"""
 
     id = models.BigAutoField(primary_key=True)
-    name = models.CharField(max_length=255, null=True)
+    # name = models.CharField(max_length=255, null=True)
+    first_name = models.CharField(max_length=255, null=True)
+    last_name = models.CharField(max_length=255, null=True)
     email = models.CharField(max_length=255)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)

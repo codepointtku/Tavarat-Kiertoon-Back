@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import json
 from pathlib import Path
 
 from decouple import Csv, config
@@ -26,6 +27,7 @@ SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+TEST_DEBUG = json.loads(config("TEST_DEBUG").lower())
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
@@ -143,8 +145,10 @@ AUTH_PASSWORD_VALIDATORS = [
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(hours=12),
+    # "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    # "REFRESH_TOKEN_LIFETIME": timedelta(hours=12),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(config("ACCESS_TOKEN_LIFETIME"))),
+    "REFRESH_TOKEN_LIFETIME": timedelta(hours=int(config("REFRESH_TOKEN_LIFETIME"))),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,

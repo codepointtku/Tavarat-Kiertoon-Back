@@ -337,6 +337,16 @@ class NewEmailSerializer(serializers.Serializer):
             msg = "not valid domain for email"
             raise serializers.ValidationError(msg)
 
+        # checking that when normal user that there isnt already user with the email
+        # this to prevent multiple same usernames
+        user = self.context.get("request").user
+        user_count = User.objects.filter(username=value).count()
+        print("user count: ", user_count)
+        print("contest user:", self.context.get("request").user)
+        if (user_count >= 1) and ("@" in user.username):
+            msg = f"normal user with email address of {value} already exists"
+            raise serializers.ValidationError(msg)
+
         return value
 
 

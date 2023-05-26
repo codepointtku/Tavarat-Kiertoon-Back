@@ -774,7 +774,9 @@ class UserEmailChangeView(APIView):
 
     def post(self, request, format=None):
         # checkign that the new email adress is in allowed range before sending the change email itself
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
 
         if serializer.is_valid():
             print(request.user.id)

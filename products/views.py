@@ -6,11 +6,7 @@ from django.core.files.base import ContentFile
 from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import (
-    PolymorphicProxySerializer,
-    extend_schema,
-    extend_schema_view,
-)
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
@@ -25,16 +21,22 @@ from orders.serializers import ShoppingCartDetailSerializer
 from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
-from .models import Color, Picture, Product, Storage
+from .models import Color, Picture, Product, ProductItem, Storage
 from .serializers import (
     ColorSerializer,
+    PictureCreateSerializer,
     PictureSerializer,
-    ProductColorStringSerializer,
+    ProductCreateSchemaSerializer,
     ProductCreateSerializer,
-    ProductListSerializer,
+    ProductItemDetailSchemaResponseSerializer,
+    ProductItemSchemaResponseSerializer,
+    ProductItemSerializer,
+    ProductItemUpdateSchemaResponseSerializer,
+    ProductItemUpdateSerializer,
+    ProductSchemaResponseSerializer,
     ProductSerializer,
-    ProductStorageListSerializer,
     ProductStorageTransferSerializer,
+    ProductUpdateSchemaResponseSerializer,
     ProductUpdateSerializer,
     ShoppingCartAvailableAmountListSerializer,
     StorageSchemaResponseSerializer,
@@ -110,9 +112,17 @@ class ProductFilter(filters.FilterSet):
         return or_queryset
 
 
-@extend_schema_view(get=extend_schema(responses=ProductListSerializer))
-class ProductListView(generics.ListAPIView):
-    queryset = Product.objects.filter(available=True)
+@extend_schema_view(
+    post=extend_schema(
+        request=ProductCreateSchemaSerializer(),
+        responses=ProductSchemaResponseSerializer(),
+    ),
+    get=extend_schema(responses=ProductSchemaResponseSerializer()),
+)
+class ProductListView(generics.ListCreateAPIView):
+    """View for listing and creating products. Create includes creation of ProductItem and Picture"""
+
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     authentication_classes = [
         SessionAuthentication,
@@ -123,140 +133,72 @@ class ProductListView(generics.ListAPIView):
     pagination_class = ProductListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
-    ordering_fields = ["modified_date", "id"]
-    ordering = ["-modified_date", "-id"]
+    ordering_fields = ["id"]
+    ordering = ["-id"]
     filterset_class = ProductFilter
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        unique_groupids = (
-            queryset.values("id")
-            .order_by("group_id", "-modified_date")
-            .distinct("group_id")
-        )
-        grouped_queryset = queryset.filter(id__in=unique_groupids)
-        amounts = (
-            queryset.values("group_id")
-            .order_by("group_id")
-            .annotate(amount=Count("group_id"))
-        )
-        page = self.paginate_queryset(grouped_queryset)
+        page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            for product in serializer.data:
-                product["amount"] = amounts.filter(group_id=product["group_id"])[0][
-                    "amount"
-                ]
             response = self.get_paginated_response(serializer.data)
             if queryset._hints:
                 response.data["filter"] = queryset._hints["filter"]
             return Response(response.data)
-        serializer = self.get_serializer(grouped_queryset, many=True)
-        return Response(serializer.data)
-
-
-@extend_schema_view(
-    post=extend_schema(
-        request=PolymorphicProxySerializer(
-            component_name="ProductCreation",
-            serializers=[ProductCreateSerializer, ProductColorStringSerializer],
-            resource_type_field_name="color",
-        ),
-        responses=ProductStorageListSerializer(many=True),
-    ),
-    get=extend_schema(responses=ProductListSerializer()),
-)
-class StorageProductListView(generics.ListCreateAPIView):
-    serializer_class = ProductSerializer
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-    pagination_class = ProductListPagination
-    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
-    search_fields = ["name", "free_description"]
-    ordering_fields = ["modified_date", "id"]
-    ordering = ["-modified_date", "-id"]
-    filterset_class = ProductFilter
-
-    def get_queryset(self):
-        queryset = Product.objects.all()
-        all_products = self.request.query_params.get("all")
-        if not is_in_group(self.request.user, "storage_group") or all_products is None:
-            queryset = queryset.filter(available=True)
-        return queryset
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        unique_groupids = (
-            queryset.values("id")
-            .order_by("group_id", "-modified_date")
-            .distinct("group_id")
-        )
-        grouped_queryset = queryset.filter(id__in=unique_groupids)
-        amounts = (
-            queryset.values("group_id")
-            .order_by("group_id")
-            .annotate(amount=Count("group_id"))
-        )
-        page = self.paginate_queryset(grouped_queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            for product in serializer.data:
-                product["amount"] = amounts.filter(group_id=product["group_id"])[0][
-                    "amount"
-                ]
-            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        request_data = request.data
-        productinstance = color_check_create(request_data)
-        try:
-            productinstance["group_id"] = Product.objects.latest("id").id + 1
-        except ObjectDoesNotExist:
-            productinstance["group_id"] = 1
-        modified_request = [productinstance] * int(request.data["amount"])
-        serializer = ProductSerializer(data=modified_request, many=True)
+        color_checked_data = color_check_create(request.data)
+        serializer = ProductCreateSerializer(data=color_checked_data)
         serializer.is_valid(raise_exception=True)
-        products = serializer.save()
-        picture_ids = []
-        for file in request.FILES.getlist("pictures[]"):
-            ext = file.content_type.split("/")[1]
-            pic_serializer = PictureSerializer(
-                data={
-                    "picture_address": ContentFile(
-                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
-                    )
-                }
-            )
-            pic_serializer.is_valid(raise_exception=True)
-            self.perform_create(pic_serializer)
-            picture_ids.append(pic_serializer.data["id"])
+        productdata = serializer.save()
+        response = ProductSerializer(productdata)
+        return Response(data=response.data, status=status.HTTP_201_CREATED)
 
-        for product in products:
-            for picture_id in picture_ids:
-                product.pictures.add(picture_id)
+        """ Picture creation logic in Product create, not in use for now"""
+        # # modified_request = [product_item] * amount
+        # # serializer = ProductSerializer(data=modified_request, many=True)
+        # # serializer.is_valid(raise_exception=True)
+        # # products = serializer.save()
+        # # picture_ids = []
+        # # for file in request.FILES.getlist("pictures[]"):
+        # #     ext = file.content_type.split("/")[1]
+        # #     pic_serializer = PictureCreateSerializer(
+        # #         data={
+        # #             "picture_address": ContentFile(
+        # #                 file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+        # #             )
+        # #         }
+        # #     )
+        # #     pic_serializer.is_valid(raise_exception=True)
+        # #     self.perform_create(pic_serializer)
+        # #     picture_ids.append(pic_serializer.data["id"])
 
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
+        # # for product in products:
+        # #     for picture_id in picture_ids:
+        # #         product.pictures.add(picture_id)
+
+        # # headers = self.get_success_headers(serializer.data)
+        # # return Response(
+        # #     serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        # # )
 
 
 @extend_schema_view(
     get=extend_schema(
-        responses=ProductListSerializer(),
+        responses=ProductSchemaResponseSerializer(),
     ),
     put=extend_schema(
-        request=ProductUpdateSerializer(), responses=ProductUpdateSerializer()
+        request=ProductUpdateSerializer(),
+        responses=ProductUpdateSchemaResponseSerializer(),
     ),
     patch=extend_schema(exclude=True),
 )
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """View for retrieving, updating, (destroying) a single Product"""
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
@@ -264,6 +206,74 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
         serializer = ProductUpdateSerializer(
+            instance, data=request.data, partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        data = serializer.data
+
+        if getattr(instance, "_prefetched_objects_cache", None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(data)
+
+
+class ProductItemListPagination(PageNumberPagination):
+    page_size = 30
+    page_size_query_param = "page_size"
+
+
+class ProductItemListFilter(filters.FilterSet):
+    product = filters.ModelMultipleChoiceFilter(queryset=Product.objects.all())
+    storage = filters.ModelMultipleChoiceFilter(queryset=Storage.objects.all())
+    available = filters.BooleanFilter()
+    shelf_id = filters.AllValuesFilter()
+
+
+@extend_schema_view(
+    get=extend_schema(responses=ProductItemSchemaResponseSerializer()),
+)
+class ProductItemListView(generics.ListAPIView):
+    """
+    Lists all Product items
+    """
+
+    queryset = ProductItem.objects.all()
+    serializer_class = ProductItemSerializer
+    pagination_class = ProductListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["modified_date", "id", "available", "product", "storage"]
+    ordering = ["-modified_date", "-id"]
+    filterset_class = ProductItemListFilter
+
+
+@extend_schema_view(
+    get=extend_schema(responses=ProductItemDetailSchemaResponseSerializer()),
+    put=extend_schema(
+        request=ProductItemUpdateSchemaResponseSerializer(),
+        responses=ProductItemDetailSchemaResponseSerializer(),
+    ),
+    patch=extend_schema(exclude=True),
+)
+class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    View for modifying single Product item
+    """
+
+    queryset = ProductItem.objects.all()
+    serializer_class = ProductItemUpdateSerializer
+
+    def update(self, request, *args, **kwargs):
+        """
+        as modified date is read only and needs to be updated in only very specific situations.
+        copypasted the functions from librarys. (mixins.UpdateModelMixin)
+        when the "modify_date" value field is found in request body, only then the modified date is updated.
+        """
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = ProductItemUpdateSerializer(
             instance, data=request.data, partial=partial
         )
         serializer.is_valid(raise_exception=True)
@@ -278,14 +288,6 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
 
-        return Response(data)
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        data = serializer.data
-        amount = self.queryset.filter(group_id=data["group_id"], available=True).count()
-        data["amount"] = amount
         return Response(data)
 
 
@@ -346,7 +348,7 @@ class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class PictureListView(generics.ListCreateAPIView):
     queryset = Picture.objects.all()
-    serializer_class = PictureSerializer
+    serializer_class = PictureCreateSerializer
 
     def create(self, request, *args, **kwargs):
         for file in request.FILES.values():
@@ -375,7 +377,7 @@ class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 @extend_schema_view(
-    put=extend_schema(responses=ProductStorageListSerializer(many=True))
+    put=extend_schema(responses=ProductItemSchemaResponseSerializer(many=True))
 )
 class ProductStorageTransferView(APIView):
     """View for transfering list of products to different storage"""
@@ -384,14 +386,14 @@ class ProductStorageTransferView(APIView):
 
     def put(self, request, *args, **kwargs):
         storage = Storage.objects.get(id=request.data["storage"])
-        products = Product.objects.filter(id__in=request.data["products"])
-        products.update(storages=storage)
-        serializer = ProductSerializer(products, many=True)
+        product_items = ProductItem.objects.filter(id__in=request.data["product_items"])
+        product_items.update(storage=storage)
+        serializer = ProductItemSerializer(product_items, many=True)
         return Response(serializer.data)
 
 
 class ShoppingCartAvailableAmountList(APIView):
-    """View for last step of modifying products in shopping cart before ordering"""
+    """View for getting Products in users shopping cart and their available amounts for ProductItems not already in shopping cart"""
 
     authentication_classes = [
         SessionAuthentication,
@@ -409,18 +411,18 @@ class ShoppingCartAvailableAmountList(APIView):
         except ObjectDoesNotExist:
             return Response("Shopping cart for this user does not exist")
         cartserializer = ShoppingCartDetailSerializer(instance)
-        group_ids = []
+        product_ids = []
         duplicate_checker = []
-        for product in cartserializer.data["products"]:
-            if product["group_id"] not in duplicate_checker:
-                group = product["group_id"]
-                amount = Product.objects.filter(
-                    group_id=product["group_id"], available=True
+        for product_item in cartserializer.data["product_items"]:
+            if product_item["product"]["id"] not in duplicate_checker:
+                product_id = product_item["product"]["id"]
+                amount = ProductItem.objects.filter(
+                    product=product_id, available=True
                 ).count()
-                pair = {"id": group, "amount": amount}
-                group_ids.append(pair)
-                duplicate_checker.append(group)
+                pair = {"id": product_id, "amount": amount}
+                product_ids.append(pair)
+                duplicate_checker.append(product_id)
         returnserializer = ShoppingCartAvailableAmountListSerializer(
-            group_ids, many=True
+            product_ids, many=True
         )
         return Response(returnserializer.data)

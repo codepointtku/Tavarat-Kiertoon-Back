@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from products.models import Product
+from products.serializers import ProductSerializer
 
 from .models import Category
 
@@ -10,13 +11,15 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def get_product_count(self, obj) -> int:
         categories = obj.get_descendants(include_self=True)
-        products = Product.objects.filter(available=True)
-        available_products = products.filter(category__in=categories)
+        products = Product.objects.filter(category__in=categories)
+        available_checker = ProductSerializer(instance=products, many=True)
+        available_amount = 0
+        for i in available_checker.data:
+            if i["amount"] >= 1:
+                available_amount += 1
+
         return (
-            available_products.values_list("group_id")
-            .order_by("group_id")
-            .distinct()
-            .count()
+            available_amount
         )
 
     class Meta:

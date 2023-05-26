@@ -1,7 +1,9 @@
-from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
-from products.serializers import ProductSerializer
+from products.serializers import (
+    ProductItemSchemaResponseSerializer,
+    ProductItemSerializer,
+)
 
 from .models import Order, ShoppingCart
 
@@ -21,7 +23,7 @@ class ShoppingCartResponseSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartDetailSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
+    product_items = ProductItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = ShoppingCart
@@ -30,8 +32,12 @@ class ShoppingCartDetailSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartDetailRequestSerializer(serializers.Serializer):
-    products = serializers.IntegerField()
+    product = serializers.IntegerField(required=False)
     amount = serializers.IntegerField()
+
+
+class ShoppingCartDetailResponseSerializer(ShoppingCartResponseSerializer):
+    product_items = ProductItemSchemaResponseSerializer(many=True, read_only=True)
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -43,8 +49,7 @@ class OrderSerializer(serializers.ModelSerializer):
 class OrderRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        exclude = ["products"]
-        extra_kwargs = {"user": {"required": True}}
+        exclude = ["product_items", "user"]
 
 
 class OrderResponseSerializer(serializers.ModelSerializer):
@@ -55,12 +60,12 @@ class OrderResponseSerializer(serializers.ModelSerializer):
             "order_info": {"required": True},
             "delivery_date": {"required": True},
             "user": {"required": True},
-            "products": {"required": True},
+            "product_items": {"required": True},
         }
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
+    product_items = ProductItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order
@@ -71,11 +76,11 @@ class OrderDetailRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = "__all__"
-        extra_kwargs = {"products": {"required": True}}
+        extra_kwargs = {"product_items": {"required": True}}
 
 
 class OrderDetailResponseSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
+    product_items = ProductItemSchemaResponseSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order
@@ -84,5 +89,5 @@ class OrderDetailResponseSerializer(serializers.ModelSerializer):
             "order_info": {"required": True},
             "delivery_date": {"required": True},
             "user": {"required": True},
-            "products": {"required": True},
+            "product_items": {"required": True},
         }

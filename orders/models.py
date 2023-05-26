@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from products.models import Product
+from products.models import ProductItem
 from users.models import CustomUser
 
 
@@ -9,7 +9,7 @@ from users.models import CustomUser
 class ShoppingCart(models.Model):
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-    products = models.ManyToManyField(Product)
+    product_items = models.ManyToManyField(ProductItem)  # product_items?
     date = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
@@ -21,7 +21,7 @@ class Order(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-    products = models.ManyToManyField(Product, blank=True)
+    product_items = models.ManyToManyField(ProductItem, blank=True)
     status = models.CharField(max_length=255)
     delivery_address = models.CharField(max_length=255)
     contact = models.CharField(max_length=255)

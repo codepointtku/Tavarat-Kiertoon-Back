@@ -2,28 +2,28 @@ from django.test import TestCase
 
 from categories.models import Category
 from orders.models import Order, ShoppingCart
-from products.models import Color, Product, Storage
+from products.models import Color, Product, ProductItem, Storage
 from users.models import CustomUser
 
 
 class TestOrders(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.test_user = CustomUser.objects.create_user(
+        cls.test_user1 = CustomUser.objects.create_user(
             first_name="Kahvi",
             last_name="Make",
             email="kahvimake@turku.fi",
             phone_number="1112223344",
             password="asd123",
             address="Karvakuja 1",
-            zip_code="100500",
+            zip_code="100100",
             city="Puuhamaa",
             username="kahvimake@turku.fi",
         )
-        cls.test_user.is_active = True
-        cls.test_user.save()
+        cls.test_user1.is_active = True
+        cls.test_user1.save()
 
-        cls.test_user1 = CustomUser.objects.create_user(
+        cls.test_user2 = CustomUser.objects.create_user(
             first_name="Kahvimpi",
             last_name="Markus",
             email="kahvimarkus@turku.fi",
@@ -34,53 +34,77 @@ class TestOrders(TestCase):
             city="Puuhamaa",
             username="kahvimarkus@turku.fi",
         )
-        cls.test_user1.is_active = True
-        cls.test_user1.save()
+        cls.test_user2.is_active = True
+        cls.test_user2.save()
 
         cls.test_color = Color.objects.create(name="punainen")
-        cls.test_storage = Storage.objects.create(name="mokkavarasto")
-        cls.test_storage1 = Storage.objects.create(name="italiangoldstorage")
+        cls.test_storage1 = Storage.objects.create(name="mokkavarasto")
+        cls.test_storage2 = Storage.objects.create(name="italiangoldstorage")
         cls.test_parentcategory = Category.objects.create(name="coffee")
-        cls.test_category = Category.objects.create(
+        cls.test_category1 = Category.objects.create(
             name="subcoffee", parent=cls.test_parentcategory
         )
-        cls.test_category1 = Category.objects.create(
+        cls.test_category2 = Category.objects.create(
             name="subcoffee2", parent=cls.test_parentcategory
         )
-        cls.test_product = Product.objects.create(
-            name="nahkasohva",
-            group_id=1,
-            price=0,
-            category=cls.test_category,
-            color=cls.test_color,
-            storages=cls.test_storage,
-            available=True,
-            free_description="tämä sohva on nahkainen",
-            weight=50,
-        )
         cls.test_product1 = Product.objects.create(
-            name="sohvanahka",
-            group_id=909,
+            category=cls.test_category1,
+            name="nahkasohva",
             price=0,
-            category=cls.test_category,
+            free_description="tämä sohva on nahkainen",
             color=cls.test_color,
-            storages=cls.test_storage,
-            available=True,
-            free_description="tämä nahka on sohvainen",
             weight=50,
         )
-        cls.test_order = Order.objects.create(
-            user=cls.test_user, phone_number="1234567890"
+        cls.test_product2 = Product.objects.create(
+            category=cls.test_category2,
+            name="sohvanahka",
+            price=0,
+            free_description="tämä nahka on sohvainen",
+            color=cls.test_color,
+            weight=50,
         )
-        cls.test_order.products.set([Product.objects.get(id=cls.test_product1.id)])
-        cls.test_shoppingcart = ShoppingCart.objects.create(user=cls.test_user)
-        cls.test_shoppingcart.products.set(
-            [Product.objects.get(id=cls.test_product.id)]
+        for i in range(13):
+            available = True
+            if i % 5 == 0:
+                available = False
+            if i <= 5:
+                cls.test_product_item1 = ProductItem.objects.create(
+                    product=cls.test_product1,
+                    available=available,
+                    storage=cls.test_storage1,
+                    shelf_id=1,
+                    barcode=1234,
+                )
+            else:
+                cls.test_product_item2 = ProductItem.objects.create(
+                    product=cls.test_product2,
+                    available=available,
+                    storage=cls.test_storage2,
+                    shelf_id=2,
+                    barcode=1235,
+                )
+        cls.test_order = Order.objects.create(
+            user=cls.test_user1, phone_number="1234567890"
+        )
+        cls.test_order.product_items.set(
+            [ProductItem.objects.get(id=cls.test_product_item1.id)]
+        )
+        cls.test_shoppingcart = ShoppingCart.objects.create(user=cls.test_user1)
+        cls.test_shoppingcart.product_items.set(
+            ProductItem.objects.filter(product=cls.test_product2)
+        )
+        cls.test_shoppingcart.product_items.add(
+            ProductItem.objects.filter(
+                product=cls.test_product1, available=True
+            ).first()
         )
 
     def test_post_shopping_cart(self):
         url = "/shopping_carts/"
-        data = {"user": self.test_user.id, "products": [self.test_product.id]}
+        data = {
+            "user": self.test_user1.id,
+            "product_items": [self.test_product_item1.id],
+        }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
@@ -120,7 +144,10 @@ class TestOrders(TestCase):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
         response = self.client.get(url)
-        self.assertEqual(response.json()["user"], self.test_user.id)
+        self.assertEqual(
+            response.json()["user"],
+            CustomUser.objects.get(username="kahvimake@turku.fi").id,
+        )
 
     def test_empty_shopping_cart(self):
         url = "/shopping_cart/"
@@ -128,28 +155,46 @@ class TestOrders(TestCase):
         data = {"amount": -1}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
-        self.assertEqual(response.json()["products"], [])
+        self.assertEqual(response.json()["product_items"], [])
 
     def test_add_to_shopping_cart(self):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
-        data = {"products": self.test_product1.id, "amount": 1}
+        data = {"product": self.test_product1.id, "amount": 2}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
+        self.assertEqual(
+            self.test_shoppingcart.product_items.filter(
+                product=self.test_product1
+            ).count(),
+            2,
+        )
 
     def test_add_to_shopping_cart_amountovermax(self):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
-        data = {"products": self.test_product1.id, "amount": 10}
+        data = {"product": self.test_product1.id, "amount": 10}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
+        self.assertEqual(
+            self.test_shoppingcart.product_items.filter(
+                product=self.test_product1
+            ).count(),
+            4,
+        )
 
     def test_remove_from_shopping_cart(self):
         url = "/shopping_cart/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
-        data = {"products": self.test_product.id, "amount": 0}
+        data = {"product": self.test_product1.id, "amount": 0}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
+        self.assertEqual(
+            self.test_shoppingcart.product_items.filter(
+                product=self.test_product1
+            ).count(),
+            0,
+        )
 
     def test_get_orders(self):
         url = "/orders/?status=Waiting"
@@ -160,7 +205,7 @@ class TestOrders(TestCase):
         url = "/orders/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
-            "user": self.test_user.id,
+            "user": self.test_user1.id,
             "status": "Waiting",
             "delivery_address": "kuja123",
             "contact": "Antero Alakulo",
@@ -169,10 +214,12 @@ class TestOrders(TestCase):
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
+        self.assertEqual(Order.objects.all().count(), 2)
 
-        data = {"user": self.test_user.id}
+        data = {"user": self.test_user1.id}
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(Order.objects.all().count(), 2)
 
     def test_get_order(self):
         url = f"/orders/{self.test_order.id}/"
@@ -186,6 +233,10 @@ class TestOrders(TestCase):
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()[0]["user"],
+            CustomUser.objects.get(username="kahvimake@turku.fi").id,
+        )
 
     def test_remove_products_from_order(self):
         url = f"/orders/{self.test_order.id}/"
@@ -196,11 +247,14 @@ class TestOrders(TestCase):
             "order_info": "string",
             "delivery_date": "2023-04-25T05:40:41.404Z",
             "phone_number": "11212121",
-            "user": self.test_user.id,
-            "products": [],
+            "user": self.test_user1.id,
+            "product_items": [],
         }
         response = self.client.put(url, data, content_type="application/json")
-        self.assertEqual([product.id for product in self.test_order.products.all()], [])
+        self.assertEqual(
+            response.json()["product_items"],
+            [],
+        )
 
     def test_update_order(self):
         url = f"/orders/{self.test_order.id}/"
@@ -211,18 +265,27 @@ class TestOrders(TestCase):
             "order_info": "string",
             "delivery_date": "2023-04-25T05:40:41.404Z",
             "phone_number": "11212121",
-            "user": self.test_user.id,
-            "products": [product.id for product in self.test_order.products.all()],
+            "user": self.test_user1.id,
+            "product_items": [
+                product_item.id
+                for product_item in self.test_shoppingcart.product_items.all()
+            ],
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
+        self.assertQuerysetEqual(
+            self.test_shoppingcart.product_items.all().order_by("id"),
+            self.test_order.product_items.all().order_by("id"),
+        )
 
         data = {
             "status": "Waiting",
-            "user": self.test_user.id,
+            "user": self.test_user1.id,
             "phone_number": "11212121",
             "delivery_date": "asd",
-            "products": [product.id for product in self.test_order.products.all()],
+            "products": [
+                product_item.id for product_item in self.test_order.product_items.all()
+            ],
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)

@@ -70,8 +70,8 @@ class ProductItemLogEntry(models.Model):
         CART_REMOVE = "Removed from shopping cart"
         CART_TIMEOUT = "Timed out from shopping cart"
         ORDER = "Ordered"
-        CIRCULATION = "Came back to circulation"
-        MODIFY = "Modified at storage"
+        CIRCULATION = "Came back to circulation"  # Done
+        MODIFY = "Modified at storage"  # Done
         GIFT = "Gifted away"
 
     id = models.BigAutoField(primary_key=True)

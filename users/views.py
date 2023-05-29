@@ -61,13 +61,6 @@ from .serializers import (
 User = get_user_model()
 
 
-# def validate_email_domain(email_domain):
-#     # print("email domain: ", email_domain, "valid email domains: " , settings.VALID_EMAIL_DOMAINS)
-#     if email_domain in settings.VALID_EMAIL_DOMAINS:
-#         return True
-#     return False
-
-
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {

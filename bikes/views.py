@@ -66,10 +66,11 @@ class BikeModelListView(generics.ListCreateAPIView):
                 }
             )
             pic_serializer.is_valid(raise_exception=True)
-            bikepicture = self.perform_create(pic_serializer)
+            pic_serializer.save()
+            bikepicture = pic_serializer.data["id"]
 
         bikedata = request.data
-        bikedata["picture"] = bikepicture["id"]
+        bikedata["picture"] = bikepicture
         serializer = BikeModelCreateSerializer(data=bikedata)
         serializer.is_valid(raise_exception=True)
         serializer.save()

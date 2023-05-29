@@ -66,10 +66,10 @@ class ProductItemLogEntry(models.Model):
 
     class ActionChoices(models.Choices):
         CREATE = "Created"  # Done
-        CART_ADD = "Added to shopping cart"
-        CART_REMOVE = "Removed from shopping cart"
+        CART_ADD = "Added to shopping cart"  # Done
+        CART_REMOVE = "Removed from shopping cart"  # Done
         CART_TIMEOUT = "Timed out from shopping cart"
-        ORDER = "Ordered"
+        ORDER = "Ordered"  # Done
         CIRCULATION = "Came back to circulation"  # Done
         MODIFY = "Modified at storage"  # Done
         GIFT = "Gifted away"

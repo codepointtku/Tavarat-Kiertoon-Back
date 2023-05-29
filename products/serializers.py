@@ -103,12 +103,12 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         amount = validated_data.pop("amount")
 
         product = Product.objects.create(**validated_data)
-        product_item_log_entry = ProductItemLogEntry.objects.create(
+        log_entry = ProductItemLogEntry.objects.create(
             action=ProductItemLogEntry.ActionChoices.CREATE, user=self.context
         )
         for _ in range(amount):
             product_item = ProductItem.objects.create(product=product, **product_item)
-            product_item.log_entries.add(product_item_log_entry)
+            product_item.log_entries.add(log_entry)
         return product
 
 

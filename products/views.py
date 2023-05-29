@@ -285,15 +285,15 @@ class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         if "modify_date" in request.data:
             serializer.save(modified_date=timezone.now())
-            product_item_log_entry = ProductItemLogEntry.objects.create(
+            log_entry = ProductItemLogEntry.objects.create(
                 action=ProductItemLogEntry.ActionChoices.CIRCULATION, user=request.user
             )
         else:
             serializer.save()
-            product_item_log_entry = ProductItemLogEntry.objects.create(
+            log_entry = ProductItemLogEntry.objects.create(
                 action=ProductItemLogEntry.ActionChoices.MODIFY, user=request.user
             )
-        instance.log_entries.add(product_item_log_entry)
+        instance.log_entries.add(log_entry)
         data = serializer.data
 
         if getattr(instance, "_prefetched_objects_cache", None):

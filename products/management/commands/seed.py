@@ -699,7 +699,7 @@ def create_products_and_product_items():
     colors = Color.objects.all()
     storages = Storage.objects.all()
     pictures = Picture.objects.all()
-    product_item_log_entry = ProductItemLogEntry.objects.create(
+    log_entry = ProductItemLogEntry.objects.create(
         action=ProductItemLogEntry.ActionChoices.CREATE,
         user=CustomUser.objects.get(username="super"),
     )
@@ -726,7 +726,7 @@ def create_products_and_product_items():
                 storage=storage,
                 barcode=barcode,
             )
-            product_item.log_entries.add(product_item_log_entry)
+            product_item.log_entries.add(log_entry)
     queryset = Product.objects.all()
     pictures = Picture.objects.all()
     for query in queryset:

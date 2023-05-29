@@ -91,6 +91,13 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
             return Response("Shopping cart for this user does not exist")
         # if amount is -1, clear users ShoppingCart
         if request.data["amount"] == -1:
+            log_entry = ProductItemLogEntry.objects.create(
+                action=ProductItemLogEntry.ActionChoices.CART_REMOVE, user=request.user
+            )
+            for product_item in instance.product_items.all():
+                product_item.log_entries.add(log_entry)
+                product_item.available = True
+                product_item.save()
             instance.product_items.clear()
             updatedinstance = ShoppingCart.objects.get(user=request.user)
             detailserializer = ShoppingCartDetailSerializer(updatedinstance)
@@ -104,7 +111,7 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
 
         # comparing amount to number of product_items already in shoppingcart, proceeding accordingly
         if len(removable_itemset) < amount:
-            product_item_log_entry = ProductItemLogEntry.objects.create(
+            log_entry = ProductItemLogEntry.objects.create(
                 action=ProductItemLogEntry.ActionChoices.CART_ADD, user=request.user
             )
             amount -= len(removable_itemset)
@@ -112,19 +119,19 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
                 amount = len(available_itemset)
             for i in range(amount):
                 instance.product_items.add(available_itemset[i])
-                available_itemset[i].log_entries.add(product_item_log_entry)
+                available_itemset[i].log_entries.add(log_entry)
                 available_itemset[i].available = False
                 available_itemset[i].save()
 
         else:
-            product_item_log_entry = ProductItemLogEntry.objects.create(
+            log_entry = ProductItemLogEntry.objects.create(
                 action=ProductItemLogEntry.ActionChoices.CART_REMOVE, user=request.user
             )
             amount -= len(removable_itemset)
             amount *= -1
             for i in range(amount):
                 instance.product_items.remove(removable_itemset[i])
-                removable_itemset[i].log_entries.add(product_item_log_entry)
+                removable_itemset[i].log_entries.add(log_entry)
                 removable_itemset[i].available = True
                 removable_itemset[i].save()
 
@@ -182,8 +189,13 @@ class OrderListView(ListCreateAPIView):
             serializer.save()
             order = Order.objects.get(id=serializer.data["id"])
             shopping_cart = ShoppingCart.objects.get(user=user.id)
+            log_entry = ProductItemLogEntry.objects.create(
+                action=ProductItemLogEntry.ActionChoices.ORDER, user=user
+            )
             for product_item in shopping_cart.product_items.all():
                 order.product_items.add(product_item)
+                product_item.log_entries.add(log_entry)
+            shopping_cart.product_items.clear()
             subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (
                 "Hei!\n"

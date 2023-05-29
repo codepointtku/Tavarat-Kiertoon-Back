@@ -134,8 +134,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
     Serializer for users, in specific format for user creation
     """
 
-    first_name = serializers.CharField(max_length=255)
-    last_name = serializers.CharField(max_length=255)
     phone_number = serializers.CharField(max_length=50)
     address = serializers.CharField(max_length=255)
     zip_code = serializers.CharField(max_length=10)
@@ -154,6 +152,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "zip_code",
             "city",
         ]
+        extra_kwargs = {
+            "username": {"required": False},
+        }
 
     def to_internal_value(self, data):
         mod_data = data.copy()
@@ -385,37 +386,6 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
 # -----------------------------------------------------------------------
 # schema serializers
 # -----------------------------------------------------------------------
-
-
-class UserCreateSchemaSerializer(serializers.ModelSerializer):
-    """
-    For SCHEMA
-    Serializer for users, in specific format for user creation
-    """
-
-    first_name = serializers.CharField(max_length=255)
-    last_name = serializers.CharField(max_length=255)
-    phone_number = serializers.CharField(max_length=50)
-    address = serializers.CharField(max_length=255)
-    zip_code = serializers.CharField(max_length=10)
-    city = serializers.CharField(max_length=100)
-
-    class Meta:
-        model = CustomUser
-        fields = [
-            "first_name",
-            "last_name",
-            "email",
-            "phone_number",
-            "password",
-            "username",
-            "address",
-            "zip_code",
-            "city",
-        ]
-        extra_kwargs = {
-            "username": {"required": False},
-        }
 
 
 @extend_schema_serializer(exclude_fields=["user"])

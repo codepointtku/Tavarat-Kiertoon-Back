@@ -50,6 +50,7 @@ from .serializers import (
     UserAddressSerializer,
     UserCreateReturnResponseSchemaSerializer,
     UserCreateReturnSerializer,
+    UserCreateSchemaSerializer,
     UserCreateSerializer,
     UserFullResponseSchemaSerializer,
     UserFullSerializer,
@@ -77,6 +78,7 @@ def get_tokens_for_user(user):
 # Create your views here.
 
 
+@extend_schema(request=UserCreateSchemaSerializer)
 class UserCreateListView(APIView):
     """
     List all users, and create with POST

@@ -152,9 +152,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "zip_code",
             "city",
         ]
-        extra_kwargs = {
-            "username": {"required": False},
-        }
 
     def to_internal_value(self, data):
         mod_data = data.copy()
@@ -386,6 +383,30 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
 # -----------------------------------------------------------------------
 # schema serializers
 # -----------------------------------------------------------------------
+
+
+class UserCreateSchemaSerializer(UserCreateSerializer):
+    """
+    For SCHEMA
+    """
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "first_name",
+            "last_name",
+            "email",
+            "phone_number",
+            "password",
+            "username",
+            "address",
+            "zip_code",
+            "city",
+        ]
+
+        extra_kwargs = {
+            "username": {"required": False},
+        }
 
 
 @extend_schema_serializer(exclude_fields=["user"])

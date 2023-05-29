@@ -32,7 +32,7 @@ from .serializers import (
     ProductItemResponseSerializer,
     ProductItemSerializer,
     ProductItemUpdateSerializer,
-    ProductSchemaResponseSerializer,
+    ProductResponseSerializer,
     ProductSerializer,
     ProductStorageTransferSerializer,
     ProductUpdateSchemaResponseSerializer,
@@ -114,9 +114,9 @@ class ProductFilter(filters.FilterSet):
 @extend_schema_view(
     post=extend_schema(
         request=ProductCreateSchemaSerializer(),
-        responses=ProductSchemaResponseSerializer(),
+        responses=ProductResponseSerializer(),
     ),
-    get=extend_schema(responses=ProductSchemaResponseSerializer()),
+    get=extend_schema(responses=ProductResponseSerializer()),
 )
 class ProductListView(generics.ListCreateAPIView):
     """View for listing and creating products. Create includes creation of ProductItem and Picture"""
@@ -187,7 +187,7 @@ class ProductListView(generics.ListCreateAPIView):
 
 @extend_schema_view(
     get=extend_schema(
-        responses=ProductSchemaResponseSerializer(),
+        responses=ProductResponseSerializer(),
     ),
     put=extend_schema(
         request=ProductUpdateSerializer(),

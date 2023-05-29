@@ -40,7 +40,7 @@ class ProductSerializer(serializers.ModelSerializer):
         return total_product_amount
 
 
-class ProductSchemaResponseSerializer(ProductSerializer):
+class ProductResponseSerializer(ProductSerializer):
     class Meta:
         model = Product
         fields = "__all__"
@@ -197,7 +197,7 @@ class ProductItemSerializer(serializers.ModelSerializer):
 
 
 class ProductItemResponseSerializer(serializers.ModelSerializer):
-    product = ProductSchemaResponseSerializer(read_only=True)
+    product = ProductResponseSerializer(read_only=True)
     storage = StorageResponseSerializer(read_only=True)
     log_entries = ProductItemLogEntryResponseSerializer(read_only=True, many=True)
 

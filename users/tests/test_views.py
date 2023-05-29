@@ -116,6 +116,8 @@ class TestUsers(TestCase):
             "/users/password/resetemail/",
             "/users/password/reset/",
             "/users/activate/",
+            "/users/emailchange/",
+            "/users/emailchange/finish/",
         ]
 
         # goign thorugh the urls
@@ -1143,3 +1145,11 @@ class TestUsers(TestCase):
         self.assertEqual(
             200, response.status_code, "should be able to login when active now"
         )
+
+    def test_account_email_change(self):
+        """
+        Test for testing the account email change functionality
+        """
+
+        url = "/users/login/"
+        data = {"new_email": "t@turku.fi"}

@@ -65,7 +65,7 @@ class ProductItemLogEntry(models.Model):
     saving what happened to ProductItem, when it happened and who did it."""
 
     class ActionChoices(models.Choices):
-        CREATE = "Created"
+        CREATE = "Created"  # Done
         CART_ADD = "Added to shopping cart"
         CART_REMOVE = "Removed from shopping cart"
         CART_TIMEOUT = "Timed out from shopping cart"

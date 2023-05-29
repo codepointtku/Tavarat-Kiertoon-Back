@@ -150,7 +150,9 @@ class ProductListView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         color_checked_data = color_check_create(request.data)
-        serializer = ProductCreateSerializer(data=color_checked_data)
+        serializer = ProductCreateSerializer(
+            data=color_checked_data, context=request.user
+        )
         serializer.is_valid(raise_exception=True)
         productdata = serializer.save()
         response = ProductSerializer(productdata)

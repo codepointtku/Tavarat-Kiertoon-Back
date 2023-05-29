@@ -57,7 +57,12 @@ class ProductResponseSerializer(ProductSerializer):
 class ProductItemCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductItem
-        fields = "__all__"
+        exclude = ["modified_date", "product", "log_entries"]
+        extra_kwargs = {
+            "available": {"required": True},
+            "barcode": {"required": True},
+            "storage": {"required": True},
+        }
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
@@ -80,19 +85,8 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         return product
 
 
-class ProductItemCreateSchemaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductItem
-        exclude = ["modified_date", "product", "log_entries"]
-        extra_kwargs = {
-            "available": {"required": True},
-            "barcode": {"required": True},
-            "storage": {"required": True},
-        }
-
-
-class ProductCreateSchemaSerializer(serializers.ModelSerializer):
-    product_item = ProductItemCreateSchemaSerializer()
+class ProductCreateRequestSerializer(serializers.ModelSerializer):
+    product_item = ProductItemCreateSerializer()
     amount = serializers.IntegerField()
     color = serializers.CharField()
 

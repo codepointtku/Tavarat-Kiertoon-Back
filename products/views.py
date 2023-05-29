@@ -26,7 +26,7 @@ from .serializers import (
     ColorSerializer,
     PictureCreateSerializer,
     PictureSerializer,
-    ProductCreateSchemaSerializer,
+    ProductCreateRequestSerializer,
     ProductCreateSerializer,
     ProductItemDetailResponseSerializer,
     ProductItemResponseSerializer,
@@ -113,7 +113,7 @@ class ProductFilter(filters.FilterSet):
 
 @extend_schema_view(
     post=extend_schema(
-        request=ProductCreateSchemaSerializer(),
+        request=ProductCreateRequestSerializer(),
         responses=ProductResponseSerializer(),
     ),
     get=extend_schema(responses=ProductResponseSerializer()),

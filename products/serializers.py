@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Color, Picture, Product, ProductItem, Storage
+from .models import Color, Picture, Product, ProductItem, ProductItemLogEntry, Storage
 
 
 class PictureSerializer(serializers.ModelSerializer):
@@ -237,3 +237,9 @@ class ProductItemUpdateSchemaResponseSerializer(serializers.ModelSerializer):
             "barcode": {"required": True},
             "storage": {"required": True},
         }
+
+
+class ProductItemLogEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductItemLogEntry
+        fields = "__all__"

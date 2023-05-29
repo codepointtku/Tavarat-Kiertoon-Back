@@ -175,6 +175,13 @@ class ProductItemLogEntrySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ProductItemLogEntryResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductItemLogEntry
+        fields = "__all__"
+        extra_kwargs = {"action": {"required": True}, "user": {"required": True}}
+
+
 class ProductItemSerializer(serializers.ModelSerializer):
     """
     serializer for product items, for listing purposes
@@ -192,6 +199,7 @@ class ProductItemSerializer(serializers.ModelSerializer):
 class ProductItemSchemaResponseSerializer(serializers.ModelSerializer):
     product = ProductSchemaResponseSerializer(read_only=True)
     storage = StorageSchemaResponseSerializer(read_only=True)
+    log_entries = ProductItemLogEntryResponseSerializer(read_only=True, many=True)
 
     class Meta:
         model = ProductItem
@@ -201,6 +209,7 @@ class ProductItemSchemaResponseSerializer(serializers.ModelSerializer):
             "modified_date": {"required": True},
             "shelf_id": {"required": True},
             "barcode": {"required": True},
+            "log_entries": {"required": True},
         }
 
 
@@ -209,16 +218,15 @@ class ProductItemUpdateSerializer(serializers.ModelSerializer):
     serializer for product items for purpose of updating it.
     """
 
+    modify_date = serializers.CharField(required=False)
+
     class Meta:
         model = ProductItem
         fields = "__all__"
-        extra_kwargs = {
-            "modified_date": {"read_only": True},
-            "product": {"read_only": True},
-        }
+        read_only_fields = ["product", "modified_date", "log_entries"]
 
 
-class ProductItemDetailSchemaResponseSerializer(serializers.ModelSerializer):
+class ProductItemDetailResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductItem
         fields = "__all__"
@@ -229,18 +237,5 @@ class ProductItemDetailSchemaResponseSerializer(serializers.ModelSerializer):
             "barcode": {"required": True},
             "product": {"required": True},
             "storage": {"required": True},
-        }
-
-
-class ProductItemUpdateSchemaResponseSerializer(serializers.ModelSerializer):
-    modify_date = serializers.CharField(required=False)
-
-    class Meta:
-        model = ProductItem
-        exclude = ["modified_date", "product"]
-        extra_kwargs = {
-            "available": {"required": True},
-            "shelf_id": {"required": True},
-            "barcode": {"required": True},
-            "storage": {"required": True},
+            "log_entries": {"required": True},
         }

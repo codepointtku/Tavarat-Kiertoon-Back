@@ -28,10 +28,9 @@ from .serializers import (
     PictureSerializer,
     ProductCreateSchemaSerializer,
     ProductCreateSerializer,
-    ProductItemDetailSchemaResponseSerializer,
+    ProductItemDetailResponseSerializer,
     ProductItemSchemaResponseSerializer,
     ProductItemSerializer,
-    ProductItemUpdateSchemaResponseSerializer,
     ProductItemUpdateSerializer,
     ProductSchemaResponseSerializer,
     ProductSerializer,
@@ -250,10 +249,9 @@ class ProductItemListView(generics.ListAPIView):
 
 
 @extend_schema_view(
-    get=extend_schema(responses=ProductItemDetailSchemaResponseSerializer()),
+    get=extend_schema(responses=ProductItemDetailResponseSerializer()),
     put=extend_schema(
-        request=ProductItemUpdateSchemaResponseSerializer(),
-        responses=ProductItemDetailSchemaResponseSerializer(),
+        responses=ProductItemDetailResponseSerializer(),
     ),
     patch=extend_schema(exclude=True),
 )

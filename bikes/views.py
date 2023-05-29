@@ -107,7 +107,7 @@ class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
         print(bikedata)
         serializer = BikeModelCreateSerializer(instance, data=bikedata)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 

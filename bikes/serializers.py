@@ -289,7 +289,6 @@ class BikeModelSerializer(serializers.ModelSerializer):
 
 
 class BikeModelCreateSerializer(serializers.ModelSerializer):
-    picture = PictureCreateSerializer(required=False)
 
     class Meta:
         model = Bike

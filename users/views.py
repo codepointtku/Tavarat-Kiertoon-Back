@@ -12,7 +12,12 @@ from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    PolymorphicProxySerializer,
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+)
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
@@ -754,7 +759,31 @@ class UserPasswordResetMailValidationView(APIView):
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(
+    responses=PolymorphicProxySerializer(
+        component_name="EmailChangeResponse",
+        serializers=[
+            MessageSerializer,
+            inline_serializer(
+                name="DebugEmailChangeResponseSchemaSerializer",
+                fields={
+                    "uid": serializers.CharField(),
+                    "token": serializers.CharField(),
+                    "new_email": serializers.CharField(),
+                    "link": serializers.CharField(),
+                    "front": serializers.CharField(),
+                    "back": serializers.CharField(),
+                },
+            ),
+        ],
+        resource_type_field_name=None,
+    )
+)
 class UserEmailChangeView(APIView):
+    """
+    Sends email change link to entered email address for the logged in user account
+    """
+
     authentication_classes = [
         # SessionAuthentication,
         # BasicAuthentication,
@@ -820,18 +849,31 @@ class UserEmailChangeView(APIView):
                 fail_silently=False,
             )
 
-            return Response(
-                response_data,
-                status=status.HTTP_200_OK,
-            )
+            # if debug is on should retuirn the links in response for ease of testing
+            # when in deployment only message
+            if settings.DEBUG:
+                return Response(
+                    response_data,
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                message = {
+                    "message": "Check the email address for the link to change the email address"
+                }
+                return Response(
+                    MessageSerializer(data=message).initial_data,
+                    status=status.HTTP_200_OK,
+                )
 
         else:
+            message = {"message": f"non valid email: {serializer.errors}"}
             return Response(
-                f"non valid email: {serializer.errors}",
+                MessageSerializer(data=message).initial_data,
                 status=status.HTTP_204_NO_CONTENT,
             )
 
 
+@extend_schema(responses=MessageSerializer)
 class UserEmailChangeFinishView(APIView):
     """
     Validating and changing the email for user after the new email address has been sent from fronts url.
@@ -854,6 +896,7 @@ class UserEmailChangeFinishView(APIView):
                 user.username = serializer.data["new_email"]
             user.save()
 
+            # KYSY ARNOLTA ON KO LIIAN TURVATONTA TEHDÄ NÄIN VAI ANNETAANKO VAIN VIESTI!!!!!!!!!!!!!
             return Response(
                 serializer.data,
                 status=status.HTTP_200_OK,

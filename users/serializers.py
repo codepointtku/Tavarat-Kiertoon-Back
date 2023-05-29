@@ -387,7 +387,7 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
 
 class UserCreateSchemaSerializer(UserCreateSerializer):
     """
-    For SCHEMA
+    For SCHEMA user creation
     """
 
     class Meta:

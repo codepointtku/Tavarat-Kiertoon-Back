@@ -92,7 +92,7 @@ class UserTokenValidationSerializer(serializers.Serializer):
             msg = "something went wrong confirming data in email link, get now one"
             raise serializers.ValidationError(msg)
 
-        # print("jammign that decoded uid into data insted of coded one, old: ", data)
+        # print("putting decoded uid into data insted of encoded one, old: ", data)
         data["uid"] = uid
 
         return data
@@ -341,8 +341,6 @@ class NewEmailSerializer(serializers.Serializer):
         # this to prevent multiple same usernames
         user = self.context.get("request").user
         user_count = User.objects.filter(username=value).count()
-        print("user count: ", user_count)
-        print("contest user:", self.context.get("request").user)
         if (user_count >= 1) and ("@" in user.username):
             msg = f"normal user with email address of {value} already exists"
             raise serializers.ValidationError(msg)

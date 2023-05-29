@@ -773,15 +773,13 @@ class UserEmailChangeView(APIView):
     serializer_class = NewEmailSerializer
 
     def post(self, request, format=None):
-        # checkign that the new email adress is in allowed range before sending the change email itself
+        # checkign that the new email adress is allowed one before sending the change email itself
         serializer = self.serializer_class(
             data=request.data, context={"request": request}
         )
 
         if serializer.is_valid():
-            print(request.user.id)
-
-            # building the link for changing hte email address
+            # building the link for changing the email address
             # Token for user and decoding the uid
             token_generator = default_token_generator
             token_for_user = token_generator.make_token(user=request.user)
@@ -791,9 +789,7 @@ class UserEmailChangeView(APIView):
             # using the token that needs also to be valited and transfered as key
             signer = Signer(key=token_for_user)
             signed_email = signer.sign(serializer.data["new_email"])
-            print(signed_email)
             new_email = urlsafe_base64_encode(force_bytes(signed_email))
-            # new_email = urlsafe_base64_encode(force_bytes(serializer.data["new_email"]))
 
             email_unique_portion = f"{uid}/{token_for_user}/{new_email}/"
 
@@ -802,7 +798,7 @@ class UserEmailChangeView(APIView):
             )
             email_change_url_back = "http://127.0.0.1:8000/users/emailchange/finish/"
 
-            all_taht_crap = {
+            response_data = {
                 "uid": uid,
                 "token": token_for_user,
                 "new_email": new_email,
@@ -811,14 +807,12 @@ class UserEmailChangeView(APIView):
                 "back": email_change_url_back,
             }
 
-            print(new_email)
-
             # sending the email
-            subject = "new email address for your Tavarat Kiertoon"
+            subject = "new email address for your Tavarat Kiertoon account"
             message = (
                 "This email address has been designed as the new contact email address for an account in Tavarat Kiertoon.\n\n"
                 f"Please click the following link to finalize this email address change: {email_change_url_front} \n\n"
-                "If you did not request this password reset ignore this mail."
+                "If you did not request this email change ignore this mail."
             )
 
             send_mail(
@@ -830,7 +824,7 @@ class UserEmailChangeView(APIView):
             )
 
             return Response(
-                all_taht_crap,
+                response_data,
                 status=status.HTTP_200_OK,
             )
 
@@ -843,7 +837,7 @@ class UserEmailChangeView(APIView):
 
 class UserEmailChangeFinishView(APIView):
     """
-    Validating and changing the email for user after the new email address has been sent from fonts url.
+    Validating and changing the email for user after the new email address has been sent from fronts url.
     """
 
     serializer_class = NewEmailFinishValidationSerializer
@@ -852,21 +846,17 @@ class UserEmailChangeFinishView(APIView):
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
-            print("serializer data: ", serializer.data)
-
             User = get_user_model()
             user = User.objects.get(id=serializer.data["uid"])
-            print("users old email: ", user.email)
             user.email = serializer.data["new_email"]
 
             # checking if the user is normal user or not, if user name has @ = normal user
             # normal user > username  is email adress
 
             if "@" in user.username:
-                print("normal user as no @ in username")
                 user.username = serializer.data["new_email"]
             user.save()
-            print("users new email: ", user.email)
+
             return Response(
                 serializer.data,
                 status=status.HTTP_200_OK,

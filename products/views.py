@@ -29,7 +29,7 @@ from .serializers import (
     ProductCreateSchemaSerializer,
     ProductCreateSerializer,
     ProductItemDetailResponseSerializer,
-    ProductItemSchemaResponseSerializer,
+    ProductItemResponseSerializer,
     ProductItemSerializer,
     ProductItemUpdateSerializer,
     ProductSchemaResponseSerializer,
@@ -38,7 +38,7 @@ from .serializers import (
     ProductUpdateSchemaResponseSerializer,
     ProductUpdateSerializer,
     ShoppingCartAvailableAmountListSerializer,
-    StorageSchemaResponseSerializer,
+    StorageResponseSerializer,
     StorageSerializer,
 )
 
@@ -232,7 +232,7 @@ class ProductItemListFilter(filters.FilterSet):
 
 
 @extend_schema_view(
-    get=extend_schema(responses=ProductItemSchemaResponseSerializer()),
+    get=extend_schema(responses=ProductItemResponseSerializer()),
 )
 class ProductItemListView(generics.ListAPIView):
     """
@@ -319,10 +319,10 @@ class ColorDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 @extend_schema_view(
     get=extend_schema(
-        responses=StorageSchemaResponseSerializer(),
+        responses=StorageResponseSerializer(),
     ),
     post=extend_schema(
-        responses=StorageSchemaResponseSerializer(),
+        responses=StorageResponseSerializer(),
     ),
 )
 class StorageListView(generics.ListCreateAPIView):
@@ -332,11 +332,11 @@ class StorageListView(generics.ListCreateAPIView):
 
 @extend_schema_view(
     get=extend_schema(
-        responses=StorageSchemaResponseSerializer(),
+        responses=StorageResponseSerializer(),
     ),
     patch=extend_schema(exclude=True),
     put=extend_schema(
-        responses=StorageSchemaResponseSerializer(),
+        responses=StorageResponseSerializer(),
     ),
 )
 class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -375,7 +375,7 @@ class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 @extend_schema_view(
-    put=extend_schema(responses=ProductItemSchemaResponseSerializer(many=True))
+    put=extend_schema(responses=ProductItemResponseSerializer(many=True))
 )
 class ProductStorageTransferView(APIView):
     """View for transfering list of products to different storage"""

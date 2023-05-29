@@ -83,7 +83,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 class ProductItemCreateSchemaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductItem
-        exclude = ["modified_date", "product"]
+        exclude = ["modified_date", "product", "log_entries"]
         extra_kwargs = {
             "available": {"required": True},
             "barcode": {"required": True},
@@ -153,7 +153,7 @@ class StorageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class StorageSchemaResponseSerializer(serializers.ModelSerializer):
+class StorageResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Storage
         fields = "__all__"
@@ -196,9 +196,9 @@ class ProductItemSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ProductItemSchemaResponseSerializer(serializers.ModelSerializer):
+class ProductItemResponseSerializer(serializers.ModelSerializer):
     product = ProductSchemaResponseSerializer(read_only=True)
-    storage = StorageSchemaResponseSerializer(read_only=True)
+    storage = StorageResponseSerializer(read_only=True)
     log_entries = ProductItemLogEntryResponseSerializer(read_only=True, many=True)
 
     class Meta:

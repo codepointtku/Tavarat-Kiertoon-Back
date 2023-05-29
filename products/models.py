@@ -1,9 +1,12 @@
 from os.path import basename
 
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 
 from categories.models import Category
+
+CustomUser = get_user_model()
 
 
 # Create your models here.
@@ -68,3 +71,25 @@ class ProductItem(models.Model):
     shelf_id = models.CharField(max_length=255, default="")
     barcode = models.CharField(max_length=255, default="")
     # log_entry
+
+
+class ProductItemLogEntry(models.Model):
+    """Model representing one log entry connected to ProductItem
+    saving what happened to ProductItem, when it happened and who did it."""
+
+    class ActionChoices(models.Choices):
+        CREATE = "Created"
+        CART_ADD = "Added to shopping cart"
+        CART_REMOVE = "Removed from shopping cart"
+        CART_TIMEOUT = "Timed out from shopping_cart"
+        ORDER = "Ordered"
+        CIRCULATION = "Came back to circulation"
+        MODIFY = "Modified at storage"
+        GIFT = "Gifted away"
+
+    id = models.BigAutoField(primary_key=True)
+    date = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    action = models.CharField(
+        max_length=255, choices=ActionChoices.choices, default="Creation"
+    )

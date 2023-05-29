@@ -45,6 +45,7 @@ from .serializers import (
     UserAddressSerializer,
     UserCreateReturnResponseSchemaSerializer,
     UserCreateReturnSerializer,
+    UserCreateSchemaSerializer,
     UserCreateSerializer,
     UserFullResponseSchemaSerializer,
     UserFullSerializer,
@@ -72,9 +73,12 @@ def get_tokens_for_user(user):
 # Create your views here.
 
 
+@extend_schema(request=UserCreateSchemaSerializer)
 class UserCreateListView(APIView):
     """
     List all users, and create with POST
+    if username field comes = joint user
+    if no username = normal user and email address gets copied to username and will be used to login
     """
 
     # queryset = CustomUser.objects.all()

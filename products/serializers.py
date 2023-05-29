@@ -20,6 +20,30 @@ class PictureCreateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class StorageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Storage
+        fields = "__all__"
+
+
+class StorageResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Storage
+        fields = "__all__"
+        extra_kwargs = {
+            "name": {"required": True},
+            "address": {"required": True},
+            "in_use": {"required": True},
+        }
+
+
+class ColorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Color
+        fields = "__all__"
+        read_only_fields = ["default"]
+
+
 class ProductSerializer(serializers.ModelSerializer):
     pictures = PictureSerializer(many=True, read_only=True)
     amount = serializers.SerializerMethodField()
@@ -113,7 +137,7 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
         }
 
 
-class ProductUpdateSchemaResponseSerializer(ProductUpdateSerializer):
+class ProductUpdateResponseSerializer(ProductUpdateSerializer):
     class Meta:
         model = Product
         fields = "__all__"
@@ -132,30 +156,6 @@ class ProductUpdateSchemaResponseSerializer(ProductUpdateSerializer):
 class ProductStorageTransferSerializer(serializers.Serializer):
     storage = serializers.IntegerField()
     product_items = serializers.ListField(child=serializers.IntegerField())
-
-
-class ColorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Color
-        fields = "__all__"
-        read_only_fields = ["default"]
-
-
-class StorageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Storage
-        fields = "__all__"
-
-
-class StorageResponseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Storage
-        fields = "__all__"
-        extra_kwargs = {
-            "name": {"required": True},
-            "address": {"required": True},
-            "in_use": {"required": True},
-        }
 
 
 class ShoppingCartAvailableAmountListSerializer(serializers.Serializer):

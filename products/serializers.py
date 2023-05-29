@@ -169,6 +169,12 @@ class ShoppingCartAvailableAmountListSerializer(serializers.Serializer):
     amount = serializers.IntegerField()
 
 
+class ProductItemLogEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductItemLogEntry
+        fields = "__all__"
+
+
 class ProductItemSerializer(serializers.ModelSerializer):
     """
     serializer for product items, for listing purposes
@@ -176,6 +182,7 @@ class ProductItemSerializer(serializers.ModelSerializer):
 
     product = ProductSerializer(read_only=True)
     storage = StorageSerializer(read_only=True)
+    log_entries = ProductItemLogEntrySerializer(read_only=True, many=True)
 
     class Meta:
         model = ProductItem
@@ -237,9 +244,3 @@ class ProductItemUpdateSchemaResponseSerializer(serializers.ModelSerializer):
             "barcode": {"required": True},
             "storage": {"required": True},
         }
-
-
-class ProductItemLogEntrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductItemLogEntry
-        fields = "__all__"

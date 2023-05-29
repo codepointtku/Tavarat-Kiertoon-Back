@@ -92,4 +92,4 @@ class ProductItem(models.Model):
     storage = models.ForeignKey(Storage, on_delete=models.SET_NULL, null=True)
     shelf_id = models.CharField(max_length=255, default="")
     barcode = models.CharField(max_length=255, default="")
-    log_entry = models.ManyToManyField(ProductItemLogEntry, blank=True)
+    log_entries = models.ManyToManyField(ProductItemLogEntry, blank=True)

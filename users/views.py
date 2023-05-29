@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, update_last_login
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.core.signing import Signer
@@ -273,6 +273,9 @@ class UserLoginView(APIView):
             csrf.get_token(request)
             response.status_code = status.HTTP_200_OK
             response.data = response_data.data
+
+            update_last_login(None, user=user)
+
             return response
 
         else:
@@ -873,7 +876,7 @@ class UserEmailChangeView(APIView):
             )
 
 
-@extend_schema(responses=MessageSerializer)
+# @extend_schema(responses=MessageSerializer)
 class UserEmailChangeFinishView(APIView):
     """
     Validating and changing the email for user after the new email address has been sent from fronts url.

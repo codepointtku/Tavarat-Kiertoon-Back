@@ -21,7 +21,7 @@ from orders.serializers import ShoppingCartDetailSerializer
 from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
-from .models import Color, Picture, Product, ProductItem, Storage
+from .models import Color, Picture, Product, ProductItem, ProductItemLogEntry, Storage
 from .serializers import (
     ColorSerializer,
     PictureCreateSerializer,
@@ -264,6 +264,12 @@ class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = ProductItem.objects.all()
     serializer_class = ProductItemUpdateSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
 
     def update(self, request, *args, **kwargs):
         """
@@ -279,8 +285,15 @@ class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         if "modify_date" in request.data:
             serializer.save(modified_date=timezone.now())
+            product_item_log_entry = ProductItemLogEntry.objects.create(
+                action=ProductItemLogEntry.ActionChoices.CIRCULATION, user=request.user
+            )
         else:
             serializer.save()
+            product_item_log_entry = ProductItemLogEntry.objects.create(
+                action=ProductItemLogEntry.ActionChoices.MODIFY, user=request.user
+            )
+        instance.log_entries.add(product_item_log_entry)
         data = serializer.data
 
         if getattr(instance, "_prefetched_objects_cache", None):

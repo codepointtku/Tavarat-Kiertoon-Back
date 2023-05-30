@@ -1150,6 +1150,84 @@ class TestUsers(TestCase):
         """
         Test for testing the account email change functionality
         """
+        print("email change test")
 
-        url = "/users/login/"
+        url = "/users/emailchange/"
+        url2 = "/users/emailchange/finish/"
+        data = {"new_email": "tfghcfghfghfghxsd"}
+
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(401, response.status_code, "shouldnt have access if not user")
+
+        user = self.login_test_user()
+        user_id_test = user.id
+
+        print("malbox beofere sent:", len(mail.outbox))
+
+        # checking no maio is sent with incorrect data
+
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            len(mail.outbox),
+            0,
+            "reset email should been sent",
+        )
+
+        # checking that the email was sent
         data = {"new_email": "t@turku.fi"}
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            len(mail.outbox),
+            1,
+            "reset email should been sent",
+        )
+
+        # checking that tge front url is in the  reset email mail
+        self.assertTrue(
+            (settings.EMAIL_CHANGE_URL_FRONT in mail.outbox[0].body),
+            "email reset address should be in reset email",
+        )
+
+        # grabbing the link from the email that was sent, and putting it into form that can be used with test
+        end_part_of_email_link = mail.outbox[0].body.split(
+            settings.EMAIL_CHANGE_URL_FRONT
+        )
+        the_parameters = end_part_of_email_link[1].split("/")
+        print("params: ", the_parameters)
+
+        data = {
+            "uid": the_parameters[0],
+            "token": the_parameters[1],
+            "new_email": "asdasdasdasdasdasdasd",
+        }
+
+        # tampered/non-valid email address shouldnt go through
+        response = self.client.post(url2, data, content_type="application/json")
+        self.assertEqual(
+            204, response.status_code, "tampered/non-valid email shouldnt go through"
+        )
+
+        # checkign that the email cahnge goes through
+        old_email = user.email
+        print("old email: ", old_email)
+        data["new_email"] = the_parameters[2]
+        response = self.client.post(url2, data, content_type="application/json")
+
+        user = CustomUser.objects.get(id=user_id_test)
+        new_email = user.email
+        print("new email: ", new_email)
+
+        self.assertNotEqual(
+            old_email, new_email, "after email change email should be different"
+        )
+
+        # checkign that normal users username should have changed too
+        self.assertEqual(
+            new_email,
+            user.username,
+            "username should be same as email for normal users after email change",
+        )
+
+        # should not go thorugh with same info if done
+        response = self.client.post(url2, data, content_type="application/json")
+        self.assertEqual(204, response.status_code, "used link shouldnt go through")

@@ -876,7 +876,7 @@ class UserEmailChangeView(APIView):
             )
 
 
-# @extend_schema(responses=MessageSerializer)
+@extend_schema(responses=MessageSerializer)
 class UserEmailChangeFinishView(APIView):
     """
     Validating and changing the email for user after the new email address has been sent from fronts url.
@@ -900,8 +900,10 @@ class UserEmailChangeFinishView(APIView):
             user.save()
 
             # KYSY ARNOLTA ON KO LIIAN TURVATONTA TEHDÄ NÄIN VAI ANNETAANKO VAIN VIESTI!!!!!!!!!!!!!
+            message = {"message": "Sähköposti osoite vaihdettu"}
             return Response(
-                serializer.data,
+                # serializer.data,
+                MessageSerializer(data=message).initial_data,
                 status=status.HTTP_200_OK,
             )
         else:

@@ -89,6 +89,7 @@ class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        bikedata = request.data
         for file in request.FILES.getlist("pictures[]"):
             ext = file.content_type.split("/")[1]
             pic_serializer = PictureCreateSerializer(
@@ -101,11 +102,8 @@ class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
             pic_serializer.is_valid(raise_exception=True)
             pic_serializer.save()
             bikepicture = pic_serializer.data["id"]
+            bikedata["picture"] = bikepicture
 
-        bikedata = request.data
-        print(bikepicture)
-        bikedata["picture"] = bikepicture
-        print(bikedata)
         serializer = BikeModelCreateSerializer(instance, data=bikedata)
         serializer.is_valid(raise_exception=True)
         serializer.save()

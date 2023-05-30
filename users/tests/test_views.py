@@ -4,7 +4,7 @@ from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase, override_settings
 from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from orders.models import ShoppingCart
 from users.models import CustomUser, UserAddress
@@ -1164,13 +1164,22 @@ class TestUsers(TestCase):
 
         # print("malbox beofere sent:", len(mail.outbox))
 
-        # checking no maio is sent with incorrect data
-
+        # checking no mail is sent with incorrect data
         response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            204, response.status_code, "should not be valid on non email address,"
+        )
+
+        data = {"new_email": "tfghcfghfghfghxsd@huuhaa.fi"}
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            204, response.status_code, "should not be valid on non valid email domain,"
+        )
+
         self.assertEqual(
             len(mail.outbox),
             0,
-            "reset email should been sent",
+            "reset email should not been sent with non valid info",
         )
 
         # checking that the email was sent
@@ -1207,7 +1216,20 @@ class TestUsers(TestCase):
             204, response.status_code, "tampered/non-valid email shouldnt go through"
         )
 
-        # checkign that the email cahnge goes through
+        # testing more direct tampering
+        decrypted_email = urlsafe_base64_decode(the_parameters[2]).decode()
+        print("decrypted email:", decrypted_email)
+        decrypted_email = "tamper" + decrypted_email
+        print("decrypted email:", decrypted_email)
+        crypt_again = urlsafe_base64_encode(force_bytes(decrypted_email))
+        print("crypt: ", crypt_again)
+        data["new_email"] = crypt_again
+        response = self.client.post(url2, data, content_type="application/json")
+        self.assertEqual(
+            204, response.status_code, "tampered/non-valid email shouldnt go through"
+        )
+
+        # checkign that the email change goes through
         old_email = user.email
         # print("old email: ", old_email)
         data["new_email"] = the_parameters[2]

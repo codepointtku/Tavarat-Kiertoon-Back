@@ -762,26 +762,27 @@ class UserPasswordResetMailValidationView(APIView):
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
 
-@extend_schema(
-    responses=PolymorphicProxySerializer(
-        component_name="EmailChangeResponse",
-        serializers=[
-            MessageSerializer,
-            inline_serializer(
-                name="DebugEmailChangeResponseSchemaSerializer",
-                fields={
-                    "uid": serializers.CharField(),
-                    "token": serializers.CharField(),
-                    "new_email": serializers.CharField(),
-                    "link": serializers.CharField(),
-                    "front": serializers.CharField(),
-                    "back": serializers.CharField(),
-                },
-            ),
-        ],
-        resource_type_field_name=None,
-    )
-)
+@extend_schema(responses=None)
+# @extend_schema(
+#     responses=PolymorphicProxySerializer(
+#         component_name="EmailChangeResponse",
+#         serializers=[
+#             MessageSerializer,
+#             inline_serializer(
+#                 name="DebugEmailChangeResponseSchemaSerializer",
+#                 fields={
+#                     "uid": serializers.CharField(),
+#                     "token": serializers.CharField(),
+#                     "new_email": serializers.CharField(),
+#                     "link": serializers.CharField(),
+#                     "front": serializers.CharField(),
+#                     "back": serializers.CharField(),
+#                 },
+#             ),
+#         ],
+#         resource_type_field_name=None,
+#     )
+# )
 class UserEmailChangeView(APIView):
     """
     Sends email change link to entered email address for the logged in user account

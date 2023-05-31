@@ -23,7 +23,14 @@ from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
 from orders.models import Order, ShoppingCart
-from products.models import Color, Picture, Product, ProductItem, Storage
+from products.models import (
+    Color,
+    Picture,
+    Product,
+    ProductItem,
+    ProductItemLogEntry,
+    Storage,
+)
 from users.models import CustomUser, UserAddress
 
 # python manage.py seed
@@ -692,6 +699,10 @@ def create_products_and_product_items():
     colors = Color.objects.all()
     storages = Storage.objects.all()
     pictures = Picture.objects.all()
+    log_entry = ProductItemLogEntry.objects.create(
+        action=ProductItemLogEntry.ActionChoices.CREATE,
+        user=CustomUser.objects.get(username="super"),
+    )
     for product in products:
         storage = random.choice(storages)
         barcode = product["barcode"]
@@ -708,13 +719,14 @@ def create_products_and_product_items():
                 range(1, 11), cum_weights=[10, 15, 18, 20, 21, 22, 23, 24, 25, 26]
             )[0]
         ):
-            ProductItem.objects.create(
+            product_item = ProductItem.objects.create(
                 product=product_object,
                 available=random.choice(true_false),
                 modified_date=timezone.now(),
                 storage=storage,
                 barcode=barcode,
             )
+            product_item.log_entries.add(log_entry)
     queryset = Product.objects.all()
     pictures = Picture.objects.all()
     for query in queryset:
@@ -732,15 +744,22 @@ def create_shopping_carts():
     for user in users:
         cart_obj = ShoppingCart(user=user)
         cart_obj.save()
-    queryset = ShoppingCart.objects.all()
-    product_items = [
-        product_item.id for product_item in ProductItem.objects.filter(available=True)
-    ]
-    for query in queryset:
-        if query.user.username == "super":
-            query.product_items.set(random.sample(product_items, 5))
+    shopping_carts = ShoppingCart.objects.all()
+    for cart in shopping_carts:
+        product_items = [
+            product_item.id
+            for product_item in ProductItem.objects.filter(available=True)
+        ]
+        if cart.user.username == "super":
+            cart.product_items.set(random.sample(product_items, 5))
+            for product_item in cart.product_items.all():
+                product_item.available = False
+                product_item.save()
         else:
-            query.product_items.set(random.sample(product_items, random.randint(1, 6)))
+            cart.product_items.set(random.sample(product_items, random.randint(1, 6)))
+            for product_item in cart.product_items.all():
+                product_item.available = False
+                product_item.save()
 
 
 def create_orders():

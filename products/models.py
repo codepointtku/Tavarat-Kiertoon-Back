@@ -1,9 +1,12 @@
 from os.path import basename
 
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 
 from categories.models import Category
+
+CustomUser = get_user_model()
 
 
 # Create your models here.
@@ -57,6 +60,28 @@ class Product(models.Model):
         return f"Product: {self.name}({self.id})"
 
 
+class ProductItemLogEntry(models.Model):
+    """Model representing one log entry connected to ProductItem
+    saving what happened to ProductItem, when it happened and who did it."""
+
+    class ActionChoices(models.Choices):
+        CREATE = "Created"  # Done
+        CART_ADD = "Added to shopping cart"  # Done
+        CART_REMOVE = "Removed from shopping cart"  # Done
+        CART_TIMEOUT = "Timed out from shopping cart"
+        ORDER = "Ordered"  # Done
+        CIRCULATION = "Came back to circulation"  # Done
+        MODIFY = "Modified at storage"  # Done
+        GIFT = "Gifted away"
+
+    id = models.BigAutoField(primary_key=True)
+    date = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    action = models.CharField(
+        max_length=255, choices=ActionChoices.choices, default="Created"
+    )
+
+
 class ProductItem(models.Model):
     """Class representing single item that refers to Product"""
 
@@ -67,4 +92,4 @@ class ProductItem(models.Model):
     storage = models.ForeignKey(Storage, on_delete=models.SET_NULL, null=True)
     shelf_id = models.CharField(max_length=255, default="")
     barcode = models.CharField(max_length=255, default="")
-    # log_entry
+    log_entries = models.ManyToManyField(ProductItemLogEntry, blank=True)

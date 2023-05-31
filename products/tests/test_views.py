@@ -187,6 +187,7 @@ class TestProducts(TestCase):
 
     def test_post_products_new_color(self):
         url = "/products/"
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "product_item": {
                 "available": True,
@@ -229,6 +230,7 @@ class TestProducts(TestCase):
 
     def test_post_products_existing_color(self):
         url = "/products/"
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "product_item": {
                 "available": True,
@@ -249,6 +251,7 @@ class TestProducts(TestCase):
 
     def test_post_product_existing_color_as_string(self):
         url = "/products/"
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "product_item": {
                 "available": True,
@@ -269,12 +272,14 @@ class TestProducts(TestCase):
 
     def test_update_product_item(self):
         url = f"/products/items/{self.test_product_item.id}"
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {"available": False, "modify_date": "asd"}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
     def test_update_product_item_without_modify_date(self):
         url = f"/products/items/{self.test_product_item.id}"
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "available": False,
         }

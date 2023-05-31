@@ -21,25 +21,24 @@ from orders.serializers import ShoppingCartDetailSerializer
 from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
-from .models import Color, Picture, Product, ProductItem, Storage
+from .models import Color, Picture, Product, ProductItem, ProductItemLogEntry, Storage
 from .serializers import (
     ColorSerializer,
     PictureCreateSerializer,
     PictureSerializer,
-    ProductCreateSchemaSerializer,
+    ProductCreateRequestSerializer,
     ProductCreateSerializer,
-    ProductItemDetailSchemaResponseSerializer,
-    ProductItemSchemaResponseSerializer,
+    ProductItemDetailResponseSerializer,
+    ProductItemResponseSerializer,
     ProductItemSerializer,
-    ProductItemUpdateSchemaResponseSerializer,
     ProductItemUpdateSerializer,
-    ProductSchemaResponseSerializer,
+    ProductResponseSerializer,
     ProductSerializer,
     ProductStorageTransferSerializer,
-    ProductUpdateSchemaResponseSerializer,
+    ProductUpdateResponseSerializer,
     ProductUpdateSerializer,
     ShoppingCartAvailableAmountListSerializer,
-    StorageSchemaResponseSerializer,
+    StorageResponseSerializer,
     StorageSerializer,
 )
 
@@ -114,10 +113,10 @@ class ProductFilter(filters.FilterSet):
 
 @extend_schema_view(
     post=extend_schema(
-        request=ProductCreateSchemaSerializer(),
-        responses=ProductSchemaResponseSerializer(),
+        request=ProductCreateRequestSerializer(),
+        responses=ProductResponseSerializer(),
     ),
-    get=extend_schema(responses=ProductSchemaResponseSerializer()),
+    get=extend_schema(responses=ProductResponseSerializer()),
 )
 class ProductListView(generics.ListCreateAPIView):
     """View for listing and creating products. Create includes creation of ProductItem and Picture"""
@@ -151,7 +150,9 @@ class ProductListView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         color_checked_data = color_check_create(request.data)
-        serializer = ProductCreateSerializer(data=color_checked_data)
+        serializer = ProductCreateSerializer(
+            data=color_checked_data, context=request.user
+        )
         serializer.is_valid(raise_exception=True)
         productdata = serializer.save()
         response = ProductSerializer(productdata)
@@ -188,11 +189,11 @@ class ProductListView(generics.ListCreateAPIView):
 
 @extend_schema_view(
     get=extend_schema(
-        responses=ProductSchemaResponseSerializer(),
+        responses=ProductResponseSerializer(),
     ),
     put=extend_schema(
         request=ProductUpdateSerializer(),
-        responses=ProductUpdateSchemaResponseSerializer(),
+        responses=ProductUpdateResponseSerializer(),
     ),
     patch=extend_schema(exclude=True),
 )
@@ -233,7 +234,7 @@ class ProductItemListFilter(filters.FilterSet):
 
 
 @extend_schema_view(
-    get=extend_schema(responses=ProductItemSchemaResponseSerializer()),
+    get=extend_schema(responses=ProductItemResponseSerializer()),
 )
 class ProductItemListView(generics.ListAPIView):
     """
@@ -250,10 +251,9 @@ class ProductItemListView(generics.ListAPIView):
 
 
 @extend_schema_view(
-    get=extend_schema(responses=ProductItemDetailSchemaResponseSerializer()),
+    get=extend_schema(responses=ProductItemDetailResponseSerializer()),
     put=extend_schema(
-        request=ProductItemUpdateSchemaResponseSerializer(),
-        responses=ProductItemDetailSchemaResponseSerializer(),
+        responses=ProductItemDetailResponseSerializer(),
     ),
     patch=extend_schema(exclude=True),
 )
@@ -264,6 +264,12 @@ class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = ProductItem.objects.all()
     serializer_class = ProductItemUpdateSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
 
     def update(self, request, *args, **kwargs):
         """
@@ -279,8 +285,15 @@ class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         if "modify_date" in request.data:
             serializer.save(modified_date=timezone.now())
+            log_entry = ProductItemLogEntry.objects.create(
+                action=ProductItemLogEntry.ActionChoices.CIRCULATION, user=request.user
+            )
         else:
             serializer.save()
+            log_entry = ProductItemLogEntry.objects.create(
+                action=ProductItemLogEntry.ActionChoices.MODIFY, user=request.user
+            )
+        instance.log_entries.add(log_entry)
         data = serializer.data
 
         if getattr(instance, "_prefetched_objects_cache", None):
@@ -321,10 +334,10 @@ class ColorDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 @extend_schema_view(
     get=extend_schema(
-        responses=StorageSchemaResponseSerializer(),
+        responses=StorageResponseSerializer(),
     ),
     post=extend_schema(
-        responses=StorageSchemaResponseSerializer(),
+        responses=StorageResponseSerializer(),
     ),
 )
 class StorageListView(generics.ListCreateAPIView):
@@ -334,11 +347,11 @@ class StorageListView(generics.ListCreateAPIView):
 
 @extend_schema_view(
     get=extend_schema(
-        responses=StorageSchemaResponseSerializer(),
+        responses=StorageResponseSerializer(),
     ),
     patch=extend_schema(exclude=True),
     put=extend_schema(
-        responses=StorageSchemaResponseSerializer(),
+        responses=StorageResponseSerializer(),
     ),
 )
 class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -377,7 +390,7 @@ class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 @extend_schema_view(
-    put=extend_schema(responses=ProductItemSchemaResponseSerializer(many=True))
+    put=extend_schema(responses=ProductItemResponseSerializer(many=True))
 )
 class ProductStorageTransferView(APIView):
     """View for transfering list of products to different storage"""

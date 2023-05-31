@@ -107,8 +107,8 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             action=ProductItemLogEntry.ActionChoices.CREATE, user=self.context
         )
         for _ in range(amount):
-            product_item = ProductItem.objects.create(product=product, **product_item)
-            product_item.log_entries.add(log_entry)
+            pi = ProductItem.objects.create(product=product, **product_item)
+            pi.log_entries.add(log_entry)
         return product
 
 

@@ -744,15 +744,22 @@ def create_shopping_carts():
     for user in users:
         cart_obj = ShoppingCart(user=user)
         cart_obj.save()
-    queryset = ShoppingCart.objects.all()
-    product_items = [
-        product_item.id for product_item in ProductItem.objects.filter(available=True)
-    ]
-    for query in queryset:
-        if query.user.username == "super":
-            query.product_items.set(random.sample(product_items, 5))
+    shopping_carts = ShoppingCart.objects.all()
+    for cart in shopping_carts:
+        product_items = [
+            product_item.id
+            for product_item in ProductItem.objects.filter(available=True)
+        ]
+        if cart.user.username == "super":
+            cart.product_items.set(random.sample(product_items, 5))
+            for product_item in cart.product_items.all():
+                product_item.available = False
+                product_item.save()
         else:
-            query.product_items.set(random.sample(product_items, random.randint(1, 6)))
+            cart.product_items.set(random.sample(product_items, random.randint(1, 6)))
+            for product_item in cart.product_items.all():
+                product_item.available = False
+                product_item.save()
 
 
 def create_orders():

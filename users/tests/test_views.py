@@ -1305,3 +1305,21 @@ class TestUsers(TestCase):
             user2.username,
             "username should have stayed same for joint user",
         )
+
+    def test_users_filters_pagination(self):
+        """
+        tedsting filters and pagination for users
+        """
+        #when pagination is on and you try to enter non-existing page you get 404
+        #but without pagination you get normal page
+        #so can test that papgination is on trying to access non existing page
+
+        self.login_test_admin()
+
+        url = "/users/?page=-1"
+        response = self.client.get(url)
+        self.assertEqual(404, response.status_code, "pagination is not on")
+
+        url = "/users/?ordering=-id"
+        response = self.client.get(url)
+        print("response json filter: ", response.json())

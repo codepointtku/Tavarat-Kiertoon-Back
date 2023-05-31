@@ -199,7 +199,7 @@ class UserCreateListView(APIView):
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(responses=MessageSerializer)
+@extend_schema(responses=None)
 class UserActivationView(APIView):
     """
     view for user activation. front passess the uid and token that gets validated and then user gets activated.
@@ -664,7 +664,7 @@ class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
 
-
+@extend_schema(responses=None)
 class UserPasswordResetMailView(APIView):
     """
     View used to send the reset email to users email address when requested.
@@ -672,7 +672,6 @@ class UserPasswordResetMailView(APIView):
 
     serializer_class = UserPasswordCheckEmailSerializer
 
-    @extend_schema(responses=None)
     def post(self, request, format=None):
         # using serializewr to check that user exists that the pw reset mail is sent to
         serializer = self.serializer_class(
@@ -712,13 +711,18 @@ class UserPasswordResetMailView(APIView):
             response = Response()
             response.status_code = status.HTTP_200_OK
             # return the values for testing purpose, remove in deployment as these should go only to users email address
-            response.data = {
-                "message": message,
-                "url": reset_url,
-                "back_reset": reset_url_back,
-                "crypt": uid,
-                "token": token_for_user,
-            }
+            if settings.DEBUG:
+                response.data = {
+                    "message": message,
+                    "url": reset_url,
+                    "back_reset": reset_url_back,
+                    "crypt": uid,
+                    "token": token_for_user,
+                }
+            else:
+                response.data = {
+                    "message": "reset email sent (real)"
+                }
 
             return response
 
@@ -727,7 +731,7 @@ class UserPasswordResetMailView(APIView):
             status=status.HTTP_200_OK,
         )
 
-
+@extend_schema(responses=None)
 class UserPasswordResetMailValidationView(APIView):
     """
     View that handless the password reset producre and updates the pw.
@@ -739,7 +743,7 @@ class UserPasswordResetMailValidationView(APIView):
 
     # @method_decorator(sensitive_post_parameters())
     @method_decorator(never_cache)
-    @extend_schema(responses=MessageSerializer)
+    @extend_schema(responses=None)
     def post(self, request, format=None, *args, **kwargs):
         # serializer is used to validate the data send, matching passwords and uid decode and token check
         serializer = self.serializer_class(
@@ -762,7 +766,7 @@ class UserPasswordResetMailValidationView(APIView):
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
 
-@extend_schema(responses=None)
+
 # @extend_schema(
 #     responses=PolymorphicProxySerializer(
 #         component_name="EmailChangeResponse",
@@ -783,6 +787,7 @@ class UserPasswordResetMailValidationView(APIView):
 #         resource_type_field_name=None,
 #     )
 # )
+@extend_schema(responses=None)
 class UserEmailChangeView(APIView):
     """
     Sends email change link to entered email address for the logged in user account
@@ -877,7 +882,7 @@ class UserEmailChangeView(APIView):
             )
 
 
-@extend_schema(responses=MessageSerializer)
+@extend_schema(responses=None)
 class UserEmailChangeFinishView(APIView):
     """
     Validating and changing the email for user after the new email address has been sent from fronts url.
@@ -900,10 +905,8 @@ class UserEmailChangeFinishView(APIView):
                 user.username = serializer.data["new_email"]
             user.save()
 
-            # KYSY ARNOLTA ON KO LIIAN TURVATONTA TEHDÄ NÄIN VAI ANNETAANKO VAIN VIESTI!!!!!!!!!!!!!
             message = {"message": "Sähköposti osoite vaihdettu"}
             return Response(
-                # serializer.data,
                 MessageSerializer(data=message).initial_data,
                 status=status.HTTP_200_OK,
             )

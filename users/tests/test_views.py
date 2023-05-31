@@ -1306,7 +1306,7 @@ class TestUsers(TestCase):
             "username should have stayed same for joint user",
         )
 
-    def test_users_filters_pagination(self):
+    def test_users_ordering_pagination(self):
         """
         tedsting filters and pagination for users
         """
@@ -1320,6 +1320,40 @@ class TestUsers(TestCase):
         response = self.client.get(url)
         self.assertEqual(404, response.status_code, "pagination is not on")
 
+        #testing that orderign is working
+        # by id
         url = "/users/?ordering=-id"
+        url2 = "/users/?ordering=+id"
         response = self.client.get(url)
-        print("response json filter: ", response.json())
+        response2 = self.client.get(url2)
+
+        self.assertNotEqual(response,response2, "responses should not be same if oposite id ordering")
+
+        # by is_active
+        user = CustomUser.objects.get(username="testi1@turku.fi")
+        user.is_active = False
+        user.save()
+
+        url = "/users/?ordering=-is_acitive"
+        url2 = "/users/?ordering=is_acitive"
+        response = self.client.get(url)
+        response2 = self.client.get(url2)
+
+        self.assertNotEqual(response,response2, "responses should not be same if oposite is_active ordering")
+
+        # by creation_date
+        url = "/users/?ordering=-creation_date"
+        url2 = "/users/?ordering=creation_date"
+        response = self.client.get(url)
+        response2 = self.client.get(url2)
+
+        self.assertNotEqual(response,response2, "responses should not be same if oposite creation_date ordering")
+
+        # by last_login
+        url = "/users/?ordering=-last_login"
+        url2 = "/users/?ordering=last_login"
+        response = self.client.get(url)
+        response2 = self.client.get(url2)
+
+        self.assertNotEqual(response,response2, "responses should not be same if oposite last_login ordering")
+

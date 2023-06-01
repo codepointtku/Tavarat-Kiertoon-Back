@@ -152,11 +152,20 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "zip_code",
             "city",
         ]
+        extra_kwargs = {
+            "username": {"required": False},
+        }
 
     def to_internal_value(self, data):
         mod_data = data.copy()
         if "username" not in data:
             mod_data["username"] = mod_data["email"]
+
+        # in the case we want to accept empty username as no username passed
+        # else:
+        #     if data["username"] == "":
+        #         mod_data["username"] = mod_data["email"]
+
         mod_data = super().to_internal_value(mod_data)
         return mod_data
 
@@ -383,30 +392,6 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
 # -----------------------------------------------------------------------
 # schema serializers
 # -----------------------------------------------------------------------
-
-
-class UserCreateSchemaSerializer(UserCreateSerializer):
-    """
-    For SCHEMA user creation
-    """
-
-    class Meta:
-        model = CustomUser
-        fields = [
-            "first_name",
-            "last_name",
-            "email",
-            "phone_number",
-            "password",
-            "username",
-            "address",
-            "zip_code",
-            "city",
-        ]
-
-        extra_kwargs = {
-            "username": {"required": False},
-        }
 
 
 @extend_schema_serializer(exclude_fields=["user"])

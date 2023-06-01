@@ -1150,7 +1150,6 @@ class TestUsers(TestCase):
         """
         Test for testing the account email change functionality
         """
-        print("email change test")
 
         url = "/users/emailchange/"
         url2 = "/users/emailchange/finish/"
@@ -1161,8 +1160,6 @@ class TestUsers(TestCase):
 
         user = self.login_test_user()
         user_id_test = user.id
-
-        # print("malbox beofere sent:", len(mail.outbox))
 
         # checking no mail is sent with incorrect data
         response = self.client.post(url, data, content_type="application/json")
@@ -1202,7 +1199,6 @@ class TestUsers(TestCase):
             settings.EMAIL_CHANGE_URL_FRONT
         )
         the_parameters = end_part_of_email_link[1].split("/")
-        # print("params: ", the_parameters)
 
         data = {
             "uid": the_parameters[0],
@@ -1218,11 +1214,8 @@ class TestUsers(TestCase):
 
         # testing more direct tampering
         decrypted_email = urlsafe_base64_decode(the_parameters[2]).decode()
-        print("decrypted email:", decrypted_email)
         decrypted_email = "tamper" + decrypted_email
-        print("decrypted email:", decrypted_email)
         crypt_again = urlsafe_base64_encode(force_bytes(decrypted_email))
-        print("crypt: ", crypt_again)
         data["new_email"] = crypt_again
         response = self.client.post(url2, data, content_type="application/json")
         self.assertEqual(
@@ -1231,13 +1224,11 @@ class TestUsers(TestCase):
 
         # checkign that the email change goes through
         old_email = user.email
-        # print("old email: ", old_email)
         data["new_email"] = the_parameters[2]
         response = self.client.post(url2, data, content_type="application/json")
 
         user = CustomUser.objects.get(id=user_id_test)
         new_email = user.email
-        # print("new email: ", new_email)
 
         self.assertNotEqual(
             old_email, new_email, "after email change email should be different"
@@ -1276,7 +1267,6 @@ class TestUsers(TestCase):
         user2 = self.login_test_admin()
         data = {"new_email": "t@turku.fi"}
         response = self.client.post(url, data, content_type="application/json")
-        # print("response xcode:", response.status_code)
         end_part_of_email_link = mail.outbox[1].body.split(
             settings.EMAIL_CHANGE_URL_FRONT
         )
@@ -1290,16 +1280,11 @@ class TestUsers(TestCase):
         # test checking that only the email changed for joint user
         old_email = user2.email
         old_username = user2.username
-        # print("new email for joint: ", old_email)
-        # print("data: ", data)
         response = self.client.post(url2, data, content_type="application/json")
         user2 = CustomUser.objects.get(id=user2.id)
-        # print("styatus code iun adming:;", response.status_code)
-        # print("repsonse:", response.json)
         self.assertNotEqual(
             old_email, user2.email, "email should have changed for joint user"
         )
-        # print(old_username, user2.username)
         self.assertEqual(
             old_username,
             user2.username,

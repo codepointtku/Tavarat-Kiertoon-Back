@@ -207,6 +207,7 @@ class UserActivationView(APIView):
 
     serializer_class = UserTokenValidationSerializer
 
+    @method_decorator(never_cache)
     def post(self, request, format=None, *args, **kwargs):
         # serializer is used to validate the data send, matching passwords and uid decode and token check
         serializer = self.serializer_class(
@@ -749,7 +750,7 @@ class UserPasswordResetMailValidationView(APIView):
         serializer = self.serializer_class(
             data=request.data, context={"request": request}
         )
-        # serializer.is_valid(raise_exception=True)
+
         if serializer.is_valid():
             # updating the users pw in database
             user = User.objects.get(id=serializer.data["uid"])
@@ -766,26 +767,6 @@ class UserPasswordResetMailValidationView(APIView):
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
 
-# @extend_schema(
-#     responses=PolymorphicProxySerializer(
-#         component_name="EmailChangeResponse",
-#         serializers=[
-#             MessageSerializer,
-#             inline_serializer(
-#                 name="DebugEmailChangeResponseSchemaSerializer",
-#                 fields={
-#                     "uid": serializers.CharField(),
-#                     "token": serializers.CharField(),
-#                     "new_email": serializers.CharField(),
-#                     "link": serializers.CharField(),
-#                     "front": serializers.CharField(),
-#                     "back": serializers.CharField(),
-#                 },
-#             ),
-#         ],
-#         resource_type_field_name=None,
-#     )
-# )
 @extend_schema(responses=None)
 class UserEmailChangeView(APIView):
     """
@@ -889,6 +870,7 @@ class UserEmailChangeFinishView(APIView):
 
     serializer_class = NewEmailFinishValidationSerializer
 
+    @method_decorator(never_cache)
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)
 

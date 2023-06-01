@@ -1310,9 +1310,9 @@ class TestUsers(TestCase):
         """
         tedsting filters and pagination for users
         """
-        #when pagination is on and you try to enter non-existing page you get 404
-        #but without pagination you get normal page
-        #so can test that papgination is on trying to access non existing page
+        # when pagination is on and you try to enter non-existing page you get 404
+        # but without pagination you get normal page
+        # so can test that papgination is on trying to access non existing page
 
         self.login_test_admin()
 
@@ -1320,14 +1320,16 @@ class TestUsers(TestCase):
         response = self.client.get(url)
         self.assertEqual(404, response.status_code, "pagination is not on")
 
-        #testing that orderign is working
+        # testing that orderign is working
         # by id
         url = "/users/?ordering=-id"
         url2 = "/users/?ordering=+id"
         response = self.client.get(url)
         response2 = self.client.get(url2)
 
-        self.assertNotEqual(response,response2, "responses should not be same if oposite id ordering")
+        self.assertNotEqual(
+            response, response2, "responses should not be same if oposite id ordering"
+        )
 
         # by is_active
         user = CustomUser.objects.get(username="testi1@turku.fi")
@@ -1339,7 +1341,11 @@ class TestUsers(TestCase):
         response = self.client.get(url)
         response2 = self.client.get(url2)
 
-        self.assertNotEqual(response,response2, "responses should not be same if oposite is_active ordering")
+        self.assertNotEqual(
+            response,
+            response2,
+            "responses should not be same if oposite is_active ordering",
+        )
 
         # by creation_date
         url = "/users/?ordering=-creation_date"
@@ -1347,7 +1353,11 @@ class TestUsers(TestCase):
         response = self.client.get(url)
         response2 = self.client.get(url2)
 
-        self.assertNotEqual(response,response2, "responses should not be same if oposite creation_date ordering")
+        self.assertNotEqual(
+            response,
+            response2,
+            "responses should not be same if oposite creation_date ordering",
+        )
 
         # by last_login
         url = "/users/?ordering=-last_login"
@@ -1355,5 +1365,8 @@ class TestUsers(TestCase):
         response = self.client.get(url)
         response2 = self.client.get(url2)
 
-        self.assertNotEqual(response,response2, "responses should not be same if oposite last_login ordering")
-
+        self.assertNotEqual(
+            response,
+            response2,
+            "responses should not be same if oposite last_login ordering",
+        )

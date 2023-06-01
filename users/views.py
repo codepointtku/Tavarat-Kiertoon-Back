@@ -664,6 +664,7 @@ class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
 
+
 @extend_schema(responses=None)
 class UserPasswordResetMailView(APIView):
     """
@@ -720,9 +721,7 @@ class UserPasswordResetMailView(APIView):
                     "token": token_for_user,
                 }
             else:
-                response.data = {
-                    "message": "reset email sent (real)"
-                }
+                response.data = {"message": "reset email sent (real)"}
 
             return response
 
@@ -730,6 +729,7 @@ class UserPasswordResetMailView(APIView):
             "password was send to your user accounts email address",
             status=status.HTTP_200_OK,
         )
+
 
 @extend_schema(responses=None)
 class UserPasswordResetMailValidationView(APIView):
@@ -764,7 +764,6 @@ class UserPasswordResetMailValidationView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
-
 
 
 # @extend_schema(

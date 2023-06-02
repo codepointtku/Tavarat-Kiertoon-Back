@@ -372,7 +372,7 @@ class UserListPagination(PageNumberPagination):
 class UserFilter(filters.FilterSet):
     class Meta:
         model = CustomUser
-        fields = ["email", "username", "is_active", "groups"]
+        fields = ["is_active", "groups"]
 
 
 @extend_schema(responses=UserFullResponseSchemaSerializer)

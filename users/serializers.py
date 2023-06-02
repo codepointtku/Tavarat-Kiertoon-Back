@@ -134,8 +134,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
     Serializer for users, in specific format for user creation
     """
 
-    first_name = serializers.CharField(max_length=255)
-    last_name = serializers.CharField(max_length=255)
     phone_number = serializers.CharField(max_length=50)
     address = serializers.CharField(max_length=255)
     zip_code = serializers.CharField(max_length=10)
@@ -154,11 +152,20 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "zip_code",
             "city",
         ]
+        extra_kwargs = {
+            "username": {"required": False},
+        }
 
     def to_internal_value(self, data):
         mod_data = data.copy()
         if "username" not in data:
             mod_data["username"] = mod_data["email"]
+
+        # in the case we want to accept empty username as no username passed
+        # else:
+        #     if data["username"] == "":
+        #         mod_data["username"] = mod_data["email"]
+
         mod_data = super().to_internal_value(mod_data)
         return mod_data
 

@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, update_last_login
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.core.signing import Signer
@@ -12,7 +12,12 @@ from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    PolymorphicProxySerializer,
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+)
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
@@ -75,6 +80,8 @@ def get_tokens_for_user(user):
 class UserCreateListView(APIView):
     """
     List all users, and create with POST
+    if username field comes = joint user
+    if no username = normal user and email address gets copied to username and will be used to login
     """
 
     # queryset = CustomUser.objects.all()
@@ -190,7 +197,7 @@ class UserCreateListView(APIView):
         return Response(serialized_values.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(responses=MessageSerializer)
+@extend_schema(responses=None)
 class UserActivationView(APIView):
     """
     view for user activation. front passess the uid and token that gets validated and then user gets activated.
@@ -198,6 +205,7 @@ class UserActivationView(APIView):
 
     serializer_class = UserTokenValidationSerializer
 
+    @method_decorator(never_cache)
     def post(self, request, format=None, *args, **kwargs):
         # serializer is used to validate the data send, matching passwords and uid decode and token check
         serializer = self.serializer_class(
@@ -264,6 +272,9 @@ class UserLoginView(APIView):
             csrf.get_token(request)
             response.status_code = status.HTTP_200_OK
             response.data = response_data.data
+
+            update_last_login(None, user=user)
+
             return response
 
         else:
@@ -653,6 +664,7 @@ class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserAddress.objects.all()
 
 
+@extend_schema(responses=None)
 class UserPasswordResetMailView(APIView):
     """
     View used to send the reset email to users email address when requested.
@@ -660,7 +672,6 @@ class UserPasswordResetMailView(APIView):
 
     serializer_class = UserPasswordCheckEmailSerializer
 
-    @extend_schema(responses=None)
     def post(self, request, format=None):
         # using serializewr to check that user exists that the pw reset mail is sent to
         serializer = self.serializer_class(
@@ -700,13 +711,16 @@ class UserPasswordResetMailView(APIView):
             response = Response()
             response.status_code = status.HTTP_200_OK
             # return the values for testing purpose, remove in deployment as these should go only to users email address
-            response.data = {
-                "message": message,
-                "url": reset_url,
-                "back_reset": reset_url_back,
-                "crypt": uid,
-                "token": token_for_user,
-            }
+            if settings.DEBUG:
+                response.data = {
+                    "message": message,
+                    "url": reset_url,
+                    "back_reset": reset_url_back,
+                    "crypt": uid,
+                    "token": token_for_user,
+                }
+            else:
+                response.data = {"message": "reset email sent (real)"}
 
             return response
 
@@ -716,6 +730,7 @@ class UserPasswordResetMailView(APIView):
         )
 
 
+@extend_schema(responses=None)
 class UserPasswordResetMailValidationView(APIView):
     """
     View that handless the password reset producre and updates the pw.
@@ -727,13 +742,13 @@ class UserPasswordResetMailValidationView(APIView):
 
     # @method_decorator(sensitive_post_parameters())
     @method_decorator(never_cache)
-    @extend_schema(responses=MessageSerializer)
+    @extend_schema(responses=None)
     def post(self, request, format=None, *args, **kwargs):
         # serializer is used to validate the data send, matching passwords and uid decode and token check
         serializer = self.serializer_class(
             data=request.data, context={"request": request}
         )
-        # serializer.is_valid(raise_exception=True)
+
         if serializer.is_valid():
             # updating the users pw in database
             user = User.objects.get(id=serializer.data["uid"])
@@ -750,7 +765,12 @@ class UserPasswordResetMailValidationView(APIView):
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(responses=None)
 class UserEmailChangeView(APIView):
+    """
+    Sends email change link to entered email address for the logged in user account
+    """
+
     authentication_classes = [
         # SessionAuthentication,
         # BasicAuthentication,
@@ -816,18 +836,31 @@ class UserEmailChangeView(APIView):
                 fail_silently=False,
             )
 
-            return Response(
-                response_data,
-                status=status.HTTP_200_OK,
-            )
+            # if debug is on should retuirn the links in response for ease of testing
+            # when in deployment only message
+            if settings.DEBUG:
+                return Response(
+                    response_data,
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                message = {
+                    "message": "Check the email address for the link to change the email address"
+                }
+                return Response(
+                    MessageSerializer(data=message).initial_data,
+                    status=status.HTTP_200_OK,
+                )
 
         else:
+            message = {"message": f"non valid email: {serializer.errors}"}
             return Response(
-                f"non valid email: {serializer.errors}",
+                MessageSerializer(data=message).initial_data,
                 status=status.HTTP_204_NO_CONTENT,
             )
 
 
+@extend_schema(responses=None)
 class UserEmailChangeFinishView(APIView):
     """
     Validating and changing the email for user after the new email address has been sent from fronts url.
@@ -835,6 +868,7 @@ class UserEmailChangeFinishView(APIView):
 
     serializer_class = NewEmailFinishValidationSerializer
 
+    @method_decorator(never_cache)
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)
 
@@ -850,8 +884,9 @@ class UserEmailChangeFinishView(APIView):
                 user.username = serializer.data["new_email"]
             user.save()
 
+            message = {"message": "Sähköposti osoite vaihdettu"}
             return Response(
-                serializer.data,
+                MessageSerializer(data=message).initial_data,
                 status=status.HTTP_200_OK,
             )
         else:

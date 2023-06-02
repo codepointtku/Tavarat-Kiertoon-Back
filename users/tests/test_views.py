@@ -4,7 +4,7 @@ from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase, override_settings
 from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from orders.models import ShoppingCart
 from users.models import CustomUser, UserAddress
@@ -116,6 +116,8 @@ class TestUsers(TestCase):
             "/users/password/resetemail/",
             "/users/password/reset/",
             "/users/activate/",
+            "/users/emailchange/",
+            "/users/emailchange/finish/",
         ]
 
         # goign thorugh the urls
@@ -645,16 +647,19 @@ class TestUsers(TestCase):
         # changing the user info
         user1 = CustomUser.objects.get(username="testi1@turku.fi")
         user1_info = [user1.first_name, user1.phone_number]
-        data = {"first_name": "Kinkku Kinkku!222", "phone_number": "2222222"}
+        data = {
+            "first_name": "Kinkku",
+            "last_name": "Kinkku!222",
+            "phone_number": "2222222",
+        }
         response = self.client.put(url, data, content_type="application/json")
 
         # cheking that the info has changed in database
         user2 = CustomUser.objects.get(username="testi1@turku.fi")
-        user2_info = [user2.first_name, user2.phone_number]
+        user2_info = [user2.first_name, user2.last_name, user2.phone_number]
         self.assertNotEqual(user1_info, user2_info, "users info should have cahnged")
-        self.assertEqual(
-            user2.first_name, "Kinkku Kinkku!222", "user info changeed wrongly"
-        )
+        self.assertEqual(user2.first_name, "Kinkku", "user info changeed wrongly")
+        self.assertEqual(user2.last_name, "Kinkku!222", "user info changeed wrongly")
         self.assertEqual(user2.phone_number, "2222222", "user info changeed wrongly")
 
     def test_user_address(self):
@@ -1139,4 +1144,214 @@ class TestUsers(TestCase):
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(
             200, response.status_code, "should be able to login when active now"
+        )
+
+    def test_account_email_change(self):
+        """
+        Test for testing the account email change functionality
+        """
+
+        url = "/users/emailchange/"
+        url2 = "/users/emailchange/finish/"
+        data = {"new_email": "tfghcfghfghfghxsd"}
+
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(401, response.status_code, "shouldnt have access if not user")
+
+        user = self.login_test_user()
+        user_id_test = user.id
+
+        # checking no mail is sent with incorrect data
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            204, response.status_code, "should not be valid on non email address,"
+        )
+
+        data = {"new_email": "tfghcfghfghfghxsd@huuhaa.fi"}
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            204, response.status_code, "should not be valid on non valid email domain,"
+        )
+
+        self.assertEqual(
+            len(mail.outbox),
+            0,
+            "reset email should not been sent with non valid info",
+        )
+
+        # checking that the email was sent
+        data = {"new_email": "t@turku.fi"}
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(
+            len(mail.outbox),
+            1,
+            "reset email should been sent",
+        )
+
+        # checking that the front url is in the  reset email mail
+        self.assertTrue(
+            (settings.EMAIL_CHANGE_URL_FRONT in mail.outbox[0].body),
+            "email reset address should be in reset email",
+        )
+
+        # grabbing the link from the email that was sent, and putting it into form that can be used with test
+        end_part_of_email_link = mail.outbox[0].body.split(
+            settings.EMAIL_CHANGE_URL_FRONT
+        )
+        the_parameters = end_part_of_email_link[1].split("/")
+
+        data = {
+            "uid": the_parameters[0],
+            "token": the_parameters[1],
+            "new_email": "asdasdasdasdasdasdasd",
+        }
+
+        # tampered/non-valid email address shouldnt go through
+        response = self.client.post(url2, data, content_type="application/json")
+        self.assertEqual(
+            204, response.status_code, "tampered/non-valid email shouldnt go through"
+        )
+
+        # testing more direct tampering
+        decrypted_email = urlsafe_base64_decode(the_parameters[2]).decode()
+        decrypted_email = "tamper" + decrypted_email
+        crypt_again = urlsafe_base64_encode(force_bytes(decrypted_email))
+        data["new_email"] = crypt_again
+        response = self.client.post(url2, data, content_type="application/json")
+        self.assertEqual(
+            204, response.status_code, "tampered/non-valid email shouldnt go through"
+        )
+
+        # checkign that the email change goes through
+        old_email = user.email
+        data["new_email"] = the_parameters[2]
+        response = self.client.post(url2, data, content_type="application/json")
+
+        user = CustomUser.objects.get(id=user_id_test)
+        new_email = user.email
+
+        self.assertNotEqual(
+            old_email, new_email, "after email change email should be different"
+        )
+
+        # checkign that normal users username should have changed too
+        self.assertEqual(
+            new_email,
+            user.username,
+            "username should be same as email for normal users after email change",
+        )
+
+        # should not go thorugh with same info if done
+        response = self.client.post(url2, data, content_type="application/json")
+        self.assertEqual(204, response.status_code, "used link shouldnt go through")
+
+        data = {"new_email": "t@turku.fi"}
+        response = self.client.post(url, data, content_type="application/json")
+        end_part_of_email_link = mail.outbox[0].body.split(
+            settings.EMAIL_CHANGE_URL_FRONT
+        )
+        the_parameters = end_part_of_email_link[1].split("/")
+        data = {
+            "uid": the_parameters[0],
+            "token": the_parameters[1],
+            "new_email": the_parameters[2],
+        }
+        response = self.client.post(url2, data, content_type="application/json")
+        self.assertEqual(
+            204,
+            response.status_code,
+            "email change shouldnt go through with email that exist for normal user",
+        )
+
+        # testing joint user email change
+        user2 = self.login_test_admin()
+        data = {"new_email": "t@turku.fi"}
+        response = self.client.post(url, data, content_type="application/json")
+        end_part_of_email_link = mail.outbox[1].body.split(
+            settings.EMAIL_CHANGE_URL_FRONT
+        )
+        the_parameters = end_part_of_email_link[1].split("/")
+        data = {
+            "uid": the_parameters[0],
+            "token": the_parameters[1],
+            "new_email": the_parameters[2],
+        }
+
+        # test checking that only the email changed for joint user
+        old_email = user2.email
+        old_username = user2.username
+        response = self.client.post(url2, data, content_type="application/json")
+        user2 = CustomUser.objects.get(id=user2.id)
+        self.assertNotEqual(
+            old_email, user2.email, "email should have changed for joint user"
+        )
+        self.assertEqual(
+            old_username,
+            user2.username,
+            "username should have stayed same for joint user",
+        )
+
+    def test_users_ordering_pagination(self):
+        """
+        tedsting filters and pagination for users
+        """
+        # when pagination is on and you try to enter non-existing page you get 404
+        # but without pagination you get normal page
+        # so can test that papgination is on trying to access non existing page
+
+        self.login_test_admin()
+
+        url = "/users/?page=-1"
+        response = self.client.get(url)
+        self.assertEqual(404, response.status_code, "pagination is not on")
+
+        # testing that orderign is working
+        # by id
+        url = "/users/?ordering=-id"
+        url2 = "/users/?ordering=+id"
+        response = self.client.get(url)
+        response2 = self.client.get(url2)
+
+        self.assertNotEqual(
+            response, response2, "responses should not be same if oposite id ordering"
+        )
+
+        # by is_active
+        user = CustomUser.objects.get(username="testi1@turku.fi")
+        user.is_active = False
+        user.save()
+
+        url = "/users/?ordering=-is_acitive"
+        url2 = "/users/?ordering=is_acitive"
+        response = self.client.get(url)
+        response2 = self.client.get(url2)
+
+        self.assertNotEqual(
+            response,
+            response2,
+            "responses should not be same if oposite is_active ordering",
+        )
+
+        # by creation_date
+        url = "/users/?ordering=-creation_date"
+        url2 = "/users/?ordering=creation_date"
+        response = self.client.get(url)
+        response2 = self.client.get(url2)
+
+        self.assertNotEqual(
+            response,
+            response2,
+            "responses should not be same if oposite creation_date ordering",
+        )
+
+        # by last_login
+        url = "/users/?ordering=-last_login"
+        url2 = "/users/?ordering=last_login"
+        response = self.client.get(url)
+        response2 = self.client.get(url2)
+
+        self.assertNotEqual(
+            response,
+            response2,
+            "responses should not be same if oposite last_login ordering",
         )

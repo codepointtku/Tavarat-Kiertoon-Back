@@ -369,15 +369,10 @@ class UserListPagination(PageNumberPagination):
     page_size_query_param = "page_size"
 
 
-# class UserFilter(filters.FilterSet):
-#     class Meta:
-#         model = CustomUser
-#         fields = [
-#             "name",
-#             "email",
-#             "phone_number",
-#             "username",
-#         ]
+class UserFilter(filters.FilterSet):
+    class Meta:
+        model = CustomUser
+        fields = ["is_active", "groups"]
 
 
 @extend_schema(responses=UserFullResponseSchemaSerializer)
@@ -399,7 +394,7 @@ class UserDetailsListView(generics.ListAPIView):
 
     ordering_fields = ["id", "is_active", "creation_date", "last_login"]
     ordering = ["id"]
-    # filterset_class = UserFilter
+    filterset_class = UserFilter
 
     required_groups = {
         "GET": ["admin_group"],

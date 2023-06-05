@@ -86,8 +86,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     id = models.BigAutoField(primary_key=True)
     # name = models.CharField(max_length=255, null=True)
-    first_name = models.CharField(max_length=255, null=True)
-    last_name = models.CharField(max_length=255, null=True)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)

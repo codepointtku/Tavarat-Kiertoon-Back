@@ -11,7 +11,12 @@ from .models import (
     BikeBrand,
 )
 
-from products.serializers import ColorSerializer, StorageSerializer
+from products.serializers import (
+    ColorSerializer,
+    StorageSerializer,
+    PictureSerializer,
+    PictureCreateSerializer,
+)
 
 
 class BikeRentalSerializer(serializers.ModelSerializer):
@@ -32,18 +37,19 @@ class BikeRentalSchemaResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeRental
         fields = "__all__"
-        extra_kwargs = {"id": {"required": True},
-                    "start_date": {"required": True},
-                    "end_date": {"required": True},
-                    "state": {"required": True},
-                    "delivery_address": {"required": True},
-                    "pickup": {"required": True},
-                    "contact_name": {"required": True},
-                    "contact_phone_number": {"required": True},
-                    "extra_info": {"required": True},
-                    "user": {"required": True},
-                    "bike_stock": {"required": True},
-                }
+        extra_kwargs = {
+            "id": {"required": True},
+            "start_date": {"required": True},
+            "end_date": {"required": True},
+            "state": {"required": True},
+            "delivery_address": {"required": True},
+            "pickup": {"required": True},
+            "contact_name": {"required": True},
+            "contact_phone_number": {"required": True},
+            "extra_info": {"required": True},
+            "user": {"required": True},
+            "bike_stock": {"required": True},
+        }
 
 
 class BikeStockSerializer(serializers.ModelSerializer):
@@ -165,9 +171,10 @@ class BikeAmountSchemaResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeAmount
         exclude = ["package"]
-        extra_kwargs = {"id": {"required": True},
-                    "amount": {"required": True},
-                    "bike": {"required": True},
+        extra_kwargs = {
+            "id": {"required": True},
+            "amount": {"required": True},
+            "bike": {"required": True},
         }
 
 
@@ -218,14 +225,15 @@ class BikeStockListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BikeStock
-        fields =  "__all__"
-        extra_kwargs = {"bike": {"required": True},
-                    "package_only": {"required": True},
-                    "number": {"required": True},
-                    "frame_number": {"required": True},
-                    "created_at": {"required": True},
-                    "state": {"required": True},
-                    "storage": {"required": True},
+        fields = "__all__"
+        extra_kwargs = {
+            "bike": {"required": True},
+            "package_only": {"required": True},
+            "number": {"required": True},
+            "frame_number": {"required": True},
+            "created_at": {"required": True},
+            "state": {"required": True},
+            "storage": {"required": True},
         }
 
 
@@ -242,13 +250,14 @@ class BikeStockDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeStock
         fields = "__all__"
-        extra_kwargs = {"bike": {"required": True},
-                    "package_only": {"required": True},
-                    "number": {"required": True},
-                    "frame_number": {"required": True},
-                    "created_at": {"required": True},
-                    "state": {"required": True},
-                    "storage": {"required": True},
+        extra_kwargs = {
+            "bike": {"required": True},
+            "package_only": {"required": True},
+            "number": {"required": True},
+            "frame_number": {"required": True},
+            "created_at": {"required": True},
+            "state": {"required": True},
+            "storage": {"required": True},
         }
 
 
@@ -256,13 +265,14 @@ class BikeStockSchemaCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeStock
         fields = "__all__"
-        extra_kwargs = {"bike": {"required": True},
-                    "package_only": {"required": True},
-                    "number": {"required": True},
-                    "frame_number": {"required": True},
-                    "created_at": {"required": True},
-                    "state": {"required": True},
-                    "storage": {"required": True},
+        extra_kwargs = {
+            "bike": {"required": True},
+            "package_only": {"required": True},
+            "number": {"required": True},
+            "frame_number": {"required": True},
+            "created_at": {"required": True},
+            "state": {"required": True},
+            "storage": {"required": True},
         }
 
 
@@ -271,6 +281,7 @@ class BikeModelSerializer(serializers.ModelSerializer):
     brand = BikeBrandSerializer(read_only=True)
     size = BikeSizeSerializer(read_only=True)
     color = ColorSerializer(read_only=True)
+    picture = PictureSerializer(read_only=True)
 
     class Meta:
         model = Bike
@@ -278,6 +289,7 @@ class BikeModelSerializer(serializers.ModelSerializer):
 
 
 class BikeModelCreateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Bike
         fields = "__all__"
@@ -287,13 +299,14 @@ class BikeModelSchemaResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bike
         fields = "__all__"
-        extra_kwargs = {"name": {"required": True},
-                    "description": {"required": True},
-                    "type": {"required": True},
-                    "brand": {"required": True},
-                    "size": {"required": True},
-                    "color": {"required": True},
-                }
+        extra_kwargs = {
+            "name": {"required": True},
+            "description": {"required": True},
+            "type": {"required": True},
+            "brand": {"required": True},
+            "size": {"required": True},
+            "color": {"required": True},
+        }
 
 
 class MainBikeSchemaDateSerializer(serializers.Serializer):

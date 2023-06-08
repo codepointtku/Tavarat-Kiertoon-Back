@@ -910,6 +910,7 @@ def create_bikes():
     types = BikeType.objects.all()
     brands = BikeBrand.objects.all()
     colors = Color.objects.all()
+    pictures = Picture.objects.all()
     for bike in bikes:
         bike_object = Bike(
             name=bike["name"],
@@ -918,6 +919,7 @@ def create_bikes():
             brand=random.choice(brands),
             type=random.choice(types),
             color=random.choice(colors),
+            picture=random.choice(pictures),
         )
         bike_object.save()
 

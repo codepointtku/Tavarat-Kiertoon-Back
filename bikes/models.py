@@ -2,7 +2,7 @@
 
 from django.db import models
 
-from products.models import Color, Storage
+from products.models import Color, Storage, Picture
 from users.models import CustomUser
 
 
@@ -44,6 +44,7 @@ class Bike(models.Model):
     )
     size = models.ForeignKey(BikeSize, null=True, blank=True, on_delete=models.SET_NULL)
     color = models.ForeignKey(Color, null=True, blank=True, on_delete=models.SET_NULL)
+    picture = models.ForeignKey(Picture, null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self) -> str:
         return f"Bike: {self.name}({self.id})"

@@ -150,6 +150,22 @@ class ProductListView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         color_checked_data = color_check_create(request.data)
+        picture_ids = []
+        for file in request.FILES.getlist("pictures[]"):
+            ext = file.content_type.split("/")[1]
+            pic_serializer = PictureCreateSerializer(
+                data={
+                    "picture_address": ContentFile(
+                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                    )
+                }
+            )
+            pic_serializer.is_valid(raise_exception=True)
+            self.perform_create(pic_serializer)
+            picture_ids.append(pic_serializer.data["id"])
+
+        color_checked_data["pictures"] = picture_ids
+
         serializer = ProductCreateSerializer(
             data=color_checked_data, context=request.user
         )

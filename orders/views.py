@@ -189,6 +189,7 @@ class OrderListView(ListCreateAPIView):
         if serializer.is_valid():
             serializer.save()
             order = Order.objects.get(id=serializer.data["id"])
+            order.user = user
             shopping_cart = ShoppingCart.objects.get(user=user.id)
             log_entry = ProductItemLogEntry.objects.create(
                 action=ProductItemLogEntry.ActionChoices.ORDER, user=user
@@ -201,7 +202,7 @@ class OrderListView(ListCreateAPIView):
             # Email for user who submitted order
             subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (
-                "Hei!\n"
+                "Hei!\n\n"
                 "Vastaanotimme tilauksesi. Pyrimme toimittamaan sen 1-2 viikon sisällä\n"
                 f"Tilausnumeronne on {order.id}.\n\n"
                 "Terveisin Tavarat kieroon väki!"
@@ -210,8 +211,9 @@ class OrderListView(ListCreateAPIView):
 
             # Email for all OrderEmailRecipients notifying about new order
             message = (
-                "Hei\n"
-                f"Käyttäjä {user.username} teki tilauksen Tavarat kiertoon järjestelmään."
+                "Hei\n\n"
+                f"Käyttäjä {user.username} teki tilauksen Tavarat kiertoon järjestelmään.\n"
+                f"Linkki tilaukseen http://localhost:3000/varasto/tilaus/{order.id}/"
             )
             recipients = [
                 recipient.email for recipient in OrderEmailRecipient.objects.all()

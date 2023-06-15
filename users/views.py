@@ -411,7 +411,7 @@ class UserDetailsListView(generics.ListAPIView):
     get=extend_schema(responses=UserFullResponseSchemaSerializer),
 )
 @extend_schema(responses=UserUpdateReturnSchemaSerializer)
-class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
+class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
     """
     Get specific users info,
     only some field can be updated

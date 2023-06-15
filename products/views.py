@@ -121,7 +121,6 @@ class ProductFilter(filters.FilterSet):
 class ProductListView(generics.ListCreateAPIView):
     """View for listing and creating products. Create includes creation of ProductItem and Picture"""
 
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     authentication_classes = [
         SessionAuthentication,
@@ -135,6 +134,19 @@ class ProductListView(generics.ListCreateAPIView):
     ordering_fields = ["id"]
     ordering = ["-id"]
     filterset_class = ProductFilter
+
+    def get_queryset(self):
+        if "all" in self.request.query_params:
+            if is_in_group(self.request.user, "storage_group") or is_in_group(
+                self.request.user, "admin_group"
+            ):
+                return Product.objects.all()
+        products_ids = [
+            product.id
+            for product in Product.objects.all()
+            if product.productitem_set.filter(available=True).count() > 0
+        ]
+        return Product.objects.filter(id__in=products_ids)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

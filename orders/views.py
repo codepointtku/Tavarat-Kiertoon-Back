@@ -197,14 +197,26 @@ class OrderListView(ListCreateAPIView):
                 order.product_items.add(product_item)
                 product_item.log_entries.add(log_entry)
             shopping_cart.product_items.clear()
+
+            # Email for user who submitted order
             subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (
                 "Hei!\n"
-                "Vastaanotimme tilauksesi ja tilaus pyrimme toimittamaan sen 1-2 viikon sisällä\n"
+                "Vastaanotimme tilauksesi. Pyrimme toimittamaan sen 1-2 viikon sisällä\n"
                 f"Tilausnumeronne on {order.id}.\n\n"
                 "Terveisin Tavarat kieroon väki!"
             )
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
+
+            # Email for all OrderEmailRecipients notifying about new order
+            message = (
+                "Hei\n"
+                f"Käyttäjä {user.username} teki tilauksen Tavarat kiertoon järjestelmään."
+            )
+            recipients = [
+                recipient.email for recipient in OrderEmailRecipient.objects.all()
+            ]
+            send_mail(subject, message, settings.EMAIL_HOST_USER, recipients)
             serializer = OrderSerializer(order)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -259,6 +271,7 @@ class OrderEmailRecipientListView(ListCreateAPIView):
     queryset = OrderEmailRecipient.objects.all()
 
 
+@extend_schema_view(patch=extend_schema(exclude=True))
 class OrderEmailRecipientDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = OrderEmailRecipientSerializer
     queryset = OrderEmailRecipient.objects.all()

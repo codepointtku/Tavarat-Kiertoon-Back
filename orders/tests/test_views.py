@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from categories.models import Category
-from orders.models import Order, ShoppingCart
+from orders.models import Order, OrderEmailRecipient, ShoppingCart
 from products.models import Color, Product, ProductItem, Storage
 from users.models import CustomUser
 
@@ -62,6 +62,9 @@ class TestOrders(TestCase):
             free_description="tämä nahka on sohvainen",
             color=cls.test_color,
             weight=50,
+        )
+        cls.test_order_email_recipient = OrderEmailRecipient.objects.create(
+            email="samimas@turku.fi"
         )
         for i in range(13):
             available = True
@@ -289,3 +292,50 @@ class TestOrders(TestCase):
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
+
+    def test_get_order_email_recipient(self):
+        url = "/orders/emailrecipients/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        url = f"/orders/emailrecipients/{self.test_order_email_recipient.id}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_post_order_email_recipient(self):
+        current_recipients = OrderEmailRecipient.objects.count()
+        url = "/orders/emailrecipients/"
+        response = self.client.post(
+            url, {"email": "samsam@turku.fi"}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(OrderEmailRecipient.objects.count(), current_recipients + 1)
+
+        response = self.client.post(
+            url, {"mail": "samsam@turku.fi"}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_put_order_email_recipient(self):
+        url = f"/orders/emailrecipients/{self.test_order_email_recipient.id}/"
+        response = self.client.put(
+            url, {"email": "samsam@turku.fi"}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            OrderEmailRecipient.objects.get(
+                id=self.test_order_email_recipient.id
+            ).email,
+            "samsam@turku.fi",
+        )
+
+        response = self.client.put(
+            url, {"mail": "samsam@turku.fi"}, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_delete_order_email_recipient(self):
+        current_recipients = OrderEmailRecipient.objects.count()
+        url = f"/orders/emailrecipients/{self.test_order_email_recipient.id}/"
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(OrderEmailRecipient.objects.count(), current_recipients - 1)

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from products.serializers import ProductItemResponseSerializer, ProductItemSerializer
+from users.serializers import UserFullResponseSchemaSerializer, UserFullSerializer
 
 from .models import Order, ShoppingCart
 
@@ -63,6 +64,7 @@ class OrderResponseSerializer(serializers.ModelSerializer):
 
 class OrderDetailSerializer(serializers.ModelSerializer):
     product_items = ProductItemSerializer(many=True, read_only=True)
+    user = UserFullSerializer(read_only=True)
 
     class Meta:
         model = Order
@@ -78,6 +80,7 @@ class OrderDetailRequestSerializer(serializers.ModelSerializer):
 
 class OrderDetailResponseSerializer(serializers.ModelSerializer):
     product_items = ProductItemResponseSerializer(many=True, read_only=True)
+    user = UserFullResponseSchemaSerializer(read_only=True)
 
     class Meta:
         model = Order

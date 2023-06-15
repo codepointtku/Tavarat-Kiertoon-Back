@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from products.serializers import ProductItemResponseSerializer, ProductItemSerializer
 
-from .models import Order, ShoppingCart
+from .models import Order, OrderEmailRecipient, ShoppingCart
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -88,3 +88,9 @@ class OrderDetailResponseSerializer(serializers.ModelSerializer):
             "user": {"required": True},
             "product_items": {"required": True},
         }
+
+
+class OrderEmailRecipentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderEmailRecipient
+        fields = "__all__"

@@ -20,11 +20,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from products.models import Product, ProductItem, ProductItemLogEntry
 from users.views import CustomJWTAuthentication
 
-from .models import Order, ShoppingCart
+from .models import Order, OrderEmailRecipient, ShoppingCart
 from .serializers import (
     OrderDetailRequestSerializer,
     OrderDetailResponseSerializer,
     OrderDetailSerializer,
+    OrderEmailRecipientSerializer,
     OrderRequestSerializer,
     OrderResponseSerializer,
     OrderSerializer,
@@ -251,3 +252,13 @@ class OrderSelfListView(ListAPIView):
         if self.request.user.is_anonymous:
             return Order.objects.none()
         return Order.objects.filter(user=self.request.user)
+
+
+class OrderEmailRecipientListView(ListCreateAPIView):
+    serializer_class = OrderEmailRecipientSerializer
+    queryset = OrderEmailRecipient.objects.all()
+
+
+class OrderEmailRecipientDetailView(RetrieveUpdateDestroyAPIView):
+    serializer_class = OrderEmailRecipientSerializer
+    queryset = OrderEmailRecipient.objects.all()

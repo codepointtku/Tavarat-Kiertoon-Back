@@ -90,7 +90,7 @@ class OrderDetailResponseSerializer(serializers.ModelSerializer):
         }
 
 
-class OrderEmailRecipentSerializer(serializers.ModelSerializer):
+class OrderEmailRecipientSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderEmailRecipient
         fields = "__all__"

@@ -32,3 +32,10 @@ class Order(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user}'s Order({self.id})"
+
+
+class OrderEmailRecipient(models.Model):
+    """Table representing all persons who will recieve email when order is made"""
+
+    id = models.BigAutoField(primary_key=True)
+    email = models.CharField(max_length=255)

@@ -136,17 +136,29 @@ class ProductListView(generics.ListCreateAPIView):
     filterset_class = ProductFilter
 
     def get_queryset(self):
+        # If you belong in admin or storage and have "all" in query params you can see all Products
         if "all" in self.request.query_params:
             if is_in_group(self.request.user, "storage_group") or is_in_group(
                 self.request.user, "admin_group"
             ):
                 return Product.objects.all()
-        products_ids = [
+
+        # Hides Products that are not available
+        product_ids = [
             product.id
             for product in Product.objects.all()
             if product.productitem_set.filter(available=True).count() > 0
         ]
-        return Product.objects.filter(id__in=products_ids)
+
+        # Adds Products that are not available to product_ids if logged in person has them in ShoppingCart
+        if not self.request.user.is_anonymous:
+            for product_item in ShoppingCart.objects.get(
+                user=self.request.user
+            ).product_items.all():
+                if not product_item.product.productitem_set.filter(available=True):
+                    product_ids.append(product_item.product.id)
+
+        return Product.objects.filter(id__in=product_ids)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

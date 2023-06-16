@@ -169,6 +169,16 @@ class UserCreateSerializer(serializers.ModelSerializer):
         mod_data = super().to_internal_value(mod_data)
         return mod_data
 
+    def validate(self, data):
+        # print("validating email in user creation serializer: ", data)
+        data = super().validate(data)
+
+        if not validate_email_domain(data["email"]):
+            msg = "not valid email address or domain"
+            raise serializers.ValidationError(msg)
+
+        return data
+
 
 class UserCreateReturnSerializer(serializers.ModelSerializer):
     """

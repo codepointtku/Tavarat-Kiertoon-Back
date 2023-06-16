@@ -127,11 +127,11 @@ class UserCreateListView(APIView):
             #     )
 
             # email_split = email_post.split("@")
-            if not validate_email_domain(email_post):
-                return Response(
-                    "invalid email address or domain",
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            # if not validate_email_domain(email_post):
+            #     return Response(
+            #         "invalid email address or domain",
+            #         status=status.HTTP_400_BAD_REQUEST,
+            #     )
 
             # actually creating the user
             user = User.objects.create_user(

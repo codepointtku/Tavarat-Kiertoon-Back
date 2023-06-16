@@ -1,4 +1,5 @@
 from functools import reduce
+from itertools import chain
 from operator import and_, or_
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -144,21 +145,24 @@ class ProductListView(generics.ListCreateAPIView):
                 return Product.objects.all()
 
         # Hides Products that are not available
-        product_ids = [
-            product.id
-            for product in Product.objects.all()
-            if product.productitem_set.filter(available=True).count() > 0
-        ]
+        available_products = Product.objects.filter(
+            productitem__in=ProductItem.objects.filter(available=True)
+        ).distinct()
 
-        # Adds Products that are not available to product_ids if logged in person has them in ShoppingCart
+        # Adds Products that are not available to available_products if logged in person has them in ShoppingCart
         if not self.request.user.is_anonymous:
-            for product_item in ShoppingCart.objects.get(
-                user=self.request.user
-            ).product_items.all():
-                if not product_item.product.productitem_set.filter(available=True):
-                    product_ids.append(product_item.product.id)
+            non_available_cart_products = (
+                Product.objects.filter(
+                    productitem__in=ProductItem.objects.filter(
+                        shoppingcart=ShoppingCart.objects.get(user=self.request.user)
+                    )
+                )
+                .exclude(productitem__in=ProductItem.objects.filter(available=True))
+                .distinct()
+            )
+            available_products = available_products | non_available_cart_products
 
-        return Product.objects.filter(id__in=product_ids)
+        return available_products
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

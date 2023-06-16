@@ -59,6 +59,7 @@ class OrderResponseSerializer(serializers.ModelSerializer):
             "delivery_date": {"required": True},
             "user": {"required": True},
             "product_items": {"required": True},
+            "status": {"required": True},
         }
 
 
@@ -90,4 +91,5 @@ class OrderDetailResponseSerializer(serializers.ModelSerializer):
             "delivery_date": {"required": True},
             "user": {"required": True},
             "product_items": {"required": True},
+            "status": {"required": True},
         }

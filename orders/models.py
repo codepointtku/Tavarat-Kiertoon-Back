@@ -30,7 +30,7 @@ class Order(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     product_items = models.ManyToManyField(ProductItem, blank=True)
     status = models.CharField(
-        max_length=255, choices=StatusChoices.choices, default="Order is waiting for processing"
+        max_length=255, choices=StatusChoices.choices, default="Waiting"
     )
     delivery_address = models.CharField(max_length=255)
     contact = models.CharField(max_length=255)

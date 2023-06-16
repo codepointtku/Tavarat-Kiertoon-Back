@@ -120,16 +120,17 @@ class UserCreateListView(APIView):
 
             # checking that email domain is valid
             # checking email domain
-            if "@" not in email_post:
-                return Response(
-                    "Not a valid email address",
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            # if "@" not in email_post:
+            #     return Response(
+            #         "Not a valid email address",
+            #         status=status.HTTP_400_BAD_REQUEST,
+            #     )
 
             # email_split = email_post.split("@")
             if not validate_email_domain(email_post):
                 return Response(
-                    "invalid email domain", status=status.HTTP_400_BAD_REQUEST
+                    "invalid email address or domain",
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             # actually creating the user

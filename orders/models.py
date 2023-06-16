@@ -19,10 +19,19 @@ class ShoppingCart(models.Model):
 class Order(models.Model):
     """class modeling Order table in database"""
 
+    class StatusChoices(models.Choices):
+        """Choices for the state of order processing."""
+
+        WAITING = "Order is waiting for processing"
+        PROCESSING = "Order is being processed"
+        FINISHED = "Order has been delivered and finished"
+
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     product_items = models.ManyToManyField(ProductItem, blank=True)
-    status = models.CharField(max_length=255)
+    status = models.CharField(
+        max_length=255, choices=StatusChoices.choices, default="Order is waiting for processing"
+    )
     delivery_address = models.CharField(max_length=255)
     contact = models.CharField(max_length=255)
     order_info = models.TextField(default="", blank=True)

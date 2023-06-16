@@ -6,8 +6,11 @@ from django.utils.crypto import constant_time_compare, salted_hmac
 from django.utils.http import base36_to_int, int_to_base36
 
 
-def validate_email_domain(email_domain):
-    return email_domain in settings.VALID_EMAIL_DOMAINS
+def validate_email_domain(email):
+    if "@" in email:
+        email_split = email.split("@", 1)
+        return email_split[1] in settings.VALID_EMAIL_DOMAINS
+    return False
 
 
 class CustomTimeTokenGenerator(PasswordResetTokenGenerator):

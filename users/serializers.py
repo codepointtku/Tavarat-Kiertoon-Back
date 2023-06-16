@@ -339,8 +339,8 @@ class NewEmailSerializer(serializers.Serializer):
             msg = "not an email address (no @)"
             raise serializers.ValidationError(msg)
 
-        email_split = value.split("@")
-        if not validate_email_domain(email_split[1]):
+        # email_split = value.split("@")
+        if not validate_email_domain(value):
             msg = "not valid domain for email"
             raise serializers.ValidationError(msg)
 

@@ -126,8 +126,8 @@ class UserCreateListView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            email_split = email_post.split("@")
-            if not validate_email_domain(email_split[1]):
+            # email_split = email_post.split("@")
+            if not validate_email_domain(email_post):
                 return Response(
                     "invalid email domain", status=status.HTTP_400_BAD_REQUEST
                 )

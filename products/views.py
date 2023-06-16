@@ -65,6 +65,24 @@ def color_check_create(instance):
     return instance
 
 
+def available_products_filter():
+    return Product.objects.filter(
+        productitem__in=ProductItem.objects.filter(available=True)
+    ).distinct()
+
+
+def non_available_products_in_cart(user_id):
+    return (
+        Product.objects.filter(
+            productitem__in=ProductItem.objects.filter(
+                shoppingcart=ShoppingCart.objects.get(user=user_id)
+            )
+        )
+        .exclude(productitem__in=ProductItem.objects.filter(available=True))
+        .distinct()
+    )
+
+
 # Create your views here.
 class ProductListPagination(PageNumberPagination):
     page_size = 30
@@ -145,20 +163,12 @@ class ProductListView(generics.ListCreateAPIView):
                 return Product.objects.all()
 
         # Hides Products that are not available
-        available_products = Product.objects.filter(
-            productitem__in=ProductItem.objects.filter(available=True)
-        ).distinct()
+        available_products = available_products_filter()
 
         # Adds Products that are not available to available_products if logged in person has them in ShoppingCart
         if not self.request.user.is_anonymous:
-            non_available_cart_products = (
-                Product.objects.filter(
-                    productitem__in=ProductItem.objects.filter(
-                        shoppingcart=ShoppingCart.objects.get(user=self.request.user)
-                    )
-                )
-                .exclude(productitem__in=ProductItem.objects.filter(available=True))
-                .distinct()
+            non_available_cart_products = non_available_products_in_cart(
+                self.request.user
             )
             available_products = available_products | non_available_cart_products
 

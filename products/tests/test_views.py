@@ -9,6 +9,7 @@ from django.utils import timezone
 from categories.models import Category
 from orders.models import ShoppingCart
 from products.models import Color, Picture, Product, ProductItem, Storage
+from products.views import available_products_filter, non_available_products_in_cart
 from users.models import CustomUser
 
 TEST_DIR = "testmedia/"
@@ -152,31 +153,11 @@ class TestProducts(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_get_products(self):
-        def available_product_count():
-            return (
-                Product.objects.filter(
-                    productitem__in=ProductItem.objects.filter(available=True)
-                )
-                .distinct()
-                .count()
-            )
-
-        def non_available_products_in_cart(user_id):
-            return (
-                Product.objects.filter(
-                    productitem__in=ProductItem.objects.filter(
-                        shoppingcart=ShoppingCart.objects.get(user=user_id)
-                    )
-                )
-                .exclude(productitem__in=ProductItem.objects.filter(available=True))
-                .count()
-            )
-
         url = "/products/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
-        product_count = available_product_count()
+        product_count = available_products_filter().count()
         self.assertEqual(response.json()["count"], product_count)
 
         self.client.login(username="kahvimake@turku.fi", password="asd123")
@@ -186,15 +167,17 @@ class TestProducts(TestCase):
             content_type="application/json",
         )
         response = self.client.get(url)
-        product_count = available_product_count() + non_available_products_in_cart(
-            self.test_user1.id
+        product_count = (
+            available_products_filter().count()
+            + non_available_products_in_cart(self.test_user1.id).count()
         )
         self.assertEqual(response.json()["count"], product_count)
 
         self.client.logout()
         response = self.client.get(url)
-        product_count = available_product_count() + non_available_products_in_cart(
-            self.test_user1.id
+        product_count = (
+            available_products_filter().count()
+            + non_available_products_in_cart(self.test_user1.id).count()
         )
         self.assertNotEqual(response.json()["count"], product_count)
 

@@ -146,13 +146,6 @@ class OrderListPagination(PageNumberPagination):
 
 
 class OrderFilter(filters.FilterSet):
-    STATUS_CHOICES = (
-        ("Waiting", "Waiting"),
-        ("Delivery", "Delivery"),
-        ("Finished", "Finished"),
-    )
-    status = filters.ChoiceFilter(method="status_filter", choices=STATUS_CHOICES)
-
     class Meta:
         model = Order
         fields = ["status"]

@@ -96,9 +96,6 @@ class OrderDetailResponseSerializer(serializers.ModelSerializer):
 
 class OrderEmailRecipientSerializer(serializers.ModelSerializer):
     def validate(self, data):
-        # if "@" not in data["email"]:
-        #     raise serializers.ValidationError("Email must be valid.")
-        # email_domain = data["email"].split("@", 1)[1]
         if validate_email_domain(data["email"]):
             return data
         raise serializers.ValidationError("Email must be valid.")

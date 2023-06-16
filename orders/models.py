@@ -24,6 +24,7 @@ class Order(models.Model):
     product_items = models.ManyToManyField(ProductItem, blank=True)
     status = models.CharField(max_length=255)
     delivery_address = models.CharField(max_length=255)
+    delivery_required = models.BooleanField(default=True)
     contact = models.CharField(max_length=255)
     order_info = models.TextField(default="", blank=True)
     delivery_date = models.DateTimeField(null=True, default=None, blank=True)
@@ -32,3 +33,10 @@ class Order(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user}'s Order({self.id})"
+
+
+class OrderEmailRecipient(models.Model):
+    """Table representing all persons who will recieve email when order is made"""
+
+    id = models.BigAutoField(primary_key=True)
+    email = models.CharField(max_length=255)

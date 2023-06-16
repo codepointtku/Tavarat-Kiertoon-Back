@@ -35,6 +35,8 @@ from contact_forms.views import (
 )
 from orders.views import (
     OrderDetailView,
+    OrderEmailRecipientDetailView,
+    OrderEmailRecipientListView,
     OrderListView,
     OrderSelfListView,
     ShoppingCartDetailView,
@@ -63,6 +65,7 @@ from users.views import (
     UserAddressEditView,
     UserCreateListView,
     UserDetailsListView,
+    UserEmailChangeFinishView,
     UserEmailChangeView,
     UserLoginView,
     UserLogoutView,
@@ -71,7 +74,6 @@ from users.views import (
     UserTokenRefreshView,
     UserUpdateInfoView,
     UserUpdateSingleView,
-    UserEmailChangeFinishView,
 )
 
 urlpatterns = [
@@ -87,6 +89,8 @@ urlpatterns = [
     path("shopping_cart/available_amount/", ShoppingCartAvailableAmountList.as_view()),
     path("orders/", OrderListView.as_view()),
     path("orders/<int:pk>/", OrderDetailView.as_view()),
+    path("orders/emailrecipients/", OrderEmailRecipientListView.as_view()),
+    path("orders/emailrecipients/<int:pk>/", OrderEmailRecipientDetailView.as_view()),
     path("orders/user/", OrderSelfListView.as_view()),
     path("products/", ProductListView.as_view()),
     path("products/<int:pk>/", ProductDetailView.as_view()),
@@ -130,7 +134,6 @@ urlpatterns = [
     ),
     path("users/emailchange/", UserEmailChangeView.as_view()),
     path("users/emailchange/finish/", UserEmailChangeFinishView.as_view()),
-
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

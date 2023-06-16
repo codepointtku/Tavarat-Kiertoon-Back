@@ -22,9 +22,9 @@ class Order(models.Model):
     class StatusChoices(models.Choices):
         """Choices for the state of order processing."""
 
-        WAITING = "Order is waiting for processing"
-        PROCESSING = "Order is being processed"
-        FINISHED = "Order has been delivered and finished"
+        WAITING = "Waiting"
+        PROCESSING = "Processing"
+        FINISHED = "Finished"
 
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)

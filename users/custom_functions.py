@@ -7,10 +7,7 @@ from django.utils.http import base36_to_int, int_to_base36
 
 
 def validate_email_domain(email_domain):
-    # print("email domain: ", email_domain, "valid email domains: " , settings.VALID_EMAIL_DOMAINS)
-    if email_domain in settings.VALID_EMAIL_DOMAINS:
-        return True
-    return False
+    return email_domain in settings.VALID_EMAIL_DOMAINS
 
 
 class CustomTimeTokenGenerator(PasswordResetTokenGenerator):

@@ -38,6 +38,7 @@ class TestOrders(TestCase):
         cls.test_user2.save()
 
         cls.test_color = Color.objects.create(name="punainen")
+        cls.test_color1 = Color.objects.create(name="sininen")
         cls.test_storage1 = Storage.objects.create(name="mokkavarasto")
         cls.test_storage2 = Storage.objects.create(name="italiangoldstorage")
         cls.test_parentcategory = Category.objects.create(name="coffee")
@@ -52,7 +53,6 @@ class TestOrders(TestCase):
             name="nahkasohva",
             price=0,
             free_description="tämä sohva on nahkainen",
-            color=cls.test_color,
             weight=50,
         )
         cls.test_product2 = Product.objects.create(
@@ -60,9 +60,18 @@ class TestOrders(TestCase):
             name="sohvanahka",
             price=0,
             free_description="tämä nahka on sohvainen",
-            color=cls.test_color,
             weight=50,
         )
+
+        queryset = Product.objects.all()
+        for query in queryset:
+            query.color.set(
+                [
+                    Color.objects.get(id=cls.test_color.id),
+                    Color.objects.get(id=cls.test_color1.id),
+                ],
+            )
+
         for i in range(13):
             available = True
             if i % 5 == 0:

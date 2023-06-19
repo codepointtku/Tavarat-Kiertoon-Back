@@ -91,7 +91,6 @@ class ProductItemCreateSerializer(serializers.ModelSerializer):
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     product_item = ProductItemCreateSerializer()
-    pictures = PictureCreateSerializer(many=True, required=False)
     amount = serializers.IntegerField()
 
     class Meta:
@@ -115,16 +114,15 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 class ProductCreateRequestSerializer(serializers.ModelSerializer):
     product_item = ProductItemCreateSerializer()
     amount = serializers.IntegerField()
-    color = serializers.CharField()
+    colors = serializers.ListField(required=False)
 
     class Meta:
         model = Product
-        exclude = ["pictures"]
+        exclude = ["pictures", "color"]
         extra_kwargs = {
             "name": {"required": True},
             "amount": {"required": True},
             "category": {"required": True},
-            "color": {"required": True},
         }
 
 

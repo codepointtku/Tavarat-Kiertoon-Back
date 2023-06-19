@@ -44,24 +44,32 @@ from .serializers import (
 
 
 def color_check_create(instance):
-    try:
-        color = int(instance["color"])
-    except ValueError:
-        color = instance["color"]
-    color_is_string = isinstance(color, str)
-    if color_is_string:
-        checkid = Color.objects.filter(name=color).values("id")
+    colors = []
+    for coloritem in instance["colors"]:
+        try:
+            coloritem = int(coloritem)
+        except ValueError:
+            coloritem = coloritem
+        color_is_string = isinstance(coloritem, str)
+        if color_is_string:
+            checkid = Color.objects.filter(name=coloritem).values("id")
 
-        if not checkid:
-            newcolor = {"name": color}
-            colorserializer = ColorSerializer(data=newcolor)
-            if colorserializer.is_valid():
-                colorserializer.save()
-                checkid = Color.objects.filter(name=color).values("id")
-                instance["color"] = checkid[0]["id"]
+            if not checkid:
+                newcolor = {"name": coloritem}
+                colorserializer = ColorSerializer(data=newcolor)
+                if colorserializer.is_valid():
+                    colorserializer.save()
+                    checkid = Color.objects.filter(name=coloritem).values("id")
+                    colors.append(checkid[0]["id"])
+            else:
+                colors.append(checkid[0]["id"])
+
         else:
-            instance["color"] = checkid[0]["id"]
-    return instance
+            checkid = Color.objects.filter(id=coloritem).values("id")
+            if checkid:
+                colors.append(checkid[0]["id"])
+
+    return colors
 
 
 # Create your views here.
@@ -119,7 +127,7 @@ class ProductFilter(filters.FilterSet):
     get=extend_schema(responses=ProductResponseSerializer()),
 )
 class ProductListView(generics.ListCreateAPIView):
-    """View for listing and creating products. Create includes creation of ProductItem and Picture"""
+    """View for listing and creating products. Create includes creation of ProductItem, Picture and Color"""
 
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -149,7 +157,12 @@ class ProductListView(generics.ListCreateAPIView):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        serializer = ProductCreateSerializer(data=request.data, context=request.user)
+        serializer.is_valid(raise_exception=True)
+        productdata = serializer.save()
         color_checked_data = color_check_create(request.data)
+        for color_id in color_checked_data:
+            productdata.color.add(color_id)
         picture_ids = []
         for file in request.FILES.getlist("pictures[]"):
             ext = file.content_type.split("/")[1]
@@ -164,44 +177,14 @@ class ProductListView(generics.ListCreateAPIView):
             self.perform_create(pic_serializer)
             picture_ids.append(pic_serializer.data["id"])
 
-        color_checked_data["pictures"] = picture_ids
+        for picture_id in picture_ids:
+            productdata.pictures.add(picture_id)
 
-        serializer = ProductCreateSerializer(
-            data=color_checked_data, context=request.user
-        )
-        serializer.is_valid(raise_exception=True)
-        productdata = serializer.save()
         response = ProductSerializer(productdata)
-        return Response(data=response.data, status=status.HTTP_201_CREATED)
-
-        """ Picture creation logic in Product create, not in use for now"""
-        # # modified_request = [product_item] * amount
-        # # serializer = ProductSerializer(data=modified_request, many=True)
-        # # serializer.is_valid(raise_exception=True)
-        # # products = serializer.save()
-        # # picture_ids = []
-        # # for file in request.FILES.getlist("pictures[]"):
-        # #     ext = file.content_type.split("/")[1]
-        # #     pic_serializer = PictureCreateSerializer(
-        # #         data={
-        # #             "picture_address": ContentFile(
-        # #                 file.read(), name=f"{timezone.now().timestamp()}.{ext}"
-        # #             )
-        # #         }
-        # #     )
-        # #     pic_serializer.is_valid(raise_exception=True)
-        # #     self.perform_create(pic_serializer)
-        # #     picture_ids.append(pic_serializer.data["id"])
-
-        # # for product in products:
-        # #     for picture_id in picture_ids:
-        # #         product.pictures.add(picture_id)
-
-        # # headers = self.get_success_headers(serializer.data)
-        # # return Response(
-        # #     serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        # # )
-
+        headers = self.get_success_headers(response.data)
+        return Response(
+            data=response.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 @extend_schema_view(
     get=extend_schema(

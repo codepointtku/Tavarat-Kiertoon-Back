@@ -20,11 +20,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from products.models import Product, ProductItem, ProductItemLogEntry
 from users.views import CustomJWTAuthentication
 
-from .models import Order, ShoppingCart
+from .models import Order, OrderEmailRecipient, ShoppingCart
 from .serializers import (
     OrderDetailRequestSerializer,
     OrderDetailResponseSerializer,
     OrderDetailSerializer,
+    OrderEmailRecipientSerializer,
     OrderRequestSerializer,
     OrderResponseSerializer,
     OrderSerializer,
@@ -184,6 +185,7 @@ class OrderListView(ListCreateAPIView):
         if serializer.is_valid():
             serializer.save()
             order = Order.objects.get(id=serializer.data["id"])
+            order.user = user
             shopping_cart = ShoppingCart.objects.get(user=user.id)
             log_entry = ProductItemLogEntry.objects.create(
                 action=ProductItemLogEntry.ActionChoices.ORDER, user=user
@@ -192,14 +194,27 @@ class OrderListView(ListCreateAPIView):
                 order.product_items.add(product_item)
                 product_item.log_entries.add(log_entry)
             shopping_cart.product_items.clear()
+
+            # Email for user who submitted order
             subject = f"Tavarat Kiertoon tilaus {order.id}"
             message = (
-                "Hei!\n"
-                "Vastaanotimme tilauksesi ja tilaus pyrimme toimittamaan sen 1-2 viikon sisällä\n"
+                "Hei!\n\n"
+                "Vastaanotimme tilauksesi. Pyrimme toimittamaan sen 1-2 viikon sisällä\n"
                 f"Tilausnumeronne on {order.id}.\n\n"
                 "Terveisin Tavarat kieroon väki!"
             )
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
+
+            # Email for all OrderEmailRecipients notifying about new order
+            message = (
+                "Hei\n\n"
+                f"Käyttäjä {user.username} teki tilauksen Tavarat kiertoon järjestelmään.\n"
+                f"Linkki tilaukseen http://localhost:3000/varasto/tilaus/{order.id}/"
+            )
+            recipients = [
+                recipient.email for recipient in OrderEmailRecipient.objects.all()
+            ]
+            send_mail(subject, message, settings.EMAIL_HOST_USER, recipients)
             serializer = OrderSerializer(order)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -252,3 +267,14 @@ class OrderSelfListView(ListAPIView):
         if self.request.user.is_anonymous:
             return Order.objects.none()
         return Order.objects.filter(user=self.request.user)
+
+
+class OrderEmailRecipientListView(ListCreateAPIView):
+    serializer_class = OrderEmailRecipientSerializer
+    queryset = OrderEmailRecipient.objects.all()
+
+
+@extend_schema_view(patch=extend_schema(exclude=True))
+class OrderEmailRecipientDetailView(RetrieveUpdateDestroyAPIView):
+    serializer_class = OrderEmailRecipientSerializer
+    queryset = OrderEmailRecipient.objects.all()

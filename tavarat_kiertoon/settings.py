@@ -27,7 +27,7 @@ SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-TEST_DEBUG = json.loads(config("TEST_DEBUG").lower())
+TEST_DEBUG = config("TEST_DEBUG", cast=bool)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
@@ -207,7 +207,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.CustomUser"
 
 # setting for allowed domains in email to be used elsewhere in program
-VALID_EMAIL_DOMAINS = config("VALID_EMAIL_DOMAINS")
+VALID_EMAIL_DOMAINS = config("VALID_EMAIL_DOMAINS", cast=Csv())
 # if  yo uwant to change the email backendtype do it in the .env file, its default on console
 
 # EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

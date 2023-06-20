@@ -169,6 +169,16 @@ class UserCreateSerializer(serializers.ModelSerializer):
         mod_data = super().to_internal_value(mod_data)
         return mod_data
 
+    def validate(self, data):
+        data = super().validate(data)
+
+        # validating the email address so that its actually email address and is in valid domain
+        if not validate_email_domain(data["email"]):
+            msg = "not valid email address or domain"
+            raise serializers.ValidationError(msg)
+
+        return data
+
 
 class UserCreateReturnSerializer(serializers.ModelSerializer):
     """
@@ -335,13 +345,10 @@ class NewEmailSerializer(serializers.Serializer):
         """
         validating the new email address
         """
-        if "@" not in value:
-            msg = "not an email address (no @)"
-            raise serializers.ValidationError(msg)
 
-        email_split = value.split("@")
-        if not validate_email_domain(email_split[1]):
-            msg = "not valid domain for email"
+        # validating the email and domain
+        if not validate_email_domain(value):
+            msg = "not valid email address or domain"
             raise serializers.ValidationError(msg)
 
         # checking that when normal user that there isnt already user with the email

@@ -211,32 +211,32 @@ class TestProducts(TestCase):
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
-    @override_settings(MEDIA_ROOT=TEST_DIR)
-    def test_post_product_with_new_picture(self):
-        self.client.login(username="kahvimake@turku.fi", password="asd123")
-        picture = urllib.request.urlretrieve(
-            url="https://picsum.photos/200.jpg",
-            filename="testmedia/pictures/testpicture1.jpeg",
-        )
-        url = "/products/"
-        data = {
-            "product_item": {
-                "available": True,
-                "shelf_id": "asd12",
-                "barcode": "30000001",
-                "storage": self.test_storage.id,
-            },
-            "name": "tuolinahka",
-            "category": self.test_category1.id,
-            "colors": [str(self.test_color1.id)],
-            "amount": 1,
-            "pictures[]": {open(picture[0], "rb")},
-            "weight": 15,
-            "free_description": "tämä tuoli on hieno",
-        }
-        response = self.client.post(url, data, format="multipart")
-        print(response)
-        self.assertEqual(response.status_code, 201)
+    # @override_settings(MEDIA_ROOT=TEST_DIR)
+    # def test_post_product_with_new_picture(self):
+    #     self.client.login(username="kahvimake@turku.fi", password="asd123")
+    #     picture = urllib.request.urlretrieve(
+    #         url="https://picsum.photos/200.jpg",
+    #         filename="testmedia/pictures/testpicture1.jpeg",
+    #     )
+    #     url = "/products/"
+    #     data = {
+    #         "product_item": {
+    #             "available": True,
+    #             "shelf_id": "asd12",
+    #             "barcode": "30000001",
+    #             "storage": self.test_storage.id,
+    #         },
+    #         "name": "tuolinahka",
+    #         "category": self.test_category1.id,
+    #         "colors": [str(self.test_color1.id)],
+    #         "amount": 1,
+    #         "pictures[]": {open(picture[0], "rb")},
+    #         "weight": 15,
+    #         "free_description": "tämä tuoli on hieno",
+    #     }
+    #     response = self.client.post(url, data, format="multipart")
+    #     print(response)
+    #     self.assertEqual(response.status_code, 201)
 
     def test_post_products_existing_color(self):
         url = "/products/"

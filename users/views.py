@@ -35,7 +35,6 @@ from rest_framework_simplejwt.views import TokenViewBase
 from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
-from .custom_functions import validate_email_domain
 from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
 from .serializers import (
@@ -105,44 +104,18 @@ class UserCreateListView(APIView):
                 Group.objects.create(name="storage_group")
             if not Group.objects.filter(name="bicycle_group").exists():
                 Group.objects.create(name="bicycle_group")
-            # getting the data form serializer for user creation and necessary checks
-            first_name_post = serialized_values["first_name"].value
-            last_name_post = serialized_values["last_name"].value
-            email_post = serialized_values["email"].value
-            phone_number_post = serialized_values["phone_number"].value
-            password_post = serialized_values["password"].value
-
-            address_post = serialized_values["address"].value
-            zip_code_post = serialized_values["zip_code"].value
-            city_post = serialized_values["city"].value
-
-            username_post = serialized_values["username"].value
-
-            # checking that email domain is valid
-            # checking email domain
-            if "@" not in email_post:
-                return Response(
-                    "Not a valid email address",
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            email_split = email_post.split("@")
-            if not validate_email_domain(email_split[1]):
-                return Response(
-                    "invalid email domain", status=status.HTTP_400_BAD_REQUEST
-                )
 
             # actually creating the user
             user = User.objects.create_user(
-                first_name=first_name_post,
-                last_name=last_name_post,
-                email=email_post,
-                phone_number=phone_number_post,
-                password=password_post,
-                address=address_post,
-                zip_code=zip_code_post,
-                city=city_post,
-                username=username_post,
+                first_name=serialized_values["first_name"].value,
+                last_name=serialized_values["last_name"].value,
+                email=serialized_values["email"].value,
+                phone_number=serialized_values["phone_number"].value,
+                password=serialized_values["password"].value,
+                address=serialized_values["address"].value,
+                zip_code=serialized_values["zip_code"].value,
+                city=serialized_values["city"].value,
+                username=serialized_values["username"].value,
             )
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()
@@ -411,7 +384,7 @@ class UserDetailsListView(generics.ListAPIView):
     get=extend_schema(responses=UserFullResponseSchemaSerializer),
 )
 @extend_schema(responses=UserUpdateReturnSchemaSerializer)
-class UserUpdateSingleView(generics.RetrieveUpdateAPIView):
+class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
     """
     Get specific users info,
     only some field can be updated

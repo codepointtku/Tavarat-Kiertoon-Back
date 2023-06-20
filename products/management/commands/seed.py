@@ -22,7 +22,7 @@ from bikes.models import (
 from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
-from orders.models import Order, ShoppingCart
+from orders.models import Order, OrderEmailRecipient, ShoppingCart
 from products.models import (
     Color,
     Picture,
@@ -56,6 +56,7 @@ class Command(BaseCommand):
 
 def clear_data():
     """Deletes all the table data."""
+    OrderEmailRecipient.objects.all().delete()
     Bulletin.objects.all().delete()
     Category.objects.all().delete()
     ContactForm.objects.all().delete()
@@ -77,6 +78,15 @@ def clear_data():
     BikeStock.objects.all().delete()
     BikeType.objects.all().delete()
     Group.objects.all().delete()
+
+
+def create_order_email_recipients():
+    OrderEmailRecipient.objects.bulk_create(
+        [
+            OrderEmailRecipient(email="samimas@turku.fi"),
+            OrderEmailRecipient(email="samsam@turku.fi"),
+        ]
+    )
 
 
 def create_contact_forms():
@@ -975,7 +985,7 @@ def run_seed(self, mode):
     clear_data()
     if mode == MODE_CLEAR:
         return
-
+    create_order_email_recipients()
     create_contact_forms()
     create_colors()
     create_groups()

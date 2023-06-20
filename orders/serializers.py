@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
 from products.serializers import ProductItemResponseSerializer, ProductItemSerializer
+from users.custom_functions import validate_email_domain
+from users.serializers import UserFullResponseSchemaSerializer, UserFullSerializer
 
-from .models import Order, ShoppingCart
+from .models import Order, OrderEmailRecipient, ShoppingCart
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -63,6 +65,7 @@ class OrderResponseSerializer(serializers.ModelSerializer):
 
 class OrderDetailSerializer(serializers.ModelSerializer):
     product_items = ProductItemSerializer(many=True, read_only=True)
+    user = UserFullSerializer(read_only=True)
 
     class Meta:
         model = Order
@@ -78,6 +81,7 @@ class OrderDetailRequestSerializer(serializers.ModelSerializer):
 
 class OrderDetailResponseSerializer(serializers.ModelSerializer):
     product_items = ProductItemResponseSerializer(many=True, read_only=True)
+    user = UserFullResponseSchemaSerializer(read_only=True)
 
     class Meta:
         model = Order
@@ -88,3 +92,14 @@ class OrderDetailResponseSerializer(serializers.ModelSerializer):
             "user": {"required": True},
             "product_items": {"required": True},
         }
+
+
+class OrderEmailRecipientSerializer(serializers.ModelSerializer):
+    def validate(self, data):
+        if validate_email_domain(data["email"]):
+            return data
+        raise serializers.ValidationError("Email must be valid.")
+
+    class Meta:
+        model = OrderEmailRecipient
+        fields = "__all__"

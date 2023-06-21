@@ -58,7 +58,6 @@ class BikeStock(models.Model):
 
         AVAILABLE = "AVAILABLE"
         MAINTENANCE = "MAINTENANCE"
-        RENTED = "RENTED"
         RETIRED = "RETIRED"
 
     package_only = models.BooleanField(default=False)

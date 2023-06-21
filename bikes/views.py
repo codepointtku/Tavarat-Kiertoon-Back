@@ -272,13 +272,15 @@ class RentalListView(generics.ListCreateAPIView):
                 for packageitem in package:
                     amount = packageamount * packageitem["amount"]
                     available_bikes = BikeStock.objects.filter(
-                        bike=packageitem["id"]
+                        bike=packageitem["id"], state="AVAILABLE"
                     ).order_by("-package_only", "id")
                     for bike in range(amount):
                         bikes_list.append(available_bikes[bike].id)
+                        print(bike)
+
             else:
                 available_bikes = BikeStock.objects.filter(
-                    bike=rental_item, package_only=False
+                    bike=rental_item, package_only=False, state="AVAILABLE"
                 )
                 amount = request.data["bike_stock"][rental_item]
                 for bike in range(amount):

@@ -1,4 +1,5 @@
 from functools import reduce
+from itertools import chain
 from operator import and_, or_
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -64,6 +65,24 @@ def color_check_create(instance):
     return instance
 
 
+def available_products_filter():
+    return Product.objects.filter(
+        productitem__in=ProductItem.objects.filter(available=True)
+    ).distinct()
+
+
+def non_available_products_in_cart(user_id):
+    return (
+        Product.objects.filter(
+            productitem__in=ProductItem.objects.filter(
+                shoppingcart=ShoppingCart.objects.get(user=user_id)
+            )
+        )
+        .exclude(productitem__in=ProductItem.objects.filter(available=True))
+        .distinct()
+    )
+
+
 # Create your views here.
 class ProductListPagination(PageNumberPagination):
     page_size = 30
@@ -121,7 +140,6 @@ class ProductFilter(filters.FilterSet):
 class ProductListView(generics.ListCreateAPIView):
     """View for listing and creating products. Create includes creation of ProductItem and Picture"""
 
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     authentication_classes = [
         SessionAuthentication,
@@ -135,6 +153,26 @@ class ProductListView(generics.ListCreateAPIView):
     ordering_fields = ["id"]
     ordering = ["-id"]
     filterset_class = ProductFilter
+
+    def get_queryset(self):
+        # If you belong in admin or storage and have "all" in query params you can see all Products
+        if "all" in self.request.query_params:
+            if is_in_group(self.request.user, "storage_group") or is_in_group(
+                self.request.user, "admin_group"
+            ):
+                return Product.objects.all()
+
+        # Hides Products that are not available
+        available_products = available_products_filter()
+
+        # Adds Products that are not available to available_products if logged in person has them in ShoppingCart
+        if not self.request.user.is_anonymous:
+            non_available_cart_products = non_available_products_in_cart(
+                self.request.user
+            )
+            available_products = available_products | non_available_cart_products
+
+        return available_products
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

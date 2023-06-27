@@ -9,6 +9,7 @@ from django.utils import timezone
 from categories.models import Category
 from orders.models import ShoppingCart
 from products.models import Color, Picture, Product, ProductItem, Storage
+from products.views import available_products_filter, non_available_products_in_cart
 from users.models import CustomUser
 
 TEST_DIR = "testmedia/"
@@ -59,6 +60,15 @@ class TestProducts(TestCase):
             measurements="210x100x90",
             weight=50,
         )
+        cls.test_product2 = Product.objects.create(
+            name="sohvankka",
+            price=0,
+            category=cls.test_category1,
+            color=cls.test_color,
+            free_description="tämä nahka on sohvainen",
+            measurements="210x100x90",
+            weight=50,
+        )
 
         queryset = Product.objects.all()
         for query in queryset:
@@ -86,6 +96,13 @@ class TestProducts(TestCase):
                 shelf_id="12b",
                 barcode=f"2000000{productitem}",
             )
+        cls.test_product_item2 = ProductItem.objects.create(
+            product=cls.test_product2,
+            storage=cls.test_storage,
+            available=True,
+            shelf_id="12b",
+            barcode=f"3000000{productitem}",
+        )
 
         cls.test_user1 = CustomUser.objects.create_user(
             first_name="Kahvi",
@@ -139,13 +156,36 @@ class TestProducts(TestCase):
         url = "/products/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(Product.objects.all().count(), 2)
+
+        product_count = available_products_filter().count()
+        self.assertEqual(response.json()["count"], product_count)
+
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
+        self.client.put(
+            "/shopping_cart/",
+            {"product": self.test_product2.id, "amount": 1},
+            content_type="application/json",
+        )
+        response = self.client.get(url)
+        product_count = (
+            available_products_filter().count()
+            + non_available_products_in_cart(self.test_user1.id).count()
+        )
+        self.assertEqual(response.json()["count"], product_count)
+
+        self.client.logout()
+        response = self.client.get(url)
+        product_count = (
+            available_products_filter().count()
+            + non_available_products_in_cart(self.test_user1.id).count()
+        )
+        self.assertNotEqual(response.json()["count"], product_count)
 
     def test_get_productitems(self):
         url = "/products/items/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(ProductItem.objects.all().count(), 20)
+        self.assertEqual(ProductItem.objects.all().count(), 21)
 
     def test_get_products_search(self):
         url = f"/products/?search={self.test_product.name}"
@@ -157,7 +197,7 @@ class TestProducts(TestCase):
         url = f"/products/?search=sohva&color={self.test_color.id}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["count"], 2)
+        self.assertEqual(response.json()["count"], 3)
 
     def test_get_products_paginate(self):
         url = "/products/?page=1"

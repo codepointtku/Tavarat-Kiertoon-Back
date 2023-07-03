@@ -246,7 +246,7 @@ class TestOrders(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            response.json()[0]["user"]["id"],
+            response.json()["results"][0]["user"]["id"],
             CustomUser.objects.get(username="kahvimake@turku.fi").id,
         )
 

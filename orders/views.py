@@ -145,15 +145,11 @@ class OrderListPagination(PageNumberPagination):
     page_size = 50
     page_size_query_param = "page_size"
 
+class OrderSelfListPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = "page_size"
 
 class OrderFilter(filters.FilterSet):
-    STATUS_CHOICES = (
-        ("Waiting", "Waiting"),
-        ("Delivery", "Delivery"),
-        ("Finished", "Finished"),
-    )
-    status = filters.ChoiceFilter(method="status_filter", choices=STATUS_CHOICES)
-
     class Meta:
         model = Order
         fields = ["status"]
@@ -261,6 +257,11 @@ class OrderSelfListView(ListAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+    pagination_class = OrderSelfListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["creation_date", "status"]
+    ordering = ["-creation_date"]
+    filterset_class = OrderFilter
 
     def get_queryset(self):
         if self.request.user.is_anonymous:

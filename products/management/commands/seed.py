@@ -779,7 +779,7 @@ def create_shopping_carts():
 
 def create_orders():
     users = CustomUser.objects.filter(is_admin=False)
-    statuses = ["Waiting", "Delivery", "Finished"]
+    statuses = ["Waiting", "Processing", "Finished"]
     order_infos = [
         "Ethän tamma laukkoo, elä heinee vällii haakkoo "
         "Ravirata tuolla jo pilikistää "

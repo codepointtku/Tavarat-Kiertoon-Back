@@ -468,13 +468,19 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
 
     def put(self, request, *args, **kwargs):
         if request.user.id == kwargs["pk"]:
-            return Response("adminds cannot edit their own permission")
+            return Response(
+                "adminds cannot edit their own permissions",
+                status=status.HTTP_204_NO_CONTENT,
+            )
 
         return self.update(request, *args, **kwargs)
 
     def patch(self, request, *args, **kwargs):
         if request.user.id == kwargs["pk"]:
-            return Response("adminds cannot edit their own permission")
+            return Response(
+                "adminds cannot edit their own permissions",
+                status=status.HTTP_204_NO_CONTENT,
+            )
 
         return self.partial_update(request, *args, **kwargs)
 

@@ -224,6 +224,7 @@ class ProductListView(generics.ListCreateAPIView):
             data=response.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
+
 @extend_schema_view(
     get=extend_schema(
         responses=ProductResponseSerializer(),

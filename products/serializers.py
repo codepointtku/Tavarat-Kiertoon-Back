@@ -98,7 +98,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = "__all__"
+        exclude = ["pictures", "color"]
 
     def create(self, validated_data):
         amount = validated_data.pop("amount")
@@ -117,7 +117,9 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             action=ProductItemLogEntry.ActionChoices.CREATE, user=self.context
         )
         for _ in range(amount):
-            pi = ProductItem.objects.create(product=product, **product_item_serializer.validated_data)
+            pi = ProductItem.objects.create(
+                product=product, **product_item_serializer.validated_data
+            )
             pi.log_entries.add(log_entry)
         return product
 
@@ -128,7 +130,7 @@ class ProductCreateRequestSerializer(serializers.ModelSerializer):
     barcode = serializers.CharField()
     storage = serializers.IntegerField()
     shelf_id = serializers.CharField(required=False)
-    colors = serializers.ListField(child = serializers.CharField())
+    colors = serializers.ListField(child=serializers.CharField())
 
     class Meta:
         model = Product

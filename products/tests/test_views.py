@@ -63,7 +63,6 @@ class TestProducts(TestCase):
             name="sohvankka",
             price=0,
             category=cls.test_category1,
-            color=cls.test_color,
             free_description="tämä nahka on sohvainen",
             measurements="210x100x90",
             weight=50,
@@ -234,12 +233,10 @@ class TestProducts(TestCase):
         url = "/products/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
-            "product_item": {
-                "available": True,
-                "shelf_id": "asd12",
-                "barcode": "30000001",
-                "storage": self.test_storage.id,
-            },
+            "available": True,
+            "shelf_id": "asd12",
+            "barcode": "30000001",
+            "storage": self.test_storage.id,
             "name": "nahkatuoli",
             "category": self.test_category1.id,
             "colors": ["punainen", "ruskea"],
@@ -251,43 +248,42 @@ class TestProducts(TestCase):
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
 
-    # @override_settings(MEDIA_ROOT=TEST_DIR)
-    # def test_post_product_with_new_picture(self):
-    #     self.client.login(username="kahvimake@turku.fi", password="asd123")
-    #     picture = urllib.request.urlretrieve(
-    #         url="https://picsum.photos/200.jpg",
-    #         filename="testmedia/pictures/testpicture1.jpeg",
-    #     )
-    #     url = "/products/"
-    #     data = {
-    #         "product_item": {
-    #             "available": True,
-    #             "shelf_id": "asd12",
-    #             "barcode": "30000001",
-    #             "storage": self.test_storage.id,
-    #         },
-    #         "name": "tuolinahka",
-    #         "category": self.test_category1.id,
-    #         "colors": [str(self.test_color1.id)],
-    #         "amount": 1,
-    #         "pictures[]": {open(picture[0], "rb")},
-    #         "weight": 15,
-    #         "free_description": "tämä tuoli on hieno",
-    #     }
-    #     response = self.client.post(url, data, format="multipart")
-    #     print(response)
-    #     self.assertEqual(response.status_code, 201)
+    @override_settings(MEDIA_ROOT=TEST_DIR)
+    def test_post_product_with_new_picture(self):
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
+        picture = urllib.request.urlretrieve(
+            url="https://picsum.photos/200.jpg",
+            filename="testmedia/pictures/testpicture1.jpeg",
+        )
+        picture2 = urllib.request.urlretrieve(
+            url="https://picsum.photos/200.jpg",
+            filename="testmedia/pictures/testpicture2.jpeg",
+        )
+        url = "/products/"
+        data = {
+            "available": True,
+            "shelf_id": "asd12",
+            "barcode": "30000001",
+            "storage": self.test_storage.id,
+            "name": "tuolinahka",
+            "category": self.test_category1.id,
+            "colors": [str(self.test_color1.id)],
+            "amount": 1,
+            "weight": 15,
+            "free_description": "tämä tuoli on hieno",
+            "pictures[]": {open(picture[0], "rb")},
+        }
+        response = self.client.post(url, data, format="multipart")
+        self.assertEqual(response.status_code, 201)
 
     def test_post_products_existing_color(self):
         url = "/products/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
-            "product_item": {
-                "available": True,
-                "shelf_id": "asd14",
-                "barcode": "40000001",
-                "storage": self.test_storage.id,
-            },
+            "available": True,
+            "shelf_id": "asd14",
+            "barcode": "40000001",
+            "storage": self.test_storage.id,
             "name": "puusohva",
             "category": self.test_category1.id,
             "colors": [str(self.test_color.id)],
@@ -303,12 +299,10 @@ class TestProducts(TestCase):
         url = "/products/"
         self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
-            "product_item": {
-                "available": True,
-                "shelf_id": "asd15",
-                "barcode": "50000001",
-                "storage": self.test_storage1.id,
-            },
+            "available": True,
+            "shelf_id": "asd15",
+            "barcode": "50000001",
+            "storage": self.test_storage1.id,
             "name": "puutuoli",
             "category": self.test_category1.id,
             "colors": [str(self.test_color.id)],

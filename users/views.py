@@ -459,13 +459,24 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["admin_group"],
-        "POST": ["admin_group"],
         "PUT": ["admin_group"],
         "PATCH": ["admin_group"],
     }
 
     queryset = User.objects.all()
     serializer_class = GroupPermissionsSerializer
+
+    def put(self, request, *args, **kwargs):
+        if request.user.id == kwargs["pk"]:
+            return Response("adminds cannot edit their own permission")
+
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        if request.user.id == kwargs["pk"]:
+            return Response("adminds cannot edit their own permission")
+
+        return self.partial_update(request, *args, **kwargs)
 
 
 @extend_schema_view(

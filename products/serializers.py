@@ -108,7 +108,6 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         product_item["barcode"] = validated_data.pop("barcode")
         product_item["storage"] = validated_data.pop("storage")
         if "shelf_id" in validated_data:
-            print("läsnä")
             product_item["shelf_id"] = validated_data.pop("shelf_id")
         product_item_serializer = ProductItemCreateSerializer(data=product_item)
         product_item_serializer.is_valid(raise_exception=True)
@@ -124,9 +123,12 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
 
 class ProductCreateRequestSerializer(serializers.ModelSerializer):
-    product_item = ProductItemCreateSerializer()
     amount = serializers.IntegerField()
-    colors = serializers.ListField(required=False)
+    available = serializers.BooleanField()
+    barcode = serializers.CharField()
+    storage = serializers.IntegerField()
+    shelf_id = serializers.CharField(required=False)
+    colors = serializers.ListField(child = serializers.CharField())
 
     class Meta:
         model = Product

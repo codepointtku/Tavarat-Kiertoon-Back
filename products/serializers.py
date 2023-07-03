@@ -90,23 +90,35 @@ class ProductItemCreateSerializer(serializers.ModelSerializer):
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
-    product_item = ProductItemCreateSerializer()
     amount = serializers.IntegerField()
+    available = serializers.BooleanField()
+    barcode = serializers.CharField()
+    storage = serializers.IntegerField()
+    shelf_id = serializers.CharField(required=False)
 
     class Meta:
         model = Product
         fields = "__all__"
 
     def create(self, validated_data):
-        product_item = validated_data.pop("product_item")
         amount = validated_data.pop("amount")
+
+        product_item = {}
+        product_item["available"] = validated_data.pop("available")
+        product_item["barcode"] = validated_data.pop("barcode")
+        product_item["storage"] = validated_data.pop("storage")
+        if "shelf_id" in validated_data:
+            print("läsnä")
+            product_item["shelf_id"] = validated_data.pop("shelf_id")
+        product_item_serializer = ProductItemCreateSerializer(data=product_item)
+        product_item_serializer.is_valid(raise_exception=True)
 
         product = Product.objects.create(**validated_data)
         log_entry = ProductItemLogEntry.objects.create(
             action=ProductItemLogEntry.ActionChoices.CREATE, user=self.context
         )
         for _ in range(amount):
-            pi = ProductItem.objects.create(product=product, **product_item)
+            pi = ProductItem.objects.create(product=product, **product_item_serializer.validated_data)
             pi.log_entries.add(log_entry)
         return product
 

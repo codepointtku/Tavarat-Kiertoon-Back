@@ -448,6 +448,7 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
     Update users permissions, should be only allowed to admins, on testing phase allowing fo users
     id = user id whose permission will be updated as id/pk parameter in url
+    users changing their own permissions isnt allowed
     """
 
     authentication_classes = [

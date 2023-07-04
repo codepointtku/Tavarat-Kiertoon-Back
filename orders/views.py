@@ -264,17 +264,18 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
                 product_item_object.log_entries.add(log_remove)
         for product_item in request.data["product_items"]:
             if product_item not in instance.product_items.values_list("id", flat=True):
-                if add == 0:
-                    add = 1
-                    log_add = ProductItemLogEntry.objects.create(
-                        action=ProductItemLogEntry.ActionChoices.ORDER_ADD, user=user
-                    )
-                print("lisäys", product_item)
                 product_item_object = ProductItem.objects.get(id=product_item)
-                product_item_object.available = False
-                product_item_object.save()
-                instance.product_items.add(product_item)
-                product_item_object.log_entries.add(log_add)
+                if product_item_object.available == True:
+                    if add == 0:
+                        add = 1
+                        log_add = ProductItemLogEntry.objects.create(
+                            action=ProductItemLogEntry.ActionChoices.ORDER_ADD, user=user
+                        )
+                    print("lisäys", product_item)
+                    product_item_object.available = False
+                    product_item_object.save()
+                    instance.product_items.add(product_item)
+                    product_item_object.log_entries.add(log_add)
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.

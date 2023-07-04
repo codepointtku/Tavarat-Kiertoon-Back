@@ -256,7 +256,6 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
                     log_remove = ProductItemLogEntry.objects.create(
                         action=ProductItemLogEntry.ActionChoices.ORDER_REMOVE, user=user
                     )
-                print("poisto", product_item["id"])
                 product_item_object = ProductItem.objects.get(id=product_item["id"])
                 product_item_object.available = True
                 product_item_object.save()
@@ -271,7 +270,6 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
                         log_add = ProductItemLogEntry.objects.create(
                             action=ProductItemLogEntry.ActionChoices.ORDER_ADD, user=user
                         )
-                    print("lisäys", product_item)
                     product_item_object.available = False
                     product_item_object.save()
                     instance.product_items.add(product_item)

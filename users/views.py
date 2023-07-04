@@ -470,7 +470,7 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     def put(self, request, *args, **kwargs):
         if request.user.id == kwargs["pk"]:
             return Response(
-                "adminds cannot edit their own permissions",
+                "admins cannot edit their own permissions",
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -479,7 +479,7 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     def patch(self, request, *args, **kwargs):
         if request.user.id == kwargs["pk"]:
             return Response(
-                "adminds cannot edit their own permissions",
+                "admins cannot edit their own permissions",
                 status=status.HTTP_403_FORBIDDEN,
             )
 

@@ -145,9 +145,11 @@ class OrderListPagination(PageNumberPagination):
     page_size = 50
     page_size_query_param = "page_size"
 
+
 class OrderSelfListPagination(PageNumberPagination):
     page_size = 5
     page_size_query_param = "page_size"
+
 
 class OrderFilter(filters.FilterSet):
     class Meta:
@@ -237,9 +239,20 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        instance.product_items.clear()
+        print(instance.product_items.values_list("id"))
+        # available_itemset = itemset.exclude(id__in=instance.product_items.values("id"))
+
+        for product_item in instance.product_items.values("id"):
+            if product_item["id"] not in request.data["product_items"]:
+                print("poisto", product_item["id"])
+                product_item.available = True
+                product_item.save()
+                instance.product_items.remove(product_item)
         for product_item in request.data["product_items"]:
-            instance.product_items.add(product_item)
+            if product_item not in instance.product_items.values("id"):
+                print("lisäys", product_item)
+                product_item.save()
+                instance.product_items.add(product_item)
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.

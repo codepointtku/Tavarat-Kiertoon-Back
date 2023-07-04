@@ -245,13 +245,16 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         for product_item in instance.product_items.values("id"):
             if product_item["id"] not in request.data["product_items"]:
                 print("poisto", product_item["id"])
-                product_item.available = True
-                product_item.save()
-                instance.product_items.remove(product_item)
+                product_item_object = ProductItem.objects.get(id=product_item["id"])
+                product_item_object.available = True
+                product_item_object.save()
+                instance.product_items.remove(product_item["id"])
         for product_item in request.data["product_items"]:
             if product_item not in instance.product_items.values("id"):
                 print("lisäys", product_item)
-                product_item.save()
+                product_item_object = ProductItem.objects.get(id=product_item)
+                product_item_object.available = False
+                product_item_object.save()
                 instance.product_items.add(product_item)
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to

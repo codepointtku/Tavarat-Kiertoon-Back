@@ -232,30 +232,49 @@ class OrderListView(ListCreateAPIView):
 class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
 
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
+        user = request.user
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        print(instance.product_items.values_list("id"))
-        # available_itemset = itemset.exclude(id__in=instance.product_items.values("id"))
 
+        remove = 0
+        add = 0
         for product_item in instance.product_items.values("id"):
             if product_item["id"] not in request.data["product_items"]:
+                if remove == 0:
+                    remove = 1
+                    log_remove = ProductItemLogEntry.objects.create(
+                        action=ProductItemLogEntry.ActionChoices.ORDER_REMOVE, user=user
+                    )
                 print("poisto", product_item["id"])
                 product_item_object = ProductItem.objects.get(id=product_item["id"])
                 product_item_object.available = True
                 product_item_object.save()
                 instance.product_items.remove(product_item["id"])
+                product_item_object.log_entries.add(log_remove)
         for product_item in request.data["product_items"]:
-            if product_item not in instance.product_items.values("id"):
+            if product_item not in instance.product_items.values_list("id", flat=True):
+                if add == 0:
+                    add = 1
+                    log_add = ProductItemLogEntry.objects.create(
+                        action=ProductItemLogEntry.ActionChoices.ORDER_ADD, user=user
+                    )
                 print("lisäys", product_item)
                 product_item_object = ProductItem.objects.get(id=product_item)
                 product_item_object.available = False
                 product_item_object.save()
                 instance.product_items.add(product_item)
+                product_item_object.log_entries.add(log_add)
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.

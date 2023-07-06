@@ -252,6 +252,7 @@ class TestOrders(TestCase):
 
     def test_remove_products_from_order(self):
         url = f"/orders/{self.test_order.id}/"
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "status": "Waiting",
             "delivery_address": "string",
@@ -270,6 +271,7 @@ class TestOrders(TestCase):
 
     def test_update_order(self):
         url = f"/orders/{self.test_order.id}/"
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "status": "Waiting",
             "delivery_address": "string",
@@ -283,11 +285,26 @@ class TestOrders(TestCase):
                 for product_item in self.test_shoppingcart.product_items.all()
             ],
         }
+
+        # filtering before posting order for correct list of items that should go through
+        available_queryset = (
+            self.test_shoppingcart.product_items.all()
+            .filter(available=True)
+            .values_list("id", flat=True)
+            .order_by("id")
+        )
+        comparison_list = []
+        for product_i in available_queryset:
+            comparison_list.append(product_i)
+
         response = self.client.put(url, data, content_type="application/json")
+
         self.assertEqual(response.status_code, 202)
         self.assertQuerysetEqual(
-            self.test_shoppingcart.product_items.all().order_by("id"),
-            self.test_order.product_items.all().order_by("id"),
+            comparison_list,
+            self.test_order.product_items.all()
+            .values_list("id", flat=True)
+            .order_by("id"),
         )
 
         data = {

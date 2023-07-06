@@ -145,9 +145,11 @@ class OrderListPagination(PageNumberPagination):
     page_size = 50
     page_size_query_param = "page_size"
 
+
 class OrderSelfListPagination(PageNumberPagination):
     page_size = 5
     page_size_query_param = "page_size"
+
 
 class OrderFilter(filters.FilterSet):
     class Meta:
@@ -230,16 +232,48 @@ class OrderListView(ListCreateAPIView):
 class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
 
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
+        user = request.user
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        instance.product_items.clear()
+
+        remove = 0
+        add = 0
+        for product_item in instance.product_items.values("id"):
+            if product_item["id"] not in request.data["product_items"]:
+                if remove == 0:
+                    remove = 1
+                    log_remove = ProductItemLogEntry.objects.create(
+                        action=ProductItemLogEntry.ActionChoices.ORDER_REMOVE, user=user
+                    )
+                product_item_object = ProductItem.objects.get(id=product_item["id"])
+                product_item_object.available = True
+                product_item_object.save()
+                instance.product_items.remove(product_item["id"])
+                product_item_object.log_entries.add(log_remove)
         for product_item in request.data["product_items"]:
-            instance.product_items.add(product_item)
+            if product_item not in instance.product_items.values_list("id", flat=True):
+                product_item_object = ProductItem.objects.get(id=product_item)
+                if product_item_object.available == True:
+                    if add == 0:
+                        add = 1
+                        log_add = ProductItemLogEntry.objects.create(
+                            action=ProductItemLogEntry.ActionChoices.ORDER_ADD, user=user
+                        )
+                    product_item_object.available = False
+                    product_item_object.save()
+                    instance.product_items.add(product_item)
+                    product_item_object.log_entries.add(log_add)
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.

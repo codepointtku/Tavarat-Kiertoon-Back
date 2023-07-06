@@ -70,6 +70,8 @@ class ProductItemLogEntry(models.Model):
         CART_REMOVE = "Removed from shopping cart"  # Done
         CART_TIMEOUT = "Timed out from shopping cart"
         ORDER = "Ordered"  # Done
+        ORDER_ADD = "Added to order"  #Done
+        ORDER_REMOVE = "Removed from order"  #Done
         CIRCULATION = "Came back to circulation"  # Done
         MODIFY = "Modified at storage"  # Done
         GIFT = "Gifted away"

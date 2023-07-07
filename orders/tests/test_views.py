@@ -38,6 +38,7 @@ class TestOrders(TestCase):
         cls.test_user2.save()
 
         cls.test_color = Color.objects.create(name="punainen")
+        cls.test_color1 = Color.objects.create(name="sininen")
         cls.test_storage1 = Storage.objects.create(name="mokkavarasto")
         cls.test_storage2 = Storage.objects.create(name="italiangoldstorage")
         cls.test_parentcategory = Category.objects.create(name="coffee")
@@ -52,7 +53,6 @@ class TestOrders(TestCase):
             name="nahkasohva",
             price=0,
             free_description="tämä sohva on nahkainen",
-            color=cls.test_color,
             weight=50,
         )
         cls.test_product2 = Product.objects.create(
@@ -60,9 +60,18 @@ class TestOrders(TestCase):
             name="sohvanahka",
             price=0,
             free_description="tämä nahka on sohvainen",
-            color=cls.test_color,
             weight=50,
         )
+
+        queryset = Product.objects.all()
+        for query in queryset:
+            query.color.set(
+                [
+                    Color.objects.get(id=cls.test_color.id),
+                    Color.objects.get(id=cls.test_color1.id),
+                ],
+            )
+
         cls.test_order_email_recipient = OrderEmailRecipient.objects.create(
             email="samimas@turku.fi"
         )
@@ -237,12 +246,13 @@ class TestOrders(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            response.json()[0]["user"]["id"],
+            response.json()["results"][0]["user"]["id"],
             CustomUser.objects.get(username="kahvimake@turku.fi").id,
         )
 
     def test_remove_products_from_order(self):
         url = f"/orders/{self.test_order.id}/"
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "status": "Waiting",
             "delivery_address": "string",
@@ -261,6 +271,7 @@ class TestOrders(TestCase):
 
     def test_update_order(self):
         url = f"/orders/{self.test_order.id}/"
+        self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "status": "Waiting",
             "delivery_address": "string",
@@ -274,11 +285,26 @@ class TestOrders(TestCase):
                 for product_item in self.test_shoppingcart.product_items.all()
             ],
         }
+
+        # filtering before posting order for correct list of items that should go through
+        available_queryset = (
+            self.test_shoppingcart.product_items.all()
+            .filter(available=True)
+            .values_list("id", flat=True)
+            .order_by("id")
+        )
+        comparison_list = []
+        for product_i in available_queryset:
+            comparison_list.append(product_i)
+
         response = self.client.put(url, data, content_type="application/json")
+
         self.assertEqual(response.status_code, 202)
         self.assertQuerysetEqual(
-            self.test_shoppingcart.product_items.all().order_by("id"),
-            self.test_order.product_items.all().order_by("id"),
+            comparison_list,
+            self.test_order.product_items.all()
+            .values_list("id", flat=True)
+            .order_by("id"),
         )
 
         data = {

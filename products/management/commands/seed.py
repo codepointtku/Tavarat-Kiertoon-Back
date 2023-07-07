@@ -720,7 +720,6 @@ def create_products_and_product_items():
             name=product["name"],
             free_description=product["free_description"],
             category=Category.objects.get(name=product["category"]),
-            color=random.choice(colors),
             measurements="",
         )
         product_object.save()
@@ -740,6 +739,12 @@ def create_products_and_product_items():
     queryset = Product.objects.all()
     pictures = Picture.objects.all()
     for query in queryset:
+        query.color.set(
+            [
+                random.choice(colors),
+                random.choice(colors),
+            ]
+        )
         query.pictures.set(
             [
                 random.choice(pictures),
@@ -774,7 +779,7 @@ def create_shopping_carts():
 
 def create_orders():
     users = CustomUser.objects.filter(is_admin=False)
-    statuses = ["Waiting", "Delivery", "Finished"]
+    statuses = ["Waiting", "Processing", "Finished"]
     order_infos = [
         "Ethän tamma laukkoo, elä heinee vällii haakkoo "
         "Ravirata tuolla jo pilikistää "

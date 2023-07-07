@@ -53,7 +53,7 @@ class Product(models.Model):
     free_description = models.TextField(default="", blank=True)
     pictures = models.ManyToManyField(Picture, blank=True)
     measurements = models.CharField(max_length=50, default="", blank=True)
-    color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True)
+    color = models.ManyToManyField(Color, blank=True)
     weight = models.FloatField(default=0.0)
 
     def __str__(self) -> str:
@@ -70,6 +70,8 @@ class ProductItemLogEntry(models.Model):
         CART_REMOVE = "Removed from shopping cart"  # Done
         CART_TIMEOUT = "Timed out from shopping cart"
         ORDER = "Ordered"  # Done
+        ORDER_ADD = "Added to order"  #Done
+        ORDER_REMOVE = "Removed from order"  #Done
         CIRCULATION = "Came back to circulation"  # Done
         MODIFY = "Modified at storage"  # Done
         GIFT = "Gifted away"

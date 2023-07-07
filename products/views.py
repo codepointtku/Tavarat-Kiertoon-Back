@@ -1,4 +1,5 @@
 from functools import reduce
+from itertools import chain
 from operator import and_, or_
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -44,24 +45,50 @@ from .serializers import (
 
 
 def color_check_create(instance):
-    try:
-        color = int(instance["color"])
-    except ValueError:
-        color = instance["color"]
-    color_is_string = isinstance(color, str)
-    if color_is_string:
-        checkid = Color.objects.filter(name=color).values("id")
+    colors = []
+    for coloritem in instance["colors"]:
+        try:
+            coloritem = int(coloritem)
+        except ValueError:
+            coloritem = coloritem
+        color_is_string = isinstance(coloritem, str)
+        if color_is_string:
+            checkid = Color.objects.filter(name=coloritem).values("id")
 
-        if not checkid:
-            newcolor = {"name": color}
-            colorserializer = ColorSerializer(data=newcolor)
-            if colorserializer.is_valid():
-                colorserializer.save()
-                checkid = Color.objects.filter(name=color).values("id")
-                instance["color"] = checkid[0]["id"]
+            if not checkid:
+                newcolor = {"name": coloritem}
+                colorserializer = ColorSerializer(data=newcolor)
+                if colorserializer.is_valid():
+                    colorserializer.save()
+                    checkid = Color.objects.filter(name=coloritem).values("id")
+                    colors.append(checkid[0]["id"])
+            else:
+                colors.append(checkid[0]["id"])
+
         else:
-            instance["color"] = checkid[0]["id"]
-    return instance
+            checkid = Color.objects.filter(id=coloritem).values("id")
+            if checkid:
+                colors.append(checkid[0]["id"])
+
+    return colors
+
+
+def available_products_filter():
+    return Product.objects.filter(
+        productitem__in=ProductItem.objects.filter(available=True)
+    ).distinct()
+
+
+def non_available_products_in_cart(user_id):
+    return (
+        Product.objects.filter(
+            productitem__in=ProductItem.objects.filter(
+                shoppingcart=ShoppingCart.objects.get(user=user_id)
+            )
+        )
+        .exclude(productitem__in=ProductItem.objects.filter(available=True))
+        .distinct()
+    )
 
 
 # Create your views here.
@@ -119,9 +146,8 @@ class ProductFilter(filters.FilterSet):
     get=extend_schema(responses=ProductResponseSerializer()),
 )
 class ProductListView(generics.ListCreateAPIView):
-    """View for listing and creating products. Create includes creation of ProductItem and Picture"""
+    """View for listing and creating products. Create includes creation of ProductItem, Picture and Color"""
 
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     authentication_classes = [
         SessionAuthentication,
@@ -136,6 +162,26 @@ class ProductListView(generics.ListCreateAPIView):
     ordering = ["-id"]
     filterset_class = ProductFilter
 
+    def get_queryset(self):
+        # If you belong in admin or storage and have "all" in query params you can see all Products
+        if "all" in self.request.query_params:
+            if is_in_group(self.request.user, "storage_group") or is_in_group(
+                self.request.user, "admin_group"
+            ):
+                return Product.objects.all()
+
+        # Hides Products that are not available
+        available_products = available_products_filter()
+
+        # Adds Products that are not available to available_products if logged in person has them in ShoppingCart
+        if not self.request.user.is_anonymous:
+            non_available_cart_products = non_available_products_in_cart(
+                self.request.user
+            )
+            available_products = available_products | non_available_cart_products
+
+        return available_products
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
@@ -149,42 +195,34 @@ class ProductListView(generics.ListCreateAPIView):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        color_checked_data = color_check_create(request.data)
-        serializer = ProductCreateSerializer(
-            data=color_checked_data, context=request.user
-        )
+        serializer = ProductCreateSerializer(data=request.data, context=request.user)
         serializer.is_valid(raise_exception=True)
         productdata = serializer.save()
+        color_checked_data = color_check_create(request.data)
+        for color_id in color_checked_data:
+            productdata.color.add(color_id)
+        picture_ids = []
+        for file in request.FILES.getlist("pictures[]"):
+            ext = file.content_type.split("/")[1]
+            pic_serializer = PictureCreateSerializer(
+                data={
+                    "picture_address": ContentFile(
+                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                    )
+                }
+            )
+            pic_serializer.is_valid(raise_exception=True)
+            self.perform_create(pic_serializer)
+            picture_ids.append(pic_serializer.data["id"])
+
+        for picture_id in picture_ids:
+            productdata.pictures.add(picture_id)
+
         response = ProductSerializer(productdata)
-        return Response(data=response.data, status=status.HTTP_201_CREATED)
-
-        """ Picture creation logic in Product create, not in use for now"""
-        # # modified_request = [product_item] * amount
-        # # serializer = ProductSerializer(data=modified_request, many=True)
-        # # serializer.is_valid(raise_exception=True)
-        # # products = serializer.save()
-        # # picture_ids = []
-        # # for file in request.FILES.getlist("pictures[]"):
-        # #     ext = file.content_type.split("/")[1]
-        # #     pic_serializer = PictureCreateSerializer(
-        # #         data={
-        # #             "picture_address": ContentFile(
-        # #                 file.read(), name=f"{timezone.now().timestamp()}.{ext}"
-        # #             )
-        # #         }
-        # #     )
-        # #     pic_serializer.is_valid(raise_exception=True)
-        # #     self.perform_create(pic_serializer)
-        # #     picture_ids.append(pic_serializer.data["id"])
-
-        # # for product in products:
-        # #     for picture_id in picture_ids:
-        # #         product.pictures.add(picture_id)
-
-        # # headers = self.get_success_headers(serializer.data)
-        # # return Response(
-        # #     serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        # # )
+        headers = self.get_success_headers(response.data)
+        return Response(
+            data=response.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 
 @extend_schema_view(

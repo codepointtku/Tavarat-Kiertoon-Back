@@ -448,6 +448,7 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
     Update users permissions, should be only allowed to admins, on testing phase allowing fo users
     id = user id whose permission will be updated as id/pk parameter in url
+    users changing their own permissions isnt allowed
     """
 
     authentication_classes = [
@@ -459,13 +460,30 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["admin_group"],
-        "POST": ["admin_group"],
         "PUT": ["admin_group"],
         "PATCH": ["admin_group"],
     }
 
     queryset = User.objects.all()
     serializer_class = GroupPermissionsSerializer
+
+    def put(self, request, *args, **kwargs):
+        if request.user.id == kwargs["pk"]:
+            return Response(
+                "admins cannot edit their own permissions",
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        if request.user.id == kwargs["pk"]:
+            return Response(
+                "admins cannot edit their own permissions",
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return self.partial_update(request, *args, **kwargs)
 
 
 @extend_schema_view(

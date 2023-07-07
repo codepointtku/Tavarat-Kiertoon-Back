@@ -198,6 +198,7 @@ class UserActivationView(APIView):
             user.is_active = True
             user.save()
 
+            print("fffuuu why double log?")
             UserLogEntry.objects.create(
                 action=UserLogEntry.ActionChoices.ACTIVATED, user=user
             )
@@ -752,6 +753,9 @@ class UserPasswordResetMailValidationView(APIView):
             user.set_password(serializer.data["new_password"])
             user.is_active = True
             user.save()
+            UserLogEntry.objects.create(
+                action=UserLogEntry.ActionChoices.PASSWORD, user=user
+            )
 
             response = Response()
             response.status_code = status.HTTP_200_OK

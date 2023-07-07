@@ -35,7 +35,7 @@ from rest_framework_simplejwt.views import TokenViewBase
 from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
-from .models import CustomUser, UserAddress
+from .models import CustomUser, UserAddress, UserLogEntry
 from .permissions import HasGroupPermission
 from .serializers import (
     GroupNameSerializer,
@@ -78,7 +78,7 @@ def get_tokens_for_user(user):
 
 class UserCreateListView(APIView):
     """
-    List all users, and create with POST
+    create with POST
     if username field comes = joint user
     if no username = normal user and email address gets copied to username and will be used to login
     """
@@ -120,6 +120,10 @@ class UserCreateListView(APIView):
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()
 
+            UserLogEntry.objects.create(
+                action=UserLogEntry.ActionChoices.CREATED, user=user
+            )
+
             # create email verification for user creation
             if settings.TEST_DEBUG:  # settings.DEBUG:
                 # print("debug päällä, activating user without email")
@@ -128,6 +132,9 @@ class UserCreateListView(APIView):
                 )
                 user.is_active = True
                 user.save()
+                UserLogEntry.objects.create(
+                    action=UserLogEntry.ActionChoices.ACTIVATED, user=user
+                )
             else:
                 token_generator = default_token_generator
                 token_for_user = token_generator.make_token(user=user)
@@ -190,6 +197,10 @@ class UserActivationView(APIView):
             user = User.objects.get(id=serializer.data["uid"])
             user.is_active = True
             user.save()
+
+            UserLogEntry.objects.create(
+                action=UserLogEntry.ActionChoices.ACTIVATED, user=user
+            )
 
             return Response("user activated", status.HTTP_200_OK)
         else:

@@ -147,7 +147,7 @@ class OrderListPagination(PageNumberPagination):
 
 
 class OrderSelfListPagination(PageNumberPagination):
-    page_size = 5
+    page_size = 4
     page_size_query_param = "page_size"
 
 
@@ -158,6 +158,16 @@ class OrderFilter(filters.FilterSet):
 
     def status_filter(self, queryset, name, value):
         return queryset.filter(Q(status__iexact=value))
+
+
+class UserOrderFilter(filters.FilterSet):
+    status = filters.MultipleChoiceFilter(
+        choices=Order.StatusChoices.choices
+    )
+
+    class Meta:
+        model = Order
+        fields = ["status"]
 
 
 @extend_schema_view(
@@ -295,7 +305,7 @@ class OrderSelfListView(ListAPIView):
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["creation_date", "status"]
     ordering = ["-creation_date"]
-    filterset_class = OrderFilter
+    filterset_class = UserOrderFilter
 
     def get_queryset(self):
         if self.request.user.is_anonymous:

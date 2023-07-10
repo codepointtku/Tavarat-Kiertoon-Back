@@ -142,6 +142,8 @@ class UserLogEntry(models.Model):
         ACTIVATED = "User was activated"
         PASSWORD = "Users password was changed"
         USER_INFO = "User info was changed"
+        USER_ADDRESS_INFO = "User address info was changed"
+        USER_ADDRESS_INFO_DELETE = "User address info was deleted"
         PERMISSIONS = "Users permissions were changed"
         EMAIL = "Users email was changed"
 

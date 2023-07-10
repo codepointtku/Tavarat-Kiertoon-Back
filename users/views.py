@@ -627,6 +627,11 @@ class UserAddressEditView(APIView, ListModelMixin):
         serializer = self.serializer_class(data=copy_of_request_data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
+            target=request.user,
+            user_who_did_this_action=request.user,
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # used for updating existing address user has
@@ -650,6 +655,12 @@ class UserAddressEditView(APIView, ListModelMixin):
 
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
+            target=request.user,
+            user_who_did_this_action=request.user,
+        )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -678,6 +689,12 @@ class UserAddressEditDeleteView(APIView):
         if request.user.id == address.user.id:
             address_msg = address.address + " " + address.zip_code + " " + address.city
             address.delete()
+
+            UserLogEntry.objects.create(
+                action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO_DELETE,
+                target=request.user,
+                user_who_did_this_action=request.user,
+            )
 
             return Response(
                 f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
@@ -713,6 +730,36 @@ class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
+
+    def put(self, request, *args, **kwargs):
+        temp = self.update(request, *args, **kwargs)
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
+            target=User.objects.get(id=temp.data["user"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
+
+    def patch(self, request, *args, **kwargs):
+        temp = self.partial_update(request, *args, **kwargs)
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
+            target=User.objects.get(id=temp.data["user"]),
+            user_who_did_this_action=request.user,
+        )
+        return temp
+
+    def delete(self, request, *args, **kwargs):
+        temp_target_user = UserAddress.objects.get(id=kwargs["pk"]).user
+        temp = self.destroy(request, *args, **kwargs)
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO_DELETE,
+            target=temp_target_user,
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
 
 
 @extend_schema(responses=None)

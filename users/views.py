@@ -53,6 +53,8 @@ from .serializers import (
     UserFullResponseSchemaSerializer,
     UserFullSerializer,
     UserLoginPostSerializer,
+    UserLogResponseSchemaSerializer,
+    UserLogSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
     UsersLoginRefreshResponseSchemaSerializer,
@@ -198,7 +200,7 @@ class UserActivationView(APIView):
             user.is_active = True
             user.save()
 
-            print("fffuuu why double log?")
+            print("fffuuu why double log? frontti vaa kusee")
             UserLogEntry.objects.create(
                 action=UserLogEntry.ActionChoices.ACTIVATED, user=user
             )
@@ -895,3 +897,41 @@ class UserEmailChangeFinishView(APIView):
                 f"somethign went wrong: {serializer.errors}",
                 status=status.HTTP_204_NO_CONTENT,
             )
+
+
+class UserLogListPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = "page_size"
+
+
+class UserLogFilter(filters.FilterSet):
+    class Meta:
+        model = UserLogEntry
+        fields = ["user", "action"]
+
+
+@extend_schema(responses=UserLogResponseSchemaSerializer)
+class UserLogView(generics.ListAPIView):
+
+    """
+    user log list view
+    """
+
+    authentication_classes = [
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+    }
+
+    pagination_class = UserLogListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+
+    ordering_fields = ["action", "user", "date"]
+    ordering = ["id"]
+    filterset_class = UserLogFilter
+
+    serializer_class = UserLogSerializer
+    queryset = UserLogEntry.objects.all()

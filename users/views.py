@@ -438,6 +438,28 @@ class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
 
         return Response(serializer.data)
 
+    def put(self, request, *args, **kwargs):
+        temp = self.update(request, *args, **kwargs)
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_INFO,
+            target=User.objects.get(id=kwargs["pk"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
+
+    def patch(self, request, *args, **kwargs):
+        temp = self.partial_update(request, *args, **kwargs)
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_INFO,
+            target=User.objects.get(id=kwargs["pk"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
+
 
 # getting all groups and their names
 class GroupListView(generics.ListAPIView):
@@ -559,6 +581,13 @@ class UserUpdateInfoView(APIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_INFO,
+            target=request.user,
+            user_who_did_this_action=request.user,
+        )
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

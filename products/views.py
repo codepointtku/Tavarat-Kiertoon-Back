@@ -248,15 +248,31 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
             instance, data=request.data, partial=partial
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        data = serializer.data
+        productdata = serializer.save()
+        picture_ids = []
+        for file in request.FILES.getlist("pictures[]"):
+            ext = file.content_type.split("/")[1]
+            pic_serializer = PictureCreateSerializer(
+                data={
+                    "picture_address": ContentFile(
+                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                    )
+                }
+            )
+            pic_serializer.is_valid(raise_exception=True)
+            self.perform_create(pic_serializer)
+            picture_ids.append(pic_serializer.data["id"])
+
+        for picture_id in picture_ids:
+            productdata.pictures.add(picture_id)
+        response = ProductUpdateSerializer(productdata)
 
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
 
-        return Response(data)
+        return Response(response.data)
 
 
 class ProductItemListPagination(PageNumberPagination):

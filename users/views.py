@@ -123,7 +123,9 @@ class UserCreateListView(APIView):
             cart_obj.save()
 
             UserLogEntry.objects.create(
-                action=UserLogEntry.ActionChoices.CREATED, user=user
+                action=UserLogEntry.ActionChoices.CREATED,
+                target=user,
+                user_who_did_this_action=user,
             )
 
             # create email verification for user creation
@@ -135,7 +137,9 @@ class UserCreateListView(APIView):
                 user.is_active = True
                 user.save()
                 UserLogEntry.objects.create(
-                    action=UserLogEntry.ActionChoices.ACTIVATED, user=user
+                    action=UserLogEntry.ActionChoices.ACTIVATED,
+                    target=user,
+                    user_who_did_this_action=user,
                 )
             else:
                 token_generator = default_token_generator
@@ -202,7 +206,9 @@ class UserActivationView(APIView):
 
             print("fffuuu why double log? frontti vaa kusee")
             UserLogEntry.objects.create(
-                action=UserLogEntry.ActionChoices.ACTIVATED, user=user
+                action=UserLogEntry.ActionChoices.ACTIVATED,
+                target=user,
+                user_who_did_this_action=user,
             )
 
             return Response("user activated", status.HTTP_200_OK)
@@ -488,7 +494,15 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        return self.update(request, *args, **kwargs)
+        temp = self.update(request, *args, **kwargs)
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.PERMISSIONS,
+            target=User.objects.get(id=kwargs["pk"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
 
     def patch(self, request, *args, **kwargs):
         if request.user.id == kwargs["pk"]:
@@ -497,7 +511,15 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        return self.partial_update(request, *args, **kwargs)
+        temp = self.partial_update(request, *args, **kwargs)
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.PERMISSIONS,
+            target=User.objects.get(id=kwargs["pk"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
 
 
 @extend_schema_view(
@@ -756,7 +778,9 @@ class UserPasswordResetMailValidationView(APIView):
             user.is_active = True
             user.save()
             UserLogEntry.objects.create(
-                action=UserLogEntry.ActionChoices.PASSWORD, user=user
+                action=UserLogEntry.ActionChoices.PASSWORD,
+                target=user,
+                user_who_did_this_action=user,
             )
 
             response = Response()
@@ -887,6 +911,12 @@ class UserEmailChangeFinishView(APIView):
                 user.username = serializer.data["new_email"]
             user.save()
 
+            UserLogEntry.objects.create(
+                action=UserLogEntry.ActionChoices.EMAIL,
+                target=user,
+                user_who_did_this_action=user,
+            )
+
             message = {"message": "Sähköposti osoite vaihdettu"}
             return Response(
                 MessageSerializer(data=message).initial_data,
@@ -907,7 +937,7 @@ class UserLogListPagination(PageNumberPagination):
 class UserLogFilter(filters.FilterSet):
     class Meta:
         model = UserLogEntry
-        fields = ["user", "action"]
+        fields = ["target", "action", "user_who_did_this_action"]
 
 
 @extend_schema(responses=UserLogResponseSchemaSerializer)
@@ -929,7 +959,7 @@ class UserLogView(generics.ListAPIView):
     pagination_class = UserLogListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
 
-    ordering_fields = ["action", "user", "date"]
+    ordering_fields = ["action", "target", "date", "user_who_did_this_action"]
     ordering = ["id"]
     filterset_class = UserLogFilter
 

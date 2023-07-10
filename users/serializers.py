@@ -546,5 +546,6 @@ class UserLogResponseSchemaSerializer(serializers.ModelSerializer):
         fields = "__all__"
         extra_kwargs = {
             "action": {"required": True},
-            "user": {"required": True},
+            "target": {"required": True},
+            "user_who_did_this_action": {"required": True},
         }

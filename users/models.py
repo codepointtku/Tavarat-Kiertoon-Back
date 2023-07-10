@@ -147,7 +147,12 @@ class UserLogEntry(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     date = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    target = models.ForeignKey(
+        CustomUser, on_delete=models.SET_NULL, null=True, related_name="target_user"
+    )
+    user_who_did_this_action = models.ForeignKey(
+        CustomUser, on_delete=models.SET_NULL, null=True, related_name="source_user"
+    )
     action = models.CharField(
         max_length=255, choices=ActionChoices.choices, default="Created"
     )

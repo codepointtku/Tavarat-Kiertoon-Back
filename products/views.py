@@ -267,6 +267,7 @@ class ProductItemListPagination(PageNumberPagination):
 class ProductItemListFilter(filters.FilterSet):
     product = filters.ModelMultipleChoiceFilter(queryset=Product.objects.all())
     storage = filters.ModelMultipleChoiceFilter(queryset=Storage.objects.all())
+    search = filters.CharFilter(field_name="barcode", label="Barcode search")
     available = filters.BooleanFilter()
     shelf_id = filters.AllValuesFilter()
 

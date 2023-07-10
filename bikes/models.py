@@ -63,6 +63,7 @@ class BikeStock(models.Model):
     package_only = models.BooleanField(default=False)
     number = models.CharField(max_length=255)
     frame_number = models.CharField(max_length=255)
+    color = models.ForeignKey(Color, null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
     state = models.CharField(
         max_length=255,

@@ -24,6 +24,7 @@ from bikes.models import (
 )
 from bikes.serializers import (
     BikeAmountListSerializer,
+    BikeAvailabilityListSerializer,
     BikePackageSerializer,
     BikePackageSchemaResponseSerializer,
     BikePackageCreateResponseSerializer,
@@ -145,6 +146,38 @@ class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+
+
+class BikeAvailabilityList(generics.ListAPIView):
+    queryset = BikeStock.objects.all()
+    serializer_class = BikeAvailabilityListSerializer
+
+    def list(self, request, *args, **kwargs):
+        today = datetime.date.today()
+        available_from = today + datetime.timedelta(days=7)
+        available_to = today + datetime.timedelta(days=183)
+        asd = self.get_queryset()
+        serializer = self.get_serializer(asd, many=True)
+        for bike in serializer.data:
+            bike["available_from"] = available_from
+            bike["available_to"] = available_to
+            bike["rental_dates"] = []
+            for rental in bike["rental"]:
+                start_date = datetime.datetime.fromisoformat(rental["start_date"])
+                end_date = datetime.datetime.fromisoformat(rental["end_date"])
+                # We want to give the warehouse workers a business day to maintain the bikes, after the rental has ended
+                end_date += datetime.timedelta(days=1)
+                while end_date.weekday() >= 5:
+                    end_date += datetime.timedelta(days=1)
+                date = start_date
+                while date <= end_date:
+                    date_str = date.strftime("%d.%m.%Y")
+                    if date_str not in bike["rental_dates"]:
+                        bike["rental_dates"].append(date_str)
+                    date += datetime.timedelta(days=1)
+            del bike["rental"]
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class MainBikeList(generics.ListAPIView):

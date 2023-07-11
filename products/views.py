@@ -244,11 +244,19 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
+        original_pictures = []
+        original_pictures.extend(instance.pictures.values("id"))
         serializer = ProductUpdateSerializer(
             instance, data=request.data, partial=partial
         )
         serializer.is_valid(raise_exception=True)
         productdata = serializer.save()
+
+        for picture in original_pictures:
+            if picture["id"] not in request.data["pictures"]:
+                ghost_picture = Picture.objects.get(id=picture["id"])
+                ghost_picture.delete()
+
         picture_ids = []
         for file in request.FILES.getlist("pictures[]"):
             ext = file.content_type.split("/")[1]
@@ -264,7 +272,8 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
             picture_ids.append(pic_serializer.data["id"])
 
         for picture_id in picture_ids:
-            productdata.pictures.add(picture_id)
+            if productdata.pictures.count() < 6:
+                productdata.pictures.add(picture_id)
         response = ProductUpdateSerializer(productdata)
 
         if getattr(instance, "_prefetched_objects_cache", None):

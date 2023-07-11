@@ -138,6 +138,8 @@ class UserLogEntry(models.Model):
     """
 
     class ActionChoices(models.Choices):
+        """Choices for the log action."""
+
         CREATED = "User was created"
         ACTIVATED = "User was activated"
         PASSWORD = "Users password was changed"

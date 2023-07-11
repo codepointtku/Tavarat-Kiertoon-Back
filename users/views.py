@@ -204,7 +204,6 @@ class UserActivationView(APIView):
             user.is_active = True
             user.save()
 
-            print("fffuuu why double log? frontti vaa kusee")
             UserLogEntry.objects.create(
                 action=UserLogEntry.ActionChoices.ACTIVATED,
                 target=user,

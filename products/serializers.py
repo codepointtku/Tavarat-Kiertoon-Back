@@ -150,6 +150,7 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
             "name": {"required": True},
             "category": {"required": True},
             "color": {"required": True},
+            "pictures": {"required": True},
         }
 
 

@@ -215,7 +215,7 @@ class ProductListView(generics.ListCreateAPIView):
 
         productdata = serializer.save()
         for color_id in color_checked_data:
-            productdata.color.add(color_id)
+            productdata.colors.add(color_id)
         for picture_id in picture_ids:
             productdata.pictures.add(picture_id)
 

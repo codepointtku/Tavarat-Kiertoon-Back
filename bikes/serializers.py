@@ -386,3 +386,9 @@ class BikeAvailabilityListSerializer(serializers.ModelSerializer):
             "rental",
         ]
 
+
+class BikeAvailabilityListResponseSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    available_from = serializers.DateField()
+    available_to = serializers.DateField()
+    rental_dates = serializers.ListField()

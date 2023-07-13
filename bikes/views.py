@@ -25,6 +25,7 @@ from bikes.models import (
 from bikes.serializers import (
     BikeAmountListSerializer,
     BikeAvailabilityListSerializer,
+    BikeAvailabilityListResponseSerializer,
     BikePackageSerializer,
     BikePackageSchemaResponseSerializer,
     BikePackageCreateResponseSerializer,
@@ -148,6 +149,9 @@ class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
+@extend_schema_view(
+    get=extend_schema(responses=BikeAvailabilityListResponseSerializer),
+)
 class BikeAvailabilityList(generics.ListAPIView):
     queryset = BikeStock.objects.all()
     serializer_class = BikeAvailabilityListSerializer

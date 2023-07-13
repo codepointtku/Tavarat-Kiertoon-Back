@@ -46,11 +46,11 @@ from .serializers import (
 
 def color_check_create(instance):
     colors = []
-    for coloritem in instance["colors"]:
+    for coloritem in instance["colors[]"]:
         try:
             coloritem = int(coloritem)
         except ValueError:
-            coloritem = coloritem
+            pass
         color_is_string = isinstance(coloritem, str)
         if color_is_string:
             checkid = Color.objects.filter(name=coloritem).values("id")

@@ -69,6 +69,7 @@ from users.views import (
     UserEmailChangeView,
     UserLoginView,
     UserLogoutView,
+    UserLogView,
     UserPasswordResetMailValidationView,
     UserPasswordResetMailView,
     UserTokenRefreshView,
@@ -134,6 +135,7 @@ urlpatterns = [
     ),
     path("users/emailchange/", UserEmailChangeView.as_view()),
     path("users/emailchange/finish/", UserEmailChangeFinishView.as_view()),
+    path("users/log/", UserLogView.as_view()),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

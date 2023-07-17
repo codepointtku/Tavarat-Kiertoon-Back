@@ -76,7 +76,7 @@ class TestProducts(TestCase):
                     Picture.objects.get(id=cls.test_picture1.id),
                 ],
             ),
-            query.color.set(
+            query.colors.set(
                 [
                     Color.objects.get(id=cls.test_color.id),
                     Color.objects.get(id=cls.test_color1.id),
@@ -198,7 +198,7 @@ class TestProducts(TestCase):
         self.assertEqual(response.json()["count"], 1)
 
     def test_get_products_search_multiple_parameters(self):
-        url = f"/products/?search=sohva&color={self.test_color.id}"
+        url = f"/products/?search=sohva&colors={self.test_color.id}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["count"], 3)
@@ -239,13 +239,13 @@ class TestProducts(TestCase):
             "storage": self.test_storage.id,
             "name": "nahkatuoli",
             "category": self.test_category1.id,
-            "colors": ["punainen", "ruskea"],
+            "colors[]": ["punainen", "ruskea"],
             "free_description": "istuttava nahkainen tuoli",
             "measurements": "90x90x100",
             "weight": 20,
             "amount": 10,
         }
-        response = self.client.post(url, data, content_type="application/json")
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, 201)
 
     @override_settings(MEDIA_ROOT=TEST_DIR)
@@ -267,7 +267,7 @@ class TestProducts(TestCase):
             "storage": self.test_storage.id,
             "name": "tuolinahka",
             "category": self.test_category1.id,
-            "colors": [str(self.test_color1.id)],
+            "colors[]": [str(self.test_color1.id)],
             "amount": 1,
             "weight": 15,
             "free_description": "tämä tuoli on hieno",
@@ -286,13 +286,13 @@ class TestProducts(TestCase):
             "storage": self.test_storage.id,
             "name": "puusohva",
             "category": self.test_category1.id,
-            "colors": [str(self.test_color.id)],
+            "colors[]": [str(self.test_color.id)],
             "amount": 5,
             "weight": 100,
             "measurements": "100x90x190",
             "free_description": "umpipuinen sohva",
         }
-        response = self.client.post(url, data, content_type="application/json")
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, 201)
 
     def test_post_product_existing_color_as_string(self):
@@ -305,13 +305,13 @@ class TestProducts(TestCase):
             "storage": self.test_storage1.id,
             "name": "puutuoli",
             "category": self.test_category1.id,
-            "colors": [str(self.test_color.id)],
+            "colors[]": [str(self.test_color.id)],
             "amount": 7,
             "weight": 40,
             "measurements": "90x90x100",
             "free_description": "kova puinen tuoli",
         }
-        response = self.client.post(url, data, content_type="application/json")
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, 201)
 
     def test_update_product_item(self):
@@ -344,7 +344,7 @@ class TestProducts(TestCase):
         data = {
             "name": "kahvisohva",
             "category": self.test_category1.id,
-            "color": [self.test_color.id],
+            "colors": [self.test_color.id],
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)

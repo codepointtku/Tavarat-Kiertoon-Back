@@ -46,11 +46,11 @@ from .serializers import (
 
 def color_check_create(instance):
     colors = []
-    for coloritem in instance["colors"]:
+    for coloritem in instance.getlist("colors[]"):
         try:
             coloritem = int(coloritem)
         except ValueError:
-            coloritem = coloritem
+            pass
         color_is_string = isinstance(coloritem, str)
         if color_is_string:
             checkid = Color.objects.filter(name=coloritem).values("id")
@@ -70,6 +70,7 @@ def color_check_create(instance):
             if checkid:
                 colors.append(checkid[0]["id"])
 
+    colors.sort()
     return colors
 
 
@@ -197,10 +198,7 @@ class ProductListView(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = ProductCreateSerializer(data=request.data, context=request.user)
         serializer.is_valid(raise_exception=True)
-        productdata = serializer.save()
         color_checked_data = color_check_create(request.data)
-        for color_id in color_checked_data:
-            productdata.color.add(color_id)
         picture_ids = []
         for file in request.FILES.getlist("pictures[]"):
             ext = file.content_type.split("/")[1]
@@ -215,6 +213,9 @@ class ProductListView(generics.ListCreateAPIView):
             self.perform_create(pic_serializer)
             picture_ids.append(pic_serializer.data["id"])
 
+        productdata = serializer.save()
+        for color_id in color_checked_data:
+            productdata.colors.add(color_id)
         for picture_id in picture_ids:
             productdata.pictures.add(picture_id)
 

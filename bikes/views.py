@@ -24,6 +24,7 @@ from bikes.models import (
 )
 from bikes.serializers import (
     BikeAmountListSerializer,
+    BikeAvailabilityListSerializer,
     BikePackageSerializer,
     BikePackageSchemaResponseSerializer,
     BikePackageCreateResponseSerializer,

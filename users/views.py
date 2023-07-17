@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
@@ -246,16 +248,29 @@ class UserLoginView(APIView):
                 samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
                 path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
             )
-            response.set_cookie(
-                key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
-                value=data["refresh"],
-                expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
-                max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
-                secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-                path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
-            )
+
+            if pw_data.data["remember_me"]:
+                response.set_cookie(
+                    key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
+                    value=data["refresh"],
+                    expires=timedelta(days=int(settings.REFRESH_TOKEN_REMEMBER_ME)),
+                    max_age=timedelta(days=int(settings.REFRESH_TOKEN_REMEMBER_ME)),
+                    secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                    httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                    samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                    path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+                )
+            else:
+                response.set_cookie(
+                    key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
+                    value=data["refresh"],
+                    expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+                    max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+                    secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                    httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+                    samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                    path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+                )
 
             msg = "Login successfully"
             response_data = UsersLoginRefreshResponseSerializer(

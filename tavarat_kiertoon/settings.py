@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 import json
+from datetime import timedelta
 from pathlib import Path
 
 from decouple import Csv, config
@@ -141,9 +142,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-from datetime import timedelta
-
 SIMPLE_JWT = {
     # "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     # "REFRESH_TOKEN_LIFETIME": timedelta(hours=12),
@@ -177,6 +175,7 @@ SIMPLE_JWT = {
     "AUTH_COOKIE_PATH": "/",  # The path of the auth cookie.
     "AUTH_COOKIE_SAMESITE": "Lax",  # Whether to set the flag restricting cookie leaks on cross-site requests. This can be 'Lax', 'Strict', or None to disable the flag.
 }
+REFRESH_TOKEN_REMEMBER_ME = config("REFRESH_TOKEN_REMEMBER_ME")
 
 SPECTACULAR_SETTINGS = {
     "ENUM_NAME_OVERRIDES": {

@@ -129,3 +129,34 @@ class UserAddress(models.Model):
 
     class Meta:
         verbose_name_plural = "User addresses"
+
+
+class UserLogEntry(models.Model):
+    """
+    Model representing one log entry connected to Users
+    saving what happened to User, when it happened and who did it.
+    """
+
+    class ActionChoices(models.Choices):
+        """Choices for the log action."""
+
+        CREATED = "User was created"
+        ACTIVATED = "User was activated"
+        PASSWORD = "Users password was changed"
+        USER_INFO = "User info was changed"
+        USER_ADDRESS_INFO = "User address info was changed"
+        USER_ADDRESS_INFO_DELETE = "User address info was deleted"
+        PERMISSIONS = "Users permissions were changed"
+        EMAIL = "Users email was changed"
+
+    id = models.BigAutoField(primary_key=True)
+    date = models.DateTimeField(auto_now_add=True)
+    target = models.ForeignKey(
+        CustomUser, on_delete=models.SET_NULL, null=True, related_name="target_user"
+    )
+    user_who_did_this_action = models.ForeignKey(
+        CustomUser, on_delete=models.SET_NULL, null=True, related_name="source_user"
+    )
+    action = models.CharField(
+        max_length=255, choices=ActionChoices.choices, default="Created"
+    )

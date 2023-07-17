@@ -35,7 +35,7 @@ from rest_framework_simplejwt.views import TokenViewBase
 from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
-from .models import CustomUser, UserAddress, UserLogEntry
+from .models import CustomUser, UserAddress
 from .permissions import HasGroupPermission
 from .serializers import (
     GroupNameSerializer,
@@ -53,8 +53,6 @@ from .serializers import (
     UserFullResponseSchemaSerializer,
     UserFullSerializer,
     UserLoginPostSerializer,
-    UserLogResponseSchemaSerializer,
-    UserLogSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
     UsersLoginRefreshResponseSchemaSerializer,
@@ -80,7 +78,7 @@ def get_tokens_for_user(user):
 
 class UserCreateListView(APIView):
     """
-    create with POST
+    List all users, and create with POST
     if username field comes = joint user
     if no username = normal user and email address gets copied to username and will be used to login
     """
@@ -122,12 +120,6 @@ class UserCreateListView(APIView):
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()
 
-            UserLogEntry.objects.create(
-                action=UserLogEntry.ActionChoices.CREATED,
-                target=user,
-                user_who_did_this_action=user,
-            )
-
             # create email verification for user creation
             if settings.TEST_DEBUG:  # settings.DEBUG:
                 # print("debug päällä, activating user without email")
@@ -136,11 +128,6 @@ class UserCreateListView(APIView):
                 )
                 user.is_active = True
                 user.save()
-                UserLogEntry.objects.create(
-                    action=UserLogEntry.ActionChoices.ACTIVATED,
-                    target=user,
-                    user_who_did_this_action=user,
-                )
             else:
                 token_generator = default_token_generator
                 token_for_user = token_generator.make_token(user=user)
@@ -203,12 +190,6 @@ class UserActivationView(APIView):
             user = User.objects.get(id=serializer.data["uid"])
             user.is_active = True
             user.save()
-
-            UserLogEntry.objects.create(
-                action=UserLogEntry.ActionChoices.ACTIVATED,
-                target=user,
-                user_who_did_this_action=user,
-            )
 
             return Response("user activated", status.HTTP_200_OK)
         else:
@@ -437,28 +418,6 @@ class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
 
         return Response(serializer.data)
 
-    def put(self, request, *args, **kwargs):
-        temp = self.update(request, *args, **kwargs)
-
-        UserLogEntry.objects.create(
-            action=UserLogEntry.ActionChoices.USER_INFO,
-            target=User.objects.get(id=kwargs["pk"]),
-            user_who_did_this_action=request.user,
-        )
-
-        return temp
-
-    def patch(self, request, *args, **kwargs):
-        temp = self.partial_update(request, *args, **kwargs)
-
-        UserLogEntry.objects.create(
-            action=UserLogEntry.ActionChoices.USER_INFO,
-            target=User.objects.get(id=kwargs["pk"]),
-            user_who_did_this_action=request.user,
-        )
-
-        return temp
-
 
 # getting all groups and their names
 class GroupListView(generics.ListAPIView):
@@ -515,15 +474,7 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        temp = self.update(request, *args, **kwargs)
-
-        UserLogEntry.objects.create(
-            action=UserLogEntry.ActionChoices.PERMISSIONS,
-            target=User.objects.get(id=kwargs["pk"]),
-            user_who_did_this_action=request.user,
-        )
-
-        return temp
+        return self.update(request, *args, **kwargs)
 
     def patch(self, request, *args, **kwargs):
         if request.user.id == kwargs["pk"]:
@@ -532,15 +483,7 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        temp = self.partial_update(request, *args, **kwargs)
-
-        UserLogEntry.objects.create(
-            action=UserLogEntry.ActionChoices.PERMISSIONS,
-            target=User.objects.get(id=kwargs["pk"]),
-            user_who_did_this_action=request.user,
-        )
-
-        return temp
+        return self.partial_update(request, *args, **kwargs)
 
 
 @extend_schema_view(
@@ -580,13 +523,6 @@ class UserUpdateInfoView(APIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-
-        UserLogEntry.objects.create(
-            action=UserLogEntry.ActionChoices.USER_INFO,
-            target=request.user,
-            user_who_did_this_action=request.user,
-        )
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -626,11 +562,6 @@ class UserAddressEditView(APIView, ListModelMixin):
         serializer = self.serializer_class(data=copy_of_request_data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        UserLogEntry.objects.create(
-            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
-            target=request.user,
-            user_who_did_this_action=request.user,
-        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # used for updating existing address user has
@@ -654,12 +585,6 @@ class UserAddressEditView(APIView, ListModelMixin):
 
         serializer.is_valid(raise_exception=True)
         serializer.save()
-
-        UserLogEntry.objects.create(
-            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
-            target=request.user,
-            user_who_did_this_action=request.user,
-        )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -688,12 +613,6 @@ class UserAddressEditDeleteView(APIView):
         if request.user.id == address.user.id:
             address_msg = address.address + " " + address.zip_code + " " + address.city
             address.delete()
-
-            UserLogEntry.objects.create(
-                action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO_DELETE,
-                target=request.user,
-                user_who_did_this_action=request.user,
-            )
 
             return Response(
                 f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
@@ -729,36 +648,6 @@ class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
-
-    def put(self, request, *args, **kwargs):
-        temp = self.update(request, *args, **kwargs)
-        UserLogEntry.objects.create(
-            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
-            target=User.objects.get(id=temp.data["user"]),
-            user_who_did_this_action=request.user,
-        )
-
-        return temp
-
-    def patch(self, request, *args, **kwargs):
-        temp = self.partial_update(request, *args, **kwargs)
-        UserLogEntry.objects.create(
-            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
-            target=User.objects.get(id=temp.data["user"]),
-            user_who_did_this_action=request.user,
-        )
-        return temp
-
-    def delete(self, request, *args, **kwargs):
-        temp_target_user = UserAddress.objects.get(id=kwargs["pk"]).user
-        temp = self.destroy(request, *args, **kwargs)
-        UserLogEntry.objects.create(
-            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO_DELETE,
-            target=temp_target_user,
-            user_who_did_this_action=request.user,
-        )
-
-        return temp
 
 
 @extend_schema(responses=None)
@@ -852,11 +741,6 @@ class UserPasswordResetMailValidationView(APIView):
             user.set_password(serializer.data["new_password"])
             user.is_active = True
             user.save()
-            UserLogEntry.objects.create(
-                action=UserLogEntry.ActionChoices.PASSWORD,
-                target=user,
-                user_who_did_this_action=user,
-            )
 
             response = Response()
             response.status_code = status.HTTP_200_OK
@@ -986,12 +870,6 @@ class UserEmailChangeFinishView(APIView):
                 user.username = serializer.data["new_email"]
             user.save()
 
-            UserLogEntry.objects.create(
-                action=UserLogEntry.ActionChoices.EMAIL,
-                target=user,
-                user_who_did_this_action=user,
-            )
-
             message = {"message": "Sähköposti osoite vaihdettu"}
             return Response(
                 MessageSerializer(data=message).initial_data,
@@ -1002,41 +880,3 @@ class UserEmailChangeFinishView(APIView):
                 f"somethign went wrong: {serializer.errors}",
                 status=status.HTTP_204_NO_CONTENT,
             )
-
-
-class UserLogListPagination(PageNumberPagination):
-    page_size = 50
-    page_size_query_param = "page_size"
-
-
-class UserLogFilter(filters.FilterSet):
-    class Meta:
-        model = UserLogEntry
-        fields = ["target", "action", "user_who_did_this_action"]
-
-
-@extend_schema(responses=UserLogResponseSchemaSerializer)
-class UserLogView(generics.ListAPIView):
-
-    """
-    user log list view
-    """
-
-    authentication_classes = [
-        CustomJWTAuthentication,
-    ]
-
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "GET": ["admin_group"],
-    }
-
-    pagination_class = UserLogListPagination
-    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
-
-    ordering_fields = ["action", "target", "date", "user_who_did_this_action"]
-    ordering = ["id"]
-    filterset_class = UserLogFilter
-
-    serializer_class = UserLogSerializer
-    queryset = UserLogEntry.objects.all()

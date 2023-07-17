@@ -178,16 +178,6 @@ SIMPLE_JWT = {
     "AUTH_COOKIE_SAMESITE": "Lax",  # Whether to set the flag restricting cookie leaks on cross-site requests. This can be 'Lax', 'Strict', or None to disable the flag.
 }
 
-SPECTACULAR_SETTINGS = {
-    "ENUM_NAME_OVERRIDES": {
-        "ContactFormStatusEnum": "contact_forms.models.ContactForm.StatusChoices",
-        "BikeStateEnum": "bikes.models.BikeStock.StateChoices",
-        "OrderStatusEnum": "orders.models.Order.StatusChoices",
-        "UserLogEnum": "users.models.UserLogEntry.ActionChoices",
-    }
-}
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 

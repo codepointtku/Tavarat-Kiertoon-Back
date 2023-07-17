@@ -776,6 +776,39 @@ class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
         return temp
 
 
+class UserAddressAdminCreateView(generics.CreateAPIView):
+    """
+    add new address for user with POST
+    For use of admins only
+    """
+
+    authentication_classes = [
+        # SessionAuthentication,
+        # BasicAuthentication,
+        # JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "POST": ["admin_group"],
+    }
+
+    serializer_class = UserAddressSerializer
+    queryset = UserAddress.objects.all()
+
+    def post(self, request, *args, **kwargs):
+        temp = self.create(request, *args, **kwargs)
+        temp_target_user = UserAddress.objects.get(id=temp.data["user"]).user
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
+            target=temp_target_user,
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
+
+
 @extend_schema(responses=None)
 class UserPasswordResetMailView(APIView):
     """

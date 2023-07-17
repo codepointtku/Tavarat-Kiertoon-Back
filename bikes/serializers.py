@@ -374,3 +374,14 @@ class BikePackageCreateResponseSerializer(serializers.ModelSerializer):
             "description",
             "bikes",
         ]
+
+
+class BikeAvailabilityListSerializer(serializers.ModelSerializer):
+    rental = BikeRentalSerializer(many=True)
+
+    class Meta:
+        model = BikeStock
+        fields = [
+            "id",
+            "rental",
+        ]

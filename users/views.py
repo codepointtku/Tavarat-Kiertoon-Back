@@ -238,7 +238,6 @@ class UserLoginView(APIView):
             response = Response()
             # setting the jwt tokens as http only cookie to "login" the user
             data = get_tokens_for_user(user)
-            print("a")
             response.set_cookie(
                 key=settings.SIMPLE_JWT["AUTH_COOKIE"],
                 value=data["access"],

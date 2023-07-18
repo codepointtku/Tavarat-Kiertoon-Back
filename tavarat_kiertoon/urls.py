@@ -72,8 +72,10 @@ from users.views import (
     UserLogView,
     UserPasswordResetMailValidationView,
     UserPasswordResetMailView,
+    UserSearchWatcheAdminView,
     UserSearchWatchesAdminView,
-    UserSearchWatchesSingleAdminView,
+    UserSearchWatchesUserView,
+    UserSearchWatcheUserView,
     UserTokenRefreshView,
     UserUpdateInfoView,
     UserUpdateSingleView,
@@ -115,10 +117,17 @@ urlpatterns = [
     path("user/", UserUpdateInfoView.as_view()),
     path("user/address/edit/", UserAddressEditView.as_view()),
     path("user/address/edit/<int:pk>/", UserAddressEditDeleteView.as_view()),
+    path("user/searchwatch/", UserSearchWatchesUserView.as_view()),
+    path("user/searchwatch/<int:pk>/", UserSearchWatcheUserView.as_view()),
     path("users/create/", UserCreateListView.as_view()),
     path("users/<int:pk>/", UserUpdateSingleView.as_view()),
     path("users/<int:pk>/groups/permission/", GroupPermissionUpdateView.as_view()),
     path("users/address/<int:pk>/", UserAddressAdminEditView.as_view()),
+    path("users/searchwatch/", UserSearchWatchesAdminView.as_view()),
+    path(
+        "users/searchwatch/<int:pk>/",
+        UserSearchWatcheAdminView.as_view(),
+    ),
     path("users/groups/", GroupListView.as_view()),
     path("users/login/", UserLoginView.as_view(), name="token_obtain_pair_http"),
     path("users/login/refresh/", UserTokenRefreshView.as_view(), name="token_refresh"),
@@ -138,11 +147,6 @@ urlpatterns = [
     path("users/emailchange/", UserEmailChangeView.as_view()),
     path("users/emailchange/finish/", UserEmailChangeFinishView.as_view()),
     path("users/log/", UserLogView.as_view()),
-    path("users/searchwatch/", UserSearchWatchesAdminView.as_view()),
-    path(
-        "users/searchwatch/<int:pk>/",
-        UserSearchWatchesSingleAdminView.as_view(),
-    ),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

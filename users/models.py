@@ -148,6 +148,7 @@ class UserLogEntry(models.Model):
         USER_ADDRESS_INFO_DELETE = "User address info was deleted"
         PERMISSIONS = "Users permissions were changed"
         EMAIL = "Users email was changed"
+        WATCH = "Users search watch was edited"
 
     id = models.BigAutoField(primary_key=True)
     date = models.DateTimeField(auto_now_add=True)

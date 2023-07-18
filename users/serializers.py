@@ -422,6 +422,13 @@ class UserSearchWatchSerializer(serializers.ModelSerializer):
 
 
 @extend_schema_serializer(exclude_fields=["user"])
+class UserSearchWatchSchemaSerializer(UserSearchWatchSerializer):
+    """
+    Serializer mainly for schema purpose, fields required for creating user watch for user
+    """
+
+
+@extend_schema_serializer(exclude_fields=["user"])
 class UserAddressPostRequestSerializer(UserAddressSerializer):
     """
     Serializer mainly for schema purpose, fields required for creating address for user

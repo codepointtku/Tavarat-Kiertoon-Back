@@ -35,7 +35,7 @@ from rest_framework_simplejwt.views import TokenViewBase
 from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
-from .models import CustomUser, UserAddress, UserLogEntry
+from .models import CustomUser, UserAddress, UserLogEntry, UserSearchWatch
 from .permissions import HasGroupPermission
 from .serializers import (
     GroupNameSerializer,
@@ -57,6 +57,7 @@ from .serializers import (
     UserLogSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
+    UserSearchWatchSerializer,
     UsersLoginRefreshResponseSchemaSerializer,
     UsersLoginRefreshResponseSerializer,
     UserTokenValidationSerializer,
@@ -1017,7 +1018,6 @@ class UserLogFilter(filters.FilterSet):
 
 @extend_schema(responses=UserLogResponseSchemaSerializer)
 class UserLogView(generics.ListAPIView):
-
     """
     user log list view
     """
@@ -1040,3 +1040,41 @@ class UserLogView(generics.ListAPIView):
 
     serializer_class = UserLogSerializer
     queryset = UserLogEntry.objects.all()
+
+
+class UserSearchWatchesAdminView(generics.ListCreateAPIView):
+    """
+    user search watches in list:
+    FOR ADMINS
+    """
+
+    authentication_classes = [
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+    }
+
+    serializer_class = UserSearchWatchSerializer
+    queryset = UserSearchWatch.objects.all()
+
+
+class UserSearchWatchesSingleAdminView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    single user search watch:
+    FOR ADMINS
+    """
+
+    authentication_classes = [
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+    }
+
+    serializer_class = UserSearchWatchSerializer
+    queryset = UserSearchWatch.objects.all()

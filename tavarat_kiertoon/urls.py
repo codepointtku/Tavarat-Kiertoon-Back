@@ -72,6 +72,8 @@ from users.views import (
     UserLogView,
     UserPasswordResetMailValidationView,
     UserPasswordResetMailView,
+    UserSearchWatchesAdminView,
+    UserSearchWatchesSingleAdminView,
     UserTokenRefreshView,
     UserUpdateInfoView,
     UserUpdateSingleView,
@@ -136,6 +138,11 @@ urlpatterns = [
     path("users/emailchange/", UserEmailChangeView.as_view()),
     path("users/emailchange/finish/", UserEmailChangeFinishView.as_view()),
     path("users/log/", UserLogView.as_view()),
+    path("users/searchwatch/", UserSearchWatchesAdminView.as_view()),
+    path(
+        "users/searchwatch/<int:pk>/",
+        UserSearchWatchesSingleAdminView.as_view(),
+    ),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

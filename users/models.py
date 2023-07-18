@@ -160,3 +160,13 @@ class UserLogEntry(models.Model):
     action = models.CharField(
         max_length=255, choices=ActionChoices.choices, default="Created"
     )
+
+
+class UserSearchWatch(models.Model):
+    """
+    Model used for the search watch functionality for user
+    """
+
+    id = models.BigAutoField(primary_key=True)
+    word = models.CharField(max_length=255)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)

@@ -3,6 +3,8 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.crypto import constant_time_compare
 from django.utils.http import base36_to_int
 
+from .models import UserSearchWatch
+
 
 def validate_email_domain(email):
     if "@" in email:
@@ -32,6 +34,10 @@ def cookie_setter(key, value, remember_me, response):
         samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
         path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
     )
+
+
+def check_product_watch(product_name):
+    print("does it come here and delivered value: ", product_name)
 
 
 class CustomTimeTokenGenerator(PasswordResetTokenGenerator):

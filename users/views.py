@@ -61,8 +61,9 @@ from .serializers import (
     UserLogSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
+    UserSearchWatchAdminSerializer,
     UserSearchWatchSchemaSerializer,
-    UserSearchWatchSerializer,
+    UserSearchWatchUserSerializer,
     UsersLoginRefreshResponseSchemaSerializer,
     UsersLoginRefreshResponseSerializer,
     UserTokenValidationSerializer,
@@ -1082,11 +1083,12 @@ class UserSearchWatchesUserView(APIView, ListModelMixin):
         "POST": ["user_group"],
     }
 
-    serializer_class = UserSearchWatchSerializer
+    serializer_class = UserSearchWatchAdminSerializer
 
+    @extend_schema(responses=UserSearchWatchUserSerializer)
     def get(self, request, format=None):
         qs = UserSearchWatch.objects.filter(user=request.user.id)
-        serialized_info = UserSearchWatchSerializer(qs, many=True)
+        serialized_info = UserSearchWatchUserSerializer(qs, many=True)
         return Response(serialized_info.data)
 
     # used for adding new address to user
@@ -1121,11 +1123,15 @@ class UserSearchWatcheUserView(generics.RetrieveUpdateDestroyAPIView):
         "DELETE": ["user_group"],
     }
 
-    serializer_class = UserSearchWatchSerializer
+    serializer_class = UserSearchWatchUserSerializer
     queryset = UserSearchWatch.objects.all()
 
     def get(self, request, *args, **kwargs):
-        watch_entry = UserSearchWatch.objects.get(id=kwargs["pk"])
+        try:
+            watch_entry = UserSearchWatch.objects.get(id=kwargs["pk"])
+        except UserSearchWatch.DoesNotExist:
+            return Response("Wrong user", status=status.HTTP_204_NO_CONTENT)
+
         if request.user.id == watch_entry.user.id:
             return self.retrieve(request, *args, **kwargs)
         else:
@@ -1151,7 +1157,10 @@ class UserSearchWatcheUserView(generics.RetrieveUpdateDestroyAPIView):
             return Response("Wrong user", status=status.HTTP_204_NO_CONTENT)
 
     def delete(self, request, *args, **kwargs):
-        watch_entry = UserSearchWatch.objects.get(id=kwargs["pk"])
+        try:
+            watch_entry = UserSearchWatch.objects.get(id=kwargs["pk"])
+        except UserSearchWatch.DoesNotExist:
+            return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
 
         if request.user.id == watch_entry.user.id:
             watch_msg = watch_entry.word
@@ -1185,10 +1194,21 @@ class UserSearchWatchesAdminView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["admin_group"],
+        "POST": ["admin_group"],
     }
 
-    serializer_class = UserSearchWatchSerializer
+    serializer_class = UserSearchWatchAdminSerializer
     queryset = UserSearchWatch.objects.all()
+
+    def post(self, request, *args, **kwargs):
+        temp = self.create(request, *args, **kwargs)
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.WATCH,
+            target=User.objects.get(id=temp.data["user"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
 
 
 @extend_schema_view(patch=extend_schema(exclude=True))
@@ -1205,7 +1225,44 @@ class UserSearchWatcheAdminView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["admin_group"],
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+        "DELETE": ["admin_group"],
     }
 
-    serializer_class = UserSearchWatchSerializer
+    serializer_class = UserSearchWatchAdminSerializer
     queryset = UserSearchWatch.objects.all()
+
+    def put(self, request, *args, **kwargs):
+        temp = self.update(request, *args, **kwargs)
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.WATCH,
+            target=User.objects.get(id=temp.data["user"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
+
+    def patch(self, request, *args, **kwargs):
+        temp = self.partial_update(request, *args, **kwargs)
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.WATCH,
+            target=User.objects.get(id=temp.data["user"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            temp_target_user = UserSearchWatch.objects.get(id=kwargs["pk"]).user
+        except UserSearchWatch.DoesNotExist:
+            pass
+        temp = self.destroy(request, *args, **kwargs)
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.WATCH,
+            target=temp_target_user,
+            user_who_did_this_action=request.user,
+        )
+
+        return temp

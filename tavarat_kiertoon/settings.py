@@ -147,6 +147,9 @@ SIMPLE_JWT = {
     # "REFRESH_TOKEN_LIFETIME": timedelta(hours=12),
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(config("ACCESS_TOKEN_LIFETIME"))),
     "REFRESH_TOKEN_LIFETIME": timedelta(hours=int(config("REFRESH_TOKEN_LIFETIME"))),
+    "REFRESH_TOKEN_LIFETIME_REMEMBER_ME": timedelta(
+        days=int(config("REFRESH_TOKEN_REMEMBER_ME"))
+    ),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": False,

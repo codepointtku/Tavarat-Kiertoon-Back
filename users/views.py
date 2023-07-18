@@ -37,6 +37,7 @@ from rest_framework_simplejwt.views import TokenViewBase
 from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
+from .custom_functions import cookie_setter
 from .models import CustomUser, UserAddress, UserLogEntry
 from .permissions import HasGroupPermission
 from .serializers import (
@@ -234,37 +235,20 @@ class UserLoginView(APIView):
         user = authenticate(
             username=pw_data.data["username"], password=pw_data.data["password"]
         )
+
         if user is not None:
             response = Response()
             # setting the jwt tokens as http only cookie to "login" the user
             data = get_tokens_for_user(user)
-            response.set_cookie(
-                key=settings.SIMPLE_JWT["AUTH_COOKIE"],
-                value=data["access"],
-                expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-                max_age=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-                secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-                path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+
+            cookie_setter(
+                settings.SIMPLE_JWT["AUTH_COOKIE"], data["access"], False, response
             )
-
-            if pw_data.data["remember_me"]:
-                expires = timedelta(days=int(settings.REFRESH_TOKEN_REMEMBER_ME))
-                max_age = timedelta(days=int(settings.REFRESH_TOKEN_REMEMBER_ME))
-            else:
-                expires = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"]
-                max_age = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"]
-
-            response.set_cookie(
-                key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
-                value=data["refresh"],
-                expires=expires,
-                max_age=max_age,
-                secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-                path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+            cookie_setter(
+                settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
+                data["refresh"],
+                pw_data.data["remember_me"],
+                response,
             )
 
             msg = "Login successfully"
@@ -313,15 +297,11 @@ class UserTokenRefreshView(TokenViewBase):
 
         # setting the access token jwt cookie
         response = Response()
-        response.set_cookie(
-            key=settings.SIMPLE_JWT["AUTH_COOKIE"],
-            value=serializer.validated_data["access"],
-            expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-            max_age=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-            secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-            httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-            samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-            path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+        cookie_setter(
+            settings.SIMPLE_JWT["AUTH_COOKIE"],
+            serializer.validated_data["access"],
+            False,
+            response,
         )
 
         # put here what other information front needs from refresh. like users groups need be in list form

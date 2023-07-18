@@ -184,6 +184,7 @@ SPECTACULAR_SETTINGS = {
         "BikeStateEnum": "bikes.models.BikeStock.StateChoices",
         "OrderStatusEnum": "orders.models.Order.StatusChoices",
         "UserLogEnum": "users.models.UserLogEntry.ActionChoices",
+        "BikeRentalEnum": "bikes.models.BikeRental.StateChoices",
     }
 }
 

@@ -262,7 +262,6 @@ class RentalListView(generics.ListCreateAPIView):
     serializer_class = BikeRentalSerializer
 
     def post(self, request, *args, **kwargs):
-
         request_start_date = datetime.datetime.fromisoformat(request.data["start_date"])
         request_end_date = datetime.datetime.fromisoformat(request.data["end_date"])
 
@@ -340,8 +339,11 @@ class RentalListView(generics.ListCreateAPIView):
 
 @extend_schema_view(
     get=extend_schema(responses=BikeRentalSchemaResponseSerializer),
+    put=extend_schema(
+        responses=BikeRentalSchemaResponseSerializer,
+    ),
 )
-class RentalDetailView(generics.RetrieveAPIView):
+class RentalDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeRental.objects.all()
     serializer_class = BikeRentalSerializer
 

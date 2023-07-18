@@ -379,6 +379,7 @@ class RentalListView(generics.ListCreateAPIView):
     put=extend_schema(
         responses=BikeRentalSchemaResponseSerializer,
     ),
+    patch=extend_schema(exclude=True),
 )
 class RentalDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeRental.objects.all()

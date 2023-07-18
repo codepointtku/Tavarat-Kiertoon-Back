@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
@@ -36,6 +38,7 @@ from rest_framework_simplejwt.views import TokenViewBase
 from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
+from .custom_functions import cookie_setter
 from .models import CustomUser, UserAddress, UserLogEntry, UserSearchWatch
 from .permissions import HasGroupPermission
 from .serializers import (
@@ -235,29 +238,20 @@ class UserLoginView(APIView):
         user = authenticate(
             username=pw_data.data["username"], password=pw_data.data["password"]
         )
+
         if user is not None:
             response = Response()
             # setting the jwt tokens as http only cookie to "login" the user
             data = get_tokens_for_user(user)
-            response.set_cookie(
-                key=settings.SIMPLE_JWT["AUTH_COOKIE"],
-                value=data["access"],
-                expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-                max_age=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-                secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-                path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+
+            cookie_setter(
+                settings.SIMPLE_JWT["AUTH_COOKIE"], data["access"], False, response
             )
-            response.set_cookie(
-                key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
-                value=data["refresh"],
-                expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
-                max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
-                secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-                path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+            cookie_setter(
+                settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
+                data["refresh"],
+                pw_data.data["remember_me"],
+                response,
             )
 
             msg = "Login successfully"
@@ -306,15 +300,11 @@ class UserTokenRefreshView(TokenViewBase):
 
         # setting the access token jwt cookie
         response = Response()
-        response.set_cookie(
-            key=settings.SIMPLE_JWT["AUTH_COOKIE"],
-            value=serializer.validated_data["access"],
-            expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-            max_age=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-            secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-            httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-            samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-            path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+        cookie_setter(
+            settings.SIMPLE_JWT["AUTH_COOKIE"],
+            serializer.validated_data["access"],
+            False,
+            response,
         )
 
         # put here what other information front needs from refresh. like users groups need be in list form
@@ -757,6 +747,39 @@ class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
         temp = self.destroy(request, *args, **kwargs)
         UserLogEntry.objects.create(
             action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO_DELETE,
+            target=temp_target_user,
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
+
+
+class UserAddressAdminCreateView(generics.CreateAPIView):
+    """
+    add new address for user with POST
+    For use of admins only
+    """
+
+    authentication_classes = [
+        # SessionAuthentication,
+        # BasicAuthentication,
+        # JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "POST": ["admin_group"],
+    }
+
+    serializer_class = UserAddressSerializer
+    queryset = UserAddress.objects.all()
+
+    def post(self, request, *args, **kwargs):
+        temp = self.create(request, *args, **kwargs)
+        temp_target_user = UserAddress.objects.get(id=temp.data["user"]).user
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
             target=temp_target_user,
             user_who_did_this_action=request.user,
         )

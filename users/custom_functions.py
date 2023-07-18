@@ -1,9 +1,7 @@
-from datetime import timedelta
-
 from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.crypto import constant_time_compare, salted_hmac
-from django.utils.http import base36_to_int, int_to_base36
+from django.utils.crypto import constant_time_compare
+from django.utils.http import base36_to_int
 
 
 def validate_email_domain(email):

@@ -5,12 +5,16 @@ import math
 
 from django.core.files.base import ContentFile
 from django.utils import timezone
+from django_filters import rest_framework as filters
 
 # from rest_framework.permissions import IsAdminUser
 from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import OrderingFilter
+
 
 from users.views import CustomJWTAuthentication
 
@@ -254,6 +258,19 @@ class MainBikeList(generics.ListAPIView):
         )
 
 
+class BikeRentalPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = "page_size"
+
+
+class BikeRentalFilter(filters.FilterSet):
+    state = filters.MultipleChoiceFilter(choices=BikeRental.StateChoices.choices)
+
+    class Meta:
+        model = BikeRental
+        fields = ["state"]
+
+
 @extend_schema_view(
     get=extend_schema(responses=BikeRentalSchemaResponseSerializer),
     post=extend_schema(
@@ -268,6 +285,11 @@ class RentalListView(generics.ListCreateAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+    pagination_class = BikeRentalPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["id", "state", "start_date", "end_date"]
+    ordering = ["-start_date"]
+    filterset_class = BikeRentalFilter
 
     queryset = BikeRental.objects.all()
     serializer_class = BikeRentalSerializer
@@ -294,9 +316,9 @@ class RentalListView(generics.ListCreateAPIView):
                         bike["rental_dates"].append(date_str)
                     date += datetime.timedelta(days=1)
             del bike["rental"]
-        test_dict = {}
+        unavailable_dates = {}
         for bikedata in bikerentalserializer.data:
-            test_dict[bikedata["id"]] = bikedata["rental_dates"]
+            unavailable_dates[bikedata["id"]] = bikedata["rental_dates"]
 
         instance = request.data
         bikes_list = []
@@ -313,11 +335,11 @@ class RentalListView(generics.ListCreateAPIView):
                     ).order_by("-package_only", "id")
                     for bike_id in available_bikes:
                         check_date = request_start_date
-                        if bike_id.id in test_dict.keys():
+                        if bike_id.id in unavailable_dates.keys():
                             while check_date <= request_end_date:
                                 if (
                                     check_date.strftime("%d.%m.%Y")
-                                    in test_dict[bike_id.id]
+                                    in unavailable_dates[bike_id.id]
                                 ):
                                     available_bikes = available_bikes.exclude(
                                         id=bike_id.id
@@ -332,9 +354,12 @@ class RentalListView(generics.ListCreateAPIView):
                 )
                 for bike_id in available_bikes:
                     check_date = request_start_date
-                    if bike_id.id in test_dict.keys():
+                    if bike_id.id in unavailable_dates.keys():
                         while check_date <= request_end_date:
-                            if check_date.strftime("%d.%m.%Y") in test_dict[bike_id.id]:
+                            if (
+                                check_date.strftime("%d.%m.%Y")
+                                in unavailable_dates[bike_id.id]
+                            ):
                                 available_bikes = available_bikes.exclude(id=bike_id.id)
                             check_date += datetime.timedelta(days=1)
                 amount = request.data["bike_stock"][rental_item]

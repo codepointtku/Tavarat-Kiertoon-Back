@@ -84,8 +84,8 @@ class BikeRental(models.Model):
         """Choices for the state of the rental."""
 
         WAITING = "WAITING"
-        BEING_PROCESSED = "BEING_PROCESSED"
         ACTIVE = "ACTIVE"
+        FINISHED = "FINISHED"
 
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     bike_stock = models.ManyToManyField(BikeStock, related_name="rental")

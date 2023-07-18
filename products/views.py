@@ -106,11 +106,11 @@ class CategoryProductListPagination(PageNumberPagination):
 class ProductFilter(filters.FilterSet):
     search = filters.CharFilter(method="search_filter", label="Search")
     category = filters.ModelMultipleChoiceFilter(queryset=Category.objects.all())
-    color = filters.ModelMultipleChoiceFilter(queryset=Color.objects.all())
+    colors = filters.ModelMultipleChoiceFilter(queryset=Color.objects.all())
 
     class Meta:
         model = Product
-        fields = ["search", "category", "color"]
+        fields = ["search", "category", "colors"]
 
     def search_filter(self, queryset, value, *args, **kwargs):
         word_list = args[0].split(" ")

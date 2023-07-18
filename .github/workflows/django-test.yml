@@ -22,19 +22,20 @@ jobs:
       EMAIL_HOST: smtp.gmail.com
       EMAIL_HOST_USER: codepointTku@gmail.com
       EMAIL_HOST_PASSWORD: gibnthatqtojkort
-      EMAIL_PORT: 587 
+      EMAIL_PORT: 587
       EMAIL_USE_TLS: True
       EMAIL_RECEIVER: codepointTku@gmail.com
       EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
       VALID_EMAIL_DOMAINS: turku.fi, edu.turku.fi
-      PASSWORD_RESET_URL_FRONT : http://localhost:3000/salasananpalautus/
-      USER_ACTIVATION_URL_FRONT : http://localhost:3000/aktivointi/
-      PASSWORD_RESET_TIMEOUT : 900
-      USER_CREATION_TIMEOUT : 1209600   
-      TEST_DEBUG : True
-      ACCESS_TOKEN_LIFETIME : 15
-      REFRESH_TOKEN_LIFETIME : 12    
-      EMAIL_CHANGE_URL_FRONT : http://localhost:3000/emailvaihto/
+      PASSWORD_RESET_URL_FRONT: http://localhost:3000/salasananpalautus/
+      USER_ACTIVATION_URL_FRONT: http://localhost:3000/aktivointi/
+      PASSWORD_RESET_TIMEOUT: 900
+      USER_CREATION_TIMEOUT: 1209600
+      TEST_DEBUG: True
+      ACCESS_TOKEN_LIFETIME: 15
+      REFRESH_TOKEN_LIFETIME: 12
+      EMAIL_CHANGE_URL_FRONT: http://localhost:3000/emailvaihto/
+      REFRESH_TOKEN_REMEMBER_ME: 30
 
     services:
       postgres:

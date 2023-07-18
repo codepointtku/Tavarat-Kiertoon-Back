@@ -1,9 +1,7 @@
-from datetime import datetime
-
 from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.crypto import constant_time_compare, salted_hmac
-from django.utils.http import base36_to_int, int_to_base36
+from django.utils.crypto import constant_time_compare
+from django.utils.http import base36_to_int
 
 
 def validate_email_domain(email):
@@ -11,6 +9,29 @@ def validate_email_domain(email):
         email_split = email.split("@", 1)
         return email_split[1] in settings.VALID_EMAIL_DOMAINS
     return False
+
+
+def cookie_setter(key, value, remember_me, response):
+    if remember_me:
+        expires = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME_REMEMBER_ME"]
+        max_age = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME_REMEMBER_ME"]
+    elif key == "refresh_token":
+        expires = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"]
+        max_age = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"]
+    else:
+        expires = settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"]
+        max_age = settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"]
+
+    response.set_cookie(
+        key=key,
+        value=value,
+        expires=expires,
+        max_age=max_age,
+        secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+        httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+        samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+        path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+    )
 
 
 class CustomTimeTokenGenerator(PasswordResetTokenGenerator):

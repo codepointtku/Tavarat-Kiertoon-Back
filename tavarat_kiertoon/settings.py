@@ -178,7 +178,6 @@ SIMPLE_JWT = {
     "AUTH_COOKIE_PATH": "/",  # The path of the auth cookie.
     "AUTH_COOKIE_SAMESITE": "Lax",  # Whether to set the flag restricting cookie leaks on cross-site requests. This can be 'Lax', 'Strict', or None to disable the flag.
 }
-REFRESH_TOKEN_REMEMBER_ME = config("REFRESH_TOKEN_REMEMBER_ME")
 
 SPECTACULAR_SETTINGS = {
     "ENUM_NAME_OVERRIDES": {

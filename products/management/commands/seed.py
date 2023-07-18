@@ -739,7 +739,7 @@ def create_products_and_product_items():
     queryset = Product.objects.all()
     pictures = Picture.objects.all()
     for query in queryset:
-        query.color.set(
+        query.colors.set(
             [
                 random.choice(colors),
                 random.choice(colors),

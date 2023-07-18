@@ -8,7 +8,7 @@ from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers, status
 
 from .custom_functions import custom_time_token_generator, validate_email_domain
-from .models import CustomUser, UserAddress
+from .models import CustomUser, UserAddress, UserLogEntry
 
 User = get_user_model()
 
@@ -396,6 +396,16 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
         return data
 
 
+class UserLogSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user logs
+    """
+
+    class Meta:
+        model = UserLogEntry
+        fields = "__all__"
+
+
 # -----------------------------------------------------------------------
 # schema serializers
 # -----------------------------------------------------------------------
@@ -523,3 +533,19 @@ class UsersLoginRefreshResponseSchemaSerializer(serializers.ModelSerializer):
             "username",
             "groups",
         ]
+
+
+class UserLogResponseSchemaSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user logs
+    FOR SCHEMA
+    """
+
+    class Meta:
+        model = UserLogEntry
+        fields = "__all__"
+        extra_kwargs = {
+            "action": {"required": True},
+            "target": {"required": True},
+            "user_who_did_this_action": {"required": True},
+        }

@@ -74,7 +74,7 @@ class ProductResponseSerializer(ProductSerializer):
             "measurements": {"required": True},
             "weight": {"required": True},
             "category": {"required": True},
-            "color": {"required": True},
+            "colors": {"required": True},
         }
 
 
@@ -98,7 +98,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        exclude = ["pictures", "color"]
+        exclude = ["pictures", "colors"]
 
     def create(self, validated_data):
         amount = validated_data.pop("amount")
@@ -130,11 +130,10 @@ class ProductCreateRequestSerializer(serializers.ModelSerializer):
     barcode = serializers.CharField()
     storage = serializers.IntegerField()
     shelf_id = serializers.CharField(required=False)
-    colors = serializers.ListField(child=serializers.CharField())
 
     class Meta:
         model = Product
-        exclude = ["pictures", "color"]
+        exclude = ["pictures", "colors"]
         extra_kwargs = {
             "name": {"required": True},
             "amount": {"required": True},
@@ -149,7 +148,7 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "name": {"required": True},
             "category": {"required": True},
-            "color": {"required": True},
+            "colors": {"required": True},
             "pictures": {"read_only": True},
         }
 
@@ -161,7 +160,7 @@ class ProductUpdateResponseSerializer(ProductUpdateSerializer):
         extra_kwargs = {
             "name": {"required": True},
             "category": {"required": True},
-            "color": {"required": True},
+            "colors": {"required": True},
             "pictures": {"required": True},
             "price": {"required": True},
             "free_description": {"required": True},

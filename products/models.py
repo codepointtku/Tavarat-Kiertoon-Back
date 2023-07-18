@@ -53,7 +53,7 @@ class Product(models.Model):
     free_description = models.TextField(default="", blank=True)
     pictures = models.ManyToManyField(Picture, blank=True)
     measurements = models.CharField(max_length=50, default="", blank=True)
-    color = models.ManyToManyField(Color, blank=True)
+    colors = models.ManyToManyField(Color, blank=True)
     weight = models.FloatField(default=0.0)
 
     def __str__(self) -> str:

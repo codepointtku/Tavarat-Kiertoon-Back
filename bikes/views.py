@@ -8,7 +8,11 @@ from django.utils import timezone
 
 # from rest_framework.permissions import IsAdminUser
 from rest_framework import generics, status
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from users.views import CustomJWTAuthentication
 
 from drf_spectacular.utils import extend_schema_view, extend_schema
 
@@ -258,6 +262,13 @@ class MainBikeList(generics.ListAPIView):
     ),
 )
 class RentalListView(generics.ListCreateAPIView):
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
     queryset = BikeRental.objects.all()
     serializer_class = BikeRentalSerializer
 
@@ -330,6 +341,7 @@ class RentalListView(generics.ListCreateAPIView):
                 for bike in range(amount):
                     bikes_list.append(available_bikes[bike].id)
         instance["bike_stock"] = bikes_list
+        instance["user"] = self.request.user.id
         serializer = BikeRentalSerializer(data=instance)
         if serializer.is_valid():
             serializer.save()

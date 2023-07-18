@@ -262,22 +262,9 @@ class RentalListView(generics.ListCreateAPIView):
     serializer_class = BikeRentalSerializer
 
     def post(self, request, *args, **kwargs):
-        today = datetime.date.today()
-        available_from = today + datetime.timedelta(days=7)
-        available_to = today + datetime.timedelta(days=183)
 
         request_start_date = datetime.datetime.fromisoformat(request.data["start_date"])
         request_end_date = datetime.datetime.fromisoformat(request.data["end_date"])
-        print(
-            datetime.datetime.fromisoformat(request.data["start_date"]).strftime(
-                "%d.%m.%Y"
-            )
-        )
-        print(
-            datetime.datetime.fromisoformat(request.data["end_date"]).strftime(
-                "%d.%m.%Y"
-            )
-        )
 
         bikerentalserializer = BikeAvailabilityListSerializer(
             BikeStock.objects.all(), many=True
@@ -298,12 +285,8 @@ class RentalListView(generics.ListCreateAPIView):
                     date += datetime.timedelta(days=1)
             del bike["rental"]
         test_dict = {}
-        counter = 1
-        for _ in bikerentalserializer.data:
-            test_dict[counter] = bikerentalserializer.data[counter - 1]["rental_dates"]
-            counter += 1
-        # print(bikerentalserializer.data)
-        # print(test_dict)
+        for bikedata in bikerentalserializer.data:
+            test_dict[bikedata["id"]] = bikedata["rental_dates"]
 
         instance = request.data
         bikes_list = []
@@ -321,7 +304,6 @@ class RentalListView(generics.ListCreateAPIView):
                     for bike_id in available_bikes:
                         check_date = request_start_date
                         if bike_id.id in test_dict.keys():
-                            print("LÖYTYY")
                             while check_date <= request_end_date:
                                 if (
                                     check_date.strftime("%d.%m.%Y")
@@ -330,11 +312,7 @@ class RentalListView(generics.ListCreateAPIView):
                                     available_bikes = available_bikes.exclude(
                                         id=bike_id.id
                                     )
-                                    print(bike_id.id)
-                                    print(available_bikes)
                                 check_date += datetime.timedelta(days=1)
-                                print(check_date)
-                            print(test_dict[bike_id.id])
                     for bike in range(amount):
                         bikes_list.append(available_bikes[bike].id)
 
@@ -342,19 +320,13 @@ class RentalListView(generics.ListCreateAPIView):
                 available_bikes = BikeStock.objects.filter(
                     bike=rental_item, package_only=False, state="AVAILABLE"
                 )
-                print(test_dict)
                 for bike_id in available_bikes:
                     check_date = request_start_date
                     if bike_id.id in test_dict.keys():
-                        print("LÖYTYY")
                         while check_date <= request_end_date:
                             if check_date.strftime("%d.%m.%Y") in test_dict[bike_id.id]:
                                 available_bikes = available_bikes.exclude(id=bike_id.id)
-                                print(bike_id.id)
-                                print(available_bikes)
                             check_date += datetime.timedelta(days=1)
-                            print(check_date)
-                        print(test_dict[bike_id.id])
                 amount = request.data["bike_stock"][rental_item]
                 for bike in range(amount):
                     bikes_list.append(available_bikes[bike].id)

@@ -1107,7 +1107,7 @@ class UserSearchWatchesUserView(APIView, ListModelMixin):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UserSearchWatcheUserView(generics.RetrieveUpdateDestroyAPIView):
+class UserSearchWatchUserView(generics.RetrieveUpdateDestroyAPIView):
     """
     Delete the specific address given in kwargs. address needs to match logged in user id as owner
     """
@@ -1212,7 +1212,7 @@ class UserSearchWatchesAdminView(generics.ListCreateAPIView):
 
 
 @extend_schema_view(patch=extend_schema(exclude=True))
-class UserSearchWatcheAdminView(generics.RetrieveUpdateDestroyAPIView):
+class UserSearchWatchAdminView(generics.RetrieveUpdateDestroyAPIView):
     """
     single user search watch:
     FOR ADMINS

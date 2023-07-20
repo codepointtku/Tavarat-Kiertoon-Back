@@ -326,12 +326,12 @@ class RentalListView(generics.ListCreateAPIView):
             if rental_item.startswith("package"):
                 package = BikePackage.objects.get(
                     id=rental_item.split("-", 1)[1]
-                ).bikes.values("id", "amount")
+                ).bikes.values("bike", "amount")
                 packageamount = request.data["bike_stock"][rental_item]
                 for packageitem in package:
                     amount = packageamount * packageitem["amount"]
                     available_bikes = BikeStock.objects.filter(
-                        bike=packageitem["id"], state="AVAILABLE"
+                        bike=packageitem["bike"], state="AVAILABLE"
                     ).order_by("-package_only", "id")
                     for bike_id in available_bikes:
                         check_date = request_start_date

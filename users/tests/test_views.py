@@ -7,7 +7,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from orders.models import ShoppingCart
-from users.models import CustomUser, UserAddress
+from users.models import CustomUser, UserAddress, UserLogEntry, UserSearchWatch
 from users.permissions import is_in_group
 from users.serializers import GroupPermissionsSerializer
 
@@ -133,6 +133,13 @@ class TestUsers(TestCase):
         """
         current_user_number = CustomUser.objects.count()
         url = "/users/create/"
+
+        # taking user log count to be  compared to after user  creation shouldnt be same
+        user_log_count_at_start = UserLogEntry.objects.all().count()
+        # log should be emptty starting
+        self.assertEqual(
+            user_log_count_at_start, 0, "User logs should be empty when starting"
+        )
 
         # test GET not alloweed
         response = self.client.get(url)
@@ -274,6 +281,14 @@ class TestUsers(TestCase):
             user.email,
             user.username,
             "joint user should have not same username and email",
+        )
+
+        user_log_count_at_end = UserLogEntry.objects.all().count()
+        # log should be emptty starting
+        self.assertNotEqual(
+            user_log_count_at_start,
+            user_log_count_at_end,
+            "No user logs were created during creation, creation logs should happen",
         )
 
     def test_user_login(self):

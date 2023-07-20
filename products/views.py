@@ -19,7 +19,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from categories.models import Category
 from orders.models import ShoppingCart
 from orders.serializers import ShoppingCartDetailSerializer
-from users.custom_functions import check_product_watch, check_whole_product
+from users.custom_functions import check_whole_product
 from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 

@@ -307,6 +307,10 @@ class TestUsers(TestCase):
             204,
             "wrong status code when wrong login info",
         )
+
+        # remember login time beofre and after login to check that it updates correctly
+        before_login = CustomUser.objects.get(username="testi1@turku.fi").last_login
+
         # correct login info
         data = {
             "username": "testi1@turku.fi",
@@ -335,6 +339,13 @@ class TestUsers(TestCase):
         self.assertTrue(
             ("user_group" in response.json()["groups"]),
             "did not find user group in login response",
+        )
+
+        # check that last login was updated correctly
+        self.assertNotEqual(
+            before_login,
+            CustomUser.objects.get(username="testi1@turku.fi").last_login,
+            "Last login date was npot updated correctly",
         )
 
     def test_user_refresh(self):

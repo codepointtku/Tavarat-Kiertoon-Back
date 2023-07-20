@@ -79,7 +79,7 @@ def check_product_watch(product_name, product_id=False, additional_info="") -> b
         )
 
     for search in UserSearchWatch.objects.all():
-        if search.word in product_name:
+        if search.word.lower() in product_name.lower():
             any_match_found = True
 
             subject = f"New item available you have set watch for: {product_name}"

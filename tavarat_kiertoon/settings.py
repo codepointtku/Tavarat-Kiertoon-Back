@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 import json
+from datetime import timedelta
 from pathlib import Path
 
 from decouple import Csv, config
@@ -141,14 +142,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-from datetime import timedelta
-
 SIMPLE_JWT = {
     # "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     # "REFRESH_TOKEN_LIFETIME": timedelta(hours=12),
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(config("ACCESS_TOKEN_LIFETIME"))),
     "REFRESH_TOKEN_LIFETIME": timedelta(hours=int(config("REFRESH_TOKEN_LIFETIME"))),
+    "REFRESH_TOKEN_LIFETIME_REMEMBER_ME": timedelta(
+        days=int(config("REFRESH_TOKEN_REMEMBER_ME"))
+    ),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": False,
@@ -177,6 +178,17 @@ SIMPLE_JWT = {
     "AUTH_COOKIE_PATH": "/",  # The path of the auth cookie.
     "AUTH_COOKIE_SAMESITE": "Lax",  # Whether to set the flag restricting cookie leaks on cross-site requests. This can be 'Lax', 'Strict', or None to disable the flag.
 }
+
+SPECTACULAR_SETTINGS = {
+    "ENUM_NAME_OVERRIDES": {
+        "ContactFormStatusEnum": "contact_forms.models.ContactForm.StatusChoices",
+        "BikeStateEnum": "bikes.models.BikeStock.StateChoices",
+        "OrderStatusEnum": "orders.models.Order.StatusChoices",
+        "UserLogEnum": "users.models.UserLogEntry.ActionChoices",
+        "BikeRentalEnum": "bikes.models.BikeRental.StateChoices",
+    }
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/

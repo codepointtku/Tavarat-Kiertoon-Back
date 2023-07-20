@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.hashers import check_password
@@ -35,7 +37,8 @@ from rest_framework_simplejwt.views import TokenViewBase
 from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
-from .models import CustomUser, UserAddress
+from .custom_functions import cookie_setter
+from .models import CustomUser, UserAddress, UserLogEntry
 from .permissions import HasGroupPermission
 from .serializers import (
     GroupNameSerializer,
@@ -53,6 +56,8 @@ from .serializers import (
     UserFullResponseSchemaSerializer,
     UserFullSerializer,
     UserLoginPostSerializer,
+    UserLogResponseSchemaSerializer,
+    UserLogSerializer,
     UserPasswordChangeEmailValidationSerializer,
     UserPasswordCheckEmailSerializer,
     UsersLoginRefreshResponseSchemaSerializer,
@@ -78,7 +83,7 @@ def get_tokens_for_user(user):
 
 class UserCreateListView(APIView):
     """
-    List all users, and create with POST
+    create with POST
     if username field comes = joint user
     if no username = normal user and email address gets copied to username and will be used to login
     """
@@ -120,6 +125,12 @@ class UserCreateListView(APIView):
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()
 
+            UserLogEntry.objects.create(
+                action=UserLogEntry.ActionChoices.CREATED,
+                target=user,
+                user_who_did_this_action=user,
+            )
+
             # create email verification for user creation
             if settings.TEST_DEBUG:  # settings.DEBUG:
                 # print("debug päällä, activating user without email")
@@ -128,6 +139,11 @@ class UserCreateListView(APIView):
                 )
                 user.is_active = True
                 user.save()
+                UserLogEntry.objects.create(
+                    action=UserLogEntry.ActionChoices.ACTIVATED,
+                    target=user,
+                    user_who_did_this_action=user,
+                )
             else:
                 token_generator = default_token_generator
                 token_for_user = token_generator.make_token(user=user)
@@ -191,6 +207,12 @@ class UserActivationView(APIView):
             user.is_active = True
             user.save()
 
+            UserLogEntry.objects.create(
+                action=UserLogEntry.ActionChoices.ACTIVATED,
+                target=user,
+                user_who_did_this_action=user,
+            )
+
             return Response("user activated", status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
@@ -213,29 +235,20 @@ class UserLoginView(APIView):
         user = authenticate(
             username=pw_data.data["username"], password=pw_data.data["password"]
         )
+
         if user is not None:
             response = Response()
             # setting the jwt tokens as http only cookie to "login" the user
             data = get_tokens_for_user(user)
-            response.set_cookie(
-                key=settings.SIMPLE_JWT["AUTH_COOKIE"],
-                value=data["access"],
-                expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-                max_age=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-                secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-                path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+
+            cookie_setter(
+                settings.SIMPLE_JWT["AUTH_COOKIE"], data["access"], False, response
             )
-            response.set_cookie(
-                key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
-                value=data["refresh"],
-                expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
-                max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
-                secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-                httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-                samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-                path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+            cookie_setter(
+                settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
+                data["refresh"],
+                pw_data.data["remember_me"],
+                response,
             )
 
             msg = "Login successfully"
@@ -284,15 +297,11 @@ class UserTokenRefreshView(TokenViewBase):
 
         # setting the access token jwt cookie
         response = Response()
-        response.set_cookie(
-            key=settings.SIMPLE_JWT["AUTH_COOKIE"],
-            value=serializer.validated_data["access"],
-            expires=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-            max_age=settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
-            secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
-            httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
-            samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
-            path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+        cookie_setter(
+            settings.SIMPLE_JWT["AUTH_COOKIE"],
+            serializer.validated_data["access"],
+            False,
+            response,
         )
 
         # put here what other information front needs from refresh. like users groups need be in list form
@@ -418,6 +427,28 @@ class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
 
         return Response(serializer.data)
 
+    def put(self, request, *args, **kwargs):
+        temp = self.update(request, *args, **kwargs)
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_INFO,
+            target=User.objects.get(id=kwargs["pk"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
+
+    def patch(self, request, *args, **kwargs):
+        temp = self.partial_update(request, *args, **kwargs)
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_INFO,
+            target=User.objects.get(id=kwargs["pk"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
+
 
 # getting all groups and their names
 class GroupListView(generics.ListAPIView):
@@ -474,7 +505,15 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        return self.update(request, *args, **kwargs)
+        temp = self.update(request, *args, **kwargs)
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.PERMISSIONS,
+            target=User.objects.get(id=kwargs["pk"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
 
     def patch(self, request, *args, **kwargs):
         if request.user.id == kwargs["pk"]:
@@ -483,7 +522,15 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        return self.partial_update(request, *args, **kwargs)
+        temp = self.partial_update(request, *args, **kwargs)
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.PERMISSIONS,
+            target=User.objects.get(id=kwargs["pk"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
 
 
 @extend_schema_view(
@@ -523,6 +570,13 @@ class UserUpdateInfoView(APIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_INFO,
+            target=request.user,
+            user_who_did_this_action=request.user,
+        )
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -562,6 +616,11 @@ class UserAddressEditView(APIView, ListModelMixin):
         serializer = self.serializer_class(data=copy_of_request_data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
+            target=request.user,
+            user_who_did_this_action=request.user,
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # used for updating existing address user has
@@ -585,6 +644,12 @@ class UserAddressEditView(APIView, ListModelMixin):
 
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
+            target=request.user,
+            user_who_did_this_action=request.user,
+        )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -613,6 +678,12 @@ class UserAddressEditDeleteView(APIView):
         if request.user.id == address.user.id:
             address_msg = address.address + " " + address.zip_code + " " + address.city
             address.delete()
+
+            UserLogEntry.objects.create(
+                action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO_DELETE,
+                target=request.user,
+                user_who_did_this_action=request.user,
+            )
 
             return Response(
                 f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
@@ -648,6 +719,69 @@ class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = UserAddressSerializer
     queryset = UserAddress.objects.all()
+
+    def put(self, request, *args, **kwargs):
+        temp = self.update(request, *args, **kwargs)
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
+            target=User.objects.get(id=temp.data["user"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
+
+    def patch(self, request, *args, **kwargs):
+        temp = self.partial_update(request, *args, **kwargs)
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
+            target=User.objects.get(id=temp.data["user"]),
+            user_who_did_this_action=request.user,
+        )
+        return temp
+
+    def delete(self, request, *args, **kwargs):
+        temp_target_user = UserAddress.objects.get(id=kwargs["pk"]).user
+        temp = self.destroy(request, *args, **kwargs)
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO_DELETE,
+            target=temp_target_user,
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
+
+
+class UserAddressAdminCreateView(generics.CreateAPIView):
+    """
+    add new address for user with POST
+    For use of admins only
+    """
+
+    authentication_classes = [
+        # SessionAuthentication,
+        # BasicAuthentication,
+        # JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "POST": ["admin_group"],
+    }
+
+    serializer_class = UserAddressSerializer
+    queryset = UserAddress.objects.all()
+
+    def post(self, request, *args, **kwargs):
+        temp = self.create(request, *args, **kwargs)
+        temp_target_user = UserAddress.objects.get(id=temp.data["user"]).user
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
+            target=temp_target_user,
+            user_who_did_this_action=request.user,
+        )
+
+        return temp
 
 
 @extend_schema(responses=None)
@@ -741,6 +875,11 @@ class UserPasswordResetMailValidationView(APIView):
             user.set_password(serializer.data["new_password"])
             user.is_active = True
             user.save()
+            UserLogEntry.objects.create(
+                action=UserLogEntry.ActionChoices.PASSWORD,
+                target=user,
+                user_who_did_this_action=user,
+            )
 
             response = Response()
             response.status_code = status.HTTP_200_OK
@@ -870,6 +1009,12 @@ class UserEmailChangeFinishView(APIView):
                 user.username = serializer.data["new_email"]
             user.save()
 
+            UserLogEntry.objects.create(
+                action=UserLogEntry.ActionChoices.EMAIL,
+                target=user,
+                user_who_did_this_action=user,
+            )
+
             message = {"message": "Sähköposti osoite vaihdettu"}
             return Response(
                 MessageSerializer(data=message).initial_data,
@@ -880,3 +1025,41 @@ class UserEmailChangeFinishView(APIView):
                 f"somethign went wrong: {serializer.errors}",
                 status=status.HTTP_204_NO_CONTENT,
             )
+
+
+class UserLogListPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = "page_size"
+
+
+class UserLogFilter(filters.FilterSet):
+    class Meta:
+        model = UserLogEntry
+        fields = ["target", "action", "user_who_did_this_action"]
+
+
+@extend_schema(responses=UserLogResponseSchemaSerializer)
+class UserLogView(generics.ListAPIView):
+
+    """
+    user log list view
+    """
+
+    authentication_classes = [
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+    }
+
+    pagination_class = UserLogListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+
+    ordering_fields = ["action", "target", "date", "user_who_did_this_action"]
+    ordering = ["id"]
+    filterset_class = UserLogFilter
+
+    serializer_class = UserLogSerializer
+    queryset = UserLogEntry.objects.all()

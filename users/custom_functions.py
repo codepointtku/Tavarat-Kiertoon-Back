@@ -46,11 +46,6 @@ def check_whole_product(product: ProductModel, color_search=False) -> bool:
     giving color_search true also causes search in product.colors
     """
 
-    # for use of shell quick copepaste for testing
-    # from products.models import Product as ProductModel
-    # from users.custom_functions import check_whole_product
-    # check_whole_product(ProductModel.objects.get(id=66))
-
     match_found = False
 
     if check_product_watch(product.name):

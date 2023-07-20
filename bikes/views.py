@@ -332,7 +332,7 @@ class RentalListView(generics.ListCreateAPIView):
                     amount = packageamount * packageitem["amount"]
                     available_bikes = BikeStock.objects.filter(
                         bike=packageitem["bike"], state="AVAILABLE"
-                    ).order_by("-package_only", "id")
+                    ).order_by("-package_only", "id").exclude(id__in=bikes_list)
                     for bike_id in available_bikes:
                         check_date = request_start_date
                         if bike_id.id in unavailable_dates.keys():

@@ -345,7 +345,7 @@ class TestUsers(TestCase):
         self.assertNotEqual(
             before_login,
             CustomUser.objects.get(username="testi1@turku.fi").last_login,
-            "Last login date was npot updated correctly",
+            "Last login date was not updated correctly",
         )
 
     def test_user_refresh(self):
@@ -491,7 +491,7 @@ class TestUsers(TestCase):
 
     def test_user_detail_loggedin(self):
         """
-        Test for testing getitng logged in users stuff
+        Test for testing getting logged in users info
         """
         url = "/user/"
         # anonymous
@@ -550,6 +550,9 @@ class TestUsers(TestCase):
         groups_before = first.data["groups"]
         url = f"/users/{user_for_testing.id}/groups/permission/"
 
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
+
         # testing that normal non admin user cant do the change
         self.login_test_user()
         response = self.client.get(url, content_type="application/json")
@@ -598,6 +601,13 @@ class TestUsers(TestCase):
             groups_before,
             groups_after,
             "group permissions in database should change",
+        )
+
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
         )
 
     def test_updating_user_info_with_user(self):

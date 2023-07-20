@@ -424,7 +424,7 @@ class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
     def get(self, request, pk, format=None):
         try:
             user = CustomUser.objects.get(pk=pk)
-        except ObjectDoesNotExist:
+        except CustomUser.DoesNotExist:
             return Response("no such user", status=status.HTTP_204_NO_CONTENT)
 
         serializer = UserFullSerializer(user)

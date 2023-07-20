@@ -81,8 +81,8 @@ def check_product_watch(product_name, additional_info="") -> bool:
 
             subject = f"New item available you have set watch for: {product_name}"
             message = (
-                f"There was new item for watch word {search.word} you have set.\n\n"
-                f"Its name is: {additional_info}{product_name} and can be found int tavarat kiertoon system now \n\n"
+                f"There was new item for watch word: {search.word}, you have set.\n\n"
+                f"Its name is: {additional_info}{product_name} and can be found in tavarat kiertoon system now \n\n"
             )
 
             send_mail(

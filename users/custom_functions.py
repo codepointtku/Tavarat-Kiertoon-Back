@@ -48,13 +48,15 @@ def check_whole_product(product: ProductModel, color_search=False) -> bool:
 
     match_found = False
 
-    if check_product_watch(product.name):
+    if check_product_watch(product.name, product_id=product.id):
         match_found = True
 
     if color_search:
         for color in product.colors.all():
             if check_product_watch(
-                color.name, additional_info=f"Color match in {product.name}: "
+                color.name,
+                product_id=product.id,
+                additional_info=f"Color match in {product.name}: ",
             ):
                 match_found = True
                 break
@@ -62,13 +64,19 @@ def check_whole_product(product: ProductModel, color_search=False) -> bool:
     return match_found
 
 
-def check_product_watch(product_name, additional_info="") -> bool:
+def check_product_watch(product_name, product_id=False, additional_info="") -> bool:
     """
     Function to check if value is is the watch list and sends email to person with match.
     returns True if match is found, False if no match
     """
 
     any_match_found = False
+
+    front_url_info = ""
+    if product_id:
+        front_url_info = (
+            f"\n\nDirect link to product: {settings.URL_FRONT}tuotteet/{product_id}"
+        )
 
     for search in UserSearchWatch.objects.all():
         if search.word in product_name:
@@ -78,6 +86,7 @@ def check_product_watch(product_name, additional_info="") -> bool:
             message = (
                 f"There was new item for watch word: {search.word}, you have set.\n\n"
                 f"Its name is: {additional_info}{product_name} and can be found in tavarat kiertoon system now \n\n"
+                f"{front_url_info}"
             )
 
             send_mail(

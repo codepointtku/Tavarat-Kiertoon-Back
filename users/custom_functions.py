@@ -1,12 +1,12 @@
 from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.mail import send_mail
 from django.utils.crypto import constant_time_compare
 from django.utils.http import base36_to_int
-from django.core.mail import send_mail
-
-from .models import UserSearchWatch
 
 from products.models import Product as ProductModel
+
+from .models import UserSearchWatch
 
 
 def validate_email_domain(email):
@@ -38,55 +38,51 @@ def cookie_setter(key, value, remember_me, response):
         path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
     )
 
-def check_whole_product(product : ProductModel):
 
+def check_whole_product(product: ProductModel, color_search=False) -> bool:
+    """
+    Takes product and performs the product watch search for it.
+    Currently searches match in product.name
+    giving color_search true also causes search in product.colors
+    """
+
+    # for use of shell quick copepaste for testing
     # from products.models import Product as ProductModel
     # from users.custom_functions import check_whole_product
     # check_whole_product(ProductModel.objects.get(id=66))
 
+    match_found = False
+
     if check_product_watch(product.name):
-        print("match found in name")
-    else :
-        print("no match found in name")
-        print("lets check the colors:", product.colors.all())
-        
-        # print("product.colors", product.colors)
+        match_found = True
 
+    if color_search:
         for color in product.colors.all():
-            if check_product_watch(color.name):
-                print("colro match found in:", color.name)
+            if check_product_watch(
+                color.name, additional_info=f"Color match in {product.name}: "
+            ):
+                match_found = True
                 break
-        # for color in product.colors :
-        #     if check_product_watch(color):
-        #         print("found color match")
-        #         break
 
-def check_product_watch(product_name):
+    return match_found
+
+
+def check_product_watch(product_name, additional_info="") -> bool:
     """
-    Function to check if value is is the watch list
+    Function to check if value is is the watch list and sends email to person with match.
+    returns True if match is found, False if no match
     """
 
-
-    print("does it come here and delivered value: ", product_name)
-    # results = UserSearchWatch.objects.filter(word__contains=product_name)
-    # print("results: ", results)
-    # print("count: ", results.count())
     any_match_found = False
-    # count_matches = 0
 
     for search in UserSearchWatch.objects.all():
-        if search.word in product_name :
-            # count_matches += 1
-            print("match found in: ", search)
+        if search.word in product_name:
             any_match_found = True
-            print("match was: ", search.word, "comapred to ", product_name)
-            print("sending mail to adress: ", search.user.email)
 
-            # sending the email
             subject = f"New item available you have set watch for: {product_name}"
             message = (
                 f"There was new item for watch word {search.word} you have set.\n\n"
-                f"Its name is: {product_name} and can be found int tavarat kiertoon system now \n\n"
+                f"Its name is: {additional_info}{product_name} and can be found int tavarat kiertoon system now \n\n"
             )
 
             send_mail(
@@ -97,32 +93,8 @@ def check_product_watch(product_name):
                 fail_silently=False,
             )
 
-    # print("count of matches found: ", count_matches)
     return any_match_found
-    # if results.count() == 0:
-    #     return False
-    
-    # for result in results:
-    #     print("iterating thorugh results: ", result)
-    #     print("results word: ", result.word, "user: ", result.user)
-    #     print("users email: ", result.user.email)
 
-    #     # sending the email
-    #     subject = f"New item available you have set watch for: {product_name}"
-    #     message = (
-    #         f"There was new item for watch word {result.word} you have set.\n\n"
-    #         f"Its name is: {product_name} and can be found int tavarat kiertoon systme now \n\n"
-    #     )
-
-    #     # send_mail(
-    #     #     subject,
-    #     #     message,
-    #     #     settings.EMAIL_HOST_USER,
-    #     #     [user.email],
-    #     #     fail_silently=False,
-    #     # )
-
-    # return True
 
 class CustomTimeTokenGenerator(PasswordResetTokenGenerator):
     """

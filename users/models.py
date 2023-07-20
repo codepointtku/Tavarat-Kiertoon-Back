@@ -171,3 +171,6 @@ class UserSearchWatch(models.Model):
     id = models.BigAutoField(primary_key=True)
     word = models.CharField(max_length=255)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"Search watch for {self.user} , with word: {self.word}"

@@ -119,6 +119,10 @@ class TestUsers(TestCase):
             "/users/activate/",
             "/users/emailchange/",
             "/users/emailchange/finish/",
+            "/users/searchwatch/",
+            "/user/searchwatch/",
+            "/users/searchwatch/1",
+            "/user/searchwatch/1",
         ]
 
         # goign thorugh the urls
@@ -1453,7 +1457,7 @@ class TestUsers(TestCase):
 
     def test_users_ordering_pagination(self):
         """
-        tedsting filters and pagination for users
+        testing filters and pagination for users
         """
         # when pagination is on and you try to enter non-existing page you get 404
         # but without pagination you get normal page
@@ -1514,4 +1518,42 @@ class TestUsers(TestCase):
             response,
             response2,
             "responses should not be same if oposite last_login ordering",
+        )
+
+    def test_user_search_watch_end_points(self):
+        """
+        Test for testing the user watch end points creation/edit/deletion
+        """
+
+        url = "/user/searchwatch/"
+
+        self.login_test_user()
+
+        log_count_at_start = UserLogEntry.objects.all().count()
+        watches_at_start = UserSearchWatch.objects.all().count()
+        print("watch count:", UserSearchWatch.objects.all().count())
+
+        # testing that creatiing new watches works for user
+        data = {"word": "hieno"}
+        response = self.client.post(url, data, content_type="application/json")
+
+        self.assertEqual(
+            response.status_code, 201, "creation with post should go through"
+        )
+        self.assertNotEqual(
+            watches_at_start,
+            UserSearchWatch.objects.all().count(),
+            "database should have entry after creation",
+        )
+
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            200,
+            "Get should go through when logged in in search watch self",
+        )
+        self.assertEqual(
+            CustomUser.objects.get(username="testi1@turku.fi").id,
+            UserSearchWatch.objects.get(word="hieno").user.id,
+            "search watch user should be own user",
         )

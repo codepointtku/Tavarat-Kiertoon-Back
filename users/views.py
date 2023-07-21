@@ -1097,7 +1097,7 @@ class UserSearchWatchesUserView(APIView, ListModelMixin):
             target=request.user,
             user_who_did_this_action=request.user,
         )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class UserSearchWatchUserView(generics.RetrieveUpdateDestroyAPIView):

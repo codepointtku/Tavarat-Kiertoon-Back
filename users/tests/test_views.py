@@ -603,11 +603,35 @@ class TestUsers(TestCase):
             "group permissions in database should change",
         )
 
+        # with put
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            200,
+            "admin should able to succesfully change permissions",
+        )
+
         # checking logs were created:
         self.assertNotEqual(
             log_count_before,
             UserLogEntry.objects.all().count(),
             "logs should be created  during permission changes",
+        )
+
+        # checking that admins cant change their own permission
+        user_for_testing = CustomUser.objects.get(username="admin")
+        url = f"/users/{user_for_testing.id}/groups/permission/"
+        response = self.client.patch(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            403,
+            "admins shouldnt be able to change their own groups",
+        )
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            403,
+            "admins shouldnt be able to change their own groups",
         )
 
     def test_updating_user_info_with_user(self):
@@ -710,6 +734,17 @@ class TestUsers(TestCase):
         self.assertEqual(user2.first_name, "Kinkku", "user info changeed wrongly")
         self.assertEqual(user2.last_name, "Kinkku!222", "user info changeed wrongly")
         self.assertEqual(user2.phone_number, "2222222", "user info changeed wrongly")
+
+        # with patch
+        data = {
+            "last_name": "aaa",
+        }
+        response = self.client.patch(url, data, content_type="application/json")
+        self.assertEqual(
+            CustomUser.objects.get(username="testi1@turku.fi").last_name,
+            "aaa",
+            "user info changeed wrongly",
+        )
 
         # checking logs were created:
         self.assertNotEqual(

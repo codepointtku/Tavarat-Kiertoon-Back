@@ -468,7 +468,10 @@ class GroupListView(generics.ListAPIView):
 
 
 @extend_schema_view(patch=extend_schema(exclude=True))
-@extend_schema(responses=GroupPermissionsResponseSchemaSerializer)
+@extend_schema(
+    responses=GroupPermissionsResponseSchemaSerializer,
+    request=GroupPermissionsResponseSchemaSerializer,
+)
 class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
     Update users permissions, should be only allowed to admins, on testing phase allowing fo users

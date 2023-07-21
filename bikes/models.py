@@ -50,62 +50,6 @@ class Bike(models.Model):
         return f"Bike: {self.name}({self.id})"
 
 
-class BikeStock(models.Model):
-    """Model for the bike stock, which is each individual bike."""
-
-    class StateChoices(models.TextChoices):
-        """Choices for the state of the bike."""
-
-        AVAILABLE = "AVAILABLE"
-        MAINTENANCE = "MAINTENANCE"
-        RETIRED = "RETIRED"
-
-    package_only = models.BooleanField(default=False)
-    number = models.CharField(max_length=255)
-    frame_number = models.CharField(max_length=255)
-    color = models.ForeignKey(Color, null=True, blank=True, on_delete=models.SET_NULL)
-    created_at = models.DateTimeField(auto_now_add=True)
-    state = models.CharField(
-        max_length=255,
-        choices=StateChoices.choices,
-        default="AVAILABLE",
-    )
-    bike = models.ForeignKey(Bike, related_name="stock", on_delete=models.CASCADE)
-    storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
-
-    def __str__(self) -> str:
-        return f"Bike stock: {self.number}({self.id})"
-
-
-class BikeRental(models.Model):
-    """Model for the bike rentals, same as orders."""
-
-    class StateChoices(models.TextChoices):
-        """Choices for the state of the rental."""
-
-        WAITING = "WAITING"
-        ACTIVE = "ACTIVE"
-        FINISHED = "FINISHED"
-
-    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-    bike_stock = models.ManyToManyField(BikeStock, related_name="rental")
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-    state = models.CharField(
-        max_length=255,
-        choices=StateChoices.choices,
-        default="WAITING",
-    )
-    delivery_address = models.CharField(max_length=255)
-    pickup = models.BooleanField(default=False)
-    contact_name = models.CharField(max_length=255)
-    contact_phone_number = models.CharField(max_length=255)
-    extra_info = models.CharField(max_length=255, default="", blank=True)
-
-    def __str__(self) -> str:
-        return f"Bike rental: {self.user}({self.id})"
-
-
 class BikePackage(models.Model):
     """Model for the bike packages, which has the bikes that are part of this package."""
 
@@ -128,3 +72,60 @@ class BikeAmount(models.Model):
     def __str__(self) -> str:
         return f"Bike amount: {self.amount}x{self.bike}({self.id})"
 
+
+class BikeStock(models.Model):
+    """Model for the bike stock, which is each individual bike."""
+
+    class StateChoices(models.TextChoices):
+        """Choices for the state of the bike."""
+
+        AVAILABLE = "AVAILABLE"
+        MAINTENANCE = "MAINTENANCE"
+        RETIRED = "RETIRED"
+
+    package_only = models.BooleanField(default=False)
+    number = models.CharField(max_length=255)
+    frame_number = models.CharField(max_length=255)
+    color = models.ForeignKey(Color, null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+    state = models.CharField(
+        max_length=255,
+        choices=StateChoices.choices,
+        default="AVAILABLE",
+    )
+    bike = models.ForeignKey(Bike, related_name="stock", on_delete=models.CASCADE)
+    storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
+    package = models.ForeignKey(BikePackage, related_name="bike_stock", null=True, blank=True, on_delete=models.SET_NULL)
+
+    def __str__(self) -> str:
+        return f"Bike stock: {self.number}({self.id})"
+
+
+class BikeRental(models.Model):
+    """Model for the bike rentals, same as orders."""
+
+    class StateChoices(models.TextChoices):
+        """Choices for the state of the rental."""
+
+        WAITING = "WAITING"
+        ACTIVE = "ACTIVE"
+        FINISHED = "FINISHED"
+
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    bike_stock = models.ManyToManyField(BikeStock, related_name="rental")
+    packages = models.ManyToManyField(BikePackage, related_name="packages")
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    state = models.CharField(
+        max_length=255,
+        choices=StateChoices.choices,
+        default="WAITING",
+    )
+    delivery_address = models.CharField(max_length=255)
+    pickup = models.BooleanField(default=False)
+    contact_name = models.CharField(max_length=255)
+    contact_phone_number = models.CharField(max_length=255)
+    extra_info = models.CharField(max_length=255, default="", blank=True)
+
+    def __str__(self) -> str:
+        return f"Bike rental: {self.user}({self.id})"

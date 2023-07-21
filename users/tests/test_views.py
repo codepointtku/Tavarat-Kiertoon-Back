@@ -616,6 +616,9 @@ class TestUsers(TestCase):
         """
         url = "/user/"
 
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
+
         # test without logging in (forbidden response)
         response = self.client.put(url)
         self.assertEqual(
@@ -646,6 +649,13 @@ class TestUsers(TestCase):
             "user phone number should have changed",
         )
 
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
     def test_updating_user_info_with_admin(self):
         """
         test for testing admin changin other users info
@@ -654,6 +664,9 @@ class TestUsers(TestCase):
         # get existing users id for testing
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
         url = f"/users/{user_for_testing.id}/"
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         # test response when not logged in
         response = self.client.get(url)
@@ -698,11 +711,21 @@ class TestUsers(TestCase):
         self.assertEqual(user2.last_name, "Kinkku!222", "user info changeed wrongly")
         self.assertEqual(user2.phone_number, "2222222", "user info changeed wrongly")
 
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
     def test_user_address(self):
         """
         test for testing user changing his own addressess
         """
         url = "/user/address/edit/"
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         # test response as anon
         response = self.client.get(url)
@@ -819,6 +842,13 @@ class TestUsers(TestCase):
             address_count_2, address_count_3, "after deletion count should be different"
         )
 
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
     def test_user_address_as_admin(self):
         """
         Test for testing admins rights to change adressess
@@ -827,6 +857,9 @@ class TestUsers(TestCase):
         address_for_testing = UserAddress.objects.get(address="testi")
         address_id = address_for_testing.id
         url = f"/users/address/{address_id}/"
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         # testing response for anons
         response = self.client.get(url)
@@ -891,6 +924,13 @@ class TestUsers(TestCase):
         with self.assertRaises(ObjectDoesNotExist, msg="adress was not deleted"):
             UserAddress.objects.get(id=address_id)
 
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
     def test_password_reset(self):
         """
         Test for testing password reset functionality
@@ -899,6 +939,9 @@ class TestUsers(TestCase):
         url = "/users/password/resetemail/"
         url2 = "/users/password/reset/"
         url3 = settings.PASSWORD_RESET_URL_FRONT
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         data = {"username": "tottally not should exist user name"}
         # testing invalid user, still should get 200 for security reasons but mail shoudnt be sent as user doesnt exist
@@ -1058,6 +1101,13 @@ class TestUsers(TestCase):
             "should be able to login with new pw",
         )
 
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
     @override_settings(TEST_DEBUG=False)
     def test_account_activation_reset(self):
         """
@@ -1067,6 +1117,9 @@ class TestUsers(TestCase):
         url = "/users/create/"
         # url = "/users/activate/"
         url2 = settings.USER_ACTIVATION_URL_FRONT
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         # creating user that needs to be activated
         data = {
@@ -1182,6 +1235,13 @@ class TestUsers(TestCase):
             200, response.status_code, "should be able to login when active now"
         )
 
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
     def test_account_email_change(self):
         """
         Test for testing the account email change functionality
@@ -1196,6 +1256,9 @@ class TestUsers(TestCase):
 
         user = self.login_test_user()
         user_id_test = user.id
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         # checking no mail is sent with incorrect data
         response = self.client.post(url, data, content_type="application/json")
@@ -1325,6 +1388,13 @@ class TestUsers(TestCase):
             old_username,
             user2.username,
             "username should have stayed same for joint user",
+        )
+
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
         )
 
     def test_users_ordering_pagination(self):

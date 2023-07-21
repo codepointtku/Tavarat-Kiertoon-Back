@@ -771,7 +771,7 @@ class UserAddressAdminCreateView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         temp = self.create(request, *args, **kwargs)
-        temp_target_user = UserAddress.objects.get(id=temp.data["user"]).user
+        temp_target_user = User.objects.get(id=temp.data["user"])
         UserLogEntry.objects.create(
             action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
             target=temp_target_user,

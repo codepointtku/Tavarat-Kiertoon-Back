@@ -112,6 +112,7 @@ class TestUsers(TestCase):
             f"/users/{user_for_testing.id}/",
             "/user/address/edit/",
             f"/user/address/edit/{address_for_testing.id}/",
+            "/users/address/",
             f"/users/address/{address_for_testing.id}/",
             "/users/password/resetemail/",
             "/users/password/reset/",
@@ -954,10 +955,28 @@ class TestUsers(TestCase):
             data_before, data_after, "the data should have been updated in database"
         )
 
+        # with put
+        data["user"] = CustomUser.objects.get(username="admin").id
+        response = self.client.put(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            200,
+            "update put should go thourgh",
+        )
+
         # testing that deleting user address works
         response = self.client.delete(url, content_type="application/json")
         with self.assertRaises(ObjectDoesNotExist, msg="adress was not deleted"):
             UserAddress.objects.get(id=address_id)
+
+        # testing address creation or user
+        url = f"/users/address/"
+        response = self.client.post(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            201,
+            "post(address creation) should go thourgh",
+        )
 
         # checking logs were created:
         self.assertNotEqual(

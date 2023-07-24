@@ -50,8 +50,9 @@ from bikes.serializers import (
     BikeTypeSerializer,
     BikeBrandSerializer,
     BikeSizeSerializer,
-    PictureCreateSerializer,
 )
+
+from products.serializers import PictureCreateSerializer
 
 
 @extend_schema_view(
@@ -363,9 +364,13 @@ class RentalListView(generics.ListCreateAPIView):
                 packageamount = request.data["bike_stock"][rental_item]
                 for packageitem in package:
                     amount = packageamount * packageitem["amount"]
-                    available_bikes = BikeStock.objects.filter(
-                        bike=packageitem["bike"], state="AVAILABLE"
-                    ).order_by("-package_only", "id").exclude(id__in=bikes_list)
+                    available_bikes = (
+                        BikeStock.objects.filter(
+                            bike=packageitem["bike"], state="AVAILABLE"
+                        )
+                        .order_by("-package_only", "id")
+                        .exclude(id__in=bikes_list)
+                    )
                     for bike_id in available_bikes:
                         check_date = request_start_date
                         if bike_id.id in unavailable_dates.keys():

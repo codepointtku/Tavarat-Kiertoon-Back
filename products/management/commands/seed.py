@@ -944,14 +944,14 @@ def create_bike_stock():
     bikes = Bike.objects.all()
     colors = Color.objects.all()
     for bike in bikes:
-        for _ in range(random.randint(7, 12)):
+        for _ in range(12):
             stock_object = BikeStock(
                 number=uuid.uuid4(),
                 frame_number=uuid.uuid4(),
                 bike=bike,
                 color=random.choice(colors),
                 storage=random.choice(storages),
-                package_only=random.choice([True, False]),
+                package_only=False,
             )
             stock_object.save()
 
@@ -961,12 +961,22 @@ def create_bike_package():
         {
             "name": "Päiväkoti -paketti",
             "description": "16″ pyöriä 7 kpl, 14″ pyöriä 3 kpl, potkupyöriä 10 kpl, pyöräilykypäriä 20 kpl, käsipumppu, jalkapumppu, monitoimityökalu",
-            "bikes": [{"size": "14″", "amount": 3}, {"size": "16″", "amount": 7}],
+            "bikes": [{"size": "14″", "amount": 4}, {"size": "16″", "amount": 4}],
+        },
+        {
+            "name": "Päiväkoti -paketti2",
+            "description": "16″ pyöriä 7 kpl, 14″ pyöriä 3 kpl, potkupyöriä 10 kpl, pyöräilykypäriä 20 kpl, käsipumppu, jalkapumppu, monitoimityökalu",
+            "bikes": [{"size": "14″", "amount": 4}, {"size": "16″", "amount": 4}],
         },
         {
             "name": "Koulu -paketti",
             "description": "20″ pyöriä 6 kpl, 24″ pyöriä 6 kpl, pyöräilykypäriä 13 kpl, käsipumppu, jalkapumppu, monitoimityökalu, molempia pyöriä olemassa 7 kpl, mutta tällä määrällä peräkärry on helppo lastata",
-            "bikes": [{"size": "20″", "amount": 6}, {"size": "24″", "amount": 6}],
+            "bikes": [{"size": "20″", "amount": 4}, {"size": "24″", "amount": 4}],
+        },
+        {
+            "name": "Koulu -paketti2",
+            "description": "20″ pyöriä 6 kpl, 24″ pyöriä 6 kpl, pyöräilykypäriä 13 kpl, käsipumppu, jalkapumppu, monitoimityökalu, molempia pyöriä olemassa 7 kpl, mutta tällä määrällä peräkärry on helppo lastata",
+            "bikes": [{"size": "20″", "amount": 4}, {"size": "24″", "amount": 4}],
         },
     ]
     for package in packages:
@@ -981,6 +991,13 @@ def create_bike_package():
                 bike=bike_object, amount=bike["amount"], package=package_object
             )
             amount_object.save()
+            bikestock_list = BikeStock.objects.filter(bike=bike_object, package_only=False).values().order_by("id")
+            for _ in range(bike["amount"]):
+                obj = BikeStock.objects.get(id=bikestock_list[0]["id"])
+                obj.package_only = "True"
+                obj.package = package_object
+                obj.save()
+
 
 
 def run_seed(self, mode):

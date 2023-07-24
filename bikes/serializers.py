@@ -103,7 +103,6 @@ class BikeAmountSerializer(serializers.ModelSerializer):
 
 
 class BikePackageSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = BikePackage
         fields = [
@@ -225,7 +224,6 @@ class BikeModelSerializer(serializers.ModelSerializer):
 
 
 class BikeModelCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Bike
         fields = "__all__"
@@ -302,7 +300,7 @@ class BikeAmountSchemaCreateSerializer(serializers.ModelSerializer):
 
 class BikeAvailabilityListSerializer(serializers.ModelSerializer):
     rental = BikeRentalSerializer(many=True)
-    
+
     class Meta:
         model = BikeStock
         fields = [

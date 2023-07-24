@@ -148,6 +148,7 @@ class UserLogEntry(models.Model):
         USER_ADDRESS_INFO_DELETE = "User address info was deleted"
         PERMISSIONS = "Users permissions were changed"
         EMAIL = "Users email was changed"
+        WATCH = "Users search watch was edited"
 
     id = models.BigAutoField(primary_key=True)
     date = models.DateTimeField(auto_now_add=True)
@@ -160,3 +161,16 @@ class UserLogEntry(models.Model):
     action = models.CharField(
         max_length=255, choices=ActionChoices.choices, default="Created"
     )
+
+
+class UserSearchWatch(models.Model):
+    """
+    Model used for the search watch functionality for user
+    """
+
+    id = models.BigAutoField(primary_key=True)
+    word = models.CharField(max_length=255)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"Search watch for {self.user} , with word: {self.word}"

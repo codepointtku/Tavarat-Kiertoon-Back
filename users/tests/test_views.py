@@ -1531,7 +1531,6 @@ class TestUsers(TestCase):
 
         log_count_at_start = UserLogEntry.objects.all().count()
         watches_at_start = UserSearchWatch.objects.all().count()
-        print("watch count:", UserSearchWatch.objects.all().count())
 
         # testing that creatiing new watches works for user
         data = {"word": "hieno"}

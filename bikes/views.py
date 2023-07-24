@@ -175,6 +175,7 @@ class BikeAvailabilityList(generics.ListAPIView):
             bike["available_to"] = available_to
             bike["rental_dates"] = []
             for rental in bike["rental"]:
+                print(rental)
                 start_date = datetime.datetime.fromisoformat(rental["start_date"])
                 end_date = datetime.datetime.fromisoformat(rental["end_date"])
                 end_date += datetime.timedelta(days=1)
@@ -188,7 +189,26 @@ class BikeAvailabilityList(generics.ListAPIView):
                     date += datetime.timedelta(days=1)
             del bike["rental"]
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        packageserializer = BikePackageSerializer(BikePackage.objects.all(), many=True)
+        for package in packageserializer.data:
+            package["rental_dates"] = []
+            for rental in package["packagerental"]:
+                start_date = datetime.datetime.fromisoformat(rental["start_date"])
+                end_date = datetime.datetime.fromisoformat(rental["end_date"])
+                end_date += datetime.timedelta(days=1)
+                while end_date.weekday() >= 5:
+                    end_date += datetime.timedelta(days=1)
+                date = start_date
+                while date <= end_date:
+                    date_str = date.strftime("%d.%m.%Y")
+                    if date_str not in package["rental_dates"]:
+                        package["rental_dates"].append(date_str)
+                    date += datetime.timedelta(days=1)
+            del package["packagerental"]
+
+        kekkedata = serializer.data + packageserializer.data
+
+        return Response(kekkedata, status=status.HTTP_200_OK)
 
 
 class MainBikeList(generics.ListAPIView):
@@ -333,6 +353,28 @@ class RentalListView(generics.ListCreateAPIView):
         unavailable_dates = {}
         for bikedata in bikerentalserializer.data:
             unavailable_dates[bikedata["id"]] = bikedata["rental_dates"]
+        print(unavailable_dates)
+
+        packageserializer = BikePackageSerializer(BikePackage.objects.all(), many=True)
+        for package in packageserializer.data:
+            package["rental_dates"] = []
+            for rental in package["packagerental"]:
+                start_date = datetime.datetime.fromisoformat(rental["start_date"])
+                end_date = datetime.datetime.fromisoformat(rental["end_date"])
+                end_date += datetime.timedelta(days=1)
+                while end_date.weekday() >= 5:
+                    end_date += datetime.timedelta(days=1)
+                date = start_date
+                while date <= end_date:
+                    date_str = date.strftime("%d.%m.%Y")
+                    if date_str not in package["rental_dates"]:
+                        package["rental_dates"].append(date_str)
+                    date += datetime.timedelta(days=1)
+            del package["packagerental"]
+        package_unavailable_dates = {}
+        for packagedata in packageserializer.data:
+            package_unavailable_dates[packagedata["id"]] = packagedata["rental_dates"]
+        print(package_unavailable_dates)
 
         instance = request.data
         bikes_list = []

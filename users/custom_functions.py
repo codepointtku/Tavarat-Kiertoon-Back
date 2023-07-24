@@ -45,16 +45,12 @@ def check_product_watch(product: ProductModel, additional_info="") -> bool:
     returns True if match is found, False if no match
     """
 
-    any_match_found = False
-
     front_url_info = (
         f"\n\nDirect link to product: {settings.URL_FRONT}tuotteet/{product.id}"
     )
 
     for search in UserSearchWatch.objects.all():
         if search.word.lower() in product.name.lower():
-            any_match_found = True
-
             subject = f"New item available you have set watch for: {product.name}"
             message = (
                 f"There was new item for watch word: {search.word}, you have set.\n\n"
@@ -70,8 +66,6 @@ def check_product_watch(product: ProductModel, additional_info="") -> bool:
                 [search.user.email],
                 fail_silently=False,
             )
-
-    return any_match_found
 
 
 class CustomTimeTokenGenerator(PasswordResetTokenGenerator):

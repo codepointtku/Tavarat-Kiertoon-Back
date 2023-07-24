@@ -35,6 +35,7 @@ from bikes.serializers import (
     BikeAvailabilityListSerializer,
     BikeAvailabilityListResponseSerializer,
     BikePackageSerializer,
+    BikePackageListSerializer,
     BikeRentalSerializer,
     BikeSerializer,
     BikeStockListSerializer,
@@ -205,32 +206,11 @@ class MainBikeList(generics.ListAPIView):
         )
 
         for index, bike in enumerate(bike_serializer.data):
-            package_only_count = 0
+            max_available = 0
             unavailable = {}
-            package_only_unavailable = {}
             for bike in bike["stock"]:
-                if bike["package_only"] is True:
-                    package_only_count += 1
-                    for rental in bike["rental"]:
-                        start_date = datetime.datetime.fromisoformat(
-                            rental["start_date"]
-                        )
-                        end_date = datetime.datetime.fromisoformat(rental["end_date"])
-                        # We want to give the warehouse workers a business day to maintain the bikes, after the rental has ended
-                        end_date += datetime.timedelta(days=1)
-                        while end_date.weekday() >= 5:
-                            end_date += datetime.timedelta(days=1)
-                        date = start_date
-                        while date <= end_date:
-                            date_str = date.strftime("%d.%m.%Y")
-                            if date_str in package_only_unavailable:
-                                package_only_unavailable[date_str] = (
-                                    1 + package_only_unavailable[date_str]
-                                )
-                            else:
-                                package_only_unavailable[date_str] = 1
-                            date += datetime.timedelta(days=1)
-                else:
+                if bike["package_only"] is False:
+                    max_available += 1
                     for rental in bike["rental"]:
                         start_date = datetime.datetime.fromisoformat(
                             rental["start_date"]
@@ -244,41 +224,42 @@ class MainBikeList(generics.ListAPIView):
                         while date <= end_date:
                             date_str = date.strftime("%d.%m.%Y")
                             if date_str in unavailable:
-                                unavailable[date_str] = 1 + unavailable[date_str]
+                                unavailable[date_str] = (
+                                    1 + unavailable[date_str]
+                                )
                             else:
                                 unavailable[date_str] = 1
                             date += datetime.timedelta(days=1)
+                else:
+                    pass
             bike_serializer.data[index]["unavailable"] = unavailable
-            bike_serializer.data[index]["package_only_count"] = package_only_count
-            bike_serializer.data[index][
-                "package_only_unavailable"
-            ] = package_only_unavailable
+            bike_serializer.data[index]["max_available"] = max_available
             del bike_serializer.data[index]["stock"]
 
         for index, package in enumerate(bike_package_serializer.data):
             serializer_package = bike_package_serializer.data[index]
             serializer_package["type"] = "Paketti"
             serializer_package["unavailable"] = {}
-            serializer_package["brand"] = None
-            serializer_package["color"] = None
-            max_available = None
-            for bike in package["bikes"]:
-                bike_object = Bike.objects.get(id=bike["bike"])
-                if "size" in serializer_package:
-                    serializer_package[
-                        "size"
-                    ] = f"{serializer_package['size']} & {bike_object.size.name}"
-                else:
-                    serializer_package["size"] = bike_object.size.name
-                bike_object_serializer = BikeSerializer(bike_object)
-                bike_max_available = math.floor(
-                    bike_object_serializer.data["max_available"] / bike["amount"]
-                )
-                if max_available is None:
-                    max_available = bike_max_available
-                else:
-                    max_available = min(max_available, bike_max_available)
+            max_available = 1
+            for package in package["packages"]:
+                start_date = datetime.datetime.fromisoformat(rental["start_date"])
+                end_date = datetime.datetime.fromisoformat(rental["end_date"])
+                # We want to give the warehouse workers a business day to maintain the bikes, after the rental has ended
+                end_date += datetime.timedelta(days=1)
+                while end_date.weekday() >= 5:
+                    end_date += datetime.timedelta(days=1)
+                date = start_date
+                while date <= end_date:
+                    date_str = date.strftime("%d.%m.%Y")
+                    if date_str in unavailable:
+                        serializer_package["unavailable"][date_str] = (
+                            1 + serializer_package["unavailable"][date_str]
+                        )
+                    else:
+                        serializer_package["unavailable"][date_str] = 1
+                    date += datetime.timedelta(days=1)
             serializer_package["max_available"] = max_available
+            del bike_package_serializer.data[index]["packages"]
 
         return Response(
             {
@@ -431,7 +412,7 @@ class BikeAmountListView(generics.ListAPIView):
 
 class BikePackageListView(generics.ListCreateAPIView):
     queryset = BikePackage.objects.all()
-    serializer_class = BikePackageSerializer
+    serializer_class = BikePackageListSerializer
 
 
 @extend_schema_view(
@@ -439,7 +420,7 @@ class BikePackageListView(generics.ListCreateAPIView):
 )
 class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikePackage.objects.all()
-    serializer_class = BikePackageSerializer
+    serializer_class = BikePackageListSerializer
 
 
 class BikeTypeListView(generics.ListCreateAPIView):

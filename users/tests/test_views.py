@@ -7,7 +7,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from orders.models import ShoppingCart
-from users.models import CustomUser, UserAddress, UserLogEntry, UserSearchWatch
+from users.models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 from users.permissions import is_in_group
 from users.serializers import GroupPermissionsSerializer
 
@@ -1528,10 +1528,10 @@ class TestUsers(TestCase):
         self.login_test_user()
 
         log_count_at_start = UserLogEntry.objects.all().count()
-        watches_at_start = UserSearchWatch.objects.all().count()
+        watches_at_start = SearchWatch.objects.all().count()
 
         # testing that creatiing new watches works for user
-        data = {"word": "hieno"}
+        data = {"words": ["hieno"]}
         response = self.client.post(url, data, content_type="application/json")
 
         self.assertEqual(
@@ -1539,7 +1539,7 @@ class TestUsers(TestCase):
         )
         self.assertNotEqual(
             watches_at_start,
-            UserSearchWatch.objects.all().count(),
+            SearchWatch.objects.all().count(),
             "database should have entry after creation",
         )
 
@@ -1551,6 +1551,6 @@ class TestUsers(TestCase):
         )
         self.assertEqual(
             CustomUser.objects.get(username="testi1@turku.fi").id,
-            UserSearchWatch.objects.get(word="hieno").user.id,
+            SearchWatch.objects.get(words=["hieno"]).user.id,
             "search watch user should be own user",
         )

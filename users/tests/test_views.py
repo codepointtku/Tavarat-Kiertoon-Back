@@ -119,9 +119,7 @@ class TestUsers(TestCase):
             "/users/activate/",
             "/users/emailchange/",
             "/users/emailchange/finish/",
-            "/users/searchwatch/",
             "/user/searchwatch/",
-            "/users/searchwatch/1",
             "/user/searchwatch/1",
         ]
 
@@ -1520,7 +1518,7 @@ class TestUsers(TestCase):
             "responses should not be same if oposite last_login ordering",
         )
 
-    def test_user_search_watch_end_points(self):
+    def test_search_watch_end_points(self):
         """
         Test for testing the user watch end points creation/edit/deletion
         """

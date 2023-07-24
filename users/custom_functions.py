@@ -39,22 +39,7 @@ def cookie_setter(key, value, remember_me, response):
     )
 
 
-def check_whole_product(product: ProductModel) -> bool:
-    """
-    Takes product and performs the product watch search for it.
-    Currently searches match in product.name
-    giving color_search true also causes search in product.colors
-    """
-
-    match_found = False
-
-    if check_product_watch(product.name, product_id=product.id):
-        match_found = True
-
-    return match_found
-
-
-def check_product_watch(product_name, product_id=False, additional_info="") -> bool:
+def check_product_watch(product: ProductModel, additional_info="") -> bool:
     """
     Function to check if value is is the watch list and sends email to person with match.
     returns True if match is found, False if no match
@@ -62,20 +47,18 @@ def check_product_watch(product_name, product_id=False, additional_info="") -> b
 
     any_match_found = False
 
-    front_url_info = ""
-    if product_id:
-        front_url_info = (
-            f"\n\nDirect link to product: {settings.URL_FRONT}tuotteet/{product_id}"
-        )
+    front_url_info = (
+        f"\n\nDirect link to product: {settings.URL_FRONT}tuotteet/{product.id}"
+    )
 
     for search in UserSearchWatch.objects.all():
-        if search.word.lower() in product_name.lower():
+        if search.word.lower() in product.name.lower():
             any_match_found = True
 
-            subject = f"New item available you have set watch for: {product_name}"
+            subject = f"New item available you have set watch for: {product.name}"
             message = (
                 f"There was new item for watch word: {search.word}, you have set.\n\n"
-                f"Its name is: {additional_info}{product_name} and can be found in tavarat kiertoon system now."
+                f"Its name is: {additional_info}{product.name} and can be found in tavarat kiertoon system now."
                 f"{front_url_info}"
                 f"\n\nIf you want to remove this search watch visit: [FRONTIN OSOTE TÄHÄN KUN VALMIS]"
             )

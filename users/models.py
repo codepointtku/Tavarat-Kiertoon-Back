@@ -173,4 +173,4 @@ class SearchWatch(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return f"Search watch for {self.user} , with word: {self.word}"
+        return f"Search watch for {self.user} , with words: {self.words}"

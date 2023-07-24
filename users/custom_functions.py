@@ -48,32 +48,34 @@ def check_product_watch(product: Product, additional_info="") -> bool:
     colors = [color.name.lower() for color in Color.objects.all()]
     product_colors = [color.name.lower() for color in product.colors.all()]
     for search in SearchWatch.objects.all():
+        match = True
+        print(f"search words: {search.words}")
         for word in search.words:
             if word.lower() in colors:
-                if word.lower() in product_colors:
-                    print(f"{word} is a color and in product colors")
-                else:
+                if word.lower() not in product_colors:
                     print(f"{word} is a color but not in product colors")
-                    return
+                    match = False
+                    break
             elif word not in product.name.lower():
-                print(f"{word} is not a color and in not product name")
-                return
+                print(f"{word} is not a color and not in product name")
+                match = False
+                break
+        if match:
+            subject = f"New item available you have set watch for: {product.name}"
+            message = (
+                f"There was new item for watch words: {', '.join(search.words)} you have set.\n\n"
+                f"Its name is: {additional_info}{product.name} and can be found in tavarat kiertoon system now."
+                f"\n\nDirect link to product: {settings.URL_FRONT}tuotteet/{product.id}"
+                f"\n\nIf you want to remove this search watch visit: [FRONTIN OSOTE TÄHÄN KUN VALMIS]"
+            )
 
-        subject = f"New item available you have set watch for: {product.name}"
-        message = (
-            f"There was new item for watch word: {search.words}, you have set.\n\n"
-            f"Its name is: {additional_info}{product.name} and can be found in tavarat kiertoon system now."
-            f"\n\nDirect link to product: {settings.URL_FRONT}tuotteet/{product.id}"
-            f"\n\nIf you want to remove this search watch visit: [FRONTIN OSOTE TÄHÄN KUN VALMIS]"
-        )
-
-        send_mail(
-            subject,
-            message,
-            settings.EMAIL_HOST_USER,
-            [search.user.email],
-            fail_silently=False,
-        )
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [search.user.email],
+                fail_silently=False,
+            )
 
 
 class CustomTimeTokenGenerator(PasswordResetTokenGenerator):

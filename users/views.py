@@ -1086,9 +1086,8 @@ class SearchWatchListView(APIView, ListModelMixin):
     # used for adding new address to user
 
     def post(self, request, format=None):
-        copy_of_request_data = request.data.copy()
-        copy_of_request_data["user"] = request.user.id
-        serializer = self.serializer_class(data=copy_of_request_data)
+        request.data["user"] = request.user.id
+        serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         UserLogEntry.objects.create(
@@ -1099,6 +1098,10 @@ class SearchWatchListView(APIView, ListModelMixin):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+@extend_schema_view(
+    put=extend_schema(request=SearchWatchRequestSerializer),
+    patch=extend_schema(exclude=True),
+)
 class SearchWatchDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     Delete the specific address given in kwargs. address needs to match logged in user id as owner
@@ -1136,6 +1139,7 @@ class SearchWatchDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Response("Wrong user", status=status.HTTP_204_NO_CONTENT)
 
         if request.user.id == watch_entry.user.id:
+            request.data["user"] = request.user.id
             temp = self.update(request, *args, **kwargs)
 
             UserLogEntry.objects.create(

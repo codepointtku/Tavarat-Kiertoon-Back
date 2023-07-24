@@ -412,6 +412,8 @@ class SearchWatchSerializer(serializers.ModelSerializer):
     Serializer for user search watchs for normal users
     """
 
+    words = serializers.ListField(child=serializers.CharField())
+
     class Meta:
         model = SearchWatch
         fields = "__all__"

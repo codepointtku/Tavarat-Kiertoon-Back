@@ -29,7 +29,7 @@ from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
 from .custom_functions import cookie_setter
-from .models import CustomUser, UserAddress, UserLogEntry, UserSearchWatch
+from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 from .permissions import HasGroupPermission
 from .serializers import (
     GroupNameSerializer,
@@ -1079,7 +1079,7 @@ class SearchWatchListView(APIView, ListModelMixin):
     serializer_class = SearchWatchSerializer
 
     def get(self, request, format=None):
-        qs = UserSearchWatch.objects.filter(user=request.user)
+        qs = SearchWatch.objects.filter(user=request.user)
         serialized_info = SearchWatchSerializer(qs, many=True)
         return Response(serialized_info.data)
 
@@ -1116,12 +1116,12 @@ class SearchWatchDetailView(generics.RetrieveUpdateDestroyAPIView):
     }
 
     serializer_class = SearchWatchSerializer
-    queryset = UserSearchWatch.objects.all()
+    queryset = SearchWatch.objects.all()
 
     def get(self, request, *args, **kwargs):
         try:
-            watch_entry = UserSearchWatch.objects.get(id=kwargs["pk"])
-        except UserSearchWatch.DoesNotExist:
+            watch_entry = SearchWatch.objects.get(id=kwargs["pk"])
+        except SearchWatch.DoesNotExist:
             return Response("Wrong user", status=status.HTTP_204_NO_CONTENT)
 
         if request.user.id == watch_entry.user.id:
@@ -1131,8 +1131,8 @@ class SearchWatchDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def put(self, request, *args, **kwargs):
         try:
-            watch_entry = UserSearchWatch.objects.get(id=kwargs["pk"])
-        except UserSearchWatch.DoesNotExist:
+            watch_entry = SearchWatch.objects.get(id=kwargs["pk"])
+        except SearchWatch.DoesNotExist:
             return Response("Wrong user", status=status.HTTP_204_NO_CONTENT)
 
         if request.user.id == watch_entry.user.id:
@@ -1150,8 +1150,8 @@ class SearchWatchDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def delete(self, request, *args, **kwargs):
         try:
-            watch_entry = UserSearchWatch.objects.get(id=kwargs["pk"])
-        except UserSearchWatch.DoesNotExist:
+            watch_entry = SearchWatch.objects.get(id=kwargs["pk"])
+        except SearchWatch.DoesNotExist:
             return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
 
         if request.user.id == watch_entry.user.id:

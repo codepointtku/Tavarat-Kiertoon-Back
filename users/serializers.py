@@ -8,7 +8,7 @@ from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers, status
 
 from .custom_functions import custom_time_token_generator, validate_email_domain
-from .models import CustomUser, UserAddress, UserLogEntry, UserSearchWatch
+from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 
 User = get_user_model()
 
@@ -413,7 +413,7 @@ class SearchWatchSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = UserSearchWatch
+        model = SearchWatch
         fields = "__all__"
 
 

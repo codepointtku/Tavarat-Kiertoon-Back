@@ -4,9 +4,9 @@ from django.core.mail import send_mail
 from django.utils.crypto import constant_time_compare
 from django.utils.http import base36_to_int
 
-from products.models import Product as ProductModel
+from products.models import Color, Product
 
-from .models import UserSearchWatch
+from .models import SearchWatch
 
 
 def validate_email_domain(email):
@@ -39,7 +39,7 @@ def cookie_setter(key, value, remember_me, response):
     )
 
 
-def check_product_watch(product: ProductModel, additional_info="") -> bool:
+def check_product_watch(product: Product, additional_info="") -> bool:
     """
     Function to check if value is is the watch list and sends email to person with match.
     returns True if match is found, False if no match
@@ -48,24 +48,28 @@ def check_product_watch(product: ProductModel, additional_info="") -> bool:
     front_url_info = (
         f"\n\nDirect link to product: {settings.URL_FRONT}tuotteet/{product.id}"
     )
+    colors = [color.name for color in Color.objects.all()]
+    print(colors)
+    for search in SearchWatch.objects.all():
+        print(search.words)
+        for word in search.words:
+            if word.lower() in product.name.lower():
+                print(word)
+                # subject = f"New item available you have set watch for: {product.name}"
+                # message = (
+                #     f"There was new item for watch word: {search.word}, you have set.\n\n"
+                #     f"Its name is: {additional_info}{product.name} and can be found in tavarat kiertoon system now."
+                #     f"{front_url_info}"
+                #     f"\n\nIf you want to remove this search watch visit: [FRONTIN OSOTE TÄHÄN KUN VALMIS]"
+                # )
 
-    for search in UserSearchWatch.objects.all():
-        if search.word.lower() in product.name.lower():
-            subject = f"New item available you have set watch for: {product.name}"
-            message = (
-                f"There was new item for watch word: {search.word}, you have set.\n\n"
-                f"Its name is: {additional_info}{product.name} and can be found in tavarat kiertoon system now."
-                f"{front_url_info}"
-                f"\n\nIf you want to remove this search watch visit: [FRONTIN OSOTE TÄHÄN KUN VALMIS]"
-            )
-
-            send_mail(
-                subject,
-                message,
-                settings.EMAIL_HOST_USER,
-                [search.user.email],
-                fail_silently=False,
-            )
+                # send_mail(
+                #     subject,
+                #     message,
+                #     settings.EMAIL_HOST_USER,
+                #     [search.user.email],
+                #     fail_silently=False,
+                # )
 
 
 class CustomTimeTokenGenerator(PasswordResetTokenGenerator):

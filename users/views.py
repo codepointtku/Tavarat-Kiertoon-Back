@@ -1154,8 +1154,7 @@ class SearchWatchDetailView(generics.RetrieveUpdateDestroyAPIView):
         except SearchWatch.DoesNotExist:
             return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
 
-        if request.user.id == watch_entry.user.id:
-            watch_msg = watch_entry.word
+        if request.user == watch_entry.user:
             watch_entry.delete()
 
             UserLogEntry.objects.create(
@@ -1164,9 +1163,7 @@ class SearchWatchDetailView(generics.RetrieveUpdateDestroyAPIView):
                 user_who_did_this_action=request.user,
             )
 
-            return Response(
-                f"Successfully deleted: {watch_msg}", status=status.HTTP_204_NO_CONTENT
-            )
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
         else:
             # print("user didnt match the  owner of address")

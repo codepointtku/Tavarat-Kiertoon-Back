@@ -7,7 +7,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from orders.models import ShoppingCart
-from users.models import CustomUser, UserAddress
+from users.models import CustomUser, UserAddress, UserLogEntry, UserSearchWatch
 from users.permissions import is_in_group
 from users.serializers import GroupPermissionsSerializer
 
@@ -112,12 +112,17 @@ class TestUsers(TestCase):
             f"/users/{user_for_testing.id}/",
             "/user/address/edit/",
             f"/user/address/edit/{address_for_testing.id}/",
+            "/users/address/",
             f"/users/address/{address_for_testing.id}/",
             "/users/password/resetemail/",
             "/users/password/reset/",
             "/users/activate/",
             "/users/emailchange/",
             "/users/emailchange/finish/",
+            "/users/searchwatch/",
+            "/user/searchwatch/",
+            "/users/searchwatch/1",
+            "/user/searchwatch/1",
         ]
 
         # goign thorugh the urls
@@ -133,6 +138,13 @@ class TestUsers(TestCase):
         """
         current_user_number = CustomUser.objects.count()
         url = "/users/create/"
+
+        # taking user log count to be  compared to after user  creation shouldnt be same
+        user_log_count_at_start = UserLogEntry.objects.all().count()
+        # log should be emptty starting
+        self.assertEqual(
+            user_log_count_at_start, 0, "User logs should be empty when starting"
+        )
 
         # test GET not alloweed
         response = self.client.get(url)
@@ -276,6 +288,14 @@ class TestUsers(TestCase):
             "joint user should have not same username and email",
         )
 
+        user_log_count_at_end = UserLogEntry.objects.all().count()
+        # log should be emptty starting
+        self.assertNotEqual(
+            user_log_count_at_start,
+            user_log_count_at_end,
+            "No user logs were created during creation, creation logs should happen",
+        )
+
     def test_user_login(self):
         """
         Test to test login functionality
@@ -292,6 +312,10 @@ class TestUsers(TestCase):
             204,
             "wrong status code when wrong login info",
         )
+
+        # remember login time beofre and after login to check that it updates correctly
+        before_login = CustomUser.objects.get(username="testi1@turku.fi").last_login
+
         # correct login info
         data = {
             "username": "testi1@turku.fi",
@@ -320,6 +344,13 @@ class TestUsers(TestCase):
         self.assertTrue(
             ("user_group" in response.json()["groups"]),
             "did not find user group in login response",
+        )
+
+        # check that last login was updated correctly
+        self.assertNotEqual(
+            before_login,
+            CustomUser.objects.get(username="testi1@turku.fi").last_login,
+            "Last login date was not updated correctly",
         )
 
     def test_user_refresh(self):
@@ -465,7 +496,7 @@ class TestUsers(TestCase):
 
     def test_user_detail_loggedin(self):
         """
-        Test for testing getitng logged in users stuff
+        Test for testing getting logged in users info
         """
         url = "/user/"
         # anonymous
@@ -524,6 +555,9 @@ class TestUsers(TestCase):
         groups_before = first.data["groups"]
         url = f"/users/{user_for_testing.id}/groups/permission/"
 
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
+
         # testing that normal non admin user cant do the change
         self.login_test_user()
         response = self.client.get(url, content_type="application/json")
@@ -574,11 +608,45 @@ class TestUsers(TestCase):
             "group permissions in database should change",
         )
 
+        # with put
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            200,
+            "admin should able to succesfully change permissions",
+        )
+
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
+        # checking that admins cant change their own permission
+        user_for_testing = CustomUser.objects.get(username="admin")
+        url = f"/users/{user_for_testing.id}/groups/permission/"
+        response = self.client.patch(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            403,
+            "admins shouldnt be able to change their own groups",
+        )
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            403,
+            "admins shouldnt be able to change their own groups",
+        )
+
     def test_updating_user_info_with_user(self):
         """
         test for users changing their own info
         """
         url = "/user/"
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         # test without logging in (forbidden response)
         response = self.client.put(url)
@@ -610,6 +678,13 @@ class TestUsers(TestCase):
             "user phone number should have changed",
         )
 
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
     def test_updating_user_info_with_admin(self):
         """
         test for testing admin changin other users info
@@ -618,6 +693,9 @@ class TestUsers(TestCase):
         # get existing users id for testing
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
         url = f"/users/{user_for_testing.id}/"
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         # test response when not logged in
         response = self.client.get(url)
@@ -662,11 +740,32 @@ class TestUsers(TestCase):
         self.assertEqual(user2.last_name, "Kinkku!222", "user info changeed wrongly")
         self.assertEqual(user2.phone_number, "2222222", "user info changeed wrongly")
 
+        # with patch
+        data = {
+            "last_name": "aaa",
+        }
+        response = self.client.patch(url, data, content_type="application/json")
+        self.assertEqual(
+            CustomUser.objects.get(username="testi1@turku.fi").last_name,
+            "aaa",
+            "user info changeed wrongly",
+        )
+
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
     def test_user_address(self):
         """
         test for testing user changing his own addressess
         """
         url = "/user/address/edit/"
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         # test response as anon
         response = self.client.get(url)
@@ -783,6 +882,13 @@ class TestUsers(TestCase):
             address_count_2, address_count_3, "after deletion count should be different"
         )
 
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
     def test_user_address_as_admin(self):
         """
         Test for testing admins rights to change adressess
@@ -791,6 +897,9 @@ class TestUsers(TestCase):
         address_for_testing = UserAddress.objects.get(address="testi")
         address_id = address_for_testing.id
         url = f"/users/address/{address_id}/"
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         # testing response for anons
         response = self.client.get(url)
@@ -850,10 +959,35 @@ class TestUsers(TestCase):
             data_before, data_after, "the data should have been updated in database"
         )
 
+        # with put
+        data["user"] = CustomUser.objects.get(username="admin").id
+        response = self.client.put(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            200,
+            "update put should go thourgh",
+        )
+
         # testing that deleting user address works
         response = self.client.delete(url, content_type="application/json")
         with self.assertRaises(ObjectDoesNotExist, msg="adress was not deleted"):
             UserAddress.objects.get(id=address_id)
+
+        # testing address creation or user
+        url = f"/users/address/"
+        response = self.client.post(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            201,
+            "post(address creation) should go thourgh",
+        )
+
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
 
     def test_password_reset(self):
         """
@@ -863,6 +997,9 @@ class TestUsers(TestCase):
         url = "/users/password/resetemail/"
         url2 = "/users/password/reset/"
         url3 = settings.PASSWORD_RESET_URL_FRONT
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         data = {"username": "tottally not should exist user name"}
         # testing invalid user, still should get 200 for security reasons but mail shoudnt be sent as user doesnt exist
@@ -1022,6 +1159,13 @@ class TestUsers(TestCase):
             "should be able to login with new pw",
         )
 
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
     @override_settings(TEST_DEBUG=False)
     def test_account_activation_reset(self):
         """
@@ -1031,6 +1175,9 @@ class TestUsers(TestCase):
         url = "/users/create/"
         # url = "/users/activate/"
         url2 = settings.USER_ACTIVATION_URL_FRONT
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         # creating user that needs to be activated
         data = {
@@ -1146,6 +1293,13 @@ class TestUsers(TestCase):
             200, response.status_code, "should be able to login when active now"
         )
 
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
     def test_account_email_change(self):
         """
         Test for testing the account email change functionality
@@ -1160,6 +1314,9 @@ class TestUsers(TestCase):
 
         user = self.login_test_user()
         user_id_test = user.id
+
+        # checking logs creation count beofre and after
+        log_count_before = UserLogEntry.objects.all().count()
 
         # checking no mail is sent with incorrect data
         response = self.client.post(url, data, content_type="application/json")
@@ -1291,9 +1448,16 @@ class TestUsers(TestCase):
             "username should have stayed same for joint user",
         )
 
+        # checking logs were created:
+        self.assertNotEqual(
+            log_count_before,
+            UserLogEntry.objects.all().count(),
+            "logs should be created  during permission changes",
+        )
+
     def test_users_ordering_pagination(self):
         """
-        tedsting filters and pagination for users
+        testing filters and pagination for users
         """
         # when pagination is on and you try to enter non-existing page you get 404
         # but without pagination you get normal page
@@ -1354,4 +1518,41 @@ class TestUsers(TestCase):
             response,
             response2,
             "responses should not be same if oposite last_login ordering",
+        )
+
+    def test_user_search_watch_end_points(self):
+        """
+        Test for testing the user watch end points creation/edit/deletion
+        """
+
+        url = "/user/searchwatch/"
+
+        self.login_test_user()
+
+        log_count_at_start = UserLogEntry.objects.all().count()
+        watches_at_start = UserSearchWatch.objects.all().count()
+
+        # testing that creatiing new watches works for user
+        data = {"word": "hieno"}
+        response = self.client.post(url, data, content_type="application/json")
+
+        self.assertEqual(
+            response.status_code, 201, "creation with post should go through"
+        )
+        self.assertNotEqual(
+            watches_at_start,
+            UserSearchWatch.objects.all().count(),
+            "database should have entry after creation",
+        )
+
+        response = self.client.get(url)
+        self.assertEqual(
+            response.status_code,
+            200,
+            "Get should go through when logged in in search watch self",
+        )
+        self.assertEqual(
+            CustomUser.objects.get(username="testi1@turku.fi").id,
+            UserSearchWatch.objects.get(word="hieno").user.id,
+            "search watch user should be own user",
         )

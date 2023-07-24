@@ -1,11 +1,7 @@
-from datetime import timedelta
-
 from django.conf import settings
-from django.contrib.auth import authenticate, get_user_model, login, logout
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth import authenticate, get_user_model, logout
 from django.contrib.auth.models import Group, update_last_login
 from django.contrib.auth.tokens import default_token_generator
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.signing import Signer
 from django.middleware import csrf
@@ -13,15 +9,9 @@ from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
-from django.views.decorators.debug import sensitive_post_parameters
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import (
-    PolymorphicProxySerializer,
-    extend_schema,
-    extend_schema_view,
-    inline_serializer,
-)
-from rest_framework import generics, permissions, serializers, status
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.mixins import ListModelMixin
@@ -478,7 +468,10 @@ class GroupListView(generics.ListAPIView):
 
 
 @extend_schema_view(patch=extend_schema(exclude=True))
-@extend_schema(responses=GroupPermissionsResponseSchemaSerializer)
+@extend_schema(
+    responses=GroupPermissionsResponseSchemaSerializer,
+    request=GroupPermissionsResponseSchemaSerializer,
+)
 class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
     Update users permissions, should be only allowed to admins, on testing phase allowing fo users
@@ -778,7 +771,7 @@ class UserAddressAdminCreateView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         temp = self.create(request, *args, **kwargs)
-        temp_target_user = UserAddress.objects.get(id=temp.data["user"]).user
+        temp_target_user = User.objects.get(id=temp.data["user"])
         UserLogEntry.objects.create(
             action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
             target=temp_target_user,
@@ -1104,7 +1097,7 @@ class UserSearchWatchesUserView(APIView, ListModelMixin):
             target=request.user,
             user_who_did_this_action=request.user,
         )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class UserSearchWatchUserView(generics.RetrieveUpdateDestroyAPIView):

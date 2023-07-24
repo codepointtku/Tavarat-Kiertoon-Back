@@ -85,8 +85,9 @@ def check_product_watch(product_name, product_id=False, additional_info="") -> b
             subject = f"New item available you have set watch for: {product_name}"
             message = (
                 f"There was new item for watch word: {search.word}, you have set.\n\n"
-                f"Its name is: {additional_info}{product_name} and can be found in tavarat kiertoon system now \n\n"
+                f"Its name is: {additional_info}{product_name} and can be found in tavarat kiertoon system now."
                 f"{front_url_info}"
+                f"\n\nIf you want to remove this search watch visit: [FRONTIN OSOTE TÄHÄN KUN VALMIS]"
             )
 
             send_mail(

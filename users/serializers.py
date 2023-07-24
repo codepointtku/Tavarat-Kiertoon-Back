@@ -407,9 +407,9 @@ class UserLogSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class UserSearchWatchAdminSerializer(serializers.ModelSerializer):
+class SearchWatchSerializer(serializers.ModelSerializer):
     """
-    Serializer for user search watchs for admins
+    Serializer for user search watchs for normal users
     """
 
     class Meta:
@@ -417,26 +417,12 @@ class UserSearchWatchAdminSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class UserSearchWatchUserSerializer(serializers.ModelSerializer):
-    """
-    Serializer for user search watchs for normal users
-    """
-
-    class Meta:
-        model = UserSearchWatch
-        fields = ["id", "word"]
-
-
 # -----------------------------------------------------------------------
 # schema serializers
 # -----------------------------------------------------------------------
-
-
-@extend_schema_serializer(exclude_fields=["user"])
-class UserSearchWatchSchemaSerializer(UserSearchWatchAdminSerializer):
-    """
-    Serializer mainly for schema purpose, fields required for creating user watch for user
-    """
+@extend_schema_serializer(exclude_fields=["user", "id"])
+class SearchWatchRequestSerializer(SearchWatchSerializer):
+    """Serializer for SearchWatchListView post"""
 
 
 @extend_schema_serializer(exclude_fields=["user"])

@@ -224,9 +224,7 @@ class ProductListView(generics.ListCreateAPIView):
         headers = self.get_success_headers(response.data)
 
         # checking if the created product was in product watch list on any user
-        check_whole_product(
-            Product.objects.get(id=response.data["id"]), color_search=True
-        )
+        check_whole_product(Product.objects.get(id=response.data["id"]))
 
         return Response(
             data=response.data, status=status.HTTP_201_CREATED, headers=headers
@@ -263,9 +261,6 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
-
-        # checking if the created product was in product watch list on any user
-        check_whole_product(Product.objects.get(id=data["id"]), color_search=True)
 
         return Response(data)
 

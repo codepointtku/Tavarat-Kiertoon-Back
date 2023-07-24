@@ -39,7 +39,7 @@ def cookie_setter(key, value, remember_me, response):
     )
 
 
-def check_whole_product(product: ProductModel, color_search=False) -> bool:
+def check_whole_product(product: ProductModel) -> bool:
     """
     Takes product and performs the product watch search for it.
     Currently searches match in product.name
@@ -50,16 +50,6 @@ def check_whole_product(product: ProductModel, color_search=False) -> bool:
 
     if check_product_watch(product.name, product_id=product.id):
         match_found = True
-
-    if color_search:
-        for color in product.colors.all():
-            if check_product_watch(
-                color.name,
-                product_id=product.id,
-                additional_info=f"Color match in {product.name}: ",
-            ):
-                match_found = True
-                break
 
     return match_found
 

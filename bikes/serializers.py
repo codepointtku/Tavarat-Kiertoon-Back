@@ -114,7 +114,7 @@ class BikePackageListSerializer(serializers.ModelSerializer):
 
 
 class BikePackageSerializer(serializers.ModelSerializer):
-    packages = BikeRentalSerializer(many=True)
+    packagerental = BikeRentalSerializer(many=True)
 
     class Meta:
         model = BikePackage
@@ -123,7 +123,7 @@ class BikePackageSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "bike_stock",
-            "packages",
+            "packagerental",
         ]
 
 

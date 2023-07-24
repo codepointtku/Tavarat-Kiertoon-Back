@@ -113,7 +113,7 @@ class BikeRental(models.Model):
 
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     bike_stock = models.ManyToManyField(BikeStock, related_name="rental")
-    packages = models.ManyToManyField(BikePackage, related_name="packages")
+    packages = models.ManyToManyField(BikePackage, related_name="packagerental")
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     state = models.CharField(

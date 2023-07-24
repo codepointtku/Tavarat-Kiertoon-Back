@@ -224,9 +224,7 @@ class MainBikeList(generics.ListAPIView):
                         while date <= end_date:
                             date_str = date.strftime("%d.%m.%Y")
                             if date_str in unavailable:
-                                unavailable[date_str] = (
-                                    1 + unavailable[date_str]
-                                )
+                                unavailable[date_str] = 1 + unavailable[date_str]
                             else:
                                 unavailable[date_str] = 1
                             date += datetime.timedelta(days=1)
@@ -240,10 +238,12 @@ class MainBikeList(generics.ListAPIView):
             serializer_package = bike_package_serializer.data[index]
             serializer_package["type"] = "Paketti"
             serializer_package["unavailable"] = {}
-            max_available = 1
-            for package in package["packages"]:
-                start_date = datetime.datetime.fromisoformat(rental["start_date"])
-                end_date = datetime.datetime.fromisoformat(rental["end_date"])
+            serializer_package["max_available"] = 1
+            for packagerental in package["packagerental"]:
+                start_date = datetime.datetime.fromisoformat(
+                    packagerental["start_date"]
+                )
+                end_date = datetime.datetime.fromisoformat(packagerental["end_date"])
                 # We want to give the warehouse workers a business day to maintain the bikes, after the rental has ended
                 end_date += datetime.timedelta(days=1)
                 while end_date.weekday() >= 5:
@@ -258,8 +258,7 @@ class MainBikeList(generics.ListAPIView):
                     else:
                         serializer_package["unavailable"][date_str] = 1
                     date += datetime.timedelta(days=1)
-            serializer_package["max_available"] = max_available
-            del bike_package_serializer.data[index]["packages"]
+            del bike_package_serializer.data[index]["packagerental"]
 
         return Response(
             {

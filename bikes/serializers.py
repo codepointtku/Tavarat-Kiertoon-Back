@@ -17,6 +17,8 @@ from products.serializers import (
     PictureSerializer,
 )
 
+# class RentalPackageSerializer(serializers.ModelSerializer):
+
 
 class BikeRentalSerializer(serializers.ModelSerializer):
     class Meta:
@@ -74,7 +76,6 @@ class BikeSerializer(serializers.ModelSerializer):
     brand = serializers.StringRelatedField(source="brand.name")
     size = serializers.StringRelatedField(source="size.name")
     color = serializers.StringRelatedField(source="color.name")
-    max_available = serializers.ReadOnlyField(source="stock.count")
 
     # bikes = serializers.StringRelatedField(many=True)
     stock = BikeStockSerializer(many=True)
@@ -84,7 +85,6 @@ class BikeSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-            "max_available",
             "stock",
             "description",
             "type",
@@ -102,7 +102,20 @@ class BikeAmountSerializer(serializers.ModelSerializer):
         exclude = ["package"]
 
 
+class BikePackageListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikePackage
+        fields = [
+            "id",
+            "name",
+            "description",
+            "bike_stock"
+        ]
+
+
 class BikePackageSerializer(serializers.ModelSerializer):
+    packages = BikeRentalSerializer(many=True)
+
     class Meta:
         model = BikePackage
         fields = [
@@ -110,6 +123,7 @@ class BikePackageSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "bike_stock",
+            "packages",
         ]
 
 

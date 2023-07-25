@@ -41,23 +41,19 @@ def cookie_setter(key, value, remember_me, response):
 
 def check_product_watch(product: Product, additional_info="") -> bool:
     """
-    Function to check if value is is the watch list and sends email to person with match.
-    returns True if match is found, False if no match
+    Function to check if all search words and colors of the watch list is found in product and sends email to person with match.
     """
 
     colors = [color.name.lower() for color in Color.objects.all()]
     product_colors = [color.name.lower() for color in product.colors.all()]
     for search in SearchWatch.objects.all():
         match = True
-        print(f"search words: {search.words}")
         for word in search.words:
             if word.lower() in colors:
                 if word.lower() not in product_colors:
-                    print(f"{word} is a color but not in product colors")
                     match = False
                     break
             elif word not in product.name.lower():
-                print(f"{word} is not a color and not in product name")
                 match = False
                 break
         if match:

@@ -60,19 +60,6 @@ class BikePackage(models.Model):
         return f"Bike package: {self.name}({self.id})"
 
 
-class BikeAmount(models.Model):
-    """Model for the bike amount, which is used in the bike package."""
-
-    bike = models.ForeignKey(Bike, on_delete=models.CASCADE)
-    amount = models.IntegerField()
-    package = models.ForeignKey(
-        BikePackage, related_name="bikes", on_delete=models.CASCADE
-    )
-
-    def __str__(self) -> str:
-        return f"Bike amount: {self.amount}x{self.bike}({self.id})"
-
-
 class BikeStock(models.Model):
     """Model for the bike stock, which is each individual bike."""
 

@@ -3,7 +3,6 @@ from django.contrib import admin
 
 from bikes.models import (
     Bike,
-    BikeAmount,
     BikeBrand,
     BikePackage,
     BikeRental,
@@ -21,4 +20,3 @@ admin.site.register(BikeSize)
 admin.site.register(BikeStock)
 admin.site.register(BikeRental)
 admin.site.register(BikePackage)
-admin.site.register(BikeAmount)

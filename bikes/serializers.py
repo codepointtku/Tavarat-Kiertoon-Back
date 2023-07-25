@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from .models import (
     Bike,
-    BikeAmount,
     BikePackage,
     BikeRental,
     BikeStock,
@@ -92,14 +91,6 @@ class BikeSerializer(serializers.ModelSerializer):
         ]
 
 
-class BikeAmountSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=False)
-
-    class Meta:
-        model = BikeAmount
-        exclude = ["package"]
-
-
 class BikePackageListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikePackage
@@ -123,19 +114,6 @@ class BikePackageSerializer(serializers.ModelSerializer):
             "bike_stock",
             "packagerental",
         ]
-
-
-class BikeAmountSchemaResponseSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField
-
-    class Meta:
-        model = BikeAmount
-        exclude = ["package"]
-        extra_kwargs = {
-            "id": {"required": True},
-            "amount": {"required": True},
-            "bike": {"required": True},
-        }
 
 
 class BikeTypeSerializer(serializers.ModelSerializer):
@@ -296,18 +274,6 @@ class MainBikeListSchemaSerializer(serializers.Serializer):
     date_info = MainBikeSchemaDateSerializer()
     bikes = MainBikeSchemaBikesSerializer(many=True)
     packages = MainBikeSchemaPackageSerializer(many=True)
-
-
-class BikeAmountListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BikeAmount
-        fields = "__all__"
-
-
-class BikeAmountSchemaCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BikeAmount
-        exclude = ["package"]
 
 
 class BikeAvailabilityListSerializer(serializers.ModelSerializer):

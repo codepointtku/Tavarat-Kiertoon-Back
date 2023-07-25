@@ -25,13 +25,11 @@ from bikes.models import (
     BikePackage,
     BikeRental,
     BikeStock,
-    BikeAmount,
     BikeType,
     BikeSize,
     BikeBrand,
 )
 from bikes.serializers import (
-    BikeAmountListSerializer,
     BikeAvailabilityListSerializer,
     BikeAvailabilityListResponseSerializer,
     BikePackageSerializer,
@@ -175,7 +173,6 @@ class BikeAvailabilityList(generics.ListAPIView):
             bike["available_to"] = available_to
             bike["rental_dates"] = []
             for rental in bike["rental"]:
-                print(rental)
                 start_date = datetime.datetime.fromisoformat(rental["start_date"])
                 end_date = datetime.datetime.fromisoformat(rental["end_date"])
                 end_date += datetime.timedelta(days=1)
@@ -422,11 +419,6 @@ class RentalListView(generics.ListCreateAPIView):
 class RentalDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeRental.objects.all()
     serializer_class = BikeRentalSerializer
-
-
-class BikeAmountListView(generics.ListAPIView):
-    queryset = BikeAmount.objects.all()
-    serializer_class = BikeAmountListSerializer
 
 
 class BikePackageListView(generics.ListCreateAPIView):

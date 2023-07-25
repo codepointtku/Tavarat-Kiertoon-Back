@@ -1579,3 +1579,22 @@ class TestUsers(TestCase):
             200,
             "should be able to get own search watch entry",
         )
+        data["words"] = ["vaihto"]
+
+        response = self.client.put(url2, data, content_type="application/json")
+        print("put json: ", response.json())
+        self.assertEqual(
+            data["words"],
+            SearchWatch.objects.get(id=response.json()["id"]).words,
+            "search watch data should have changed in database",
+        )
+
+        response = self.client.delete(url2)
+        self.assertEqual(
+            response.status_code, 204, "should be able to delte search watch"
+        )
+        self.assertEqual(
+            len(SearchWatch.objects.all()),
+            0,
+            "search watch database should be empty afterdeletion",
+        )

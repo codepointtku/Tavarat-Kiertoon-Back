@@ -6,7 +6,10 @@ from django.test import TestCase, override_settings
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
+from categories.models import Category
 from orders.models import ShoppingCart
+from products.models import Color, Product, Storage
+from users.custom_functions import check_product_watch
 from users.models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 from users.permissions import is_in_group
 from users.serializers import GroupPermissionsSerializer
@@ -1560,13 +1563,26 @@ class TestUsers(TestCase):
         )
 
         url2 = f"/user/searchwatch/{response.json()[0]['id']}/"
+        data["words"] = ["vaihto"]
         self.login_test_admin()
 
         response = self.client.get(url2)
         self.assertEqual(
             response.status_code,
             204,
-            "othrs shouldnt be able to access other ppls search watches",
+            "others shouldnt be able to access other ppls search watches (get)",
+        )
+        response = self.client.put(url2, data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "others shouldnt be able to access other ppls search watches (put)",
+        )
+        response = self.client.delete(url2)
+        self.assertEqual(
+            response.status_code,
+            204,
+            "others shouldnt be able to access other ppls search watches (delete)",
         )
         self.login_test_user()
 
@@ -1576,7 +1592,6 @@ class TestUsers(TestCase):
             200,
             "should be able to get own search watch entry",
         )
-        data["words"] = ["vaihto"]
 
         response = self.client.put(url2, data, content_type="application/json")
         self.assertEqual(
@@ -1593,4 +1608,54 @@ class TestUsers(TestCase):
             len(SearchWatch.objects.all()),
             0,
             "search watch database should be empty afterdeletion",
+        )
+
+    def test_search_watch_function(self):
+        color = Color.objects.create(name="Punainen")
+        Storage.objects.create(name="mokkavarasto")
+        test_parentcategory = Category.objects.create(name="huonekalut")
+        test_category = Category.objects.create(
+            name="istuttavat huonekalut", parent=test_parentcategory
+        )
+        test_category1 = Category.objects.create(name="sohvat", parent=test_category)
+
+        product_for_test = Product.objects.create(
+            name="nahkasohva",
+            price=0,
+            category=test_category1,
+            free_description="tämä sohva on nahkainen",
+            measurements="210x100x90",
+            weight=50,
+        )
+        product_for_test.colors.set([color])
+        data = {"words": ["hieno"]}
+        user = self.login_test_user()
+        SearchWatch.objects.create(words=data, user=user)
+
+        check_product_watch(product_for_test)
+        self.assertEqual(
+            len(mail.outbox), 0, "ei matcheja niin ei pitäisi lähteä emaileja"
+        )
+
+        data = {"words": ["nahkasohva"]}
+        SearchWatch.objects.create(words=data["words"], user=user)
+        check_product_watch(product_for_test)
+        self.assertEqual(
+            len(mail.outbox), 1, "1 match (name) pitäisi olla joten 1 email"
+        )
+        mail.outbox.clear()
+        data = {"words": ["punainen"]}
+        SearchWatch.objects.create(words=data["words"], user=user)
+        check_product_watch(product_for_test)
+        self.assertEqual(
+            len(mail.outbox), 2, "2 matchiä (name, color) pitäisi olla joten 2 mailia"
+        )
+        mail.outbox.clear()
+        data = {"words": ["punainen", "nahka"]}
+        SearchWatch.objects.create(words=data["words"], user=user)
+        check_product_watch(product_for_test)
+        self.assertEqual(
+            len(mail.outbox),
+            3,
+            "3 matchia (name, color, nimi + color) pitäis olla joten 3 mailia",
         )

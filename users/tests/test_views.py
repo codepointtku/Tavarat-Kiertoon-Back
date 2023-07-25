@@ -1611,6 +1611,11 @@ class TestUsers(TestCase):
         )
 
     def test_search_watch_function(self):
+        """
+        test testing that the search watch function that send emails works
+        """
+
+        # creating product needed for the check
         color = Color.objects.create(name="Punainen")
         Storage.objects.create(name="mokkavarasto")
         test_parentcategory = Category.objects.create(name="huonekalut")
@@ -1632,17 +1637,21 @@ class TestUsers(TestCase):
         user = self.login_test_user()
         SearchWatch.objects.create(words=data, user=user)
 
+        # testing the function when there is no matches but entris in seearch watch
         check_product_watch(product_for_test)
         self.assertEqual(
             len(mail.outbox), 0, "ei matcheja niin ei pitäisi lähteä emaileja"
         )
 
+        # testing the function when there is name match
         data = {"words": ["nahkasohva"]}
         SearchWatch.objects.create(words=data["words"], user=user)
         check_product_watch(product_for_test)
         self.assertEqual(
             len(mail.outbox), 1, "1 match (name) pitäisi olla joten 1 email"
         )
+
+        # testing the function when there is name and color match
         mail.outbox.clear()
         data = {"words": ["punainen"]}
         SearchWatch.objects.create(words=data["words"], user=user)
@@ -1650,6 +1659,8 @@ class TestUsers(TestCase):
         self.assertEqual(
             len(mail.outbox), 2, "2 matchiä (name, color) pitäisi olla joten 2 mailia"
         )
+
+        # testing the function when there is name and color and comined name+color match
         mail.outbox.clear()
         data = {"words": ["punainen", "nahka"]}
         SearchWatch.objects.create(words=data["words"], user=user)

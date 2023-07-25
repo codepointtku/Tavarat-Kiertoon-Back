@@ -378,35 +378,12 @@ class RentalListView(generics.ListCreateAPIView):
 
         instance = request.data
         bikes_list = []
+        packages_list = []
         for rental_item in request.data["bike_stock"]:
             if rental_item.startswith("package"):
-                package = BikePackage.objects.get(
-                    id=rental_item.split("-", 1)[1]
-                ).bikes.values("bike", "amount")
-                packageamount = request.data["bike_stock"][rental_item]
-                for packageitem in package:
-                    amount = packageamount * packageitem["amount"]
-                    available_bikes = (
-                        BikeStock.objects.filter(
-                            bike=packageitem["bike"], state="AVAILABLE"
-                        )
-                        .order_by("-package_only", "id")
-                        .exclude(id__in=bikes_list)
-                    )
-                    for bike_id in available_bikes:
-                        check_date = request_start_date
-                        if bike_id.id in unavailable_dates.keys():
-                            while check_date <= request_end_date:
-                                if (
-                                    check_date.strftime("%d.%m.%Y")
-                                    in unavailable_dates[bike_id.id]
-                                ):
-                                    available_bikes = available_bikes.exclude(
-                                        id=bike_id.id
-                                    )
-                                check_date += datetime.timedelta(days=1)
-                    for bike in range(amount):
-                        bikes_list.append(available_bikes[bike].id)
+                package = rental_item.split("-", 1)[1]
+                print(package)
+                packages_list.append(package)
 
             else:
                 available_bikes = BikeStock.objects.filter(
@@ -426,6 +403,7 @@ class RentalListView(generics.ListCreateAPIView):
                 for bike in range(amount):
                     bikes_list.append(available_bikes[bike].id)
         instance["bike_stock"] = bikes_list
+        instance["packages"] = packages_list
         instance["user"] = self.request.user.id
         serializer = BikeRentalSerializer(data=instance)
         if serializer.is_valid():

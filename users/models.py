@@ -163,14 +163,14 @@ class UserLogEntry(models.Model):
     )
 
 
-class UserSearchWatch(models.Model):
+class SearchWatch(models.Model):
     """
     Model used for the search watch functionality for user
     """
 
     id = models.BigAutoField(primary_key=True)
-    word = models.CharField(max_length=255)
+    words = models.JSONField()
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return f"Search watch for {self.user} , with word: {self.word}"
+        return f"Search watch for {self.user} , with words: {self.words}"

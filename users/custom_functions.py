@@ -4,9 +4,9 @@ from django.core.mail import send_mail
 from django.utils.crypto import constant_time_compare
 from django.utils.http import base36_to_int
 
-from products.models import Product as ProductModel
+from products.models import Color, Product
 
-from .models import UserSearchWatch
+from .models import SearchWatch
 
 
 def validate_email_domain(email):
@@ -39,54 +39,29 @@ def cookie_setter(key, value, remember_me, response):
     )
 
 
-def check_whole_product(product: ProductModel, color_search=False) -> bool:
+def check_product_watch(product: Product, additional_info="") -> bool:
     """
-    Takes product and performs the product watch search for it.
-    Currently searches match in product.name
-    giving color_search true also causes search in product.colors
+    Function to check if all search words and colors of the watch list is found in product and sends email to person with match.
     """
 
-    match_found = False
-
-    if check_product_watch(product.name, product_id=product.id):
-        match_found = True
-
-    if color_search:
-        for color in product.colors.all():
-            if check_product_watch(
-                color.name,
-                product_id=product.id,
-                additional_info=f"Color match in {product.name}: ",
-            ):
-                match_found = True
+    colors = [color.name.lower() for color in Color.objects.all()]
+    product_colors = [color.name.lower() for color in product.colors.all()]
+    for search in SearchWatch.objects.all():
+        match = True
+        for word in search.words:
+            if word.lower() in colors:
+                if word.lower() not in product_colors:
+                    match = False
+                    break
+            elif word not in product.name.lower():
+                match = False
                 break
-
-    return match_found
-
-
-def check_product_watch(product_name, product_id=False, additional_info="") -> bool:
-    """
-    Function to check if value is is the watch list and sends email to person with match.
-    returns True if match is found, False if no match
-    """
-
-    any_match_found = False
-
-    front_url_info = ""
-    if product_id:
-        front_url_info = (
-            f"\n\nDirect link to product: {settings.URL_FRONT}tuotteet/{product_id}"
-        )
-
-    for search in UserSearchWatch.objects.all():
-        if search.word.lower() in product_name.lower():
-            any_match_found = True
-
-            subject = f"New item available you have set watch for: {product_name}"
+        if match:
+            subject = f"New item available you have set watch for: {product.name}"
             message = (
-                f"There was new item for watch word: {search.word}, you have set.\n\n"
-                f"Its name is: {additional_info}{product_name} and can be found in tavarat kiertoon system now."
-                f"{front_url_info}"
+                f"There was new item for watch words: {', '.join(search.words)} you have set.\n\n"
+                f"Its name is: {additional_info}{product.name} and can be found in tavarat kiertoon system now."
+                f"\n\nDirect link to product: {settings.URL_FRONT}tuotteet/{product.id}"
                 f"\n\nIf you want to remove this search watch visit: [FRONTIN OSOTE TÄHÄN KUN VALMIS]"
             )
 
@@ -97,8 +72,6 @@ def check_product_watch(product_name, product_id=False, additional_info="") -> b
                 [search.user.email],
                 fail_silently=False,
             )
-
-    return any_match_found
 
 
 class CustomTimeTokenGenerator(PasswordResetTokenGenerator):

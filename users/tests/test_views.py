@@ -1559,10 +1559,7 @@ class TestUsers(TestCase):
             "search watch user should be own user",
         )
 
-        # print("dict: ",)
-        print("existing id: ", response.json()[0]["id"])
         url2 = f"/user/searchwatch/{response.json()[0]['id']}/"
-        print("urli: ", url2)
         self.login_test_admin()
 
         response = self.client.get(url2)
@@ -1582,7 +1579,6 @@ class TestUsers(TestCase):
         data["words"] = ["vaihto"]
 
         response = self.client.put(url2, data, content_type="application/json")
-        print("put json: ", response.json())
         self.assertEqual(
             data["words"],
             SearchWatch.objects.get(id=response.json()["id"]).words,

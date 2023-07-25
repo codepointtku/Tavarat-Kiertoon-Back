@@ -17,8 +17,6 @@ from products.serializers import (
     PictureSerializer,
 )
 
-# class RentalPackageSerializer(serializers.ModelSerializer):
-
 
 class BikeRentalSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,7 +29,7 @@ class BikeRentalSchemaPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BikeRental
-        exclude = ["state", "user"]
+        exclude = ["state", "user", "packages"]
 
 
 class BikeRentalSchemaResponseSerializer(serializers.ModelSerializer):

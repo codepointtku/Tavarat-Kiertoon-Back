@@ -112,8 +112,8 @@ class BikeRental(models.Model):
         FINISHED = "FINISHED"
 
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-    bike_stock = models.ManyToManyField(BikeStock, related_name="rental")
-    packages = models.ManyToManyField(BikePackage, related_name="packagerental")
+    bike_stock = models.ManyToManyField(BikeStock, related_name="rental", blank=True)
+    packages = models.ManyToManyField(BikePackage, related_name="packagerental", blank=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     state = models.CharField(

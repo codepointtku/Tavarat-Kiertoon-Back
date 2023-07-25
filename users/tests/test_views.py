@@ -1526,7 +1526,6 @@ class TestUsers(TestCase):
         url = "/user/searchwatch/"
 
         self.login_test_user()
-
         log_count_at_start = UserLogEntry.objects.all().count()
         watches_at_start = SearchWatch.objects.all().count()
 
@@ -1549,8 +1548,34 @@ class TestUsers(TestCase):
             200,
             "Get should go through when logged in in search watch self",
         )
+        self.assertNotEqual(
+            response.json(),
+            0,
+            "There should be values returned when there are values in database",
+        )
         self.assertEqual(
             CustomUser.objects.get(username="testi1@turku.fi").id,
             SearchWatch.objects.get(words=["hieno"]).user.id,
             "search watch user should be own user",
+        )
+
+        # print("dict: ",)
+        print("existing id: ", response.json()[0]["id"])
+        url2 = f"/user/searchwatch/{response.json()[0]['id']}/"
+        print("urli: ", url2)
+        self.login_test_admin()
+
+        response = self.client.get(url2)
+        self.assertEqual(
+            response.status_code,
+            204,
+            "othrs shouldnt be able to access other ppls search watches",
+        )
+        self.login_test_user()
+
+        response = self.client.get(url2)
+        self.assertEqual(
+            response.status_code,
+            200,
+            "should be able to get own search watch entry",
         )

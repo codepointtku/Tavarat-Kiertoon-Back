@@ -987,10 +987,6 @@ def create_bike_package():
         package_object = BikePackage.objects.get(name=package["name"])
         for bike in package["bikes"]:
             bike_object = Bike.objects.get(size=BikeSize.objects.get(name=bike["size"]))
-            amount_object = BikeAmount(
-                bike=bike_object, amount=bike["amount"], package=package_object
-            )
-            amount_object.save()
             bikestock_list = BikeStock.objects.filter(bike=bike_object, package_only=False).values().order_by("id")
             for _ in range(bike["amount"]):
                 obj = BikeStock.objects.get(id=bikestock_list[0]["id"])

@@ -433,6 +433,38 @@ class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikePackage.objects.all()
     serializer_class = BikePackageListSerializer
 
+        # for bike in request.data.bike_stock:
+        #     if bike.package_only = False:
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        instance_bikes = instance.bike_stock.values_list("id", flat=True)
+        print(instance_bikes)
+        print(serializer.validated_data["bike_stock"])
+        for bike in serializer.validated_data["bike_stock"]:
+            print(bike.id)
+            print(bike.package_only)
+            if bike.id not in instance_bikes:
+                if bike.package is not None:
+                    print(serializer.validated_data["bike_stock"])
+                    serializer.validated_data["bike_stock"].remove(bike)
+                    print(serializer.validated_data["bike_stock"])
+                else:
+                    print("asd")
+                    # serializer.validated_data.bike_stock.bike["package_only"] = True
+            else:
+                pass
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+
 
 class BikeTypeListView(generics.ListCreateAPIView):
     queryset = BikeType.objects.all()

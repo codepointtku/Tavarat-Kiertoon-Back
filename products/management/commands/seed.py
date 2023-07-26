@@ -12,7 +12,6 @@ from django.utils import timezone
 
 from bikes.models import (
     Bike,
-    BikeAmount,
     BikeBrand,
     BikePackage,
     BikeSize,
@@ -71,7 +70,6 @@ def clear_data():
     CustomUser.objects.all().delete()
     UserAddress.objects.all().delete()
     Bike.objects.all().delete()
-    BikeAmount.objects.all().delete()
     BikeBrand.objects.all().delete()
     BikePackage.objects.all().delete()
     BikeSize.objects.all().delete()

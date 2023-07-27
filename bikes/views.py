@@ -433,32 +433,40 @@ class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikePackage.objects.all()
     serializer_class = BikePackageListSerializer
 
-        # for bike in request.data.bike_stock:
-        #     if bike.package_only = False:
+    # for bike in request.data.bike_stock:
+    #     if bike.package_only = False:
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.pop("partial", False)
         instance = self.get_object()
+
+        instance_bikes = instance.bike_stock.values_list("id", flat=True)
+        package_bikes = []
+        for bikeid in request.data["bike_stock"]:
+            if bikeid not in instance_bikes:
+                bikeobject = BikeStock.objects.get(id=bikeid)
+                if bikeobject.package is None:
+                    package_bikes.append(bikeid)
+            else:
+                package_bikes.append(bikeid)
+        request.data["bike_stock"] = package_bikes
+
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        instance_bikes = instance.bike_stock.values_list("id", flat=True)
-        print(instance_bikes)
-        print(serializer.validated_data["bike_stock"])
+
         for bike in serializer.validated_data["bike_stock"]:
-            print(bike.id)
-            print(bike.package_only)
-            if bike.id not in instance_bikes:
-                if bike.package is not None:
-                    print(serializer.validated_data["bike_stock"])
-                    serializer.validated_data["bike_stock"].remove(bike)
-                    print(serializer.validated_data["bike_stock"])
-                else:
-                    print("asd")
-                    # serializer.validated_data.bike_stock.bike["package_only"] = True
-            else:
-                pass
+            bike.package_only = True
+            bike.save()
+
         self.perform_update(serializer)
 
-        if getattr(instance, '_prefetched_objects_cache', None):
+        for bike in instance_bikes:
+            if bike not in package_bikes:
+                removed_bike = BikeStock.objects.get(id=bike)
+                removed_bike.package_only = False
+                removed_bike.save()
+                print(removed_bike)
+
+        if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}

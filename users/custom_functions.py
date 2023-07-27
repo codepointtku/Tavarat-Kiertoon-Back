@@ -1,7 +1,12 @@
 from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.mail import send_mail
 from django.utils.crypto import constant_time_compare
 from django.utils.http import base36_to_int
+
+from products.models import Color, Product
+
+from .models import SearchWatch
 
 
 def validate_email_domain(email):
@@ -32,6 +37,41 @@ def cookie_setter(key, value, remember_me, response):
         samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
         path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
     )
+
+
+def check_product_watch(product: Product, additional_info="") -> bool:
+    """
+    Function to check if all search words and colors of the watch list is found in product and sends email to person with match.
+    """
+
+    colors = [color.name.lower() for color in Color.objects.all()]
+    product_colors = [color.name.lower() for color in product.colors.all()]
+    for search in SearchWatch.objects.all():
+        match = True
+        for word in search.words:
+            if word.lower() in colors:
+                if word.lower() not in product_colors:
+                    match = False
+                    break
+            elif word not in product.name.lower():
+                match = False
+                break
+        if match:
+            subject = f"New item available you have set watch for: {product.name}"
+            message = (
+                f"There was new item for watch words: {', '.join(search.words)} you have set.\n\n"
+                f"Its name is: {additional_info}{product.name} and can be found in tavarat kiertoon system now."
+                f"\n\nDirect link to product: {settings.URL_FRONT}tuotteet/{product.id}"
+                f"\n\nIf you want to remove this search watch visit: [FRONTIN OSOTE TÄHÄN KUN VALMIS]"
+            )
+
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [search.user.email],
+                fail_silently=False,
+            )
 
 
 class CustomTimeTokenGenerator(PasswordResetTokenGenerator):

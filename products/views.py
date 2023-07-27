@@ -19,6 +19,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from categories.models import Category
 from orders.models import ShoppingCart
 from orders.serializers import ShoppingCartDetailSerializer
+from users.custom_functions import check_product_watch
 from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
@@ -221,6 +222,10 @@ class ProductListView(generics.ListCreateAPIView):
 
         response = ProductSerializer(productdata)
         headers = self.get_success_headers(response.data)
+
+        # checking if the created product was in product watch list on any user
+        check_product_watch(Product.objects.get(id=response.data["id"]))
+
         return Response(
             data=response.data, status=status.HTTP_201_CREATED, headers=headers
         )

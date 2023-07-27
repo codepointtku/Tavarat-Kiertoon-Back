@@ -1,8 +1,5 @@
-from datetime import timedelta
-
 from django.conf import settings
-from django.contrib.auth import authenticate, get_user_model, login, logout
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth import authenticate, get_user_model, logout
 from django.contrib.auth.models import Group, update_last_login
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
@@ -12,15 +9,9 @@ from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.cache import never_cache
-from django.views.decorators.debug import sensitive_post_parameters
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import (
-    PolymorphicProxySerializer,
-    extend_schema,
-    extend_schema_view,
-    inline_serializer,
-)
-from rest_framework import generics, permissions, serializers, status
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.mixins import ListModelMixin
@@ -38,7 +29,7 @@ from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
 from .custom_functions import cookie_setter
-from .models import CustomUser, UserAddress, UserLogEntry
+from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 from .permissions import HasGroupPermission
 from .serializers import (
     GroupNameSerializer,
@@ -47,6 +38,8 @@ from .serializers import (
     MessageSerializer,
     NewEmailFinishValidationSerializer,
     NewEmailSerializer,
+    SearchWatchRequestSerializer,
+    SearchWatchSerializer,
     UserAddressPostRequestSerializer,
     UserAddressPutRequestSerializer,
     UserAddressSerializer,
@@ -474,7 +467,10 @@ class GroupListView(generics.ListAPIView):
 
 
 @extend_schema_view(patch=extend_schema(exclude=True))
-@extend_schema(responses=GroupPermissionsResponseSchemaSerializer)
+@extend_schema(
+    responses=GroupPermissionsResponseSchemaSerializer,
+    request=GroupPermissionsResponseSchemaSerializer,
+)
 class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
     Update users permissions, should be only allowed to admins, on testing phase allowing fo users
@@ -774,7 +770,7 @@ class UserAddressAdminCreateView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         temp = self.create(request, *args, **kwargs)
-        temp_target_user = UserAddress.objects.get(id=temp.data["user"]).user
+        temp_target_user = User.objects.get(id=temp.data["user"])
         UserLogEntry.objects.create(
             action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
             target=temp_target_user,
@@ -1040,7 +1036,6 @@ class UserLogFilter(filters.FilterSet):
 
 @extend_schema(responses=UserLogResponseSchemaSerializer)
 class UserLogView(generics.ListAPIView):
-
     """
     user log list view
     """
@@ -1063,3 +1058,117 @@ class UserLogView(generics.ListAPIView):
 
     serializer_class = UserLogSerializer
     queryset = UserLogEntry.objects.all()
+
+
+@extend_schema_view(post=extend_schema(request=SearchWatchRequestSerializer))
+class SearchWatchListView(APIView, ListModelMixin):
+    """
+    Get list of all search wacthes user has, and edit them
+    """
+
+    authentication_classes = [
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+        "POST": ["user_group"],
+    }
+
+    serializer_class = SearchWatchSerializer
+
+    def get(self, request, format=None):
+        qs = SearchWatch.objects.filter(user=request.user)
+        serialized_info = SearchWatchSerializer(qs, many=True)
+        return Response(serialized_info.data)
+
+    # used for adding new address to user
+
+    def post(self, request, format=None):
+        request.data["user"] = request.user.id
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.WATCH,
+            target=request.user,
+            user_who_did_this_action=request.user,
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@extend_schema_view(
+    put=extend_schema(request=SearchWatchRequestSerializer),
+    patch=extend_schema(exclude=True),
+)
+class SearchWatchDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Delete the specific address given in kwargs. address needs to match logged in user id as owner
+    """
+
+    authentication_classes = [
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+        "PUT": ["user_group"],
+        "DELETE": ["user_group"],
+    }
+
+    serializer_class = SearchWatchSerializer
+    queryset = SearchWatch.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        try:
+            watch_entry = SearchWatch.objects.get(id=kwargs["pk"])
+        except SearchWatch.DoesNotExist:
+            return Response("Wrong user", status=status.HTTP_204_NO_CONTENT)
+
+        if request.user.id == watch_entry.user.id:
+            return self.retrieve(request, *args, **kwargs)
+        else:
+            return Response("Wrong user", status=status.HTTP_204_NO_CONTENT)
+
+    def put(self, request, *args, **kwargs):
+        try:
+            watch_entry = SearchWatch.objects.get(id=kwargs["pk"])
+        except SearchWatch.DoesNotExist:
+            return Response("Wrong user", status=status.HTTP_204_NO_CONTENT)
+
+        if request.user.id == watch_entry.user.id:
+            request.data["user"] = request.user.id
+            temp = self.update(request, *args, **kwargs)
+
+            UserLogEntry.objects.create(
+                action=UserLogEntry.ActionChoices.WATCH,
+                target=request.user,
+                user_who_did_this_action=request.user,
+            )
+
+            return temp
+        else:
+            return Response("Wrong user", status=status.HTTP_204_NO_CONTENT)
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            watch_entry = SearchWatch.objects.get(id=kwargs["pk"])
+        except SearchWatch.DoesNotExist:
+            return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
+
+        if request.user == watch_entry.user:
+            watch_entry.delete()
+
+            UserLogEntry.objects.create(
+                action=UserLogEntry.ActionChoices.WATCH,
+                target=request.user,
+                user_who_did_this_action=request.user,
+            )
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        else:
+            # print("user didnt match the  owner of address")
+            return Response("Not Done", status=status.HTTP_204_NO_CONTENT)

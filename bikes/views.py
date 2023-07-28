@@ -425,6 +425,23 @@ class BikePackageListView(generics.ListCreateAPIView):
     queryset = BikePackage.objects.all()
     serializer_class = BikePackageListSerializer
 
+    def post(self, request, *args, **kwargs):
+        serializer = BikePackageListSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        package_bikes = []
+        for bikeid in request.data["bike_stock"]:
+            bikeobject = BikeStock.objects.get(id=bikeid)
+            if bikeobject.package is None:
+                package_bikes.append(bikeid)
+            request.data["bike_stock"] = package_bikes
+        for bike in serializer.validated_data["bike_stock"]:
+            print(bike)
+            bike.package_only = True
+            bike.save()
+            print(bike)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 @extend_schema_view(
     patch=extend_schema(exclude=True),
@@ -471,7 +488,7 @@ class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
 
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
 class BikeTypeListView(generics.ListCreateAPIView):

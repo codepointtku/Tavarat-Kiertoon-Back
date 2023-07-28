@@ -2,6 +2,7 @@
 
 import datetime
 import math
+import holidays
 
 from django.core.files.base import ContentFile
 from django.utils import timezone
@@ -166,6 +167,7 @@ class BikeAvailabilityList(generics.ListAPIView):
         today = datetime.date.today()
         available_from = today + datetime.timedelta(days=7)
         available_to = today + datetime.timedelta(days=183)
+        fin_holidays = holidays.FI()
         asd = self.get_queryset()
         serializer = self.get_serializer(asd, many=True)
         for bike in serializer.data:
@@ -176,7 +178,7 @@ class BikeAvailabilityList(generics.ListAPIView):
                 start_date = datetime.datetime.fromisoformat(rental["start_date"])
                 end_date = datetime.datetime.fromisoformat(rental["end_date"])
                 end_date += datetime.timedelta(days=1)
-                while end_date.weekday() >= 5:
+                while end_date.weekday() >= 5 or end_date in fin_holidays:
                     end_date += datetime.timedelta(days=1)
                 date = start_date
                 while date <= end_date:
@@ -193,7 +195,7 @@ class BikeAvailabilityList(generics.ListAPIView):
                 start_date = datetime.datetime.fromisoformat(rental["start_date"])
                 end_date = datetime.datetime.fromisoformat(rental["end_date"])
                 end_date += datetime.timedelta(days=1)
-                while end_date.weekday() >= 5:
+                while end_date.weekday() >= 5 or end_date in fin_holidays:
                     end_date += datetime.timedelta(days=1)
                 date = start_date
                 while date <= end_date:
@@ -216,6 +218,7 @@ class MainBikeList(generics.ListAPIView):
         today = datetime.date.today()
         available_from = today + datetime.timedelta(days=7)
         available_to = today + datetime.timedelta(days=183)
+        fin_holidays = holidays.FI()
 
         bike_serializer = BikeSerializer(Bike.objects.all(), many=True)
         bike_package_serializer = BikePackageSerializer(
@@ -235,7 +238,7 @@ class MainBikeList(generics.ListAPIView):
                         end_date = datetime.datetime.fromisoformat(rental["end_date"])
                         # We want to give the warehouse workers a business day to maintain the bikes, after the rental has ended
                         end_date += datetime.timedelta(days=1)
-                        while end_date.weekday() >= 5:
+                        while end_date.weekday() >= 5 or end_date in fin_holidays:
                             end_date += datetime.timedelta(days=1)
                         date = start_date
                         while date <= end_date:
@@ -263,7 +266,7 @@ class MainBikeList(generics.ListAPIView):
                 end_date = datetime.datetime.fromisoformat(packagerental["end_date"])
                 # We want to give the warehouse workers a business day to maintain the bikes, after the rental has ended
                 end_date += datetime.timedelta(days=1)
-                while end_date.weekday() >= 5:
+                while end_date.weekday() >= 5 or end_date in fin_holidays:
                     end_date += datetime.timedelta(days=1)
                 date = start_date
                 while date <= end_date:

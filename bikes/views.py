@@ -435,10 +435,8 @@ class BikePackageListView(generics.ListCreateAPIView):
                 package_bikes.append(bikeid)
             request.data["bike_stock"] = package_bikes
         for bike in serializer.validated_data["bike_stock"]:
-            print(bike)
             bike.package_only = True
             bike.save()
-            print(bike)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -450,8 +448,6 @@ class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikePackage.objects.all()
     serializer_class = BikePackageListSerializer
 
-    # for bike in request.data.bike_stock:
-    #     if bike.package_only = False:
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
@@ -481,7 +477,6 @@ class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
                 removed_bike = BikeStock.objects.get(id=bike)
                 removed_bike.package_only = False
                 removed_bike.save()
-                print(removed_bike)
 
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
@@ -490,6 +485,14 @@ class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
+    def delete(self, request, *args, **kwargs):
+        removable_package = self.get_object()
+        for bike in removable_package.bike_stock.all():
+            bike.package_only = False
+            bike.save()
+        removable_package.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
 
 class BikeTypeListView(generics.ListCreateAPIView):
     queryset = BikeType.objects.all()

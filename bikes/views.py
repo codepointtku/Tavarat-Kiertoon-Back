@@ -426,14 +426,14 @@ class BikePackageListView(generics.ListCreateAPIView):
     serializer_class = BikePackageListSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = BikePackageListSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         package_bikes = []
         for bikeid in request.data["bike_stock"]:
             bikeobject = BikeStock.objects.get(id=bikeid)
             if bikeobject.package is None:
                 package_bikes.append(bikeid)
             request.data["bike_stock"] = package_bikes
+        serializer = BikePackageListSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         for bike in serializer.validated_data["bike_stock"]:
             bike.package_only = True
             bike.save()
@@ -492,7 +492,7 @@ class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
             bike.save()
         removable_package.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
 
 class BikeTypeListView(generics.ListCreateAPIView):
     queryset = BikeType.objects.all()

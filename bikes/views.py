@@ -237,9 +237,12 @@ class MainBikeList(generics.ListAPIView):
                 else:
                     serializer_package["size"] = bike_object.size.name
                 bike_object_serializer = BikeSerializer(bike_object)
-                bike_max_available = math.floor(
-                    bike_object_serializer.data["max_available"] / bike["amount"]
-                )
+                if bike["amount"] == 0:
+                    bike_max_available = bike["amount"]
+                else:
+                    bike_max_available = math.floor(
+                        bike_object_serializer.data["max_available"] / bike["amount"]
+                    )
                 if max_available is None:
                     max_available = bike_max_available
                 else:

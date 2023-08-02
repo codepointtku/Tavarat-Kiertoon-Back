@@ -2,6 +2,8 @@
 
 import datetime
 import math
+import holidays
+
 
 from django.core.files.base import ContentFile
 from django.utils import timezone
@@ -164,6 +166,7 @@ class MainBikeList(generics.ListAPIView):
         today = datetime.date.today()
         available_from = today + datetime.timedelta(days=7)
         available_to = today + datetime.timedelta(days=183)
+        fin_holidays = holidays.FI()
 
         bike_serializer = BikeSerializer(Bike.objects.all(), many=True)
         bike_package_serializer = BikePackageSerializer(
@@ -184,7 +187,7 @@ class MainBikeList(generics.ListAPIView):
                         end_date = datetime.datetime.fromisoformat(rental["end_date"])
                         # We want to give the warehouse workers a business day to maintain the bikes, after the rental has ended
                         end_date += datetime.timedelta(days=1)
-                        while end_date.weekday() >= 5:
+                        while end_date.weekday() >= 5 or end_date in fin_holidays:
                             end_date += datetime.timedelta(days=1)
                         date = start_date
                         while date <= end_date:
@@ -204,7 +207,7 @@ class MainBikeList(generics.ListAPIView):
                         end_date = datetime.datetime.fromisoformat(rental["end_date"])
                         # We want to give the warehouse workers a business day to maintain the bikes, after the rental has ended
                         end_date += datetime.timedelta(days=1)
-                        while end_date.weekday() >= 5:
+                        while end_date.weekday() >= 5 or end_date in fin_holidays:
                             end_date += datetime.timedelta(days=1)
                         date = start_date
                         while date <= end_date:
@@ -237,9 +240,12 @@ class MainBikeList(generics.ListAPIView):
                 else:
                     serializer_package["size"] = bike_object.size.name
                 bike_object_serializer = BikeSerializer(bike_object)
-                bike_max_available = math.floor(
-                    bike_object_serializer.data["max_available"] / bike["amount"]
-                )
+                if bike["amount"] == 0:
+                    bike_max_available = bike["amount"]
+                else:
+                    bike_max_available = math.floor(
+                        bike_object_serializer.data["max_available"] / bike["amount"]
+                    )
                 if max_available is None:
                     max_available = bike_max_available
                 else:

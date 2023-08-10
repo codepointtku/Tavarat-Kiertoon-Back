@@ -1,10 +1,11 @@
+from csv import reader
 from typing import Any
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 
-from products.models import Color
+from products.models import Color, Storage
 
 CustomUser = get_user_model()
 
@@ -20,9 +21,11 @@ class Command(BaseCommand):
 
 def clear_data():
     """Deletes all the database tables that this script populates"""
-    Color.objects.all().delete()
+
     CustomUser.objects.all().delete()
     Group.objects.all().delete()
+    Color.objects.all().delete()
+    Storage.objects.all().delete()
 
 
 def super_user():
@@ -33,18 +36,26 @@ def groups():
     """creates the user groups for permissions"""
     groups = ["user_group", "admin_group", "storage_group", "bicycle_group"]
     for group in groups:
-        group_object = Group(name=group)
-        group_object.save()
+        Group.objects.create(name=group)
 
 
-def colors(self):
-    file = open("tk-db/colors.csv")
+def colors():
+    file = reader(open("tk-db/colors.csv"))
+    next(file)
     for row in file:
-        Color.objects.create(name=row)
+        Color.objects.create(name=row[0])
+
+
+def storages():
+    file = reader(open("tk-db/storages.csv"))
+    next(file)
+    for row in file:
+        Storage.objects.create(name=row[0], address="")
 
 
 def run_database(self):
     clear_data()
     super_user()
     groups()
-    colors(self)
+    colors()
+    storages()

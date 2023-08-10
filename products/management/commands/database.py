@@ -42,7 +42,7 @@ def groups():
 
 
 def colors():
-    file = reader(open("tk-db/colors.csv", encoding="utf8"))
+    file = reader(open("tk-db/colors.csv"))
     next(file)
     for row in file:
         Color.objects.create(name=row[0])
@@ -57,9 +57,11 @@ def storages():
 
 def products():
     file = reader(open("tk-db/products.csv", encoding="utf8"))
-    next(file)
+    header = next(file)
+    products = {}
     for row in file:
-        print(row)
+        products[int(row[0])] = {header[1]: row[1], header[2]: row[2]}
+    print(products)
 
 
 def categories():

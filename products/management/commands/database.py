@@ -5,7 +5,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 
-from products.models import Color, Storage
+from categories.models import Category
+from products.models import Color, Product, Storage
 
 CustomUser = get_user_model()
 
@@ -26,6 +27,7 @@ def clear_data():
     Group.objects.all().delete()
     Color.objects.all().delete()
     Storage.objects.all().delete()
+    Category.objects.all().delete()
 
 
 def super_user():
@@ -40,17 +42,35 @@ def groups():
 
 
 def colors():
-    file = reader(open("tk-db/colors.csv"))
+    file = reader(open("tk-db/colors.csv", encoding="utf8"))
     next(file)
     for row in file:
         Color.objects.create(name=row[0])
 
 
 def storages():
-    file = reader(open("tk-db/storages.csv"))
+    file = reader(open("tk-db/storages.csv", encoding="utf8"))
     next(file)
     for row in file:
         Storage.objects.create(name=row[0], address="")
+
+
+def products():
+    file = reader(open("tk-db/products.csv", encoding="utf8"))
+    next(file)
+    for row in file:
+        print(row)
+
+
+def categories():
+    """placeholder category for products"""
+    Category.objects.create(name="Huonekalut")
+    Category.objects.create(
+        name="Tuolit", parent=Category.objects.get(name="Huonekalut")
+    )
+    Category.objects.create(
+        name="Muut Tuolit", parent=Category.objects.get(name="Tuolit")
+    )
 
 
 def run_database(self):
@@ -59,3 +79,5 @@ def run_database(self):
     groups()
     colors()
     storages()
+    categories()
+    products()

@@ -6,7 +6,7 @@ from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 
 from categories.models import Category
-from products.models import Color, Product, Storage
+from products.models import Color, Product, ProductItem, Storage
 
 CustomUser = get_user_model()
 

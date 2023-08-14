@@ -140,13 +140,35 @@ def create_groups():
 def create_storages():
     """Creates storage objects from the list."""
     storages = [
-        {"name": "Varasto X", "address": "Blabla 2b, 20230 Turku", "in_use": True},
-        {"name": "Kahvivarasto", "address": "tonipal_kahville katu", "in_use": True},
-        {"name": "Pieni varasto", "address": "Roskalava", "in_use": False},
+        {
+            "name": "Varasto X",
+            "address": "Blabla 2b, 20230 Turku",
+            "zip_code": "20100",
+            "city": "Turku",
+            "in_use": True,
+        },
+        {
+            "name": "Kahvivarasto",
+            "address": "tonipal_kahville katu",
+            "zip_code": "20300",
+            "city": "Turku",
+            "in_use": True,
+        },
+        {
+            "name": "Pieni varasto",
+            "address": "Roskalava",
+            "zip_code": "20200",
+            "city": "Turku",
+            "in_use": False,
+        },
     ]
     for storage in storages:
         storage_object = Storage(
-            name=storage["name"], address=storage["address"], in_use=storage["in_use"]
+            name=storage["name"],
+            address=storage["address"],
+            zip_code=storage["zip_code"],
+            city=storage["city"],
+            in_use=storage["in_use"],
         )
         storage_object.save()
 

@@ -422,10 +422,9 @@ class StorageListView(generics.ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [IsAuthenticated, HasGroupPermission]
+    permission_classes = [HasGroupPermission]
     required_groups = {
-        "GET": ["storage_group"],
-        "POST": ["storage_group"],
+        "POST": ["admin_group"],
     }
 
 
@@ -449,31 +448,17 @@ class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [IsAuthenticated, HasGroupPermission]
+    permission_classes = [HasGroupPermission]
     required_groups = {
-        "GET": ["storage_group"],
-        "PUT": ["storage_group"],
-        "PATCH": ["storage_group"],
-        "DELETE": ["storage_group"],
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+        "DELETE": ["admin_group"],
     }
 
 
 class PictureListView(generics.ListCreateAPIView):
     queryset = Picture.objects.all()
     serializer_class = PictureCreateSerializer
-
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-
-    permission_classes = [HasGroupPermission]
-    required_groups = {
-        "CREATE": ["storage_group"],
-        "POST": ["storage_group"],
-    }
 
     def create(self, request, *args, **kwargs):
         for file in request.FILES.values():
@@ -499,20 +484,6 @@ class PictureListView(generics.ListCreateAPIView):
 class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Picture.objects.all()
     serializer_class = PictureSerializer
-
-    authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
-        JWTAuthentication,
-        CustomJWTAuthentication,
-    ]
-
-    permission_classes = [HasGroupPermission]
-    required_groups = {
-        "PUT": ["storage_group"],
-        "PATCH": ["storage_group"],
-        "DELETE": ["storage_group"],
-    }
 
 
 @extend_schema_view(

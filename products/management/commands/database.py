@@ -52,7 +52,9 @@ def storages():
     file = reader(open("tk-db/storages.csv", encoding="utf8"))
     next(file)
     for row in file:
-        Storage.objects.create(name=row[0], address="")
+        Storage.objects.create(
+            name=row[1], address=row[2], zip_code=row[3], city=row[4]
+        )
 
 
 def products():

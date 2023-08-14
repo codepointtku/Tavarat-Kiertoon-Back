@@ -12,6 +12,7 @@ from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -20,7 +21,7 @@ from categories.models import Category
 from orders.models import ShoppingCart
 from orders.serializers import ShoppingCartDetailSerializer
 from users.custom_functions import check_product_watch
-from users.permissions import is_in_group
+from users.permissions import HasGroupPermission, is_in_group
 from users.views import CustomJWTAuthentication
 
 from .models import Color, Picture, Product, ProductItem, ProductItemLogEntry, Storage
@@ -388,6 +389,19 @@ class StorageListView(generics.ListCreateAPIView):
     queryset = Storage.objects.all()
     serializer_class = StorageSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group"],
+        "POST": ["storage_group"],
+    }
+
 
 @extend_schema_view(
     get=extend_schema(
@@ -401,6 +415,21 @@ class StorageListView(generics.ListCreateAPIView):
 class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Storage.objects.all()
     serializer_class = StorageSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group"],
+        "PUT": ["storage_group"],
+        "PATCH": ["storage_group"],
+        "DELETE": ["storage_group"],
+    }
 
 
 class PictureListView(generics.ListCreateAPIView):

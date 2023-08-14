@@ -64,6 +64,8 @@ User = get_user_model()
 
 
 # Create your views here.
+
+
 class UserCreateListView(APIView):
     """
     create with POST
@@ -94,9 +96,12 @@ class UserCreateListView(APIView):
                 city=serialized_values["city"].value,
                 username=serialized_values["username"].value,
             )
+
+            # creating the users shopping cart
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()
 
+            # creation log
             UserLogEntry.objects.create(
                 action=UserLogEntry.ActionChoices.CREATED,
                 target=user,
@@ -104,8 +109,10 @@ class UserCreateListView(APIView):
             )
 
             # create email verification for user creation
+            # skipping the need to click user activation email link
+            # setting is in different debug value than generic setings.debug for the ease of testing, remember to change .env value when needed
             if settings.TEST_DEBUG:  # settings.DEBUG:
-                # print("debug päällä, activating user without email")
+                # print("debug päällä, activating user without sending email")
                 activate_url_back = (
                     "debug on, user auto activated no need to visit activation place"
                 )

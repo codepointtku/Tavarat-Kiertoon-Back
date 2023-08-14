@@ -1049,7 +1049,7 @@ class UserLogView(generics.ListAPIView):
 @extend_schema_view(post=extend_schema(request=SearchWatchRequestSerializer))
 class SearchWatchListView(APIView, ListModelMixin):
     """
-    Get list of all search wacthes user has, and edit them
+    Get list of all search watches user has, and edit them
     """
 
     authentication_classes = [

@@ -353,6 +353,18 @@ class ColorListView(generics.ListCreateAPIView):
     queryset = Color.objects.all()
     serializer_class = ColorSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "POST": ["storage_group"],
+    }
+
 
 @extend_schema_view(
     patch=extend_schema(exclude=True),
@@ -360,6 +372,20 @@ class ColorListView(generics.ListCreateAPIView):
 class ColorDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Color.objects.all()
     serializer_class = ColorSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "PUT": ["storage_group"],
+        "PATCH": ["storage_group"],
+        "DELETE": ["storage_group"],
+    }
 
     def put(self, request, *args, **kwargs):
         if self.get_object().default:

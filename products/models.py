@@ -37,6 +37,8 @@ class Storage(models.Model):
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255)
     address = models.CharField(max_length=255)
+    zip_code = models.CharField(max_length=255)
+    city = models.CharField(max_length=255)
     in_use = models.BooleanField(default=True)
 
     def __str__(self) -> str:
@@ -70,8 +72,8 @@ class ProductItemLogEntry(models.Model):
         CART_REMOVE = "Removed from shopping cart"  # Done
         CART_TIMEOUT = "Timed out from shopping cart"
         ORDER = "Ordered"  # Done
-        ORDER_ADD = "Added to order"  #Done
-        ORDER_REMOVE = "Removed from order"  #Done
+        ORDER_ADD = "Added to order"  # Done
+        ORDER_REMOVE = "Removed from order"  # Done
         CIRCULATION = "Came back to circulation"  # Done
         MODIFY = "Modified at storage"  # Done
         GIFT = "Gifted away"

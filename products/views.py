@@ -436,6 +436,19 @@ class PictureListView(generics.ListCreateAPIView):
     queryset = Picture.objects.all()
     serializer_class = PictureCreateSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "CREATE": ["storage_group"],
+        "POST": ["storage_group"],
+    }
+
     def create(self, request, *args, **kwargs):
         for file in request.FILES.values():
             ext = file.content_type.split("/")[1]
@@ -460,6 +473,20 @@ class PictureListView(generics.ListCreateAPIView):
 class PictureDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Picture.objects.all()
     serializer_class = PictureSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "PUT": ["storage_group"],
+        "PATCH": ["storage_group"],
+        "DELETE": ["storage_group"],
+    }
 
 
 @extend_schema_view(

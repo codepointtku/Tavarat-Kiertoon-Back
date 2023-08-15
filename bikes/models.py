@@ -128,3 +128,18 @@ class BikeAmount(models.Model):
     def __str__(self) -> str:
         return f"Bike amount: {self.amount}x{self.bike}({self.id})"
 
+
+class BikeTrailerModel(models.Model):
+    """Model for trailers, used to transport and store bikes"""
+
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+
+    def __str__(self) -> str:
+        return f"Bike: {self.name}({self.id})"
+
+
+class BikeTrailer(models.Model):
+    """Model for individual trailers"""
+
+    register_number = models.CharField(max_length=255)

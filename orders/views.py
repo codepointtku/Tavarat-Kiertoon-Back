@@ -208,7 +208,6 @@ class OrderListView(ListCreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["admin_group"],
         "POST": ["admin_group"],
     }
 
@@ -270,7 +269,6 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
     required_groups = {
-        "GET": ["admin_group"],
         "POST": ["admin_group"],
         "PATCH": ["admin_group"],
         "DELETE": ["admin_group"],

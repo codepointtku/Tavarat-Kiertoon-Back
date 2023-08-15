@@ -14,6 +14,7 @@ from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -70,7 +71,7 @@ class BikeModelListView(generics.ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "POST": ["bicycle_group", "admin_group"],
@@ -115,7 +116,7 @@ class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "PUT": ["bicycle_group", "admin_group"],
@@ -165,7 +166,7 @@ class BikeStockListView(generics.ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "POST": ["bicycle_group", "admin_group"],
@@ -196,7 +197,7 @@ class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "PUT": ["bicycle_group", "admin_group"],
@@ -224,7 +225,7 @@ class MainBikeList(generics.ListAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group"],
         "LIST": ["bicycle_group"],
@@ -360,7 +361,7 @@ class RentalListView(generics.ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "POST": ["bicycle_group"],
@@ -477,7 +478,7 @@ class RentalDetailView(generics.RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "PUT": ["bicycle_group", "admin_group"],
@@ -497,7 +498,7 @@ class BikeAmountListView(generics.ListAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
     }
@@ -521,7 +522,7 @@ class BikePackageListView(generics.ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "POST": ["bicycle_group", "admin_group"],
@@ -544,7 +545,7 @@ class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "PUT": ["bicycle_group", "admin_group"],
@@ -564,7 +565,7 @@ class BikeTypeListView(generics.ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "POST": ["bicycle_group", "admin_group"],
@@ -585,7 +586,7 @@ class BikeTypeDetailView(generics.RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "PUT": ["bicycle_group", "admin_group"],
@@ -605,7 +606,7 @@ class BikeBrandListView(generics.ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "POST": ["bicycle_group", "admin_group"],
@@ -626,7 +627,7 @@ class BikeBrandDetailView(generics.RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "PUT": ["bicycle_group", "admin_group"],
@@ -646,7 +647,7 @@ class BikeSizeListView(generics.ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "POST": ["bicycle_group", "admin_group"],
@@ -667,7 +668,7 @@ class BikeSizeDetailView(generics.RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "admin_group"],
         "PUT": ["bicycle_group", "admin_group"],

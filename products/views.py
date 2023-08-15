@@ -158,6 +158,12 @@ class ProductListView(generics.ListCreateAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "POST": ["storage_group"],
+    }
+
     pagination_class = ProductListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
@@ -248,6 +254,21 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "PUT": ["storage_group"],
+        "PATCH": ["storage_group"],
+        "DELETE": ["storage_group"],
+        "UPDATE": ["storage_group"],
+    }
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
@@ -315,6 +336,14 @@ class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "PUT": ["storage_group"],
+        "PATCH": ["storage_group"],
+        "DELETE": ["storage_group"],
+        "UPDATE": ["storage_group"],
+    }
 
     def update(self, request, *args, **kwargs):
         """
@@ -493,6 +522,18 @@ class ProductStorageTransferView(APIView):
     """View for transfering list of products to different storage"""
 
     serializer_class = ProductStorageTransferSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "PUT": ["admin_group"],
+    }
 
     def put(self, request, *args, **kwargs):
         storage = Storage.objects.get(id=request.data["storage"])

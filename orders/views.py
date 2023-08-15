@@ -19,6 +19,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from products.models import Product, ProductItem, ProductItemLogEntry
+from users.permissions import HasGroupPermission
 from users.views import CustomJWTAuthentication
 
 from .models import Order, OrderEmailRecipient, ShoppingCart
@@ -326,8 +327,34 @@ class OrderEmailRecipientListView(ListCreateAPIView):
     serializer_class = OrderEmailRecipientSerializer
     queryset = OrderEmailRecipient.objects.all()
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "POST": ["admin_group"],
+    }
+
 
 @extend_schema_view(patch=extend_schema(exclude=True))
 class OrderEmailRecipientDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = OrderEmailRecipientSerializer
     queryset = OrderEmailRecipient.objects.all()
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+        "DELETE": ["admin_group"],
+    }

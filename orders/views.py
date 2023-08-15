@@ -14,6 +14,7 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -46,6 +47,15 @@ from .serializers import (
 class ShoppingCartListView(ListCreateAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = ShoppingCartSerializer(data=request.data)
@@ -161,9 +171,7 @@ class OrderFilter(filters.FilterSet):
 
 
 class UserOrderFilter(filters.FilterSet):
-    status = filters.MultipleChoiceFilter(
-        choices=Order.StatusChoices.choices
-    )
+    status = filters.MultipleChoiceFilter(choices=Order.StatusChoices.choices)
 
     class Meta:
         model = Order
@@ -278,7 +286,8 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
                     if add == 0:
                         add = 1
                         log_add = ProductItemLogEntry.objects.create(
-                            action=ProductItemLogEntry.ActionChoices.ORDER_ADD, user=user
+                            action=ProductItemLogEntry.ActionChoices.ORDER_ADD,
+                            user=user,
                         )
                     product_item_object.available = False
                     product_item_object.save()

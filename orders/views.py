@@ -291,6 +291,10 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
 
     def destroy(self, request, *args, **kwargs):
         order = self.get_object()
+        if order.status == "Finished":
+            return Response(
+                "Cant delete finished orders", status=status.HTTP_403_FORBIDDEN
+            )
         log_entry = ProductItemLogEntry.objects.create(
             action=ProductItemLogEntry.ActionChoices.ORDER_REMOVE, user=request.user
         )

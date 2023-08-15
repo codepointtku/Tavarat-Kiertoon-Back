@@ -2,59 +2,56 @@
 
 import datetime
 import math
+
 import holidays
-
-
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 # from rest_framework.permissions import IsAdminUser
 from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.filters import OrderingFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.filters import OrderingFilter
-
-
-from users.views import CustomJWTAuthentication
-
-from drf_spectacular.utils import extend_schema_view, extend_schema
 
 from bikes.models import (
     Bike,
+    BikeAmount,
+    BikeBrand,
     BikePackage,
     BikeRental,
-    BikeStock,
-    BikeAmount,
-    BikeType,
     BikeSize,
-    BikeBrand,
+    BikeStock,
+    BikeType,
 )
 from bikes.serializers import (
     BikeAmountListSerializer,
     BikeAvailabilityListSerializer,
-    BikePackageSerializer,
-    BikePackageSchemaResponseSerializer,
-    BikePackageCreateResponseSerializer,
-    BikeRentalSerializer,
-    BikeSerializer,
-    BikeStockListSerializer,
-    BikeStockDetailSerializer,
-    BikeRentalSchemaPostSerializer,
-    BikeRentalSchemaResponseSerializer,
-    BikeStockCreateSerializer,
-    BikeStockSchemaCreateUpdateSerializer,
-    BikeModelSerializer,
+    BikeBrandSerializer,
     BikeModelCreateSerializer,
     BikeModelSchemaResponseSerializer,
-    MainBikeListSchemaSerializer,
-    BikeTypeSerializer,
-    BikeBrandSerializer,
+    BikeModelSerializer,
+    BikePackageCreateResponseSerializer,
+    BikePackageSchemaResponseSerializer,
+    BikePackageSerializer,
+    BikeRentalSchemaPostSerializer,
+    BikeRentalSchemaResponseSerializer,
+    BikeRentalSerializer,
+    BikeSerializer,
     BikeSizeSerializer,
+    BikeStockCreateSerializer,
+    BikeStockDetailSerializer,
+    BikeStockListSerializer,
+    BikeStockSchemaCreateUpdateSerializer,
+    BikeTypeSerializer,
+    MainBikeListSchemaSerializer,
     PictureCreateSerializer,
 )
+from users.permissions import HasGroupPermission
+from users.views import CustomJWTAuthentication
 
 
 @extend_schema_view(
@@ -65,6 +62,19 @@ from bikes.serializers import (
 class BikeModelListView(generics.ListCreateAPIView):
     queryset = Bike.objects.all()
     serializer_class = BikeModelSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "POST": ["bicycle_group", "admin_group"],
+    }
 
     def post(self, request, *args, **kwargs):
         for file in request.FILES.getlist("pictures[]"):
@@ -97,6 +107,22 @@ class BikeModelListView(generics.ListCreateAPIView):
 class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Bike.objects.all()
     serializer_class = BikeModelSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "PUT": ["bicycle_group", "admin_group"],
+        "PATCH": ["bicycle_group", "admin_group"],
+        "UPDATE": ["bicycle_group", "admin_group"],
+        "DELETE": ["bicycle_group", "admin_group"],
+    }
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -132,6 +158,19 @@ class BikeStockListView(generics.ListCreateAPIView):
     serializer_class = BikeStockListSerializer
     # permission_classes = [isAdminUser]
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "POST": ["bicycle_group", "admin_group"],
+    }
+
     def post(self, request, *args, **kwargs):
         serializer = BikeStockCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -150,6 +189,22 @@ class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeStock.objects.all()
     serializer_class = BikeStockDetailSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "PUT": ["bicycle_group", "admin_group"],
+        "PATCH": ["bicycle_group", "admin_group"],
+        "UPDATE": ["bicycle_group", "admin_group"],
+        "DELETE": ["bicycle_group", "admin_group"],
+    }
+
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = BikeStockCreateSerializer(instance, data=request.data)
@@ -161,6 +216,19 @@ class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
 class MainBikeList(generics.ListAPIView):
     serializer_class = MainBikeListSchemaSerializer
     queryset = Bike.objects.none()
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group"],
+        "LIST": ["bicycle_group"],
+    }
 
     def list(self, request, *args, **kwargs):
         today = datetime.date.today()
@@ -291,6 +359,13 @@ class RentalListView(generics.ListCreateAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "POST": ["bicycle_group"],
+    }
+
     pagination_class = BikeRentalPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["id", "state", "start_date", "end_date"]
@@ -336,9 +411,13 @@ class RentalListView(generics.ListCreateAPIView):
                 packageamount = request.data["bike_stock"][rental_item]
                 for packageitem in package:
                     amount = packageamount * packageitem["amount"]
-                    available_bikes = BikeStock.objects.filter(
-                        bike=packageitem["bike"], state="AVAILABLE"
-                    ).order_by("-package_only", "id").exclude(id__in=bikes_list)
+                    available_bikes = (
+                        BikeStock.objects.filter(
+                            bike=packageitem["bike"], state="AVAILABLE"
+                        )
+                        .order_by("-package_only", "id")
+                        .exclude(id__in=bikes_list)
+                    )
                     for bike_id in available_bikes:
                         check_date = request_start_date
                         if bike_id.id in unavailable_dates.keys():
@@ -391,10 +470,37 @@ class RentalDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeRental.objects.all()
     serializer_class = BikeRentalSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "PUT": ["bicycle_group", "admin_group"],
+        "PATCH": ["bicycle_group", "admin_group"],
+        "DELETE": ["bicycle_group", "admin_group"],
+    }
+
 
 class BikeAmountListView(generics.ListAPIView):
     queryset = BikeAmount.objects.all()
     serializer_class = BikeAmountListSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+    }
 
 
 @extend_schema_view(
@@ -408,6 +514,19 @@ class BikePackageListView(generics.ListCreateAPIView):
     queryset = BikePackage.objects.all()
     serializer_class = BikePackageSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "POST": ["bicycle_group", "admin_group"],
+    }
+
 
 @extend_schema_view(
     get=extend_schema(responses=BikePackageSchemaResponseSerializer()),
@@ -418,10 +537,38 @@ class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikePackage.objects.all()
     serializer_class = BikePackageSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "PUT": ["bicycle_group", "admin_group"],
+        "PATCH": ["bicycle_group", "admin_group"],
+        "DELETE": ["bicycle_group", "admin_group"],
+    }
+
 
 class BikeTypeListView(generics.ListCreateAPIView):
     queryset = BikeType.objects.all()
     serializer_class = BikeTypeSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "POST": ["bicycle_group", "admin_group"],
+    }
 
 
 @extend_schema_view(
@@ -431,10 +578,38 @@ class BikeTypeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeType.objects.all()
     serializer_class = BikeTypeSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "PUT": ["bicycle_group", "admin_group"],
+        "PATCH": ["bicycle_group", "admin_group"],
+        "DELETE": ["bicycle_group", "admin_group"],
+    }
+
 
 class BikeBrandListView(generics.ListCreateAPIView):
     queryset = BikeBrand.objects.all()
     serializer_class = BikeBrandSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "POST": ["bicycle_group", "admin_group"],
+    }
 
 
 @extend_schema_view(
@@ -444,10 +619,38 @@ class BikeBrandDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeBrand.objects.all()
     serializer_class = BikeBrandSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "PUT": ["bicycle_group", "admin_group"],
+        "PATCH": ["bicycle_group", "admin_group"],
+        "DELETE": ["bicycle_group", "admin_group"],
+    }
+
 
 class BikeSizeListView(generics.ListCreateAPIView):
     queryset = BikeSize.objects.all()
     serializer_class = BikeSizeSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "POST": ["bicycle_group", "admin_group"],
+    }
 
 
 @extend_schema_view(
@@ -456,3 +659,18 @@ class BikeSizeListView(generics.ListCreateAPIView):
 class BikeSizeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeSize.objects.all()
     serializer_class = BikeSizeSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "admin_group"],
+        "PUT": ["bicycle_group", "admin_group"],
+        "PATCH": ["bicycle_group", "admin_group"],
+        "DELETE": ["bicycle_group", "admin_group"],
+    }

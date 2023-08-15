@@ -265,7 +265,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     required_groups = {
         "PUT": ["storage_group"],
         "PATCH": ["storage_group"],
-        "DELETE": ["storage_group"],
+        "DELETE": ["admin_group"],
         "UPDATE": ["storage_group"],
     }
 
@@ -341,7 +341,7 @@ class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     required_groups = {
         "PUT": ["storage_group"],
         "PATCH": ["storage_group"],
-        "DELETE": ["storage_group"],
+        "DELETE": ["admin_group"],
         "UPDATE": ["storage_group"],
     }
 
@@ -552,6 +552,9 @@ class ShoppingCartAvailableAmountList(APIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [IsAuthenticated]
+
     serializer_class = ShoppingCartAvailableAmountListSerializer(many=True)
 
     def get(self, request, *args, **kwargs):

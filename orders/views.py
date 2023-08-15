@@ -56,7 +56,11 @@ class ShoppingCartListView(ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+        "POST": ["user_group"],
+    }
 
     def post(self, request):
         serializer = ShoppingCartSerializer(data=request.data)
@@ -85,6 +89,8 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:
@@ -200,6 +206,12 @@ class OrderListView(ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+    }
+
     def post(self, request, *args, **kwargs):
         user = request.user
         serializer = OrderSerializer(data=request.data)
@@ -257,6 +269,12 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+    required_groups = {
+        "GET": ["admin_group"],
+        "POST": ["admin_group"],
+        "PATCH": ["admin_group"],
+        "DELETE": ["admin_group"],
+    }
 
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -311,6 +329,9 @@ class OrderSelfListView(ListAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [IsAuthenticated]
+
     pagination_class = OrderSelfListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["creation_date", "status"]

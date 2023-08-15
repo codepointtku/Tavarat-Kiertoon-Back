@@ -19,9 +19,8 @@ class TestCategories(TestCase):
             "password": "admin",
         }
         user = User.objects.get(username="admin")
-        # print("userin groupit: ", user.groups)
-        ser = UsersLoginRefreshResponseSerializer(user)
-        # print("ser check: ", ser.data["groups"])
+        self.client.post(url, data, content_type="application/json")
+
         return user
 
     def setUp(self):
@@ -38,7 +37,7 @@ class TestCategories(TestCase):
             group_object = Group(name=group)
             group_object.save()
 
-        user3_set = CustomUser.objects.create_user(
+        user_set = CustomUser.objects.create_user(
             first_name="admin",
             last_name="adming",
             email="admin@turku.fi",
@@ -49,10 +48,10 @@ class TestCategories(TestCase):
             city="admin",
             username="admin",
         )
-        user3_set.is_active = True
-        user3_set.save()
+        user_set.is_active = True
+        user_set.save()
         for group in Group.objects.all():
-            group.user_set.add(user3_set)
+            group.user_set.add(user_set)
 
     def test_get(self):
         self.login_test_admin()
@@ -82,10 +81,7 @@ class TestCategories(TestCase):
         self.assertEqual(response.status_code, 201)
 
     def test_post_invalid_serializer(self):
-        user = self.login_test_admin()
-        # ser = UsersLoginRefreshResponseSerializer(user)
-        # print("ser check: ", ser.data["groups"])
-
+        self.login_test_admin()
         url = "/categories/"
         data = {"parent": self.test_category0.id}
         response = self.client.post(url, data)

@@ -31,6 +31,8 @@ from bikes.models import (
     BikeType,
     BikeSize,
     BikeBrand,
+    BikeTrailer,
+    BikeTrailerModel,
 )
 from bikes.serializers import (
     BikeAmountListSerializer,
@@ -54,6 +56,8 @@ from bikes.serializers import (
     BikeBrandSerializer,
     BikeSizeSerializer,
     PictureCreateSerializer,
+    BikeTrailerSerializer,
+    BikeTrailerModelSerializer
 )
 
 
@@ -456,3 +460,23 @@ class BikeSizeListView(generics.ListCreateAPIView):
 class BikeSizeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeSize.objects.all()
     serializer_class = BikeSizeSerializer
+
+
+class BikeTrailerModelListView(generics.ListCreateAPIView):
+    queryset = BikeTrailerModel.objects.all()
+    serializer_class = BikeTrailerModelSerializer
+
+
+class BikeTrailerModelDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = BikeTrailerModel.objects.all()
+    serializer_class = BikeTrailerModelSerializer
+
+
+class BikeTrailerListView(generics.ListCreateAPIView):
+    queryset = BikeTrailer.objects.all()
+    serializer_class = BikeTrailerSerializer
+
+
+class BikeTrailerDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = BikeTrailer.objects.all()
+    serializer_class = BikeTrailerSerializer

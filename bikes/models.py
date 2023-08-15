@@ -143,3 +143,4 @@ class BikeTrailer(models.Model):
     """Model for individual trailers"""
 
     register_number = models.CharField(max_length=255)
+    trailer_type = models.ForeignKey(BikeTrailerModel, on_delete=models.PROTECT, null=True)

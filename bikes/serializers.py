@@ -9,6 +9,8 @@ from .models import (
     BikeType,
     BikeSize,
     BikeBrand,
+    BikeTrailerModel,
+    BikeTrailer,
 )
 
 from products.serializers import (
@@ -385,3 +387,17 @@ class BikeAvailabilityListSerializer(serializers.ModelSerializer):
             "id",
             "rental",
         ]
+
+
+class BikeTrailerModelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BikeTrailerModel
+        fields = "__all__"
+
+
+class BikeTrailerSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BikeTrailer
+        fields = "__all__"

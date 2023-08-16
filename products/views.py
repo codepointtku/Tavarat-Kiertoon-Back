@@ -553,7 +553,7 @@ class ShoppingCartAvailableAmountList(APIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     serializer_class = ShoppingCartAvailableAmountListSerializer(many=True)
 

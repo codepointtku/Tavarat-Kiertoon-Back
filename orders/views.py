@@ -90,7 +90,7 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:

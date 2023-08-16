@@ -12,6 +12,8 @@ from products.models import Color, Picture, Product, ProductItem, Storage
 from products.views import available_products_filter, non_available_products_in_cart
 from users.models import CustomUser
 
+from django.contrib.auth.models import Group
+
 TEST_DIR = "testmedia/"
 
 
@@ -141,6 +143,30 @@ class TestProducts(TestCase):
             ProductItem.objects.filter(product=cls.test_product1)
         )
 
+        if Group.objects.filter(name="admin_group").count() == 0:
+            cls.test_group_admin = Group.objects.create(name="admin_group")
+            cls.test_group_admin.user_set.add(cls.test_user2)
+
+        if Group.objects.filter(name="user_group").count() == 0:
+            cls.test_group_user = Group.objects.create(name="user_group")
+            cls.test_group_user.user_set.add(cls.test_user2)
+        if Group.objects.filter(name="storage_group").count() == 0:
+            cls.test_group_storage = Group.objects.create(name="storage_group")
+            cls.test_group_storage.user_set.add(cls.test_user2)
+        if Group.objects.filter(name="bicycle_group").count() == 0:
+            cls.test_group_bicycle = Group.objects.create(name="bicycle_group")
+            cls.test_group_bicycle.user_set.add(cls.test_user2)
+
+    def login_test_user(self):
+        url = "/users/login/"
+        data = {
+            "username": "kahvimarkus@turku.fi",
+            "password": "qwe456",
+        }
+        self.client.post(url, data, content_type="application/json")
+        user = CustomUser.objects.get(username="kahvimarkus@turku.fi")
+        return user
+
     def test_get_colors(self):
         url = "/colors/"
         response = self.client.get(url)
@@ -231,7 +257,8 @@ class TestProducts(TestCase):
 
     def test_post_products_new_color(self):
         url = "/products/"
-        self.client.login(username="kahvimake@turku.fi", password="asd123")
+        # self.client.login(username="kahvimake@turku.fi", password="asd123")
+        self.login_test_user()
         data = {
             "available": True,
             "shelf_id": "asd12",
@@ -250,7 +277,8 @@ class TestProducts(TestCase):
 
     @override_settings(MEDIA_ROOT=TEST_DIR)
     def test_post_product_with_new_picture(self):
-        self.client.login(username="kahvimake@turku.fi", password="asd123")
+        self.login_test_user()
+        # self.client.login(username="kahvimake@turku.fi", password="asd123")
         picture = urllib.request.urlretrieve(
             url="https://picsum.photos/200.jpg",
             filename="testmedia/pictures/testpicture1.jpeg",
@@ -278,7 +306,8 @@ class TestProducts(TestCase):
 
     def test_post_products_existing_color(self):
         url = "/products/"
-        self.client.login(username="kahvimake@turku.fi", password="asd123")
+        self.login_test_user()
+        # self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "available": True,
             "shelf_id": "asd14",
@@ -297,7 +326,8 @@ class TestProducts(TestCase):
 
     def test_post_product_existing_color_as_string(self):
         url = "/products/"
-        self.client.login(username="kahvimake@turku.fi", password="asd123")
+        self.login_test_user()
+        # self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "available": True,
             "shelf_id": "asd15",
@@ -315,15 +345,17 @@ class TestProducts(TestCase):
         self.assertEqual(response.status_code, 201)
 
     def test_update_product_item(self):
+        self.login_test_user()
         url = f"/products/items/{self.test_product_item.id}"
-        self.client.login(username="kahvimake@turku.fi", password="asd123")
+        # self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {"available": False, "modify_date": "asd"}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
-    def test_update_product_item_without_modify_date(self):
+    def test_update_product_item_without_modify_date(self):        
+        self.login_test_user()
         url = f"/products/items/{self.test_product_item.id}"
-        self.client.login(username="kahvimake@turku.fi", password="asd123")
+        # self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "available": False,
         }
@@ -331,6 +363,7 @@ class TestProducts(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_update_products_storage(self):
+        self.login_test_user()
         url = "/products/transfer/"
         data = {
             "product_items": [self.test_product_item.id, self.test_product_item1.id],
@@ -340,6 +373,7 @@ class TestProducts(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_update_product_name(self):
+        self.login_test_user()
         url = f"/products/{self.test_product.id}/"
         data = {
             "name": "kahvisohva",
@@ -357,9 +391,10 @@ class TestProducts(TestCase):
 
     def test_shoppingcart_available_amount_list_failed_attempts(self):
         url = "/shopping_cart/available_amount/"
+        self.login_test_user()
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.client.login(username="kahvimarkus@turku.fi", password="qwe456")
+        # self.client.login(username="kahvimarkus@turku.fi", password="qwe456") 
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 

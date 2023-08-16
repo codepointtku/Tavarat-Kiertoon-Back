@@ -65,7 +65,7 @@ class TestOrders(TestCase):
 
         queryset = Product.objects.all()
         for query in queryset:
-            query.color.set(
+            query.colors.set(
                 [
                     Color.objects.get(id=cls.test_color.id),
                     Color.objects.get(id=cls.test_color1.id),

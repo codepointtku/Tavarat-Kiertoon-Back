@@ -59,7 +59,10 @@ from products.views import (
 from users.views import (
     GroupListView,
     GroupPermissionUpdateView,
+    SearchWatchDetailView,
+    SearchWatchListView,
     UserActivationView,
+    UserAddressAdminCreateView,
     UserAddressAdminEditView,
     UserAddressEditDeleteView,
     UserAddressEditView,
@@ -69,6 +72,7 @@ from users.views import (
     UserEmailChangeView,
     UserLoginView,
     UserLogoutView,
+    UserLogView,
     UserPasswordResetMailValidationView,
     UserPasswordResetMailView,
     UserTokenRefreshView,
@@ -112,9 +116,12 @@ urlpatterns = [
     path("user/", UserUpdateInfoView.as_view()),
     path("user/address/edit/", UserAddressEditView.as_view()),
     path("user/address/edit/<int:pk>/", UserAddressEditDeleteView.as_view()),
+    path("user/searchwatch/", SearchWatchListView.as_view()),
+    path("user/searchwatch/<int:pk>/", SearchWatchDetailView.as_view()),
     path("users/create/", UserCreateListView.as_view()),
     path("users/<int:pk>/", UserUpdateSingleView.as_view()),
     path("users/<int:pk>/groups/permission/", GroupPermissionUpdateView.as_view()),
+    path("users/address/", UserAddressAdminCreateView.as_view()),
     path("users/address/<int:pk>/", UserAddressAdminEditView.as_view()),
     path("users/groups/", GroupListView.as_view()),
     path("users/login/", UserLoginView.as_view(), name="token_obtain_pair_http"),
@@ -134,6 +141,7 @@ urlpatterns = [
     ),
     path("users/emailchange/", UserEmailChangeView.as_view()),
     path("users/emailchange/finish/", UserEmailChangeFinishView.as_view()),
+    path("users/log/", UserLogView.as_view()),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

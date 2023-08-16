@@ -8,7 +8,7 @@ from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers, status
 
 from .custom_functions import custom_time_token_generator, validate_email_domain
-from .models import CustomUser, UserAddress
+from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 
 User = get_user_model()
 
@@ -41,6 +41,7 @@ class UserLoginPostSerializer(serializers.Serializer):
 
     username = serializers.CharField(max_length=255)
     password = serializers.CharField(max_length=128)
+    remember_me = serializers.BooleanField(default=False)
 
 
 class UserPasswordCheckEmailSerializer(serializers.Serializer):
@@ -396,9 +397,34 @@ class NewEmailFinishValidationSerializer(UserTokenValidationSerializer):
         return data
 
 
+class UserLogSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user logs
+    """
+
+    class Meta:
+        model = UserLogEntry
+        fields = "__all__"
+
+
+class SearchWatchSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user search watchs for normal users
+    """
+
+    words = serializers.ListField(child=serializers.CharField())
+
+    class Meta:
+        model = SearchWatch
+        fields = "__all__"
+
+
 # -----------------------------------------------------------------------
 # schema serializers
 # -----------------------------------------------------------------------
+@extend_schema_serializer(exclude_fields=["user", "id"])
+class SearchWatchRequestSerializer(SearchWatchSerializer):
+    """Serializer for SearchWatchListView post"""
 
 
 @extend_schema_serializer(exclude_fields=["user"])
@@ -523,3 +549,19 @@ class UsersLoginRefreshResponseSchemaSerializer(serializers.ModelSerializer):
             "username",
             "groups",
         ]
+
+
+class UserLogResponseSchemaSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user logs
+    FOR SCHEMA
+    """
+
+    class Meta:
+        model = UserLogEntry
+        fields = "__all__"
+        extra_kwargs = {
+            "action": {"required": True},
+            "target": {"required": True},
+            "user_who_did_this_action": {"required": True},
+        }

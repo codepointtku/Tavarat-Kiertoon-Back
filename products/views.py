@@ -19,6 +19,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from categories.models import Category
 from orders.models import ShoppingCart
 from orders.serializers import ShoppingCartDetailSerializer
+from users.custom_functions import check_product_watch
 from users.permissions import is_in_group
 from users.views import CustomJWTAuthentication
 
@@ -46,11 +47,11 @@ from .serializers import (
 
 def color_check_create(instance):
     colors = []
-    for coloritem in instance["colors"]:
+    for coloritem in instance.getlist("colors[]"):
         try:
             coloritem = int(coloritem)
         except ValueError:
-            coloritem = coloritem
+            pass
         color_is_string = isinstance(coloritem, str)
         if color_is_string:
             checkid = Color.objects.filter(name=coloritem).values("id")
@@ -70,6 +71,7 @@ def color_check_create(instance):
             if checkid:
                 colors.append(checkid[0]["id"])
 
+    colors.sort()
     return colors
 
 
@@ -105,11 +107,11 @@ class CategoryProductListPagination(PageNumberPagination):
 class ProductFilter(filters.FilterSet):
     search = filters.CharFilter(method="search_filter", label="Search")
     category = filters.ModelMultipleChoiceFilter(queryset=Category.objects.all())
-    color = filters.ModelMultipleChoiceFilter(queryset=Color.objects.all())
+    colors = filters.ModelMultipleChoiceFilter(queryset=Color.objects.all())
 
     class Meta:
         model = Product
-        fields = ["search", "category", "color"]
+        fields = ["search", "category", "colors"]
 
     def search_filter(self, queryset, value, *args, **kwargs):
         word_list = args[0].split(" ")
@@ -197,10 +199,7 @@ class ProductListView(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = ProductCreateSerializer(data=request.data, context=request.user)
         serializer.is_valid(raise_exception=True)
-        productdata = serializer.save()
         color_checked_data = color_check_create(request.data)
-        for color_id in color_checked_data:
-            productdata.color.add(color_id)
         picture_ids = []
         for file in request.FILES.getlist("pictures[]"):
             ext = file.content_type.split("/")[1]
@@ -215,11 +214,18 @@ class ProductListView(generics.ListCreateAPIView):
             self.perform_create(pic_serializer)
             picture_ids.append(pic_serializer.data["id"])
 
+        productdata = serializer.save()
+        for color_id in color_checked_data:
+            productdata.colors.add(color_id)
         for picture_id in picture_ids:
             productdata.pictures.add(picture_id)
 
         response = ProductSerializer(productdata)
         headers = self.get_success_headers(response.data)
+
+        # checking if the created product was in product watch list on any user
+        check_product_watch(Product.objects.get(id=response.data["id"]))
+
         return Response(
             data=response.data, status=status.HTTP_201_CREATED, headers=headers
         )

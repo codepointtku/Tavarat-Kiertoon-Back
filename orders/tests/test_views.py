@@ -5,6 +5,7 @@ from orders.models import Order, OrderEmailRecipient, ShoppingCart
 from products.models import Color, Product, ProductItem, Storage
 from users.models import CustomUser
 
+from django.contrib.auth.models import Group
 
 class TestOrders(TestCase):
     @classmethod
@@ -111,8 +112,46 @@ class TestOrders(TestCase):
             ).first()
         )
 
+        if Group.objects.filter(name="admin_group").count() == 0:
+            cls.test_group_admin = Group.objects.create(name="admin_group")
+            cls.test_group_admin.user_set.add(cls.test_user2)
+            cls.test_group_admin.user_set.add(cls.test_user1)
+        if Group.objects.filter(name="user_group").count() == 0:
+            cls.test_group_user = Group.objects.create(name="user_group")
+            cls.test_group_user.user_set.add(cls.test_user1)
+            cls.test_group_user.user_set.add(cls.test_user2)
+        if Group.objects.filter(name="storage_group").count() == 0:
+            cls.test_group_storage = Group.objects.create(name="storage_group")
+            cls.test_group_storage.user_set.add(cls.test_user2)
+            cls.test_group_storage.user_set.add(cls.test_user1)
+        if Group.objects.filter(name="bicycle_group").count() == 0:
+            cls.test_group_bicycle = Group.objects.create(name="bicycle_group")
+            cls.test_group_bicycle.user_set.add(cls.test_user2)
+            cls.test_group_bicycle.user_set.add(cls.test_user1)
+
+    def login_test_user(self):
+        url = "/users/login/"
+        data = {
+            "username": "kahvimarkus@turku.fi",
+            "password": "qwe456",
+        }
+        self.client.post(url, data, content_type="application/json")
+        user = CustomUser.objects.get(username="kahvimarkus@turku.fi")
+        return user
+    
+    def login_test_user2(self):
+        url = "/users/login/"
+        data = {
+            "username": "kahvimake@turku.fi",
+            "password": "asd123",
+        }
+        self.client.post(url, data, content_type="application/json")
+        user = CustomUser.objects.get(username="kahvimake@turku.fi")
+        return user
+
     def test_post_shopping_cart(self):
         url = "/shopping_carts/"
+        self.login_test_user()
         data = {
             "user": self.test_user1.id,
             "product_items": [self.test_product_item1.id],
@@ -121,6 +160,7 @@ class TestOrders(TestCase):
         self.assertEqual(response.status_code, 201)
 
     def test_post_shopping_cart_invalid(self):
+        self.login_test_user()
         url = "/shopping_carts/"
         data = {
             "user": self.test_user1.id,
@@ -131,9 +171,15 @@ class TestOrders(TestCase):
     def test_shopping_cart_getbyid_anonymous(self):
         url = "/shopping_cart/"
         response = self.client.get(url)
+        # self.assertEqual(
+        #     response.content.decode(),
+        #     '"You must be logged in to see your shoppingcart"',
+        # )
+        #changin this test to handled differently? original creater check if it does what you intended
         self.assertEqual(
-            response.content.decode(),
-            '"You must be logged in to see your shoppingcart"',
+            response.status_code,
+            403,
+            "must be logged in to use shopping cart"
         )
 
     def test_get_shopping_cart_doesnotexist(self):
@@ -209,13 +255,15 @@ class TestOrders(TestCase):
         )
 
     def test_get_orders(self):
+        self.login_test_user()
         url = "/orders/?status=Waiting"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
     def test_post_order(self):
         url = "/orders/"
-        self.client.login(username="kahvimake@turku.fi", password="asd123")
+        # self.client.login(username="kahvimake@turku.fi", password="asd123")
+        self.login_test_user2()
         data = {
             "user": self.test_user1.id,
             "status": "Waiting",
@@ -329,6 +377,7 @@ class TestOrders(TestCase):
 
     def test_post_order_email_recipient(self):
         current_recipients = OrderEmailRecipient.objects.count()
+        self.login_test_user()
         url = "/orders/emailrecipients/"
         response = self.client.post(
             url, {"email": "samsam@turku.fi"}, content_type="application/json"
@@ -342,6 +391,7 @@ class TestOrders(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_put_order_email_recipient(self):
+        self.login_test_user()
         url = f"/orders/emailrecipients/{self.test_order_email_recipient.id}/"
         response = self.client.put(
             url, {"email": "samsam@turku.fi"}, content_type="application/json"
@@ -360,6 +410,7 @@ class TestOrders(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_delete_order_email_recipient(self):
+        self.login_test_user()
         current_recipients = OrderEmailRecipient.objects.count()
         url = f"/orders/emailrecipients/{self.test_order_email_recipient.id}/"
         response = self.client.delete(url)

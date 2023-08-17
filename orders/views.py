@@ -161,9 +161,7 @@ class OrderFilter(filters.FilterSet):
 
 
 class UserOrderFilter(filters.FilterSet):
-    status = filters.MultipleChoiceFilter(
-        choices=Order.StatusChoices.choices
-    )
+    status = filters.MultipleChoiceFilter(choices=Order.StatusChoices.choices)
 
     class Meta:
         model = Order
@@ -278,7 +276,8 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
                     if add == 0:
                         add = 1
                         log_add = ProductItemLogEntry.objects.create(
-                            action=ProductItemLogEntry.ActionChoices.ORDER_ADD, user=user
+                            action=ProductItemLogEntry.ActionChoices.ORDER_ADD,
+                            user=user,
                         )
                     product_item_object.available = False
                     product_item_object.save()
@@ -289,6 +288,22 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+
+    def destroy(self, request, *args, **kwargs):
+        order = self.get_object()
+        if order.status == "Finished":
+            return Response(
+                "Cant delete finished orders", status=status.HTTP_403_FORBIDDEN
+            )
+        log_entry = ProductItemLogEntry.objects.create(
+            action=ProductItemLogEntry.ActionChoices.ORDER_REMOVE, user=request.user
+        )
+        for product_item in order.product_items.all():
+            product_item.available = True
+            product_item.log_entries.add(log_entry)
+            product_item.save()
+        order.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class OrderSelfListView(ListAPIView):

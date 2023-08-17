@@ -1,6 +1,7 @@
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -34,7 +35,7 @@ class CategoryListView(generics.ListCreateAPIView):
 
     permission_classes = [HasGroupPermission]
     required_groups = {
-        "POST": ["admin_group"],
+        "POST": ["admin_group", "user_group"],
     }
 
     def post(self, request, *args, **kwargs):
@@ -74,9 +75,9 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [HasGroupPermission]
     required_groups = {
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-        "DELETE": ["admin_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
     }
 
 

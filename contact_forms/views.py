@@ -4,6 +4,7 @@ from rest_framework.authentication import BasicAuthentication, SessionAuthentica
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from users.authenticate import CustomJWTAuthentication
@@ -60,8 +61,9 @@ class ContactFormDetailView(RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
+        "GET": ["admin_group", "user_group"],
         "PUT": ["admin_group", "user_group"],
         "PATCH": ["admin_group", "user_group"],
         "DELETE": ["admin_group", "user_group"],
@@ -84,7 +86,7 @@ class ContactListView(ListCreateAPIView):
 
     permission_classes = [HasGroupPermission]
     required_groups = {
-        "POST": ["admin_group"],
+        "POST": ["admin_group", "user_group"],
     }
 
 

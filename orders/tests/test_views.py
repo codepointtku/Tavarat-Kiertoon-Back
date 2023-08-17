@@ -171,9 +171,12 @@ class TestOrders(TestCase):
     def test_shopping_cart_getbyid_anonymous(self):
         url = "/shopping_cart/"
         response = self.client.get(url)
+        # self.assertEqual(
+        #     response.content.decode(),
+        #     '"You must be logged in to see your shoppingcart"',
+        # )
         self.assertEqual(
-            response.content.decode(),
-            '"You must be logged in to see your shoppingcart"',
+            response.status_code, 403, "when not logged in should be forbidden"
         )
 
     def test_get_shopping_cart_doesnotexist(self):

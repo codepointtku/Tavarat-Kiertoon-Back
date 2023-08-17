@@ -464,7 +464,7 @@ class StorageListView(generics.ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission, IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["admin_group", "user_group"],
         "POST": ["admin_group", "user_group"],
@@ -491,7 +491,7 @@ class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["admin_group", "user_group"],
         "PUT": ["admin_group", "user_group"],
@@ -568,13 +568,14 @@ class ShoppingCartAvailableAmountList(APIView):
         CustomJWTAuthentication,
     ]
 
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+    }
 
     serializer_class = ShoppingCartAvailableAmountListSerializer(many=True)
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_anonymous:
-            return Response("You must be logged in to see your shoppingcart")
         try:
             instance = ShoppingCart.objects.get(user=request.user)
         except ObjectDoesNotExist:

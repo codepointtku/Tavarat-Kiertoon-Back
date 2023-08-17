@@ -58,8 +58,8 @@ class ShoppingCartListView(ListCreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["user_group"],
-        "POST": ["user_group"],
+        "GET": ["admin_group", "user_group"],
+        "POST": ["admin_group", "user_group"],
     }
 
     def post(self, request):
@@ -90,11 +90,14 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         CustomJWTAuthentication,
     ]
 
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+        "PUT": ["user_group"],
+        "PATCH": ["user_group"],
+    }
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_anonymous:
-            return Response("You must be logged in to see your shoppingcart")
         try:
             instance = ShoppingCart.objects.get(user=request.user)
         except ObjectDoesNotExist:

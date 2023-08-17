@@ -268,7 +268,10 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
+        "GET": ["admin_group"],
         "POST": ["admin_group"],
         "PATCH": ["admin_group"],
         "DELETE": ["admin_group"],

@@ -57,7 +57,9 @@ from bikes.serializers import (
     BikeSizeSerializer,
     PictureCreateSerializer,
     BikeTrailerSerializer,
-    BikeTrailerModelSerializer
+    BikeTrailerModelSerializer,
+    BikeTrailerMainSerializer,
+    BikeTrailerAvailabilityListSerializer,
 )
 
 
@@ -176,6 +178,9 @@ class MainBikeList(generics.ListAPIView):
         bike_package_serializer = BikePackageSerializer(
             BikePackage.objects.all(), many=True
         )
+        trailer_serializer = BikeTrailerMainSerializer(
+            BikeTrailerModel.objects.all(), many=True
+        )
 
         for index, bike in enumerate(bike_serializer.data):
             package_only_count = 0
@@ -256,6 +261,27 @@ class MainBikeList(generics.ListAPIView):
                     max_available = min(max_available, bike_max_available)
             serializer_package["max_available"] = max_available
 
+        for index, trailer in enumerate(trailer_serializer.data):
+            unavailable = {}
+            for trailer in trailer["trailer"]:
+                for rental in trailer["trailer_rental"]:
+                    start_date = datetime.datetime.fromisoformat(rental["start_date"])
+                    end_date = datetime.datetime.fromisoformat(rental["end_date"])
+                    # We want to give the warehouse workers a business day to maintain the trailers, after the rental has ended
+                    end_date += datetime.timedelta(days=1)
+                    while end_date.weekday() >= 5 or end_date in fin_holidays:
+                        end_date += datetime.timedelta(days=1)
+                    date = start_date
+                    while date <= end_date:
+                        date_str = date.strftime("%d.%m.%Y")
+                        if date_str in unavailable:
+                            unavailable[date_str] = 1 + unavailable[date_str]
+                        else:
+                            unavailable[date_str] = 1
+                        date += datetime.timedelta(days=1)
+            trailer_serializer.data[index]["unavailable"] = unavailable
+            del trailer_serializer.data[index]["trailer"]
+
         return Response(
             {
                 "date_info": {
@@ -264,6 +290,7 @@ class MainBikeList(generics.ListAPIView):
                 },
                 "bikes": bike_serializer.data,
                 "packages": bike_package_serializer.data,
+                "trailers": trailer_serializer.data,
             }
         )
 
@@ -311,6 +338,10 @@ class RentalListView(generics.ListCreateAPIView):
         bikerentalserializer = BikeAvailabilityListSerializer(
             BikeStock.objects.all(), many=True
         )
+        trailer_rental_serializer = BikeTrailerAvailabilityListSerializer(
+            BikeTrailer.objects.all(), many=True
+        )
+
         for bike in bikerentalserializer.data:
             bike["rental_dates"] = []
             for rental in bike["rental"]:
@@ -330,6 +361,25 @@ class RentalListView(generics.ListCreateAPIView):
         for bikedata in bikerentalserializer.data:
             unavailable_dates[bikedata["id"]] = bikedata["rental_dates"]
 
+        for trailer in bikerentalserializer.data:
+            trailer["rental_dates"] = []
+            for rental in trailer["rental"]:
+                start_date = datetime.datetime.fromisoformat(rental["start_date"])
+                end_date = datetime.datetime.fromisoformat(rental["end_date"])
+                end_date += datetime.timedelta(days=1)
+                while end_date.weekday() >= 5:
+                    end_date += datetime.timedelta(days=1)
+                date = start_date
+                while date <= end_date:
+                    date_str = date.strftime("%d.%m.%Y")
+                    if date_str not in trailer["rental_dates"]:
+                        trailer["rental_dates"].append(date_str)
+                    date += datetime.timedelta(days=1)
+            del trailer["rental"]
+        unavailable_dates = {}
+        for trailerdata in trailer_rental_serializer.data:
+            unavailable_dates[trailerdata["id"]] = trailerdata["rental_dates"]
+
         instance = request.data
         bikes_list = []
         for rental_item in request.data["bike_stock"]:
@@ -340,9 +390,13 @@ class RentalListView(generics.ListCreateAPIView):
                 packageamount = request.data["bike_stock"][rental_item]
                 for packageitem in package:
                     amount = packageamount * packageitem["amount"]
-                    available_bikes = BikeStock.objects.filter(
-                        bike=packageitem["bike"], state="AVAILABLE"
-                    ).order_by("-package_only", "id").exclude(id__in=bikes_list)
+                    available_bikes = (
+                        BikeStock.objects.filter(
+                            bike=packageitem["bike"], state="AVAILABLE"
+                        )
+                        .order_by("-package_only", "id")
+                        .exclude(id__in=bikes_list)
+                    )
                     for bike_id in available_bikes:
                         check_date = request_start_date
                         if bike_id.id in unavailable_dates.keys():
@@ -377,6 +431,24 @@ class RentalListView(generics.ListCreateAPIView):
                     bikes_list.append(available_bikes[bike].id)
         instance["bike_stock"] = bikes_list
         instance["user"] = self.request.user.id
+
+        if request.data["bike_trailer"] is not None:
+            trailers = BikeTrailer.objects.filter(
+                trailer_type=request.data["bike_trailer"].id
+            )
+            check_date = request_start_date
+            for trailer in trailers:
+                if trailer.id in unavailable_dates.keys():
+                    while check_date <= request_end_date:
+                        if (
+                            check_date.strftime("%d.%m.%Y")
+                            in unavailable_dates[trailer.id]
+                        ):
+                            trailers.exclude(id=trailer.id)
+                        check_date += datetime.timedelta(days=1)
+            if trailers.len() >= 1:
+                instance["bike_trailer"] = trailers[0].id
+
         serializer = BikeRentalSerializer(data=instance)
         if serializer.is_valid():
             serializer.save()

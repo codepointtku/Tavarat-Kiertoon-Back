@@ -211,6 +211,7 @@ class TestProducts(TestCase):
         self.assertNotEqual(response.json()["count"], product_count)
 
     def test_get_productitems(self):
+        self.login_test_user()
         url = "/products/items/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)

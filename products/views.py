@@ -161,7 +161,7 @@ class ProductListView(generics.ListCreateAPIView):
 
     permission_classes = [HasGroupPermission]
     required_groups = {
-        "POST": ["storage_group"],
+        "POST": ["storage_group", "user_group"],
     }
 
     pagination_class = ProductListPagination
@@ -263,10 +263,10 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [HasGroupPermission]
     required_groups = {
-        "PUT": ["storage_group"],
-        "PATCH": ["storage_group"],
-        "DELETE": ["admin_group"],
-        "UPDATE": ["storage_group"],
+        "PUT": ["storage_group", "user_group"],
+        "PATCH": ["storage_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
+        "UPDATE": ["storage_group", "user_group"],
     }
 
     def update(self, request, *args, **kwargs):
@@ -315,6 +315,18 @@ class ProductItemListView(generics.ListAPIView):
     ordering = ["-modified_date", "-id"]
     filterset_class = ProductItemListFilter
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group", "user_group"],
+    }
+
 
 @extend_schema_view(
     get=extend_schema(responses=ProductItemDetailResponseSerializer()),
@@ -337,12 +349,13 @@ class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "PUT": ["storage_group"],
-        "PATCH": ["storage_group"],
-        "DELETE": ["admin_group"],
-        "UPDATE": ["storage_group"],
+        "GET": ["storage_group", "user_group"],
+        "PUT": ["storage_group", "user_group"],
+        "PATCH": ["storage_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
+        "UPDATE": ["storage_group", "user_group"],
     }
 
     def update(self, request, *args, **kwargs):
@@ -532,9 +545,9 @@ class ProductStorageTransferView(APIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "PUT": ["admin_group"],
+        "PUT": ["admin_group", "user_group"],
     }
 
     def put(self, request, *args, **kwargs):

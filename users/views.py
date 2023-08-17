@@ -28,7 +28,7 @@ from rest_framework_simplejwt.views import TokenViewBase
 from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
-from .custom_functions import cookie_setter
+from .custom_functions import cookie_setter, get_tokens_for_user
 from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 from .permissions import HasGroupPermission
 from .serializers import (
@@ -63,14 +63,6 @@ from .serializers import (
 User = get_user_model()
 
 
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-    return {
-        "refresh": str(refresh),
-        "access": str(refresh.access_token),
-    }
-
-
 # Create your views here.
 
 
@@ -81,7 +73,6 @@ class UserCreateListView(APIView):
     if no username = normal user and email address gets copied to username and will be used to login
     """
 
-    # queryset = CustomUser.objects.all()
     serializer_class = UserCreateSerializer
 
     @extend_schema(responses=UserCreateReturnResponseSchemaSerializer)
@@ -93,16 +84,6 @@ class UserCreateListView(APIView):
         serialized_values = UserCreateSerializer(data=request.data)
 
         if serialized_values.is_valid():
-            # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
-            if not Group.objects.filter(name="user_group").exists():
-                Group.objects.create(name="user_group")
-            if not Group.objects.filter(name="admin_group").exists():
-                Group.objects.create(name="admin_group")
-            if not Group.objects.filter(name="storage_group").exists():
-                Group.objects.create(name="storage_group")
-            if not Group.objects.filter(name="bicycle_group").exists():
-                Group.objects.create(name="bicycle_group")
-
             # actually creating the user
             user = User.objects.create_user(
                 first_name=serialized_values["first_name"].value,
@@ -115,9 +96,12 @@ class UserCreateListView(APIView):
                 city=serialized_values["city"].value,
                 username=serialized_values["username"].value,
             )
+
+            # creating the users shopping cart
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()
 
+            # creation log
             UserLogEntry.objects.create(
                 action=UserLogEntry.ActionChoices.CREATED,
                 target=user,
@@ -125,8 +109,10 @@ class UserCreateListView(APIView):
             )
 
             # create email verification for user creation
+            # skipping the need to click user activation email link
+            # setting is in different debug value than generic setings.debug for the ease of testing, remember to change .env value when needed
             if settings.TEST_DEBUG:  # settings.DEBUG:
-                # print("debug päällä, activating user without email")
+                # print("debug päällä, activating user without sending email")
                 activate_url_back = (
                     "debug on, user auto activated no need to visit activation place"
                 )
@@ -1063,7 +1049,7 @@ class UserLogView(generics.ListAPIView):
 @extend_schema_view(post=extend_schema(request=SearchWatchRequestSerializer))
 class SearchWatchListView(APIView, ListModelMixin):
     """
-    Get list of all search wacthes user has, and edit them
+    Get list of all search watches user has, and edit them
     """
 
     authentication_classes = [

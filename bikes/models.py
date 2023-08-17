@@ -77,6 +77,23 @@ class BikeStock(models.Model):
         return f"Bike stock: {self.number}({self.id})"
 
 
+class BikeTrailerModel(models.Model):
+    """Model for trailers, used to transport and store bikes"""
+
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+
+    def __str__(self) -> str:
+        return f"Bike: {self.name}({self.id})"
+
+
+class BikeTrailer(models.Model):
+    """Model for individual trailers"""
+
+    register_number = models.CharField(max_length=255)
+    trailer_type = models.ForeignKey(BikeTrailerModel, related_name="trailer", on_delete=models.PROTECT, null=True)
+
+
 class BikeRental(models.Model):
     """Model for the bike rentals, same as orders."""
 
@@ -89,6 +106,7 @@ class BikeRental(models.Model):
 
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     bike_stock = models.ManyToManyField(BikeStock, related_name="rental")
+    bike_trailer = models.ForeignKey(BikeTrailer, related_name="trailer_rental", on_delete=models.SET_NULL, null=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     state = models.CharField(
@@ -127,20 +145,3 @@ class BikeAmount(models.Model):
 
     def __str__(self) -> str:
         return f"Bike amount: {self.amount}x{self.bike}({self.id})"
-
-
-class BikeTrailerModel(models.Model):
-    """Model for trailers, used to transport and store bikes"""
-
-    name = models.CharField(max_length=255)
-    description = models.CharField(max_length=255)
-
-    def __str__(self) -> str:
-        return f"Bike: {self.name}({self.id})"
-
-
-class BikeTrailer(models.Model):
-    """Model for individual trailers"""
-
-    register_number = models.CharField(max_length=255)
-    trailer_type = models.ForeignKey(BikeTrailerModel, on_delete=models.PROTECT, null=True)

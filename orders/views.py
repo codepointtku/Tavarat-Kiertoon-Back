@@ -206,7 +206,11 @@ class OrderListView(ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group", "user_group"],
+        "POST": ["user_group"],
+    }
 
     def post(self, request, *args, **kwargs):
         user = request.user
@@ -268,10 +272,10 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PATCH": ["admin_group"],
-        "DELETE": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
+        "POST": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
     }
 
     def put(self, request, *args, **kwargs):
@@ -328,7 +332,10 @@ class OrderSelfListView(ListAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+    }
 
     pagination_class = OrderSelfListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
@@ -353,9 +360,9 @@ class OrderEmailRecipientListView(ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "POST": ["admin_group"],
+        "POST": ["admin_group", "user_group"],
     }
 
 
@@ -371,9 +378,10 @@ class OrderEmailRecipientDetailView(RetrieveUpdateDestroyAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-        "DELETE": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
     }

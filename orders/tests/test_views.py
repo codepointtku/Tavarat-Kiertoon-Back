@@ -363,6 +363,7 @@ class TestOrders(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_get_order_email_recipient(self):
+        self.login_test_user()
         url = "/orders/emailrecipients/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)

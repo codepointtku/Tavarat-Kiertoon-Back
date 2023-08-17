@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Group
 from django.test import TestCase
 
 from categories.models import Category
@@ -5,7 +6,6 @@ from orders.models import Order, OrderEmailRecipient, ShoppingCart
 from products.models import Color, Product, ProductItem, Storage
 from users.models import CustomUser
 
-from django.contrib.auth.models import Group
 
 class TestOrders(TestCase):
     @classmethod
@@ -138,7 +138,7 @@ class TestOrders(TestCase):
         self.client.post(url, data, content_type="application/json")
         user = CustomUser.objects.get(username="kahvimarkus@turku.fi")
         return user
-    
+
     def login_test_user2(self):
         url = "/users/login/"
         data = {
@@ -276,6 +276,7 @@ class TestOrders(TestCase):
         self.assertEqual(Order.objects.all().count(), 2)
 
     def test_get_order(self):
+        self.login_test_user()
         url = f"/orders/{self.test_order.id}/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)

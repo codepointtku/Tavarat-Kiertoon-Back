@@ -291,7 +291,6 @@ class BikeModelSerializer(serializers.ModelSerializer):
 
 
 class BikeModelCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Bike
         fields = "__all__"
@@ -390,14 +389,38 @@ class BikeAvailabilityListSerializer(serializers.ModelSerializer):
 
 
 class BikeTrailerModelSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = BikeTrailerModel
         fields = "__all__"
 
 
 class BikeTrailerSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = BikeTrailer
         fields = "__all__"
+
+
+class BikeTrailerAvailabilityListSerializer(serializers.ModelSerializer):
+    trailer_rental = BikeRentalSerializer(many=True)
+
+    class Meta:
+        model = BikeTrailer
+        fields = [
+            "id",
+            "trailer_rental",
+        ]
+
+
+class BikeTrailerMainSerializer(serializers.ModelSerializer):
+    max_available = serializers.ReadOnlyField(source="trailer.count")
+    trailer = BikeTrailerAvailabilityListSerializer(many=True)
+
+    class Meta:
+        model = BikeTrailerModel
+        fields = [
+            "id",
+            "name",
+            "description",
+            "max_available",
+            "trailer",
+        ]

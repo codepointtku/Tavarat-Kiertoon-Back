@@ -451,9 +451,10 @@ class StorageListView(generics.ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [HasGroupPermission]
+    permission_classes = [HasGroupPermission, IsAuthenticated]
     required_groups = {
-        "POST": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
+        "POST": ["admin_group", "user_group"],
     }
 
 
@@ -479,9 +480,10 @@ class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [HasGroupPermission]
     required_groups = {
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-        "DELETE": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
     }
 
 

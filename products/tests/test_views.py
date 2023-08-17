@@ -2,6 +2,7 @@ import shutil
 import urllib.request
 from os.path import basename
 
+from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -11,8 +12,6 @@ from orders.models import ShoppingCart
 from products.models import Color, Picture, Product, ProductItem, Storage
 from products.views import available_products_filter, non_available_products_in_cart
 from users.models import CustomUser
-
-from django.contrib.auth.models import Group
 
 TEST_DIR = "testmedia/"
 
@@ -172,6 +171,7 @@ class TestProducts(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_get_storages(self):
+        self.login_test_user()
         url = "/storages/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -351,7 +351,7 @@ class TestProducts(TestCase):
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
-    def test_update_product_item_without_modify_date(self):        
+    def test_update_product_item_without_modify_date(self):
         self.login_test_user()
         url = f"/products/items/{self.test_product_item.id}"
         # self.client.login(username="kahvimake@turku.fi", password="asd123")
@@ -393,7 +393,7 @@ class TestProducts(TestCase):
         self.login_test_user()
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        # self.client.login(username="kahvimarkus@turku.fi", password="qwe456") 
+        # self.client.login(username="kahvimarkus@turku.fi", password="qwe456")
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 

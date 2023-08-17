@@ -62,9 +62,9 @@ class ContactFormDetailView(RetrieveUpdateDestroyAPIView):
 
     permission_classes = [HasGroupPermission]
     required_groups = {
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-        "DELETE": ["admin_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
     }
 
 

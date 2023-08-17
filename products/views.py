@@ -391,7 +391,7 @@ class ColorListView(generics.ListCreateAPIView):
 
     permission_classes = [HasGroupPermission]
     required_groups = {
-        "POST": ["storage_group"],
+        "POST": ["storage_group", "user_group"],
     }
 
 

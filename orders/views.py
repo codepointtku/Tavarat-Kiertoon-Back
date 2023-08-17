@@ -324,6 +324,22 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
             instance._prefetched_objects_cache = {}
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
+    def destroy(self, request, *args, **kwargs):
+        order = self.get_object()
+        if order.status == "Finished":
+            return Response(
+                "Cant delete finished orders", status=status.HTTP_403_FORBIDDEN
+            )
+        log_entry = ProductItemLogEntry.objects.create(
+            action=ProductItemLogEntry.ActionChoices.ORDER_REMOVE, user=request.user
+        )
+        for product_item in order.product_items.all():
+            product_item.available = True
+            product_item.log_entries.add(log_entry)
+            product_item.save()
+        order.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class OrderSelfListView(ListAPIView):
     """View for returning logged in users own orders"""

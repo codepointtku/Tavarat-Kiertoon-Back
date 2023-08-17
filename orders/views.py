@@ -206,10 +206,7 @@ class OrderListView(ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "POST": ["admin_group"],
-    }
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         user = request.user

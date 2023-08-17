@@ -568,14 +568,11 @@ class ShoppingCartAvailableAmountList(APIView):
         CustomJWTAuthentication,
     ]
 
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "GET": ["user_group"],
-    }
-
     serializer_class = ShoppingCartAvailableAmountListSerializer(many=True)
 
     def get(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return Response("You must be logged in to see your shoppingcart")
         try:
             instance = ShoppingCart.objects.get(user=request.user)
         except ObjectDoesNotExist:

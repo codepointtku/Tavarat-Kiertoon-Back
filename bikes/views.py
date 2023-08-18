@@ -361,9 +361,9 @@ class RentalListView(generics.ListCreateAPIView):
         for bikedata in bikerentalserializer.data:
             unavailable_dates[bikedata["id"]] = bikedata["rental_dates"]
 
-        for trailer in bikerentalserializer.data:
+        for trailer in trailer_rental_serializer.data:
             trailer["rental_dates"] = []
-            for rental in trailer["rental"]:
+            for rental in trailer["trailer_rental"]:
                 start_date = datetime.datetime.fromisoformat(rental["start_date"])
                 end_date = datetime.datetime.fromisoformat(rental["end_date"])
                 end_date += datetime.timedelta(days=1)
@@ -375,10 +375,10 @@ class RentalListView(generics.ListCreateAPIView):
                     if date_str not in trailer["rental_dates"]:
                         trailer["rental_dates"].append(date_str)
                     date += datetime.timedelta(days=1)
-            del trailer["rental"]
-        unavailable_dates = {}
+            del trailer["trailer_rental"]
+        trailer_unavailable_dates = {}
         for trailerdata in trailer_rental_serializer.data:
-            unavailable_dates[trailerdata["id"]] = trailerdata["rental_dates"]
+            trailer_unavailable_dates[trailerdata["id"]] = trailerdata["rental_dates"]
 
         instance = request.data
         bikes_list = []
@@ -432,22 +432,26 @@ class RentalListView(generics.ListCreateAPIView):
         instance["bike_stock"] = bikes_list
         instance["user"] = self.request.user.id
 
-        if request.data["bike_trailer"] is not None:
+        print(request.data)
+        if "bike_trailer" in request.data:
             trailers = BikeTrailer.objects.filter(
-                trailer_type=request.data["bike_trailer"].id
+                trailer_type=request.data["bike_trailer"]
             )
-            check_date = request_start_date
             for trailer in trailers:
-                if trailer.id in unavailable_dates.keys():
+                check_date = request_start_date
+                if trailer.id in trailer_unavailable_dates.keys():
                     while check_date <= request_end_date:
                         if (
                             check_date.strftime("%d.%m.%Y")
-                            in unavailable_dates[trailer.id]
+                            in trailer_unavailable_dates[trailer.id]
                         ):
-                            trailers.exclude(id=trailer.id)
+                            trailers = trailers.exclude(id=trailer.id)
                         check_date += datetime.timedelta(days=1)
-            if trailers.len() >= 1:
+
+            if trailers.exists():
                 instance["bike_trailer"] = trailers[0].id
+            else:
+                instance["bike_trailer"] = None
 
         serializer = BikeRentalSerializer(data=instance)
         if serializer.is_valid():

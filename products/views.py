@@ -402,6 +402,13 @@ class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Storage.objects.all()
     serializer_class = StorageSerializer
 
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.productitem_set.all().count() != 0:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class PictureListView(generics.ListCreateAPIView):
     queryset = Picture.objects.all()

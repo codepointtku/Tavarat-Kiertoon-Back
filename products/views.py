@@ -1,10 +1,9 @@
 from functools import reduce
-from itertools import chain
 from operator import and_, or_
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -36,6 +35,7 @@ from .serializers import (
     ProductItemUpdateSerializer,
     ProductResponseSerializer,
     ProductSerializer,
+    ProductStorageResponseSerializer,
     ProductStorageSerializer,
     ProductStorageTransferSerializer,
     ProductUpdateResponseSerializer,
@@ -251,6 +251,7 @@ class ProductStorageFilter(filters.FilterSet):
         return qs
 
 
+@extend_schema_view(get=extend_schema(responses=ProductStorageResponseSerializer))
 class ProductStorageListView(generics.ListAPIView):
     """View for listing and creating products. Create includes creation of ProductItem, Picture and Color"""
 

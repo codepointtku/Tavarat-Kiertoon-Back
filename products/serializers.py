@@ -217,6 +217,12 @@ class ProductItemStorageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductItem
         exclude = ["product"]
+        extra_kwargs = {
+            "available": {"required": True},
+            "modified_date": {"required": True},
+            "shelf_id": {"required": True},
+            "barcode": {"required": True},
+        }
 
 
 class ProductStorageSerializer(serializers.ModelSerializer):
@@ -230,6 +236,28 @@ class ProductStorageSerializer(serializers.ModelSerializer):
         qs = obj.productitem_set.all()
         serializer = ProductItemStorageSerializer(qs, read_only=True, many=True)
         return serializer.data
+
+
+class ProductStorageResponseSerializer(serializers.ModelSerializer):
+    product_items = ProductItemStorageSerializer(
+        source="get_product_items", read_only=True, many=True
+    )
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+        extra_kwargs = {
+            "price": {"required": True},
+            "free_description": {"required": True},
+            "measurements": {"required": True},
+            "weight": {"required": True},
+            "category": {"required": True},
+            "pictures": {"required": True},
+            "colors": {"required": True},
+        }
+
+    def get_product_items(self, obj):
+        return obj.productitem_set.all()
 
 
 class ProductItemResponseSerializer(serializers.ModelSerializer):

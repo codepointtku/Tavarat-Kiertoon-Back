@@ -264,7 +264,6 @@ class ProductStorageListView(generics.ListAPIView):
     ]
     pagination_class = ProductListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
-    search_fields = ["barcode"]
     ordering_fields = ["id"]
     ordering = ["-id"]
     filterset_class = ProductStorageFilter

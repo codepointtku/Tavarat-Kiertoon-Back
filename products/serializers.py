@@ -206,6 +206,32 @@ class ProductItemSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ProductItemStorageSerializer(serializers.ModelSerializer):
+    """
+    serializer for ProductStorageSerializer
+    """
+
+    storage = StorageSerializer(read_only=True)
+    log_entries = ProductItemLogEntrySerializer(read_only=True, many=True)
+
+    class Meta:
+        model = ProductItem
+        exclude = ["product"]
+
+
+class ProductStorageSerializer(serializers.ModelSerializer):
+    product_items = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+    def get_product_items(self, obj):
+        qs = obj.productitem_set.all()
+        serializer = ProductItemStorageSerializer(qs, read_only=True, many=True)
+        return serializer.data
+
+
 class ProductItemResponseSerializer(serializers.ModelSerializer):
     product = ProductResponseSerializer(read_only=True)
     storage = StorageResponseSerializer(read_only=True)

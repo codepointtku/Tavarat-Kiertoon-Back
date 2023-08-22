@@ -486,7 +486,13 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                 "admins cannot edit their own permissions",
                 status=status.HTTP_403_FORBIDDEN,
             )
-
+        if "admin_group" in [
+            group.name
+            for group in [
+                Group.objects.get(id=group_id) for group_id in request.data["groups"]
+            ]
+        ]:
+            request.data["groups"] = [1, 2, 3, 4]
         temp = self.update(request, *args, **kwargs)
 
         UserLogEntry.objects.create(

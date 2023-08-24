@@ -46,12 +46,13 @@ class ContactFormListView(ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        subject = f"{serializer.data['subject']}"
         order = ""
         if serializer.data["order_id"]:
-            order = f"Tilausnumero: {serializer.data['order_id']}"
+            order = f"Tilaus: {serializer.data['order_id']}"
+        subject = f"{serializer.data['subject']} {order}"
+
         message = (
-            f"{serializer.data['message'] } {order}\n\n"
+            f"{serializer.data['message'] }\n\n"
             "Terveisin:\n"
             f"{serializer.data['name']}\n"
             f"{serializer.data['email']}"

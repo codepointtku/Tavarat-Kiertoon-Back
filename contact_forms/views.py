@@ -1,8 +1,12 @@
+from django.conf import settings
+from django.core.mail import send_mail
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import status
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 from .models import Contact, ContactForm
 from .serializers import (
@@ -37,6 +41,18 @@ class ContactFormListView(ListCreateAPIView):
     ordering = ["-id"]
     filterset_class = ContactFormFilter
     pagination_class = ContactFormListPagination
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        subject = ""
+        message = ""
+        send_mail(subject, message, settings.EMAIL_HOST_USER, [settings.DEFAULT_EMAIL])
+        serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 
 @extend_schema_view(

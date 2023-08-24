@@ -1,10 +1,9 @@
 from functools import reduce
-from itertools import chain
 from operator import and_, or_
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -36,6 +35,8 @@ from .serializers import (
     ProductItemUpdateSerializer,
     ProductResponseSerializer,
     ProductSerializer,
+    ProductStorageResponseSerializer,
+    ProductStorageSerializer,
     ProductStorageTransferSerializer,
     ProductUpdateResponseSerializer,
     ProductUpdateSerializer,
@@ -165,13 +166,6 @@ class ProductListView(generics.ListCreateAPIView):
     filterset_class = ProductFilter
 
     def get_queryset(self):
-        # If you belong in admin or storage and have "all" in query params you can see all Products
-        if "all" in self.request.query_params:
-            if is_in_group(self.request.user, "storage_group") or is_in_group(
-                self.request.user, "admin_group"
-            ):
-                return Product.objects.all()
-
         # Hides Products that are not available
         available_products = available_products_filter()
 
@@ -229,6 +223,63 @@ class ProductListView(generics.ListCreateAPIView):
         return Response(
             data=response.data, status=status.HTTP_201_CREATED, headers=headers
         )
+
+
+class ProductStorageFilter(filters.FilterSet):
+    barcode_search = filters.CharFilter(method="barcode_filter", label="Barcode search")
+    category = filters.ModelMultipleChoiceFilter(queryset=Category.objects.all())
+    storage = filters.ModelChoiceFilter(
+        queryset=Storage.objects.all(), method="storage_filter", label="Storage filter"
+    )
+
+    class Meta:
+        model = Product
+        fields = ["barcode_search", "category", "storage"]
+
+    def barcode_filter(self, queryset, value, *args, **kwargs):
+        barcode = args[0]
+        qs = queryset.filter(
+            productitem__in=ProductItem.objects.filter(barcode=barcode)
+        )
+        return qs
+
+    def storage_filter(self, queryset, value, *args, **kwargs):
+        storage = args[0]
+        qs = queryset.filter(
+            productitem__in=ProductItem.objects.filter(storage=storage)
+        )
+        return qs
+
+
+@extend_schema_view(get=extend_schema(responses=ProductStorageResponseSerializer))
+class ProductStorageListView(generics.ListAPIView):
+    """View for listing and creating products. Create includes creation of ProductItem, Picture and Color"""
+
+    serializer_class = ProductStorageSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    pagination_class = ProductListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["id"]
+    ordering = ["-id"]
+    filterset_class = ProductStorageFilter
+
+    def get_queryset(self):
+        # If you belong in admin or storage and have "all" in query params you can see all Products
+        if "all" in self.request.query_params:
+            if is_in_group(self.request.user, "storage_group") or is_in_group(
+                self.request.user, "admin_group"
+            ):
+                return Product.objects.all()
+
+        # Hides Products that are not available
+        available_products = available_products_filter()
+
+        return available_products
 
 
 @extend_schema_view(

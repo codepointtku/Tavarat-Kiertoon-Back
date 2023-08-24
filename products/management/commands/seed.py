@@ -676,7 +676,6 @@ def create_products_and_product_items():
     barcode = 1234
     for product in products:
         storage = random.choice(storages)
-        barcode_str = str(barcode)
         barcode += 1
         product_object = Product(
             name=product["name"],
@@ -695,7 +694,7 @@ def create_products_and_product_items():
                 available=random.choice(true_false),
                 modified_date=timezone.now(),
                 storage=storage,
-                barcode=barcode_str,
+                barcode=str(barcode),
             )
             product_item.log_entries.add(log_entry)
     queryset = Product.objects.all()

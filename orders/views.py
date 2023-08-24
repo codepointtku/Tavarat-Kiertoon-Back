@@ -224,7 +224,7 @@ class OrderListView(ListCreateAPIView):
             recipients = [
                 recipient.email for recipient in OrderEmailRecipient.objects.all()
             ]
-            recipients.append(settings.JOINT_EMAIL)
+            recipients.append(settings.DEFAULT_EMAIL)
             send_mail(subject, message, settings.EMAIL_HOST_USER, recipients)
             serializer = OrderSerializer(order)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

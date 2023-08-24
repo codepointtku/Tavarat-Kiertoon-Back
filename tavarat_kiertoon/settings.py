@@ -228,6 +228,8 @@ VALID_EMAIL_DOMAINS = config("VALID_EMAIL_DOMAINS", cast=Csv())
 # EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_BACKEND = config("EMAIL_BACKEND")
 
+JOINT_EMAIL = config("JOINT_EMAIL")
+
 EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 
 # addresses at front

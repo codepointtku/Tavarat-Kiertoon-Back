@@ -239,7 +239,7 @@ class ProductStorageFilter(filters.FilterSet):
     def barcode_filter(self, queryset, value, *args, **kwargs):
         barcode = args[0]
         qs = queryset.filter(
-            productitem=ProductItem.objects.filter(barcode=barcode).first()
+            productitem__in=ProductItem.objects.filter(barcode=barcode)
         )
         return qs
 

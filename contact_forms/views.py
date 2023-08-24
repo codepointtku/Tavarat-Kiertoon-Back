@@ -45,10 +45,20 @@ class ContactFormListView(ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        subject = ""
-        message = ""
-        send_mail(subject, message, settings.EMAIL_HOST_USER, [settings.DEFAULT_EMAIL])
         serializer.save()
+        subject = f"{serializer.data['subject']}"
+        order = ""
+        if serializer.data["order_id"]:
+            order = f"Tilausnumero: {serializer.data['order_id']}"
+        message = (
+            f"{serializer.data['message'] } {order}\n\n"
+            "Terveisin:\n"
+            f"{serializer.data['name']}\n"
+            f"{serializer.data['email']}"
+        )
+
+        print(serializer.data)
+        send_mail(subject, message, settings.EMAIL_HOST_USER, [settings.DEFAULT_EMAIL])
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers

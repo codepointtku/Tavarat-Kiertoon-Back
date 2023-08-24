@@ -492,7 +492,7 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                 Group.objects.get(id=group_id) for group_id in request.data["groups"]
             ]
         ]:
-            request.data["groups"] = [1, 2, 3, 4]
+            request.data["groups"] = [group.id for group in Group.objects.all()]
         temp = self.update(request, *args, **kwargs)
 
         UserLogEntry.objects.create(

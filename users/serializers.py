@@ -1,14 +1,25 @@
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.signing import BadSignature, Signer
 from django.utils.http import urlsafe_base64_decode
 from drf_spectacular.utils import extend_schema_serializer
-from rest_framework import serializers, status
+from rest_framework import serializers
+
+#     # print(dir(sys.modules.keys))
+#     # print(sys.modules["orders.serializers"])
+#     OrderSerializer = sys.modules[__package__ + ".OrderSerializer"]
+import orders as orders_app
 
 from .custom_functions import custom_time_token_generator, validate_email_domain
 from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
+
+# try:
+#     from orders.serializers import OrderSerializer
+# except ImportError:
+#     import sys
+
 
 User = get_user_model()
 
@@ -246,6 +257,7 @@ class UserFullSerializer(serializers.ModelSerializer):
     Serializer for users, all database fields
     """
 
+    orders = serializers.SerializerMethodField()
     address_list = UserAddressSerializer(many=True, read_only=True)
     groups = SubSerializerForGroupsSchema(many=True, read_only=True)
 
@@ -259,6 +271,13 @@ class UserFullSerializer(serializers.ModelSerializer):
             "is_superuser",
             "user_permissions",
         ]
+
+    def get_orders(self, obj):
+        qs = obj.order_set.all()
+        serializer = orders_app.serializers.OrderSerializer(
+            qs, read_only=True, many=True
+        )
+        return serializer.data
 
 
 class UserLimitedSerializer(serializers.ModelSerializer):
@@ -456,6 +475,7 @@ class UserFullResponseSchemaSerializer(serializers.ModelSerializer):
     FOR SCHEMA, Serializer for users, all database fields
     """
 
+    orders = orders_app.serializers.OrderResponseSerializer()
     address_list = UserAddressSerializer(many=True, read_only=True)
     groups = SubSerializerForGroupsSchema(many=True, read_only=True)
 

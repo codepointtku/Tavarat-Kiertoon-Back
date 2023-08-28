@@ -25,9 +25,10 @@ services:
         restart: unless-stopped
         ports:
             - "8000:8000"
-
         depends_on:
             - db
+        volumes:
+            - medias:/usr/src/app/media
         networks:
             - tavaratnet
 
@@ -37,3 +38,4 @@ networks:
 
 volumes:
     postgres_data:
+    medias:

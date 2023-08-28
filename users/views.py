@@ -358,9 +358,9 @@ class UserDetailsListView(generics.ListAPIView):
     filterset_class = UserFilter
 
     required_groups = {
-        "GET": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
         # "POST": ["admin_group"],
-        "PUT": ["admin_group"],
+        "PUT": ["admin_group", "user_group"],
     }
 
     queryset = CustomUser.objects.all()
@@ -387,10 +387,10 @@ class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
+        "POST": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
     }
 
     serializer_class = UserUpdateSerializer
@@ -444,8 +444,8 @@ class GroupListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["__all__"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
+        "POST": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
     }
 
     queryset = Group.objects.all()
@@ -472,9 +472,9 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
     }
 
     queryset = User.objects.all()
@@ -692,11 +692,11 @@ class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-        "DELETE": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
+        "POST": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
     }
 
     serializer_class = UserAddressSerializer
@@ -748,7 +748,7 @@ class UserAddressAdminCreateView(generics.CreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "POST": ["admin_group"],
+        "POST": ["admin_group", "user_group"],
     }
 
     serializer_class = UserAddressSerializer
@@ -1032,7 +1032,7 @@ class UserLogView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
     }
 
     pagination_class = UserLogListPagination

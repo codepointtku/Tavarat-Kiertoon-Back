@@ -5,6 +5,7 @@ from categories.models import Category
 from orders.models import Order, OrderEmailRecipient, ShoppingCart
 from products.models import Color, Product, ProductItem, Storage
 from users.models import CustomUser
+from cron import clear_shopping_carts
 
 
 class TestOrders(TestCase):
@@ -38,6 +39,34 @@ class TestOrders(TestCase):
         cls.test_user2.is_active = True
         cls.test_user2.save()
 
+        cls.test_user3 = CustomUser.objects.create_user(
+            first_name="Cart",
+            last_name="Man",
+            email="cartman@turku.fi",
+            phone_number="1111111111",
+            password="eric",
+            address="Katu 1",
+            zip_code="10100",
+            city="Kaupunki1",
+            username="cartman@turku.fi",
+        )
+        cls.test_user3.is_active = True
+        cls.test_user3.save()
+
+        cls.test_user4 = CustomUser.objects.create_user(
+            first_name="Cart",
+            last_name="Man2",
+            email="cartman2@turku.fi",
+            phone_number="2222222222",
+            password="eric2",
+            address="Katu 2",
+            zip_code="20200",
+            city="Kaupunki2",
+            username="cartman2@turku.fi",
+        )
+        cls.test_user4.is_active = True
+        cls.test_user4.save()
+
         cls.test_color = Color.objects.create(name="punainen")
         cls.test_color1 = Color.objects.create(name="sininen")
         cls.test_storage1 = Storage.objects.create(name="mokkavarasto")
@@ -63,7 +92,13 @@ class TestOrders(TestCase):
             free_description="tämä nahka on sohvainen",
             weight=50,
         )
-
+        cls.test_product3 = Product.objects.create(
+            category=cls.test_category2,
+            name="testikori",
+            price=0,
+            free_description="ostoskori"
+            weight=10,
+        )
         queryset = Product.objects.all()
         for query in queryset:
             query.colors.set(
@@ -76,6 +111,7 @@ class TestOrders(TestCase):
         cls.test_order_email_recipient = OrderEmailRecipient.objects.create(
             email="samimas@turku.fi"
         )
+
         for i in range(13):
             available = True
             if i % 5 == 0:
@@ -96,6 +132,15 @@ class TestOrders(TestCase):
                     shelf_id=2,
                     barcode=1235,
                 )
+        for i in range(2):
+            cls.test_product_item3 = ProductItem.objects.create(
+                product=cls.test_product3,
+                available=True,
+                storage=cls.test_storage1,
+                shelf_id=3,
+                barcode=123456,
+            )
+
         cls.test_order = Order.objects.create(
             user=cls.test_user1, phone_number="1234567890"
         )
@@ -110,6 +155,14 @@ class TestOrders(TestCase):
             ProductItem.objects.filter(
                 product=cls.test_product1, available=True
             ).first()
+        )
+        cls.test_shoppingcart3 = ShoppingCart.objects.create(user=cls.test_user3)
+        cls.test_shoppingcart3.product_items.add(
+            ProductItem.objects.filter(product=cls.test_product3).first()
+        )
+        cls.test_shoppingcart4 = ShoppingCart.objects.create(user=cls.test_user4)
+        cls.test_shoppingcart4.product_items.add(
+            ProductItem.objects.filter(product=cls.test_product3).last()
         )
 
         if Group.objects.filter(name="admin_group").count() == 0:

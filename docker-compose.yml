@@ -18,8 +18,8 @@ services:
     tavarat-kiertoon:
         container_name: tavarat-kiertoon-back
         build: .
-        command: >
-            sh -cx "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+        # command: >
+        #     sh -cx "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
         # command: >
         #     sh -cx "python manage.py migrate && python manage.py seed && python manage.py runserver 0.0.0.0:8000"
         restart: unless-stopped

@@ -8,7 +8,7 @@ from products.models import ProductItemLogEntry
 
 def clear_shopping_carts():
     queryset = ShoppingCart.objects.exclude(product_items=None).filter(
-        date__lte=timezone.now() - datetime.timedelta(minutes=5)
+        date__lte=timezone.now() - datetime.timedelta(hours=2)
     )
     for cart in queryset:
         log_entry = ProductItemLogEntry.objects.create(

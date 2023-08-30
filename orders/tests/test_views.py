@@ -1,5 +1,8 @@
+import datetime
+
 from django.contrib.auth.models import Group
 from django.test import TestCase
+from django.utils import timezone
 
 from categories.models import Category
 from orders.models import Order, OrderEmailRecipient, ShoppingCart
@@ -96,9 +99,10 @@ class TestOrders(TestCase):
             category=cls.test_category2,
             name="testikori",
             price=0,
-            free_description="ostoskori"
+            free_description="ostoskori",
             weight=10,
         )
+
         queryset = Product.objects.all()
         for query in queryset:
             query.colors.set(
@@ -147,6 +151,7 @@ class TestOrders(TestCase):
         cls.test_order.product_items.set(
             [ProductItem.objects.get(id=cls.test_product_item1.id)]
         )
+
         cls.test_shoppingcart = ShoppingCart.objects.create(user=cls.test_user1)
         cls.test_shoppingcart.product_items.set(
             ProductItem.objects.filter(product=cls.test_product2)
@@ -156,14 +161,24 @@ class TestOrders(TestCase):
                 product=cls.test_product1, available=True
             ).first()
         )
+
         cls.test_shoppingcart3 = ShoppingCart.objects.create(user=cls.test_user3)
         cls.test_shoppingcart3.product_items.add(
             ProductItem.objects.filter(product=cls.test_product3).first()
         )
+        ShoppingCart.objects.filter(pk=cls.test_shoppingcart3.pk).update(
+            date=timezone.now() - datetime.timedelta(hours=1)
+        )
+        cls.test_shoppingcart3.refresh_from_db()
+
         cls.test_shoppingcart4 = ShoppingCart.objects.create(user=cls.test_user4)
         cls.test_shoppingcart4.product_items.add(
             ProductItem.objects.filter(product=cls.test_product3).last()
         )
+        ShoppingCart.objects.filter(pk=cls.test_shoppingcart4.pk).update(
+            date=timezone.now() - datetime.timedelta(hours=3)
+        )
+        cls.test_shoppingcart4.refresh_from_db()
 
         if Group.objects.filter(name="admin_group").count() == 0:
             cls.test_group_admin = Group.objects.create(name="admin_group")
@@ -255,6 +270,15 @@ class TestOrders(TestCase):
         self.assertEqual(
             response.json()["user"],
             CustomUser.objects.get(username="kahvimake@turku.fi").id,
+        )
+
+    def test_timed_clear_shopping_carts_function(self):
+        clear_shopping_carts()
+        self.assertNotEqual(
+            list(self.test_shoppingcart3.product_items.values()), []
+        )
+        self.assertEqual(
+            list(self.test_shoppingcart4.product_items.values()), []
         )
 
     def test_empty_shopping_cart(self):

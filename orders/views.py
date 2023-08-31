@@ -121,6 +121,7 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
                 product_item.available = True
                 product_item.save()
             instance.product_items.clear()
+            instance.save()
             updatedinstance = ShoppingCart.objects.get(user=request.user)
             detailserializer = ShoppingCartDetailSerializer(updatedinstance)
             return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
@@ -144,6 +145,7 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
                 available_itemset[i].log_entries.add(log_entry)
                 available_itemset[i].available = False
                 available_itemset[i].save()
+            instance.save()
 
         else:
             log_entry = ProductItemLogEntry.objects.create(
@@ -156,6 +158,8 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
                 removable_itemset[i].log_entries.add(log_entry)
                 removable_itemset[i].available = True
                 removable_itemset[i].save()
+            instance.save()
+
 
         updatedinstance = ShoppingCart.objects.get(user=request.user)
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)

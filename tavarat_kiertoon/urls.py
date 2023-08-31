@@ -19,11 +19,6 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView,
-)
 
 from bulletins.views import BulletinDetailView, BulletinListView
 from categories.views import CategoryDetailView, CategoryListView, CategoryTreeView
@@ -51,6 +46,7 @@ from products.views import (
     ProductItemDetailView,
     ProductItemListView,
     ProductListView,
+    ProductStorageListView,
     ProductStorageTransferView,
     ShoppingCartAvailableAmountList,
     StorageDetailView,
@@ -83,6 +79,7 @@ from users.views import (
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("storages/", StorageListView.as_view()),
+    path("storages/products/", ProductStorageListView.as_view()),
     path("storages/<int:pk>/", StorageDetailView.as_view()),
     path("pictures/", PictureListView.as_view()),
     path("pictures/<int:pk>/", PictureDetailView.as_view()),

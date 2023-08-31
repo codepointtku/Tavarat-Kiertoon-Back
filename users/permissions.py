@@ -17,7 +17,7 @@ class HasGroupPermission(permissions.BasePermission):
     Ensure user is in required groups.
     """
 
-    message = "Lacking right to a correct group to perfom this action"
+    message = "Lacking right to a correct group to perform this action"
 
     def has_permission(self, request, view):
         # Get a mapping of methods -> required group.

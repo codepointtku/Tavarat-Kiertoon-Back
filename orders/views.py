@@ -14,10 +14,12 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from products.models import Product, ProductItem, ProductItemLogEntry
+from users.permissions import HasGroupPermission
 from users.views import CustomJWTAuthentication
 
 from .models import Order, OrderEmailRecipient, ShoppingCart
@@ -47,6 +49,19 @@ class ShoppingCartListView(ListCreateAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group", "user_group"],
+        "POST": ["admin_group", "user_group"],
+    }
+
     def post(self, request):
         serializer = ShoppingCartSerializer(data=request.data)
         if serializer.is_valid():
@@ -74,6 +89,12 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "PUT": ["user_group"],
+        "PATCH": ["user_group"],
+    }
 
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:
@@ -189,6 +210,12 @@ class OrderListView(ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group", "user_group"],
+        "POST": ["user_group"],
+    }
+
     def post(self, request, *args, **kwargs):
         user = request.user
         serializer = OrderSerializer(data=request.data)
@@ -247,6 +274,14 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group", "user_group"],
+        "POST": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
+    }
 
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -317,6 +352,12 @@ class OrderSelfListView(ListAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+    }
+
     pagination_class = OrderSelfListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["creation_date", "status"]
@@ -333,8 +374,35 @@ class OrderEmailRecipientListView(ListCreateAPIView):
     serializer_class = OrderEmailRecipientSerializer
     queryset = OrderEmailRecipient.objects.all()
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "POST": ["admin_group", "user_group"],
+    }
+
 
 @extend_schema_view(patch=extend_schema(exclude=True))
 class OrderEmailRecipientDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = OrderEmailRecipientSerializer
     queryset = OrderEmailRecipient.objects.all()
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
+    }

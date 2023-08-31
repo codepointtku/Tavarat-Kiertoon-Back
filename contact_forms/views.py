@@ -3,10 +3,16 @@ from django.core.mail import send_mail
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from users.authenticate import CustomJWTAuthentication
+from users.permissions import HasGroupPermission
 
 from .models import Contact, ContactForm
 from .serializers import (
@@ -75,6 +81,21 @@ class ContactFormDetailView(RetrieveUpdateDestroyAPIView):
     queryset = ContactForm.objects.all()
     serializer_class = ContactFormSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
+    }
+
 
 class ContactListView(ListCreateAPIView):
     queryset = Contact.objects.all()
@@ -83,8 +104,34 @@ class ContactListView(ListCreateAPIView):
     ordering_fields = ["id"]
     ordering = ["-id"]
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "POST": ["admin_group", "user_group"],
+    }
+
 
 @extend_schema_view(patch=extend_schema(exclude=True))
 class ContactDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "PUT": ["admin_group"],
+        "PATCH": ["admin_group"],
+        "DELETE": ["admin_group"],
+    }

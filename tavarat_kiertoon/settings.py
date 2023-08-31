@@ -229,6 +229,8 @@ VALID_EMAIL_DOMAINS = config("VALID_EMAIL_DOMAINS", cast=Csv())
 # EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_BACKEND = config("EMAIL_BACKEND")
 
+DEFAULT_EMAIL = config("DEFAULT_EMAIL")
+
 EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 
 # addresses at front

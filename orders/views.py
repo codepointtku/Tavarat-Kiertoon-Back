@@ -242,7 +242,7 @@ class OrderListView(ListCreateAPIView):
                 "Hei!\n\n"
                 "Vastaanotimme tilauksesi. Pyrimme toimittamaan sen 1-2 viikon sisällä\n"
                 f"Tilausnumeronne on {order.id}.\n\n"
-                "Terveisin Tavarat kieroon väki!"
+                "Terveisin Tavarat kiertoon väki!"
             )
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
 
@@ -255,6 +255,7 @@ class OrderListView(ListCreateAPIView):
             recipients = [
                 recipient.email for recipient in OrderEmailRecipient.objects.all()
             ]
+            recipients.append(settings.DEFAULT_EMAIL)
             send_mail(subject, message, settings.EMAIL_HOST_USER, recipients)
             serializer = OrderSerializer(order)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -1,11 +1,13 @@
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.signing import BadSignature, Signer
 from django.utils.http import urlsafe_base64_decode
 from drf_spectacular.utils import extend_schema_serializer
-from rest_framework import serializers, status
+from rest_framework import serializers
+
+from orders.models import Order
 
 from .custom_functions import custom_time_token_generator, validate_email_domain
 from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
@@ -241,11 +243,25 @@ class SubSerializerForGroupsSchema(serializers.ModelSerializer):
         exclude = ["permissions"]
 
 
+class OrderUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        exclude = ["user"]
+        extra_kwargs = {
+            "order_info": {"required": True},
+            "delivery_date": {"required": True},
+            "user": {"required": True},
+            "product_items": {"required": True},
+            "status": {"required": True},
+        }
+
+
 class UserFullSerializer(serializers.ModelSerializer):
     """
     Serializer for users, all database fields
     """
 
+    orders = serializers.SerializerMethodField()
     address_list = UserAddressSerializer(many=True, read_only=True)
     groups = SubSerializerForGroupsSchema(many=True, read_only=True)
 
@@ -259,6 +275,11 @@ class UserFullSerializer(serializers.ModelSerializer):
             "is_superuser",
             "user_permissions",
         ]
+
+    def get_orders(self, obj):
+        qs = obj.order_set.all()
+        serializer = OrderUserSerializer(qs, read_only=True, many=True)
+        return serializer.data
 
 
 class UserLimitedSerializer(serializers.ModelSerializer):
@@ -456,6 +477,7 @@ class UserFullResponseSchemaSerializer(serializers.ModelSerializer):
     FOR SCHEMA, Serializer for users, all database fields
     """
 
+    orders = OrderUserSerializer(many=True, read_only=True)
     address_list = UserAddressSerializer(many=True, read_only=True)
     groups = SubSerializerForGroupsSchema(many=True, read_only=True)
 

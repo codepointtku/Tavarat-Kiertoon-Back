@@ -1,10 +1,14 @@
+from django.conf import settings
+from django.core.mail import send_mail
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from users.authenticate import CustomJWTAuthentication
@@ -43,6 +47,29 @@ class ContactFormListView(ListCreateAPIView):
     ordering = ["-id"]
     filterset_class = ContactFormFilter
     pagination_class = ContactFormListPagination
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        order = ""
+        if serializer.data["order_id"]:
+            order = f"Tilaus: {serializer.data['order_id']}"
+        subject = f"{serializer.data['subject']} {order}"
+
+        message = (
+            f"{serializer.data['message'] }\n\n"
+            "Terveisin:\n"
+            f"{serializer.data['name']}\n"
+            f"{serializer.data['email']}"
+        )
+
+        print(serializer.data)
+        send_mail(subject, message, settings.EMAIL_HOST_USER, [settings.DEFAULT_EMAIL])
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 
 @extend_schema_view(

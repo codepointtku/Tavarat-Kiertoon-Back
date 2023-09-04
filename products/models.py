@@ -89,6 +89,12 @@ class ProductItemLogEntry(models.Model):
 class ProductItem(models.Model):
     """Class representing single item that refers to Product"""
 
+    class ItemStatusChoices(models.Choices):
+        AVAILABLE = "Available"
+        IN_CART = "In cart"
+        UNAVAILABLE = "Unavailable/in use"
+        RETIRED = "Retired/gifted away"
+
     id = models.BigAutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
     available = models.BooleanField(default=False)
@@ -97,3 +103,6 @@ class ProductItem(models.Model):
     shelf_id = models.CharField(max_length=255, default="")
     barcode = models.CharField(max_length=255, default="")
     log_entries = models.ManyToManyField(ProductItemLogEntry, blank=True)
+    item_status = models.CharField(
+        max_length=255, choices=ItemStatusChoices.choices, default="Available"
+    )

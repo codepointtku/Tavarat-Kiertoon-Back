@@ -64,6 +64,32 @@ class ProductSerializer(serializers.ModelSerializer):
         return total_product_amount
 
 
+class ProductDetailSerializer(serializers.ModelSerializer):
+    product_items = serializers.SerializerMethodField()
+    pictures = PictureSerializer(many=True, read_only=True)
+    amount = serializers.SerializerMethodField()
+    total_amount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+    def get_amount(self, obj) -> int:
+        product_amount = ProductItem.objects.filter(
+            product=obj.id, available=True
+        ).count()
+        return product_amount
+
+    def get_total_amount(self, obj) -> int:
+        total_product_amount = ProductItem.objects.filter(product=obj.id).count()
+        return total_product_amount
+
+    def get_product_items(self, obj):
+        qs = obj.productitem_set.all()
+        serializer = ProductItemStorageSerializer(qs, read_only=True, many=True)
+        return serializer.data
+
+
 class ProductResponseSerializer(ProductSerializer):
     class Meta:
         model = Product
@@ -204,6 +230,81 @@ class ProductItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductItem
         fields = "__all__"
+
+
+class ProductItemStorageSerializer(serializers.ModelSerializer):
+    """
+    serializer for ProductStorageSerializer
+    """
+
+    storage = StorageSerializer(read_only=True)
+    log_entries = ProductItemLogEntryResponseSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = ProductItem
+        exclude = ["product"]
+        extra_kwargs = {
+            "available": {"required": True},
+            "modified_date": {"required": True},
+            "shelf_id": {"required": True},
+            "barcode": {"required": True},
+        }
+
+
+class ProductDetailResponseSerializer(ProductSerializer):
+    product_items = ProductItemStorageSerializer(
+        source="get_product_items", read_only=True, many=True
+    )
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+        extra_kwargs = {
+            "price": {"required": True},
+            "free_description": {"required": True},
+            "measurements": {"required": True},
+            "weight": {"required": True},
+            "category": {"required": True},
+            "colors": {"required": True},
+        }
+
+    def get_product_items(self, obj):
+        return obj.productitem_set.all()
+
+
+class ProductStorageSerializer(serializers.ModelSerializer):
+    product_items = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+    def get_product_items(self, obj):
+        qs = obj.productitem_set.all()
+        serializer = ProductItemStorageSerializer(qs, read_only=True, many=True)
+        return serializer.data
+
+
+class ProductStorageResponseSerializer(serializers.ModelSerializer):
+    product_items = ProductItemStorageSerializer(
+        source="get_product_items", read_only=True, many=True
+    )
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+        extra_kwargs = {
+            "price": {"required": True},
+            "free_description": {"required": True},
+            "measurements": {"required": True},
+            "weight": {"required": True},
+            "category": {"required": True},
+            "pictures": {"required": True},
+            "colors": {"required": True},
+        }
+
+    def get_product_items(self, obj):
+        return obj.productitem_set.all()
 
 
 class ProductItemResponseSerializer(serializers.ModelSerializer):

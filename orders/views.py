@@ -14,10 +14,12 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from products.models import Product, ProductItem, ProductItemLogEntry
+from users.permissions import HasGroupPermission
 from users.views import CustomJWTAuthentication
 
 from .models import Order, OrderEmailRecipient, ShoppingCart
@@ -47,6 +49,19 @@ class ShoppingCartListView(ListCreateAPIView):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group", "user_group"],
+        "POST": ["admin_group", "user_group"],
+    }
+
     def post(self, request):
         serializer = ShoppingCartSerializer(data=request.data)
         if serializer.is_valid():
@@ -75,6 +90,12 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
         CustomJWTAuthentication,
     ]
 
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "PUT": ["user_group"],
+        "PATCH": ["user_group"],
+    }
+
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:
             return Response("You must be logged in to see your shoppingcart")
@@ -100,6 +121,7 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
                 product_item.available = True
                 product_item.save()
             instance.product_items.clear()
+            instance.save()
             updatedinstance = ShoppingCart.objects.get(user=request.user)
             detailserializer = ShoppingCartDetailSerializer(updatedinstance)
             return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
@@ -123,6 +145,7 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
                 available_itemset[i].log_entries.add(log_entry)
                 available_itemset[i].available = False
                 available_itemset[i].save()
+            instance.save()
 
         else:
             log_entry = ProductItemLogEntry.objects.create(
@@ -135,6 +158,8 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
                 removable_itemset[i].log_entries.add(log_entry)
                 removable_itemset[i].available = True
                 removable_itemset[i].save()
+            instance.save()
+
 
         updatedinstance = ShoppingCart.objects.get(user=request.user)
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)
@@ -161,9 +186,7 @@ class OrderFilter(filters.FilterSet):
 
 
 class UserOrderFilter(filters.FilterSet):
-    status = filters.MultipleChoiceFilter(
-        choices=Order.StatusChoices.choices
-    )
+    status = filters.MultipleChoiceFilter(choices=Order.StatusChoices.choices)
 
     class Meta:
         model = Order
@@ -191,6 +214,12 @@ class OrderListView(ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group", "user_group"],
+        "POST": ["user_group"],
+    }
+
     def post(self, request, *args, **kwargs):
         user = request.user
         serializer = OrderSerializer(data=request.data)
@@ -213,7 +242,7 @@ class OrderListView(ListCreateAPIView):
                 "Hei!\n\n"
                 "Vastaanotimme tilauksesi. Pyrimme toimittamaan sen 1-2 viikon sisällä\n"
                 f"Tilausnumeronne on {order.id}.\n\n"
-                "Terveisin Tavarat kieroon väki!"
+                "Terveisin Tavarat kiertoon väki!"
             )
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
 
@@ -226,6 +255,7 @@ class OrderListView(ListCreateAPIView):
             recipients = [
                 recipient.email for recipient in OrderEmailRecipient.objects.all()
             ]
+            recipients.append(settings.DEFAULT_EMAIL)
             send_mail(subject, message, settings.EMAIL_HOST_USER, recipients)
             serializer = OrderSerializer(order)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -248,6 +278,14 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group", "user_group"],
+        "POST": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
+    }
 
     def put(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -278,7 +316,8 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
                     if add == 0:
                         add = 1
                         log_add = ProductItemLogEntry.objects.create(
-                            action=ProductItemLogEntry.ActionChoices.ORDER_ADD, user=user
+                            action=ProductItemLogEntry.ActionChoices.ORDER_ADD,
+                            user=user,
                         )
                     product_item_object.available = False
                     product_item_object.save()
@@ -289,6 +328,22 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+
+    def destroy(self, request, *args, **kwargs):
+        order = self.get_object()
+        if order.status == "Finished":
+            return Response(
+                "Cant delete finished orders", status=status.HTTP_403_FORBIDDEN
+            )
+        log_entry = ProductItemLogEntry.objects.create(
+            action=ProductItemLogEntry.ActionChoices.ORDER_REMOVE, user=request.user
+        )
+        for product_item in order.product_items.all():
+            product_item.available = True
+            product_item.log_entries.add(log_entry)
+            product_item.save()
+        order.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class OrderSelfListView(ListAPIView):
@@ -301,6 +356,12 @@ class OrderSelfListView(ListAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+    }
+
     pagination_class = OrderSelfListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["creation_date", "status"]
@@ -317,8 +378,35 @@ class OrderEmailRecipientListView(ListCreateAPIView):
     serializer_class = OrderEmailRecipientSerializer
     queryset = OrderEmailRecipient.objects.all()
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "POST": ["admin_group", "user_group"],
+    }
+
 
 @extend_schema_view(patch=extend_schema(exclude=True))
 class OrderEmailRecipientDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = OrderEmailRecipientSerializer
     queryset = OrderEmailRecipient.objects.all()
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
+    }

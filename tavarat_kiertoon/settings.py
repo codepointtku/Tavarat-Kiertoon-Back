@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "drf_spectacular",
     "holidays",
+    "django_crontab",
 ]
 
 MIDDLEWARE = [
@@ -228,6 +229,8 @@ VALID_EMAIL_DOMAINS = config("VALID_EMAIL_DOMAINS", cast=Csv())
 # EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_BACKEND = config("EMAIL_BACKEND")
 
+DEFAULT_EMAIL = config("DEFAULT_EMAIL")
+
 EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 
 # addresses at front
@@ -251,3 +254,7 @@ EMAIL_PORT = config("EMAIL_PORT")
 EMAIL_USE_TLS = config("EMAIL_USE_TLS")
 
 URL_FRONT = config("URL_FRONT")
+
+CRONJOBS = [
+    ("0 * * * *", "cron.clear_shopping_carts", ">> /usr/src/app/file.log")
+]

@@ -1,10 +1,9 @@
 from functools import reduce
-from itertools import chain
 from operator import and_, or_
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -12,6 +11,7 @@ from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -20,7 +20,7 @@ from categories.models import Category
 from orders.models import ShoppingCart
 from orders.serializers import ShoppingCartDetailSerializer
 from users.custom_functions import check_product_watch
-from users.permissions import is_in_group
+from users.permissions import HasGroupPermission, is_in_group
 from users.views import CustomJWTAuthentication
 
 from .models import Color, Picture, Product, ProductItem, ProductItemLogEntry, Storage
@@ -30,12 +30,16 @@ from .serializers import (
     PictureSerializer,
     ProductCreateRequestSerializer,
     ProductCreateSerializer,
+    ProductDetailResponseSerializer,
+    ProductDetailSerializer,
     ProductItemDetailResponseSerializer,
     ProductItemResponseSerializer,
     ProductItemSerializer,
     ProductItemUpdateSerializer,
     ProductResponseSerializer,
     ProductSerializer,
+    ProductStorageResponseSerializer,
+    ProductStorageSerializer,
     ProductStorageTransferSerializer,
     ProductUpdateResponseSerializer,
     ProductUpdateSerializer,
@@ -157,6 +161,12 @@ class ProductListView(generics.ListCreateAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "POST": ["storage_group", "user_group"],
+    }
+
     pagination_class = ProductListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     search_fields = ["name", "free_description"]
@@ -165,13 +175,6 @@ class ProductListView(generics.ListCreateAPIView):
     filterset_class = ProductFilter
 
     def get_queryset(self):
-        # If you belong in admin or storage and have "all" in query params you can see all Products
-        if "all" in self.request.query_params:
-            if is_in_group(self.request.user, "storage_group") or is_in_group(
-                self.request.user, "admin_group"
-            ):
-                return Product.objects.all()
-
         # Hides Products that are not available
         available_products = available_products_filter()
 
@@ -231,9 +234,66 @@ class ProductListView(generics.ListCreateAPIView):
         )
 
 
+class ProductStorageFilter(filters.FilterSet):
+    barcode_search = filters.CharFilter(method="barcode_filter", label="Barcode search")
+    category = filters.ModelMultipleChoiceFilter(queryset=Category.objects.all())
+    storage = filters.ModelChoiceFilter(
+        queryset=Storage.objects.all(), method="storage_filter", label="Storage filter"
+    )
+
+    class Meta:
+        model = Product
+        fields = ["barcode_search", "category", "storage"]
+
+    def barcode_filter(self, queryset, value, *args, **kwargs):
+        barcode = args[0]
+        qs = queryset.filter(
+            productitem__in=ProductItem.objects.filter(barcode=barcode)
+        )
+        return qs
+
+    def storage_filter(self, queryset, value, *args, **kwargs):
+        storage = args[0]
+        qs = queryset.filter(
+            productitem__in=ProductItem.objects.filter(storage=storage)
+        )
+        return qs
+
+
+@extend_schema_view(get=extend_schema(responses=ProductStorageResponseSerializer))
+class ProductStorageListView(generics.ListAPIView):
+    """View for listing and creating products. Create includes creation of ProductItem, Picture and Color"""
+
+    serializer_class = ProductStorageSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    pagination_class = ProductListPagination
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["id"]
+    ordering = ["-id"]
+    filterset_class = ProductStorageFilter
+
+    def get_queryset(self):
+        # If you belong in admin or storage and have "all" in query params you can see all Products
+        if "all" in self.request.query_params:
+            if is_in_group(self.request.user, "storage_group") or is_in_group(
+                self.request.user, "admin_group"
+            ):
+                return Product.objects.all()
+
+        # Hides Products that are not available
+        available_products = available_products_filter()
+
+        return available_products
+
+
 @extend_schema_view(
     get=extend_schema(
-        responses=ProductResponseSerializer(),
+        responses=ProductDetailResponseSerializer(),
     ),
     put=extend_schema(
         request=ProductUpdateSerializer(),
@@ -245,7 +305,22 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     """View for retrieving, updating, (destroying) a single Product"""
 
     queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+    serializer_class = ProductDetailSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "PUT": ["storage_group", "user_group"],
+        "PATCH": ["storage_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
+        "UPDATE": ["storage_group", "user_group"],
+    }
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -319,6 +394,18 @@ class ProductItemListView(generics.ListAPIView):
     ordering = ["-modified_date", "-id"]
     filterset_class = ProductItemListFilter
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group", "user_group"],
+    }
+
 
 @extend_schema_view(
     get=extend_schema(responses=ProductItemDetailResponseSerializer()),
@@ -340,6 +427,15 @@ class ProductItemDetailView(generics.RetrieveUpdateDestroyAPIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group", "user_group"],
+        "PUT": ["storage_group", "user_group"],
+        "PATCH": ["storage_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
+        "UPDATE": ["storage_group", "user_group"],
+    }
 
     def update(self, request, *args, **kwargs):
         """
@@ -378,6 +474,18 @@ class ColorListView(generics.ListCreateAPIView):
     queryset = Color.objects.all()
     serializer_class = ColorSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "POST": ["storage_group", "user_group"],
+    }
+
 
 @extend_schema_view(
     patch=extend_schema(exclude=True),
@@ -385,6 +493,20 @@ class ColorListView(generics.ListCreateAPIView):
 class ColorDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Color.objects.all()
     serializer_class = ColorSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "PUT": ["storage_group"],
+        "PATCH": ["storage_group"],
+        "DELETE": ["storage_group"],
+    }
 
     def put(self, request, *args, **kwargs):
         if self.get_object().default:
@@ -414,6 +536,19 @@ class StorageListView(generics.ListCreateAPIView):
     queryset = Storage.objects.all()
     serializer_class = StorageSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group", "user_group"],
+        "POST": ["admin_group", "user_group"],
+    }
+
 
 @extend_schema_view(
     get=extend_schema(
@@ -427,6 +562,28 @@ class StorageListView(generics.ListCreateAPIView):
 class StorageDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Storage.objects.all()
     serializer_class = StorageSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
+    }
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.productitem_set.all().count() != 0:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class PictureListView(generics.ListCreateAPIView):
@@ -467,6 +624,18 @@ class ProductStorageTransferView(APIView):
 
     serializer_class = ProductStorageTransferSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "PUT": ["admin_group", "user_group"],
+    }
+
     def put(self, request, *args, **kwargs):
         storage = Storage.objects.get(id=request.data["storage"])
         product_items = ProductItem.objects.filter(id__in=request.data["product_items"])
@@ -484,6 +653,7 @@ class ShoppingCartAvailableAmountList(APIView):
         JWTAuthentication,
         CustomJWTAuthentication,
     ]
+
     serializer_class = ShoppingCartAvailableAmountListSerializer(many=True)
 
     def get(self, request, *args, **kwargs):

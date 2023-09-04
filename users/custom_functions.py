@@ -3,6 +3,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.utils.crypto import constant_time_compare
 from django.utils.http import base36_to_int
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from products.models import Color, Product
 
@@ -14,6 +15,14 @@ def validate_email_domain(email):
         email_split = email.split("@", 1)
         return email_split[1] in settings.VALID_EMAIL_DOMAINS
     return False
+
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
 
 
 def cookie_setter(key, value, remember_me, response):

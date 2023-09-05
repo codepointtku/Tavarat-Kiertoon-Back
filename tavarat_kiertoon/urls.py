@@ -98,7 +98,7 @@ urlpatterns = [
     path("products/<int:pk>/", ProductDetailView.as_view()),
     path("products/items/", ProductItemListView.as_view()),
     path("products/items/<int:pk>", ProductItemDetailView.as_view()),
-    path("products/return/", ReturnProductItemsView.as_view()),
+    path("products/<int:pk>/return/", ReturnProductItemsView.as_view()),
     path("products/transfer/", ProductStorageTransferView.as_view()),
     path("contact_forms/", ContactFormListView.as_view()),
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),

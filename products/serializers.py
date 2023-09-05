@@ -175,7 +175,6 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
             "name": {"required": True},
             "category": {"required": True},
             "colors": {"required": True},
-            "pictures": {"read_only": True},
         }
 
 
@@ -352,9 +351,8 @@ class ProductItemDetailResponseSerializer(serializers.ModelSerializer):
         }
 
 
-class ReturnProductItemsSerializer(serializers.Serializer):
-    product = serializers.IntegerField(required=True)
+class ReturnAddProductItemsSerializer(serializers.Serializer):
     amount = serializers.IntegerField(required=True)
 
     class Meta:
-        fields = "product", "amount"
+        fields = "amount"

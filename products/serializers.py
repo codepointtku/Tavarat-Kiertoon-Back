@@ -350,3 +350,11 @@ class ProductItemDetailResponseSerializer(serializers.ModelSerializer):
             "storage": {"required": True},
             "log_entries": {"required": True},
         }
+
+
+class ReturnProductItemsSerializer(serializers.Serializer):
+    product = serializers.IntegerField(required=True)
+    amount = serializers.IntegerField(required=True)
+
+    class Meta:
+        fields = "product", "amount"

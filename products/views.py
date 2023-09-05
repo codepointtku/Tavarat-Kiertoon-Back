@@ -43,7 +43,7 @@ from .serializers import (
     ProductStorageTransferSerializer,
     ProductUpdateResponseSerializer,
     ProductUpdateSerializer,
-    ReturnProductItemsSerializer,
+    ReturnAddProductItemsSerializer,
     ShoppingCartAvailableAmountListSerializer,
     StorageResponseSerializer,
     StorageSerializer,
@@ -686,7 +686,7 @@ class ReturnProductItemsView(generics.ListCreateAPIView):
     """View for returning product items back to circulation(available)"""
 
     queryset = Product.objects.none()
-    serializer_class = ReturnProductItemsSerializer
+    serializer_class = ReturnAddProductItemsSerializer
 
     authentication_classes = [
         SessionAuthentication,
@@ -697,12 +697,23 @@ class ReturnProductItemsView(generics.ListCreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
+        "GET": ["storage_group", "user_group"],
         "POST": ["storage_group", "user_group"],
     }
+    def get(self, request, *args, **kwargs):
+        try:
+            product = Product.objects.get(id=kwargs["pk"])
+        except:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        amount = ProductItem.objects.filter(product=product, status="Unavailable").count()
+        response = {"amount": amount}
+        return Response(response)
 
     def post(self, request, *args, **kwargs):
+        product = Product.objects.get(id=kwargs["pk"])
+        print(product)
         product_itemset = ProductItem.objects.filter(
-            product=request.data["product"], status="Unavailable"
+            product=product, status="Unavailable"
         )[: request.data["amount"]]
         print(product_itemset)
         for product_item in product_itemset:

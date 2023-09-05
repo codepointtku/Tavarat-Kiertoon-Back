@@ -700,13 +700,17 @@ class ReturnProductItemsView(generics.ListCreateAPIView):
         "GET": ["storage_group", "user_group"],
         "POST": ["storage_group", "user_group"],
     }
+
     def get(self, request, *args, **kwargs):
         try:
             product = Product.objects.get(id=kwargs["pk"])
         except:
             return Response(status=status.HTTP_204_NO_CONTENT)
-        amount = ProductItem.objects.filter(product=product, status="Unavailable").count()
+        amount = ProductItem.objects.filter(
+            product=product, status="Unavailable"
+        ).count()
         response = {"amount": amount}
+
         return Response(response)
 
     def post(self, request, *args, **kwargs):
@@ -724,5 +728,54 @@ class ReturnProductItemsView(generics.ListCreateAPIView):
             print(product_item.available)
             print(product_item.status)
             product_item.save()
+
+        return Response("nice")
+
+
+class AddProductItemsView(generics.ListCreateAPIView):
+    """View for adding product items to an existing product"""
+
+    queryset = Product.objects.none()
+    serializer_class = ReturnAddProductItemsSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group", "user_group"],
+        "POST": ["storage_group", "user_group"],
+    }
+
+    def get(self, request, *args, **kwargs):
+        try:
+            product = Product.objects.get(id=kwargs["pk"])
+        except:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        item = ProductItem.objects.filter(product=product).first()
+        response = {
+            "product": product.id,
+            "item": item.id,
+            "storage": item.storage.id,
+            "barcode": item.barcode,
+        }
+
+        return Response(response)
+
+    def post(self, request, *args, **kwargs):
+        product = Product.objects.get(id=kwargs["pk"])
+        item = ProductItem.objects.filter(product=kwargs["pk"]).first()
+        counter = 1
+        for _ in range(request.data["amount"]):
+            ProductItem.objects.create(
+                product=product,
+                modified_date=timezone.now(),
+                storage=item.storage,
+                barcode=str(item.barcode),
+            )
 
         return Response("nice")

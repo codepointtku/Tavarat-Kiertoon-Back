@@ -119,6 +119,7 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
             for product_item in instance.product_items.all():
                 product_item.log_entries.add(log_entry)
                 product_item.available = True
+                product_item.status = "Available"
                 product_item.save()
             instance.product_items.clear()
             instance.save()
@@ -144,6 +145,7 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
                 instance.product_items.add(available_itemset[i])
                 available_itemset[i].log_entries.add(log_entry)
                 available_itemset[i].available = False
+                available_itemset[i].status = "In cart"
                 available_itemset[i].save()
             instance.save()
 
@@ -157,9 +159,9 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
                 instance.product_items.remove(removable_itemset[i])
                 removable_itemset[i].log_entries.add(log_entry)
                 removable_itemset[i].available = True
+                removable_itemset[i].status = "Available"
                 removable_itemset[i].save()
             instance.save()
-
 
         updatedinstance = ShoppingCart.objects.get(user=request.user)
         detailserializer = ShoppingCartDetailSerializer(updatedinstance)
@@ -234,6 +236,8 @@ class OrderListView(ListCreateAPIView):
             for product_item in shopping_cart.product_items.all():
                 order.product_items.add(product_item)
                 product_item.log_entries.add(log_entry)
+                product_item.status = "Unavailable"
+                product_item.save()
             shopping_cart.product_items.clear()
 
             # Email for user who submitted order
@@ -306,6 +310,7 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
                     )
                 product_item_object = ProductItem.objects.get(id=product_item["id"])
                 product_item_object.available = True
+                product_item_object.status = "Available"
                 product_item_object.save()
                 instance.product_items.remove(product_item["id"])
                 product_item_object.log_entries.add(log_remove)
@@ -320,6 +325,7 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
                             user=user,
                         )
                     product_item_object.available = False
+                    product_item_object.status = "Unavailable"
                     product_item_object.save()
                     instance.product_items.add(product_item)
                     product_item_object.log_entries.add(log_add)
@@ -340,6 +346,7 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
         )
         for product_item in order.product_items.all():
             product_item.available = True
+            product_item.status = "Available"
             product_item.log_entries.add(log_entry)
             product_item.save()
         order.delete()

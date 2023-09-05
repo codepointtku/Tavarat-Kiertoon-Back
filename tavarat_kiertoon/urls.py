@@ -38,6 +38,7 @@ from orders.views import (
     ShoppingCartListView,
 )
 from products.views import (
+    AddProductItemsView,
     ColorDetailView,
     ColorListView,
     PictureDetailView,
@@ -97,8 +98,9 @@ urlpatterns = [
     path("products/", ProductListView.as_view()),
     path("products/<int:pk>/", ProductDetailView.as_view()),
     path("products/items/", ProductItemListView.as_view()),
-    path("products/items/<int:pk>", ProductItemDetailView.as_view()),
+    path("products/items/<int:pk>/", ProductItemDetailView.as_view()),
     path("products/<int:pk>/return/", ReturnProductItemsView.as_view()),
+    path("products/<int:pk>/add/", AddProductItemsView.as_view()),
     path("products/transfer/", ProductStorageTransferView.as_view()),
     path("contact_forms/", ContactFormListView.as_view()),
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
@@ -106,7 +108,7 @@ urlpatterns = [
     path("categories/<int:pk>/", CategoryDetailView.as_view()),
     path("categories/tree/", CategoryTreeView.as_view()),
     path("bulletins/", BulletinListView.as_view()),
-    path("bulletins/<int:pk>", BulletinDetailView.as_view()),
+    path("bulletins/<int:pk>/", BulletinDetailView.as_view()),
     path("bikes/", include("bikes.urls")),
     path("contacts/", ContactListView.as_view()),
     path("contacts/<int:pk>", ContactDetailView.as_view()),

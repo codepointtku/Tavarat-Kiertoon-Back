@@ -97,7 +97,7 @@ class ProductItem(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
-    available = models.BooleanField(default=False)
+    available = models.BooleanField(default=True)
     modified_date = models.DateTimeField(default=timezone.now)
     storage = models.ForeignKey(Storage, on_delete=models.SET_NULL, null=True)
     shelf_id = models.CharField(max_length=255, default="")

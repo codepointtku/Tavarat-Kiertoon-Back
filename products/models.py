@@ -92,8 +92,8 @@ class ProductItem(models.Model):
     class ItemStatusChoices(models.Choices):
         AVAILABLE = "Available"
         IN_CART = "In cart"
-        UNAVAILABLE = "Unavailable/in use"
-        RETIRED = "Retired/gifted away"
+        UNAVAILABLE = "Unavailable"
+        RETIRED = "Retired"
 
     id = models.BigAutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
@@ -103,6 +103,6 @@ class ProductItem(models.Model):
     shelf_id = models.CharField(max_length=255, default="")
     barcode = models.CharField(max_length=255, default="")
     log_entries = models.ManyToManyField(ProductItemLogEntry, blank=True)
-    item_status = models.CharField(
+    status = models.CharField(
         max_length=255, choices=ItemStatusChoices.choices, default="Available"
     )

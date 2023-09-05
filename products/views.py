@@ -43,6 +43,7 @@ from .serializers import (
     ProductStorageTransferSerializer,
     ProductUpdateResponseSerializer,
     ProductUpdateSerializer,
+    ReturnProductItemsSerializer,
     ShoppingCartAvailableAmountListSerializer,
     StorageResponseSerializer,
     StorageSerializer,
@@ -679,3 +680,38 @@ class ShoppingCartAvailableAmountList(APIView):
             product_ids, many=True
         )
         return Response(returnserializer.data)
+
+
+class ReturnProductItemsView(generics.ListCreateAPIView):
+    """View for returning product items back to circulation(available)"""
+
+    queryset = Product.objects.none()
+    serializer_class = ReturnProductItemsSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "POST": ["storage_group", "user_group"],
+    }
+
+    def post(self, request, *args, **kwargs):
+        product_itemset = ProductItem.objects.filter(
+            product=request.data["product"], status="Unavailable"
+        )[: request.data["amount"]]
+        print(product_itemset)
+        for product_item in product_itemset:
+            print(product_item.available)
+            print(product_item.status)
+            product_item.available = True
+            product_item.status = "Available"
+            print(product_item.available)
+            print(product_item.status)
+            product_item.save()
+
+        return Response("nice")

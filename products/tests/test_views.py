@@ -52,6 +52,7 @@ class TestProducts(TestCase):
             measurements="210x100x90",
             weight=50,
         )
+        cls.test_product.pictures.set([cls.test_picture, cls.test_picture1])
         cls.test_product1 = Product.objects.create(
             name="sohvanahka",
             price=0,
@@ -101,6 +102,17 @@ class TestProducts(TestCase):
                 shelf_id="12b",
                 barcode=f"2000000{productitem}",
             )
+
+        for productitem in range(5):
+            cls.test_product_item1f = ProductItem.objects.create(
+                product=cls.test_product1,
+                storage=cls.test_storage,
+                available=False,
+                status="Unavailable",
+                shelf_id="12b",
+                barcode=f"2000111{productitem}",
+            )
+
         cls.test_product_item2 = ProductItem.objects.create(
             product=cls.test_product2,
             storage=cls.test_storage,
@@ -215,7 +227,7 @@ class TestProducts(TestCase):
         url = "/products/items/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(ProductItem.objects.all().count(), 21)
+        self.assertEqual(ProductItem.objects.all().count(), 26)
 
     def test_get_products_search(self):
         url = f"/products/?search={self.test_product.name}"
@@ -346,7 +358,7 @@ class TestProducts(TestCase):
 
     def test_update_product_item(self):
         self.login_test_user()
-        url = f"/products/items/{self.test_product_item.id}"
+        url = f"/products/items/{self.test_product_item.id}/"
         # self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {"available": False, "modify_date": "asd"}
         response = self.client.put(url, data, content_type="application/json")
@@ -354,7 +366,7 @@ class TestProducts(TestCase):
 
     def test_update_product_item_without_modify_date(self):
         self.login_test_user()
-        url = f"/products/items/{self.test_product_item.id}"
+        url = f"/products/items/{self.test_product_item.id}/"
         # self.client.login(username="kahvimake@turku.fi", password="asd123")
         data = {
             "available": False,
@@ -372,16 +384,50 @@ class TestProducts(TestCase):
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
-    def test_update_product_name(self):
+    def test_update_product(self):
+        #adding new pictures not working for now
         self.login_test_user()
         url = f"/products/{self.test_product.id}/"
+        picture = urllib.request.urlretrieve(
+            url="https://picsum.photos/200.jpg",
+            filename="testmedia/pictures/testpicture4.jpeg",
+        )
         data = {
             "name": "kahvisohva",
             "category": self.test_category1.id,
             "colors": [self.test_color.id],
+            "pictures": [self.test_picture.id],
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
+
+    def test_add_items_existing_product(self):
+        item_count = ProductItem.objects.filter(product=self.test_product1.id).count()
+        self.login_test_user()
+        url = f"/products/{self.test_product1.id}/add/"
+        data = {"amount": 5}
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            ProductItem.objects.filter(product=self.test_product1.id).count(),
+            item_count + 5,
+        )
+
+    def test_return_items_existing_product(self):
+        item_count = ProductItem.objects.filter(
+            product=self.test_product1.id, available=True, status="Available"
+        ).count()
+        self.login_test_user()
+        url = f"/products/{self.test_product1.id}/return/"
+        data = {"amount": 5}
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            ProductItem.objects.filter(
+                product=self.test_product1.id, available=True, status="Available"
+            ).count(),
+            item_count + 5,
+        )
 
     def test_shoppingcart_available_amount_list(self):
         url = "/shopping_cart/available_amount/"

@@ -720,11 +720,16 @@ class ReturnProductItemsView(generics.ListCreateAPIView):
             product=product, status="Unavailable"
         )[: request.data["amount"]]
         print(product_itemset)
+        log_entry = ProductItemLogEntry.objects.create(
+            action=ProductItemLogEntry.ActionChoices.CIRCULATION, user=request.user
+        )
         for product_item in product_itemset:
             print(product_item.available)
             print(product_item.status)
             product_item.available = True
             product_item.status = "Available"
+            product_item.modified_date = timezone.now()
+            product_item.log_entries.add(log_entry)
             print(product_item.available)
             print(product_item.status)
             product_item.save()
@@ -772,13 +777,17 @@ class AddProductItemsView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         product = Product.objects.get(id=kwargs["pk"])
         item = ProductItem.objects.filter(product=kwargs["pk"]).first()
+        log_entry = ProductItemLogEntry.objects.create(
+            action=ProductItemLogEntry.ActionChoices.CREATE, user=request.user
+        )
         for _ in range(request.data["amount"]):
-            ProductItem.objects.create(
+            product_item = ProductItem.objects.create(
                 product=product,
                 modified_date=timezone.now(),
                 storage=item.storage,
                 barcode=str(item.barcode),
             )
+            product_item.log_entries.add(log_entry)
 
         # checking if the created product was in product watch list on any user
         check_product_watch(product)

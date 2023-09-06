@@ -729,7 +729,10 @@ class ReturnProductItemsView(generics.ListCreateAPIView):
             print(product_item.status)
             product_item.save()
 
-        return Response("nice")
+        # checking if the created product was in product watch list on any user
+        check_product_watch(product)
+
+        return Response("items returned successfully")
 
 
 class AddProductItemsView(generics.ListCreateAPIView):
@@ -769,7 +772,6 @@ class AddProductItemsView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         product = Product.objects.get(id=kwargs["pk"])
         item = ProductItem.objects.filter(product=kwargs["pk"]).first()
-        counter = 1
         for _ in range(request.data["amount"]):
             ProductItem.objects.create(
                 product=product,
@@ -778,4 +780,7 @@ class AddProductItemsView(generics.ListCreateAPIView):
                 barcode=str(item.barcode),
             )
 
-        return Response("nice")
+        # checking if the created product was in product watch list on any user
+        check_product_watch(product)
+
+        return Response("items created successfully")

@@ -154,6 +154,7 @@ class ProductFilter(filters.FilterSet):
 )
 class ProductListView(generics.ListCreateAPIView):
     """View for listing and creating products. Create includes creation of ProductItem, Picture and Color"""
+    """Fields pictures and colors must be sent as pictures[] and colors[] respectively in POST"""
 
     serializer_class = ProductSerializer
     authentication_classes = [
@@ -304,6 +305,7 @@ class ProductStorageListView(generics.ListAPIView):
 )
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     """View for retrieving, updating, (destroying) a single Product"""
+    """Field new_pictures must be sent as new_pictures[] in PUT"""
 
     queryset = Product.objects.all()
     serializer_class = ProductDetailSerializer

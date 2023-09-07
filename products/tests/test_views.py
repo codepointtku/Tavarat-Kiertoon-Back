@@ -5,6 +5,7 @@ from os.path import basename
 from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
+from django.test.client import MULTIPART_CONTENT, encode_multipart, BOUNDARY
 from django.utils import timezone
 
 from categories.models import Category
@@ -385,21 +386,31 @@ class TestProducts(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_update_product(self):
-        #adding new pictures not working for now
         self.login_test_user()
         url = f"/products/{self.test_product.id}/"
         picture = urllib.request.urlretrieve(
             url="https://picsum.photos/200.jpg",
             filename="testmedia/pictures/testpicture4.jpeg",
         )
-        data = {
-            "name": "kahvisohva",
-            "category": self.test_category1.id,
-            "colors": [self.test_color.id],
-            "pictures": [self.test_picture.id],
-        }
-        response = self.client.put(url, data, content_type="application/json")
+        encoded_data = encode_multipart(
+            BOUNDARY,
+            {
+                "name": "kahvisohva",
+                "category": self.test_category1.id,
+                "colors": [self.test_color.id],
+                "pictures": [self.test_picture.id],
+                "new_pictures[]": {open(picture[0], "rb")},
+            },
+        )
+        response = self.client.put(
+            url,
+            encoded_data,
+            content_type=MULTIPART_CONTENT,
+            format="multipart",
+        )
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.test_picture1.id not in response.data["pictures"], True)
+        self.assertEqual(len(response.data["pictures"]), 2)
 
     def test_add_items_existing_product(self):
         item_count = ProductItem.objects.filter(product=self.test_product1.id).count()

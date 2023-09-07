@@ -156,18 +156,22 @@ class ProductCreateRequestSerializer(serializers.ModelSerializer):
     barcode = serializers.CharField()
     storage = serializers.IntegerField()
     shelf_id = serializers.CharField(required=False)
+    pictures = serializers.ListField(required=False)
 
     class Meta:
         model = Product
-        exclude = ["pictures", "colors"]
+        fields = "__all__"
         extra_kwargs = {
             "name": {"required": True},
             "amount": {"required": True},
             "category": {"required": True},
+            "colors": {"required": False},
         }
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
+    new_pictures = serializers.ListField(required=False)
+    
     class Meta:
         model = Product
         fields = "__all__"

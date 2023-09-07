@@ -327,7 +327,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
         original_pictures = []
-        original_pictures.extend(instance.pictures.values("id"))
+        original_pictures.extend(instance.pictures.values_list("id", flat=True))
         serializer = ProductUpdateSerializer(
             instance, data=request.data, partial=partial
         )
@@ -335,12 +335,13 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         productdata = serializer.save()
 
         for picture in original_pictures:
-            if picture["id"] not in request.data["pictures"]:
-                ghost_picture = Picture.objects.get(id=picture["id"])
+            if str(picture) not in request.data["pictures"]:
+                ghost_picture = Picture.objects.get(id=picture)
+
                 ghost_picture.delete()
 
         picture_ids = []
-        for file in request.FILES.getlist("pictures[]"):
+        for file in request.FILES.getlist("new_pictures[]"):
             ext = file.content_type.split("/")[1]
             pic_serializer = PictureCreateSerializer(
                 data={
@@ -350,7 +351,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
                 }
             )
             pic_serializer.is_valid(raise_exception=True)
-            self.perform_create(pic_serializer)
+            pic_serializer.save()
             picture_ids.append(pic_serializer.data["id"])
 
         for picture_id in picture_ids:

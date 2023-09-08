@@ -1,8 +1,11 @@
-from os.path import basename
+from os.path import basename, isfile
+from os import remove
 
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 from categories.models import Category
 
@@ -29,6 +32,11 @@ class Picture(models.Model):
 
     def __str__(self) -> str:
         return f"Picture: {basename(self.picture_address.name)}({self.id})"
+    
+@receiver(post_delete, sender=Picture)
+def delete_orphan_picture(sender, instance, using, **kwargs):
+    if isfile(instance.picture_address.path):
+        remove(instance.picture_address.path)
 
 
 class Storage(models.Model):

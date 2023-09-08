@@ -33,7 +33,7 @@ class Order(models.Model):
         max_length=255, choices=StatusChoices.choices, default="Waiting"
     )
     delivery_address = models.CharField(max_length=255)
-    delivery_required = models.BooleanField(default=False)
+    delivery_required = models.BooleanField(default=True)
     recipient = models.CharField(max_length=255)
     order_info = models.TextField(default="", blank=True)
     delivery_date = models.DateTimeField(null=True, default=None, blank=True)

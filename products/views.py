@@ -328,18 +328,20 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        original_pictures = []
-        original_pictures.extend(instance.pictures.values_list("id", flat=True))
+        original_pictures = instance.pictures.values_list("id", flat=True)
         serializer = ProductUpdateSerializer(
             instance, data=request.data, partial=partial
         )
         serializer.is_valid(raise_exception=True)
         productdata = serializer.save()
-
+        for color in request.data.getlist("colors[]"):
+            productdata.colors.add(color)
+        for picture in request.data.getlist("pictures[]"):
+            productdata.pictures.add(picture)
+            
         for picture in original_pictures:
-            if str(picture) not in request.data["pictures"]:
+            if picture not in productdata.pictures.values_list("id", flat=True):
                 ghost_picture = Picture.objects.get(id=picture)
-
                 ghost_picture.delete()
 
         picture_ids = []
@@ -718,23 +720,17 @@ class ReturnProductItemsView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         product = Product.objects.get(id=kwargs["pk"])
-        print(product)
         product_itemset = ProductItem.objects.filter(
             product=product, status="Unavailable"
         )[: request.data["amount"]]
-        print(product_itemset)
         log_entry = ProductItemLogEntry.objects.create(
             action=ProductItemLogEntry.ActionChoices.CIRCULATION, user=request.user
         )
         for product_item in product_itemset:
-            print(product_item.available)
-            print(product_item.status)
             product_item.available = True
             product_item.status = "Available"
             product_item.modified_date = timezone.now()
             product_item.log_entries.add(log_entry)
-            print(product_item.available)
-            print(product_item.status)
             product_item.save()
 
         # checking if the created product was in product watch list on any user

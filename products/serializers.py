@@ -178,7 +178,6 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "name": {"required": True},
             "category": {"required": True},
-            "colors": {"required": True},
         }
 
 

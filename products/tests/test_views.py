@@ -397,8 +397,8 @@ class TestProducts(TestCase):
             {
                 "name": "kahvisohva",
                 "category": self.test_category1.id,
-                "colors": [self.test_color.id],
-                "pictures": [self.test_picture.id],
+                "colors[]": [self.test_color.id, self.test_color1.id],
+                "pictures[]": self.test_picture.id,
                 "new_pictures[]": {open(picture[0], "rb")},
             },
         )
@@ -406,7 +406,6 @@ class TestProducts(TestCase):
             url,
             encoded_data,
             content_type=MULTIPART_CONTENT,
-            format="multipart",
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.test_picture1.id not in response.data["pictures"], True)

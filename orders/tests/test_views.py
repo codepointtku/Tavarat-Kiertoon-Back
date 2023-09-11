@@ -146,7 +146,7 @@ class TestOrders(TestCase):
             )
 
         cls.test_order = Order.objects.create(
-            user=cls.test_user1, phone_number="1234567890"
+            user=cls.test_user1, recipient_phone_number="1234567890"
         )
         cls.test_order.product_items.set(
             [ProductItem.objects.get(id=cls.test_product_item1.id)]
@@ -342,9 +342,9 @@ class TestOrders(TestCase):
             "user": self.test_user1.id,
             "status": "Waiting",
             "delivery_address": "kuja123",
-            "contact": "Antero Alakulo",
+            "recipient": "Antero Alakulo",
             "order_info": "nyrillataan",
-            "phone_number": "99999",
+            "recipient_phone_number": "99999",
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
@@ -379,10 +379,10 @@ class TestOrders(TestCase):
         data = {
             "status": "Waiting",
             "delivery_address": "string",
-            "contact": "string",
+            "recipient": "string",
             "order_info": "string",
             "delivery_date": "2023-04-25T05:40:41.404Z",
-            "phone_number": "11212121",
+            "recipient_phone_number": "11212121",
             "user": self.test_user1.id,
             "product_items": [],
         }
@@ -398,10 +398,10 @@ class TestOrders(TestCase):
         data = {
             "status": "Waiting",
             "delivery_address": "string",
-            "contact": "string",
+            "recipient": "string",
             "order_info": "string",
             "delivery_date": "2023-04-25T05:40:41.404Z",
-            "phone_number": "11212121",
+            "recipient_phone_number": "11212121",
             "user": self.test_user1.id,
             "product_items": [
                 product_item.id
@@ -433,7 +433,7 @@ class TestOrders(TestCase):
         data = {
             "status": "Waiting",
             "user": self.test_user1.id,
-            "phone_number": "11212121",
+            "recipient_phone_number": "11212121",
             "delivery_date": "asd",
             "products": [
                 product_item.id for product_item in self.test_order.product_items.all()

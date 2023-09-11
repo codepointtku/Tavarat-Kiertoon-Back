@@ -568,7 +568,6 @@ class UserUpdateInfoView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@extend_schema_view()
 class UserAddressListView(generics.ListCreateAPIView):
     """
     List of addresses belonging to the user who made the request.
@@ -611,6 +610,12 @@ class UserAddressListView(generics.ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@extend_schema_view(
+    put=extend_schema(
+        request=UserAddressPutRequestSerializer(),
+    ),
+    patch=extend_schema(exclude=True),
+)
 class UserAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     Delete or Update an address. address needs to match logged in user id as owner.
@@ -643,9 +648,7 @@ class UserAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop("partial", False)
         instance = self.get_object()
 
         # users can only delete their own addresses
@@ -655,7 +658,7 @@ class UserAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_204_NO_CONTENT,
             )
 
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 

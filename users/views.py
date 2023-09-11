@@ -568,9 +568,10 @@ class UserUpdateInfoView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UserAddressEditView(APIView, ListModelMixin):
+@extend_schema_view()
+class UserAddressListView(generics.ListCreateAPIView):
     """
-    Get list of all addresss logged in user has, and edit them
+    List of addresses belonging to the user who made the request.
     """
 
     authentication_classes = [
@@ -584,8 +585,6 @@ class UserAddressEditView(APIView, ListModelMixin):
     required_groups = {
         "GET": ["user_group"],
         "POST": ["user_group"],
-        "PUT": ["user_group"],
-        "PATCH": ["user_group"],
     }
 
     serializer_class = UserAddressSerializer
@@ -611,27 +610,54 @@ class UserAddressEditView(APIView, ListModelMixin):
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # used for updating existing address user has
-    @extend_schema(request=UserAddressPutRequestSerializer)
-    def put(self, request, format=None):
-        if "id" not in request.data:
-            msg = "no address id for adress updating"
-            return Response(msg, status=status.HTTP_204_NO_CONTENT)
 
-        copy_of_request = request.data.copy()
-        address1 = UserAddress.objects.get(id=copy_of_request["id"])
+class UserAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Delete or Update an address. address needs to match logged in user id as owner.
+    """
 
-        # checking that only users themselves can change their own adressess
-        if address1.user.id != request.user.id:
-            msg = "address owner and loggerdin user need to match"
-            return Response(msg, status=status.HTTP_204_NO_CONTENT)
+    authentication_classes = [
+        CustomJWTAuthentication,
+    ]
 
-        copy_of_request["user"] = str(request.user.id)
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+        "PUT": ["user_group"],
+        "PATCH": ["user_group"],
+        "DELETE": ["user_group"],
+    }
 
-        serializer = self.serializer_class(address1, data=copy_of_request, partial=True)
+    queryset = UserAddress.objects.all()
+    serializer_class = UserAddressSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if instance.user.id != request.user.id:
+            return Response(
+                "address owner and logged in user need to match",
+                status=status.HTTP_204_NO_CONTENT,
+            )
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+
+        # users can only delete their own addresses
+        if instance.user.id != request.user.id:
+            return Response(
+                "address owner and logged in user need to match",
+                status=status.HTTP_204_NO_CONTENT,
+            )
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        self.perform_update(serializer)
 
         UserLogEntry.objects.create(
             action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
@@ -641,45 +667,29 @@ class UserAddressEditView(APIView, ListModelMixin):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
-class UserAddressEditDeleteView(APIView):
-    """
-    Delete the specific address given in kwargs. address needs to match logged in user id as owner
-    """
-
-    authentication_classes = [
-        CustomJWTAuthentication,
-    ]
-
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "DELETE": ["user_group"],
-    }
-
-    serializer_class = None
-
     def delete(self, request, *args, **kwargs):
         to_be_deleted_id = kwargs["pk"]
 
         address = UserAddress.objects.get(id=to_be_deleted_id)
 
-        if request.user.id == address.user.id:
-            address_msg = address.address + " " + address.zip_code + " " + address.city
-            address.delete()
-
-            UserLogEntry.objects.create(
-                action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO_DELETE,
-                target=request.user,
-                user_who_did_this_action=request.user,
-            )
-
+        if request.user.id != address.user.id:
             return Response(
-                f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
+                "address owner and logged in user need to match",
+                status=status.HTTP_403_FORBIDDEN,
             )
 
-        else:
-            # print("user didnt match the  owner of address")
-            return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
+        address_msg = address.address + " " + address.zip_code + " " + address.city
+        address.delete()
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO_DELETE,
+            target=request.user,
+            user_who_did_this_action=request.user,
+        )
+
+        return Response(
+            f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
+        )
 
 
 @extend_schema_view(patch=extend_schema(exclude=True))

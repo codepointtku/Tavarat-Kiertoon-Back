@@ -274,12 +274,8 @@ class TestOrders(TestCase):
 
     def test_timed_clear_shopping_carts_function(self):
         clear_shopping_carts()
-        self.assertNotEqual(
-            list(self.test_shoppingcart3.product_items.values()), []
-        )
-        self.assertEqual(
-            list(self.test_shoppingcart4.product_items.values()), []
-        )
+        self.assertNotEqual(list(self.test_shoppingcart3.product_items.values()), [])
+        self.assertEqual(list(self.test_shoppingcart4.product_items.values()), [])
 
     def test_empty_shopping_cart(self):
         url = "/shopping_cart/"
@@ -341,10 +337,23 @@ class TestOrders(TestCase):
         data = {
             "user": self.test_user1.id,
             "status": "Waiting",
+            "recipient": "Antero Alakulo",
+            "order_info": "nyrillataan",
+            "recipient_phone_number": "99999",
+            "product_items": [self.test_product_item1.id],
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Order.objects.all().count(), 1)
+
+        data = {
+            "user": self.test_user1.id,
+            "status": "Waiting",
             "delivery_address": "kuja123",
             "recipient": "Antero Alakulo",
             "order_info": "nyrillataan",
             "recipient_phone_number": "99999",
+            "product_items": [self.test_product_item1.id],
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)

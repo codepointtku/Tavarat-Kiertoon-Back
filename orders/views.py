@@ -221,17 +221,16 @@ class OrderListView(ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         user = request.user
+        shopping_cart = ShoppingCart.objects.get(user=user.id)
         serializer = OrderSerializer(data=request.data)
-        if (
-            "product_items" not in request.data
-            or len(request.data["product_items"]) < 1
-        ):
-            return Response("Order has no products", status=status.HTTP_400_BAD_REQUEST)
+        if shopping_cart.product_items.count() < 1:
+            return Response(
+                "Order has no products", status=status.HTTP_400_BAD_REQUEST
+            )
         if serializer.is_valid():
             serializer.save()
             order = Order.objects.get(id=serializer.data["id"])
             order.user = user
-            shopping_cart = ShoppingCart.objects.get(user=user.id)
             log_entry = ProductItemLogEntry.objects.create(
                 action=ProductItemLogEntry.ActionChoices.ORDER, user=user
             )

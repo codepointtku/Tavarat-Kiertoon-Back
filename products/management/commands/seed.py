@@ -1,3 +1,5 @@
+import csv
+import json
 import random
 import urllib.request
 import uuid
@@ -123,7 +125,11 @@ def create_contact_forms():
 
 def create_colors():
     """Creates color objects from the list."""
-    colors = ["Punainen", "Sininen", "Vihreä", "Musta", "Valkoinen", "Ruskea"]
+    colors = []
+    with open("D:\\colors.csv", newline="", encoding="UTF-8") as f:
+        reader = csv.reader(f)
+        colors = list(reader)
+    ## colors = ["Punainen", "Sininen", "Vihreä", "Musta", "Valkoinen", "Ruskea"]
     for color in colors:
         color_object = Color(name=color, default=True)
         color_object.save()
@@ -175,7 +181,18 @@ def create_storages():
 
 def create_categories():
     """Creates category objects from the list."""
-    categories = [
+    categories = []
+    with open("D:\\category.csv", newline="", encoding="UTF-8") as f:
+        reader = csv.reader(f)
+        headers = next(reader)  # Read the header row
+        for row in reader:
+            record = {}
+            for i, value in enumerate(row):
+                if headers[i] == "parent" and value == "":
+                    continue
+                record[headers[i]] = value
+            categories.append(record)
+    """ categories = [
         {"name": "Huonekalut"},
         {"name": "Tuolit", "parent": "Huonekalut"},
         {"name": "Pöydät", "parent": "Huonekalut"},
@@ -232,10 +249,12 @@ def create_categories():
         {"name": "Faber Castell", "parent": "Tussit"},
         {"name": "Kuivuneet tussit", "parent": "Tussit"},
         {"name": "Hyvät tussit", "parent": "Tussit"},
-    ]
+    ] """
     for category in categories:
         if "parent" in category:
-            parent_object = Category.objects.get(name=category["parent"])
+            parent_object = Category.objects.filter(name=category["parent"]).latest(
+                "id"
+            )
             category_object = Category(name=category["name"], parent=parent_object)
         else:
             category_object = Category(name=category["name"])
@@ -342,18 +361,40 @@ def create_users():
 
 def create_picture():
     """Creates a picture object from an api."""
-    result = urllib.request.urlretrieve("https://picsum.photos/200")
-    picture_object = Picture(
-        picture_address=ContentFile(
-            open(result[0], "rb").read(), name=f"{timezone.now().timestamp()}.jpg"
+    pictures = []
+
+    with open("D:\\pictures.csv", newline="", encoding="UTF-8") as f:
+        reader = csv.reader(f)
+        pictures = list(reader)
+
+    for pic in pictures:
+        picture_object = Picture(
+            picture_address=ContentFile(
+                open(
+                    f"D:\\rv-turku-kuvat-20230903\\files\\{pic[0]}",
+                    "rb",
+                ).read(),
+                name=pic[0],
+            )
         )
-    )
-    picture_object.save()
+        picture_object.save()
 
 
 def create_products_and_product_items():
     """Creates product objects from the list."""
-    products = [
+    products = []
+    with open("D:\\product.csv", newline="", encoding="UTF-8") as f:
+        reader = csv.reader(f)
+        headers = next(reader)  # Read the header row
+        for row in reader:
+            record = {}
+            for i, value in enumerate(row):
+                if headers[i] == "file":
+                    record[headers[i]] = json.loads(value)
+                else:
+                    record[headers[i]] = value
+            products.append(record)
+    """ products = [
         {
             "name": "Toimistotuoli 1",
             "free_description": "Istumakorkeuden säätö, selkänojan säätö",
@@ -665,7 +706,7 @@ def create_products_and_product_items():
             "category": "Sekalaiset",
         },
     ]
-    true_false = [1, 1, 1, 0]
+    true_false = [1, 1, 1, 0] """
     colors = Color.objects.all()
     storages = Storage.objects.all()
     pictures = Picture.objects.all()
@@ -673,38 +714,43 @@ def create_products_and_product_items():
         action=ProductItemLogEntry.ActionChoices.CREATE,
         user=CustomUser.objects.get(username="super"),
     )
-    barcode = 1234
+
     for product in products:
+        barcode = product["barcode"]
+        amount = int(product["amount"])
         storage = random.choice(storages)
-        barcode += 1
+
         product_object = Product(
             name=product["name"],
             free_description=product["free_description"],
-            category=Category.objects.get(name=product["category"]),
+            category=Category.objects.filter(name=product["category"]).last(),
             measurements="",
         )
         product_object.save()
-        for _ in range(
-            random.choices(
-                range(1, 11), cum_weights=[10, 15, 18, 20, 21, 22, 23, 24, 25, 26]
-            )[0]
-        ):
+        product_object.colors.set(
+            Color.objects.filter(name__in=product["colors"]),
+        )
+        product["file"] = [f"pictures/{s}" for s in product["file"]]
+        print(product["file"])
+        product_object.pictures.set(
+            Picture.objects.filter(picture_address__in=product["file"]),
+        )
+        for _ in range(amount):
             product_item = ProductItem.objects.create(
                 product=product_object,
-                available=random.choice(true_false),
+                available=True,
                 modified_date=timezone.now(),
                 storage=storage,
-                barcode=str(barcode),
+                barcode=barcode,
             )
             product_item.log_entries.add(log_entry)
-    queryset = Product.objects.all()
+
+
+"""     queryset = Product.objects.all()
     pictures = Picture.objects.all()
     for query in queryset:
         query.colors.set(
-            [
-                random.choice(colors),
-                random.choice(colors),
-            ]
+            Color.objects.filter(name__in=product["colors"]),
         )
         query.pictures.set(
             [
@@ -713,6 +759,7 @@ def create_products_and_product_items():
                 random.choice(pictures),
             ],
         )
+ """
 
 
 def create_shopping_carts():
@@ -960,8 +1007,8 @@ def run_seed(self, mode):
     create_storages()
     create_categories()
     create_users()
-    for _ in range(6):
-        create_picture()
+    #   for _ in range(6):
+    create_picture()
     create_products_and_product_items()
     create_shopping_carts()
     create_orders()

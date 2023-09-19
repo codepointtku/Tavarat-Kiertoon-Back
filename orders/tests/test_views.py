@@ -165,6 +165,9 @@ class TestOrders(TestCase):
         cls.test_order.product_items.set(
             [ProductItem.objects.get(id=cls.test_product_item1.id)]
         )
+        cls.test_order2 = Order.objects.create(
+            user=cls.test_user1, status="Finished", recipient_phone_number="1234567890"
+        )
 
         cls.test_shoppingcart = ShoppingCart.objects.create(user=cls.test_user1)
         cls.test_shoppingcart.product_items.set(
@@ -195,7 +198,6 @@ class TestOrders(TestCase):
         cls.test_shoppingcart4.refresh_from_db()
 
         cls.test_shoppingcart5 = ShoppingCart.objects.create(user=cls.test_user5)
-
 
         if Group.objects.filter(name="admin_group").count() == 0:
             cls.test_group_admin = Group.objects.create(name="admin_group")
@@ -236,7 +238,7 @@ class TestOrders(TestCase):
         self.client.post(url, data, content_type="application/json")
         user = CustomUser.objects.get(username="kahvimake@turku.fi")
         return user
-    
+
     def login_test_user5(self):
         url = "/users/login/"
         data = {
@@ -373,7 +375,7 @@ class TestOrders(TestCase):
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(Order.objects.all().count(), 1)
+        self.assertEqual(Order.objects.all().count(), 2)
 
         data = {
             "user": self.test_user1.id,
@@ -386,12 +388,12 @@ class TestOrders(TestCase):
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(Order.objects.all().count(), 2)
+        self.assertEqual(Order.objects.all().count(), 3)
 
         data = {"user": self.test_user1.id}
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(Order.objects.all().count(), 2)
+        self.assertEqual(Order.objects.all().count(), 3)
 
     def test_post_order_no_products(self):
         url = "/orders/"
@@ -492,6 +494,19 @@ class TestOrders(TestCase):
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
+
+    def test_delete_order(self):
+        self.login_test_user()
+        url = f"/orders/{self.test_order.id}/"
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 204)
+
+    def test_delete_finished_order(self):
+        self.login_test_user()
+        url = f"/orders/{self.test_order2.id}/"
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.data, "Cant delete finished orders")
 
     def test_get_order_email_recipient(self):
         self.login_test_user()

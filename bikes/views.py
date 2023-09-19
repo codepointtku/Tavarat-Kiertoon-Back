@@ -92,7 +92,8 @@ class BikeModelListView(generics.ListCreateAPIView):
             bikepicture = pic_serializer.data["id"]
 
         bikedata = request.data
-        bikedata["picture"] = bikepicture
+        if "picture" in bikedata:
+            bikedata["picture"] = bikepicture
         serializer = BikeModelCreateSerializer(data=bikedata)
         serializer.is_valid(raise_exception=True)
         serializer.save()

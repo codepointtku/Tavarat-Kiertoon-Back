@@ -50,8 +50,17 @@ class TestBikes(TestCase):
         cls.test_user2.is_active = True
         cls.test_user2.save()
 
+        cls.test_storage = Storage.objects.create(name="Bikestorage")
+        cls.test_color = Color.objects.create(name="musta")
+
         cls.test_bikesize = BikeSize.objects.create(
             name="48″",
+        )
+        cls.test_bikebrand = BikeBrand.objects.create(
+            name="Chungus",
+        )
+        cls.test_biketype = BikeType.objects.create(
+            name="Manual",
         )
 
         if Group.objects.filter(name="admin_group").count() == 0:
@@ -79,3 +88,26 @@ class TestBikes(TestCase):
         user = CustomUser.objects.get(username="bikeadmin@turku.fi")
         return user
 
+    def test_post_bikemodel(self):
+        url = "/bikes/models/"
+        self.login_test_user()
+        data = {
+            "name": "Big bike",
+            "size": self.test_bikesize.id,
+            "brand": self.test_bikebrand.id,
+            "type": self.test_biketype.id,
+            "color": self.test_color.id,
+            "description": "A very large bike",
+        }
+
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Bike.objects.all().count(), 1)
+
+    def test_post_bikesize(self):
+        url = "/bikes/size/"
+        self.login_test_user()
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(BikeSize.objects.all().count(), 1)

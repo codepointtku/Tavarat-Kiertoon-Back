@@ -462,7 +462,6 @@ class UserAddressPutRequestSerializer(UserAddressSerializer):
     id = the id number of address being changed
     """
 
-    id = serializers.IntegerField(required=True)
     address = serializers.CharField(max_length=255, required=False)
     zip_code = serializers.CharField(max_length=10, required=False)
     city = serializers.CharField(max_length=100, required=False)

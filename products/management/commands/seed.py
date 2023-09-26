@@ -781,10 +781,10 @@ def create_orders():
             delivery_address=random.choice(
                 UserAddress.objects.filter(user=user)
             ).address,
-            contact=user.email,
+            recipient=user.first_name + " " + user.last_name,
             order_info=random.choice(order_infos),
             delivery_date=datetime.now(tz=timezone.utc),
-            phone_number=user.phone_number,
+            recipient_phone_number=user.phone_number,
         )
         order_obj.save()
         for product_id in ShoppingCart.objects.get(user=user).product_items.all():

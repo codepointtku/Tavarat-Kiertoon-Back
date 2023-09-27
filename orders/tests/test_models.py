@@ -21,7 +21,7 @@ class TestOrdersModels(TestCase):
         self.test_user.save()
         self.test_shoppingcart = ShoppingCart.objects.create(user=self.test_user)
         self.test_order = Order.objects.create(
-            user=self.test_user, phone_number="1234567890"
+            user=self.test_user, recipient_phone_number="1234567890"
         )
 
     def test_self_shoppingcart_string(self):

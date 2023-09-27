@@ -34,10 +34,10 @@ class Order(models.Model):
     )
     delivery_address = models.CharField(max_length=255)
     delivery_required = models.BooleanField(default=True)
-    contact = models.CharField(max_length=255)
+    recipient = models.CharField(max_length=255)
     order_info = models.TextField(default="", blank=True)
     delivery_date = models.DateTimeField(null=True, default=None, blank=True)
-    phone_number = models.CharField(max_length=255)
+    recipient_phone_number = models.CharField(max_length=255)
     creation_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:

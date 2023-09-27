@@ -63,6 +63,51 @@ class TestBikes(TestCase):
             name="Manual",
         )
 
+        cls.test_bikemodel = Bike.objects.create(
+            name="Nice bike",
+            size=cls.test_bikesize,
+            brand=cls.test_bikebrand,
+            type=cls.test_biketype,
+            color=cls.test_color,
+            description="a nice, comfortable bike"
+        )
+
+        cls.test_bikeobject1 = BikeStock.objects.create(
+            package_only=True,
+            number=101,
+            frame_number=101,
+            color=cls.test_color,
+            storage=cls.test_storage,
+            bike=cls.test_bikemodel
+        )
+
+        cls.test_bikeobject2 = BikeStock.objects.create(
+            package_only=True,
+            number=101,
+            frame_number=102,
+            color=cls.test_color,
+            storage=cls.test_storage,
+            bike=cls.test_bikemodel
+        )
+
+        cls.test_bikeobject3 = BikeStock.objects.create(
+            package_only=True,
+            number=101,
+            frame_number=103,
+            color=cls.test_color,
+            storage=cls.test_storage,
+            bike=cls.test_bikemodel
+        )
+
+        cls.test_bikeobject11 = BikeStock.objects.create(
+            package_only=False,
+            number=101,
+            frame_number=111,
+            color=cls.test_color,
+            storage=cls.test_storage,
+            bike=cls.test_bikemodel
+        )
+
         if Group.objects.filter(name="admin_group").count() == 0:
             cls.test_group_admin = Group.objects.create(name="admin_group")
             cls.test_group_admin.user_set.add(cls.test_user1)
@@ -102,12 +147,37 @@ class TestBikes(TestCase):
 
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(Bike.objects.all().count(), 1)
+        self.assertEqual(Bike.objects.all().count(), 2)
 
     def test_post_bikesize(self):
         url = "/bikes/size/"
         self.login_test_user()
+        data = {
+            "name": "99¨"
+        }
 
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(BikeSize.objects.all().count(), 1)
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(BikeSize.objects.all().count(), 2)
+
+    def test_post_biketype(self):
+        url = "/bikes/type/"
+        self.login_test_user()
+        data = {
+            "name": "Electric"
+        }
+
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(BikeType.objects.all().count(), 2)
+
+    def test_post_bikebrand(self):
+        url = "/bikes/brand/"
+        self.login_test_user()
+        data = {
+            "name": "Kuraharawa"
+        }
+
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(BikeBrand.objects.all().count(), 2)

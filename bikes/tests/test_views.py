@@ -115,6 +115,15 @@ class TestBikes(TestCase):
             bike=cls.test_bikemodel
         )
 
+        cls.test_bikeobject12 = BikeStock.objects.create(
+            package_only=False,
+            number=102,
+            frame_number=112,
+            color=cls.test_color,
+            storage=cls.test_storage,
+            bike=cls.test_bikemodel
+        )
+
         cls.test_bikeobject21 = BikeStock.objects.create(
             package_only=True,
             number=201,
@@ -154,7 +163,10 @@ class TestBikes(TestCase):
             extra_info="lets ride"
         )
         cls.test_bikerental.bike_stock.set(
-            BikeStock.objects.filter(id=cls.test_bikeobject1.id)
+            [
+                cls.test_bikeobject1.id,
+                cls.test_bikeobject12.id
+            ]
         )
 
         if Group.objects.filter(name="admin_group").count() == 0:
@@ -325,3 +337,10 @@ class TestBikes(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(BikePackage.objects.all().count(), 1)
         print(response.data)
+
+    def test_get_availability_info(self):
+        url = "/bikes/"
+        self.login_test_user2()
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)

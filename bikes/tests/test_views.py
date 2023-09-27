@@ -144,6 +144,19 @@ class TestBikes(TestCase):
             package=cls.test_bikepackage1
         )
 
+        cls.test_bikerental = BikeRental.objects.create(
+            user=cls.test_user1,
+            start_date=timezone.now(),
+            end_date=timezone.now(),
+            delivery_address="anywhere",
+            contact_name="bikeperson",
+            contact_phone_number="123456789",
+            extra_info="lets ride"
+        )
+        cls.test_bikerental.bike_stock.set(
+            BikeStock.objects.filter(id=cls.test_bikeobject1.id)
+        )
+
         if Group.objects.filter(name="admin_group").count() == 0:
             cls.test_group_admin = Group.objects.create(name="admin_group")
             cls.test_group_admin.user_set.add(cls.test_user1)
@@ -242,8 +255,21 @@ class TestBikes(TestCase):
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(BikeRental.objects.all().count(), 1)
+        self.assertEqual(BikeRental.objects.all().count(), 2)
         self.assertEqual(len(response.data["bike_stock"]), 3)
+
+    def test_post_bikerental_bad_request(self):
+        url = "/bikes/rental/"
+        self.login_test_user2()
+        data = {
+            "delivery_address": "bikestreet 123",
+            "pickup": False,
+            "contact_name": "Bikeman",
+            "contact_phone_number": "123456789",
+            "extra_info": "I like bikes"
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
 
     def test_post_bikepackage(self):
         url = "/bikes/packages/"

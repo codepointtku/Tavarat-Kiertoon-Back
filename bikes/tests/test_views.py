@@ -72,6 +72,15 @@ class TestBikes(TestCase):
             description="a nice, comfortable bike"
         )
 
+        cls.test_bikemodel2 = Bike.objects.create(
+            name="Better bike",
+            size=cls.test_bikesize,
+            brand=cls.test_bikebrand,
+            type=cls.test_biketype,
+            color=cls.test_color,
+            description="a nicer, more comfortable bike"
+        )
+
         cls.test_bikeobject1 = BikeStock.objects.create(
             package_only=True,
             number=101,
@@ -106,6 +115,24 @@ class TestBikes(TestCase):
             color=cls.test_color,
             storage=cls.test_storage,
             bike=cls.test_bikemodel
+        )
+
+        cls.test_bikeobject21 = BikeStock.objects.create(
+            package_only=True,
+            number=201,
+            frame_number=201,
+            color=cls.test_color,
+            storage=cls.test_storage,
+            bike=cls.test_bikemodel2
+        )
+
+        cls.test_bikeobject22 = BikeStock.objects.create(
+            package_only=True,
+            number=201,
+            frame_number=202,
+            color=cls.test_color,
+            storage=cls.test_storage,
+            bike=cls.test_bikemodel2
         )
 
         cls.test_bikepackage1 = BikePackage.objects.create(
@@ -168,7 +195,7 @@ class TestBikes(TestCase):
 
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(Bike.objects.all().count(), 2)
+        self.assertEqual(Bike.objects.all().count(), 3)
 
     def test_post_bikesize(self):
         url = "/bikes/size/"
@@ -223,3 +250,58 @@ class TestBikes(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(BikeRental.objects.all().count(), 1)
         self.assertEqual(len(response.data["bike_stock"]), 3)
+
+    def test_post_bikepackage(self):
+        url = "/bikes/packages/"
+        self.login_test_user()
+        data = {
+            "name": "package500",
+            "description": "500package",
+            "bikes": [
+                {
+                    "amount": 1,
+                    "bike": self.test_bikemodel.id
+                }
+            ]
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(BikePackage.objects.all().count(), 2)
+        print(response.data)
+
+    def test_update_bikepackage_part1(self):
+        url = f"/bikes/packages/{self.test_bikepackage1.id}/"
+        self.login_test_user()
+        data = {
+            "name": "package-x",
+            "description": "package for undefined purposes",
+            "bikes": [
+                {
+                    "amount": 2,
+                    "bike": self.test_bikemodel2.id
+                }
+            ]
+        }
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(BikePackage.objects.all().count(), 1)
+        print(response.data)
+
+    def test_update_bikepackage_part2(self):
+        url = f"/bikes/packages/{self.test_bikepackage1.id}/"
+        self.login_test_user()
+        data = {
+            "name": "package-x",
+            "description": "package for undefined purposes",
+            "bikes": [
+                {
+                    "id": self.test_bikeamount1.id,
+                    "amount": 3,
+                    "bike": self.test_bikemodel.id
+                }
+            ]
+        }
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(BikePackage.objects.all().count(), 1)
+        print(response.data)

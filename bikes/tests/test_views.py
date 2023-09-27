@@ -216,6 +216,17 @@ class TestBikes(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Bike.objects.all().count(), 3)
 
+    def test_update_bikemodel(self):
+        url =  f"/bikes/models/{self.test_bikemodel.id}/"
+        self.login_test_user()
+        data = {
+            "name": "Funny bike",
+            "description": "Biking with uncontrollable laughter",
+        }
+
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 202)
+
     def test_post_bikesize(self):
         url = "/bikes/size/"
         self.login_test_user()
@@ -248,6 +259,37 @@ class TestBikes(TestCase):
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(BikeBrand.objects.all().count(), 2)
+
+    def test_post_bikeobject(self):
+        url = "/bikes/stock/"
+        self.login_test_user()
+        data = {
+            "package_only": True,
+            "number": 1000,
+            "frame_number": 2000,
+            "color": self.test_color.id,
+            "storage": self.test_storage.id,
+            "bike": self.test_bikemodel.id,
+        }
+
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(BikeStock.objects.all().count(), 8)
+
+    def test_update_bikeobject(self):
+        url = f"/bikes/stock/{self.test_bikeobject22.id}/"
+        self.login_test_user()
+        data = {
+            "number": 2000,
+            "package_only": True,
+            "frame_number": 2000,
+            "color": self.test_color.id,
+            "storage": self.test_storage.id,
+            "bike": self.test_bikemodel.id,
+        }
+
+        response = self.client.put(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 202)
 
     def test_post_bikerental(self):
         url = "/bikes/rental/"

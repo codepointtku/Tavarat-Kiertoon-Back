@@ -108,6 +108,17 @@ class TestBikes(TestCase):
             bike=cls.test_bikemodel
         )
 
+        cls.test_bikepackage1 = BikePackage.objects.create(
+            name="test_package",
+            description="package for test purposes"
+        )
+
+        cls.test_bikeamount1 = BikeAmount.objects.create(
+            amount=2,
+            bike=cls.test_bikemodel,
+            package=cls.test_bikepackage1
+        )
+
         if Group.objects.filter(name="admin_group").count() == 0:
             cls.test_group_admin = Group.objects.create(name="admin_group")
             cls.test_group_admin.user_set.add(cls.test_user1)
@@ -131,6 +142,16 @@ class TestBikes(TestCase):
         }
         self.client.post(url, data, content_type="application/json")
         user = CustomUser.objects.get(username="bikeadmin@turku.fi")
+        return user
+    
+    def login_test_user2(self):
+        url = "/users/login/"
+        data = {
+            "username": "bikerperson@turku.fi",
+            "password": "bikerperson",
+        }
+        self.client.post(url, data, content_type="application/json")
+        user = CustomUser.objects.get(username="bikerperson@turku.fi")
         return user
 
     def test_post_bikemodel(self):
@@ -181,3 +202,24 @@ class TestBikes(TestCase):
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(BikeBrand.objects.all().count(), 2)
+
+    def test_post_bikerental(self):
+        url = "/bikes/rental/"
+        self.login_test_user2()
+        data = {
+            "bike_stock": {
+            f"package-{self.test_bikepackage1.id}": 1,
+            f"{self.test_bikemodel.id}": 1
+            },
+            "start_date": timezone.now(),
+            "end_date": timezone.now(),
+            "delivery_address": "bikestreet 123",
+            "pickup": False,
+            "contact_name": "Bikeman",
+            "contact_phone_number": "123456789",
+            "extra_info": "I like bikes"
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(BikeRental.objects.all().count(), 1)
+        self.assertEqual(len(response.data["bike_stock"]), 3)

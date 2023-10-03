@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "drf_spectacular",
     "holidays",
+    "django_crontab",
 ]
 
 MIDDLEWARE = [
@@ -253,3 +254,7 @@ EMAIL_PORT = config("EMAIL_PORT")
 EMAIL_USE_TLS = config("EMAIL_USE_TLS")
 
 URL_FRONT = config("URL_FRONT")
+
+CRONJOBS = [
+    ("0 * * * *", "cron.clear_shopping_carts", ">> /usr/src/app/file.log")
+]

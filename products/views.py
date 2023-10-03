@@ -30,6 +30,8 @@ from .serializers import (
     PictureSerializer,
     ProductCreateRequestSerializer,
     ProductCreateSerializer,
+    ProductDetailResponseSerializer,
+    ProductDetailSerializer,
     ProductItemDetailResponseSerializer,
     ProductItemResponseSerializer,
     ProductItemSerializer,
@@ -291,7 +293,7 @@ class ProductStorageListView(generics.ListAPIView):
 
 @extend_schema_view(
     get=extend_schema(
-        responses=ProductResponseSerializer(),
+        responses=ProductDetailResponseSerializer(),
     ),
     put=extend_schema(
         request=ProductUpdateSerializer(),
@@ -303,7 +305,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     """View for retrieving, updating, (destroying) a single Product"""
 
     queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+    serializer_class = ProductDetailSerializer
 
     authentication_classes = [
         SessionAuthentication,

@@ -113,8 +113,8 @@ class TestUsers(TestCase):
             "/users/groups/",
             f"/users/{user_for_testing.id}/groups/permission/",
             f"/users/{user_for_testing.id}/",
-            "/user/address/edit/",
-            f"/user/address/edit/{address_for_testing.id}/",
+            "/user/address/",
+            f"/user/address/{address_for_testing.id}/",
             "/users/address/",
             f"/users/address/{address_for_testing.id}/",
             "/users/password/resetemail/",
@@ -763,7 +763,7 @@ class TestUsers(TestCase):
         """
         test for testing user changing his own addressess
         """
-        url = "/user/address/edit/"
+        url = "/user/address/"
 
         # checking logs creation count beofre and after
         log_count_before = UserLogEntry.objects.all().count()
@@ -788,50 +788,6 @@ class TestUsers(TestCase):
         # remember the address count at start
         address_count = UserAddress.objects.filter(user=user).count()
 
-        address1 = UserAddress.objects.filter(user=user).first()
-        data = {
-            "zip_code": "6666666666",
-            "id": address1.id,
-        }
-        zip_before_update = address1.zip_code
-        # checking response is right
-        response = self.client.put(url, data=data, content_type="application/json")
-        self.assertEqual(
-            response.status_code,
-            200,
-            "put/update should go through as user",
-        )
-
-        # checking that values have changed in database
-        address1 = UserAddress.objects.filter(user=user).first()
-        zip_after_update = address1.zip_code
-        self.assertNotEqual(
-            zip_before_update,
-            zip_after_update,
-            "if update goes through zip code should have changed",
-        )
-
-        # testing that if user and owner of address dont match things shouldnt go thorugh
-        self.login_test_admin()
-        response = self.client.put(url, data=data, content_type="application/json")
-        self.assertEqual(
-            response.status_code,
-            204,
-            "put/update should not go through as different user",
-        )
-        self.login_test_user()
-
-        # testing that things should not go thorugh without address id to update
-        data = {
-            "zip_code": "77777777",
-        }
-        response = self.client.put(url, data=data, content_type="application/json")
-        self.assertEqual(
-            response.status_code,
-            204,
-            "put/update should not go through without address id for update",
-        )
-
         # testing new address additions
         data = {
             "address": "testikatula 1818",
@@ -839,7 +795,6 @@ class TestUsers(TestCase):
             "city": "testi_1",
             "user": user.id,
         }
-
         response = self.client.post(url, data=data, content_type="application/json")
         self.assertEqual(
             response.status_code,
@@ -852,20 +807,44 @@ class TestUsers(TestCase):
         self.assertNotEqual(
             address_count,
             address_count_2,
-            "shold have different number of addresses after adding address for same user",
+            "should have different number of addresses after adding address for same user",
         )
 
-        data = {
-            "id": address1.id,
-        }
+        address1 = UserAddress.objects.filter(user=user).first()
+        url = f"/user/address/{address1.id}/"
+        data = {"zip_code": "6666666666"}
+        zip_before_update = address1.zip_code
+        # checking response is right
+        response = self.client.put(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            200,
+            "put/update should go through as user",
+        )
 
-        url = f"/user/address/edit/{address1.id}/"
+        # checking that values have changed in database
+        self.assertNotEqual(
+            zip_before_update,
+            response.data["zip_code"],
+            "if update goes through zip code should have changed",
+        )
+
+        # testing that if user and owner of address dont match things shouldnt go through
+        self.login_test_admin()
+        response = self.client.put(url, data=data, content_type="application/json")
+        self.assertEqual(
+            response.status_code,
+            204,
+            "put/update should not go through as different user",
+        )
+        self.login_test_user()
+
         # testing that non owner of address delete should not go through
         self.login_test_admin()
         response = self.client.delete(url, data=data, content_type="application/json")
         self.assertEqual(
             response.status_code,
-            204,
+            403,
             "should not go through as user and address owner is different",
         )
 

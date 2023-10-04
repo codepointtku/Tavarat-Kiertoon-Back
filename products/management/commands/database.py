@@ -117,7 +117,9 @@ def products():
         pictures = set(json.loads(product["file"]))
         for picture in pictures:
             if picture != None:
-                Image.open(f"tk-db/media/{picture}")
+                with Image.open(f"tk-db/media/{picture}") as im:
+                    im.thumbnail((600, 600))
+                    im.save(f"media/{picture}")
                 Picture.objects.create(picture_address=picture)
 
         picture_objects = [

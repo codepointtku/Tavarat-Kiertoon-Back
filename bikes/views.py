@@ -78,6 +78,7 @@ class BikeModelListView(generics.ListCreateAPIView):
     }
 
     def post(self, request, *args, **kwargs):
+        bikedata = request.data
         for file in request.FILES.getlist("pictures[]"):
             ext = file.content_type.split("/")[1]
             pic_serializer = PictureCreateSerializer(
@@ -90,10 +91,8 @@ class BikeModelListView(generics.ListCreateAPIView):
             pic_serializer.is_valid(raise_exception=True)
             pic_serializer.save()
             bikepicture = pic_serializer.data["id"]
-
-        bikedata = request.data
-        if "picture" in bikedata:
             bikedata["picture"] = bikepicture
+
         serializer = BikeModelCreateSerializer(data=bikedata)
         serializer.is_valid(raise_exception=True)
         serializer.save()

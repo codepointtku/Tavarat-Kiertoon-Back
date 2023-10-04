@@ -1,7 +1,10 @@
-import datetime
+import shutil
+import urllib.request
 
 from django.contrib.auth.models import Group
+from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
+from django.test.client import MULTIPART_CONTENT, encode_multipart, BOUNDARY
 from django.utils import timezone
 
 from bikes.models import (
@@ -14,11 +17,14 @@ from bikes.models import (
     BikePackage,
     BikeAmount,
 )
-from products.models import Color, Storage
+from products.models import Color, Storage, Picture
 from users.models import CustomUser
+
+TEST_DIR = "testmedia/"
 
 class TestBikes(TestCase):
     @classmethod
+    @override_settings(MEDIA_ROOT=TEST_DIR)
     def setUpTestData(cls):
         cls.test_user1 = CustomUser.objects.create_user(
             first_name="Bike",
@@ -169,6 +175,13 @@ class TestBikes(TestCase):
             ]
         )
 
+        result = urllib.request.urlretrieve("https://picsum.photos/200")
+        cls.test_picture = Picture.objects.create(
+            picture_address=ContentFile(
+                open(result[0], "rb").read(), name=f"{timezone.now().timestamp()}.jpeg"
+            )
+        )
+
         if Group.objects.filter(name="admin_group").count() == 0:
             cls.test_group_admin = Group.objects.create(name="admin_group")
             cls.test_group_admin.user_set.add(cls.test_user1)
@@ -180,6 +193,7 @@ class TestBikes(TestCase):
             cls.test_group_bicycle.user_set.add(cls.test_user2)
             cls.test_group_bicycle.user_set.add(cls.test_user1)
 
+
     def login_test_user(self):
         url = "/users/login/"
         data = {
@@ -190,6 +204,7 @@ class TestBikes(TestCase):
         user = CustomUser.objects.get(username="bikeadmin@turku.fi")
         return user
     
+
     def login_test_user2(self):
         url = "/users/login/"
         data = {
@@ -200,9 +215,14 @@ class TestBikes(TestCase):
         user = CustomUser.objects.get(username="bikerperson@turku.fi")
         return user
 
+
     def test_post_bikemodel(self):
         url = "/bikes/models/"
         self.login_test_user()
+        picture = urllib.request.urlretrieve(
+            url="https://picsum.photos/200.jpg",
+            filename="testmedia/pictures/testpicture1.jpeg",
+        )
         data = {
             "name": "Big bike",
             "size": self.test_bikesize.id,
@@ -210,21 +230,30 @@ class TestBikes(TestCase):
             "type": self.test_biketype.id,
             "color": self.test_color.id,
             "description": "A very large bike",
+            "pictures[]": {open(picture[0], "rb")},
         }
 
-        response = self.client.post(url, data, content_type="application/json")
+        response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Bike.objects.all().count(), 3)
+
 
     def test_update_bikemodel(self):
         url =  f"/bikes/models/{self.test_bikemodel.id}/"
         self.login_test_user()
-        data = {
+        picture = urllib.request.urlretrieve(
+            url="https://picsum.photos/200.jpg",
+            filename="testmedia/pictures/testpicture1.jpeg",
+        )
+        encoded_data = encode_multipart(
+            BOUNDARY,
+            {
             "name": "Funny bike",
             "description": "Biking with uncontrollable laughter",
-        }
-
-        response = self.client.put(url, data, content_type="application/json")
+            "pictures[]": {open(picture[0], "rb")},
+            },
+        )
+        response = self.client.put(url, encoded_data, content_type=MULTIPART_CONTENT,)
         self.assertEqual(response.status_code, 202)
 
     def test_post_bikesize(self):
@@ -386,3 +415,11 @@ class TestBikes(TestCase):
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+    @classmethod
+    def tearDownClass(self):
+        try:
+            shutil.rmtree(TEST_DIR)
+        except OSError:
+            pass
+        super().tearDownClass()

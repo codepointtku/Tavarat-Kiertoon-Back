@@ -1,5 +1,6 @@
 import shutil
 import urllib.request
+import datetime
 
 from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
@@ -112,6 +113,15 @@ class TestBikes(TestCase):
             bike=cls.test_bikemodel
         )
 
+        cls.test_bikeobject4 = BikeStock.objects.create(
+            package_only=True,
+            number=101,
+            frame_number=104,
+            color=cls.test_color,
+            storage=cls.test_storage,
+            bike=cls.test_bikemodel
+        )
+
         cls.test_bikeobject11 = BikeStock.objects.create(
             package_only=False,
             number=101,
@@ -123,8 +133,17 @@ class TestBikes(TestCase):
 
         cls.test_bikeobject12 = BikeStock.objects.create(
             package_only=False,
-            number=102,
+            number=101,
             frame_number=112,
+            color=cls.test_color,
+            storage=cls.test_storage,
+            bike=cls.test_bikemodel
+        )
+
+        cls.test_bikeobject13 = BikeStock.objects.create(
+            package_only=False,
+            number=101,
+            frame_number=113,
             color=cls.test_color,
             storage=cls.test_storage,
             bike=cls.test_bikemodel
@@ -140,7 +159,7 @@ class TestBikes(TestCase):
         )
 
         cls.test_bikeobject22 = BikeStock.objects.create(
-            package_only=True,
+            package_only=False,
             number=201,
             frame_number=202,
             color=cls.test_color,
@@ -159,10 +178,21 @@ class TestBikes(TestCase):
             package=cls.test_bikepackage1
         )
 
+        cls.test_bikepackage2 = BikePackage.objects.create(
+            name="test_package2",
+            description="empty package"
+        )
+
+        cls.test_bikeamount2 = BikeAmount.objects.create(
+            amount=0,
+            bike=cls.test_bikemodel,
+            package=cls.test_bikepackage2
+        )
+
         cls.test_bikerental = BikeRental.objects.create(
             user=cls.test_user1,
             start_date=timezone.now(),
-            end_date=timezone.now(),
+            end_date=timezone.now() + datetime.timedelta(days=2),
             delivery_address="anywhere",
             contact_name="bikeperson",
             contact_phone_number="123456789",
@@ -172,6 +202,38 @@ class TestBikes(TestCase):
             [
                 cls.test_bikeobject1.id,
                 cls.test_bikeobject12.id
+            ]
+        )
+
+        cls.test_bikerental2 = BikeRental.objects.create(
+            user=cls.test_user1,
+            start_date=timezone.now(),
+            end_date=timezone.now() + datetime.timedelta(days=2),
+            delivery_address="yes",
+            contact_name="also yes",
+            contact_phone_number="111111111",
+            extra_info="maybe yes"
+        )
+        cls.test_bikerental2.bike_stock.set(
+            [
+                cls.test_bikeobject2.id,
+                cls.test_bikeobject11.id,
+            ]
+        )
+
+        cls.test_bikerental3 = BikeRental.objects.create(
+            user=cls.test_user1,
+            start_date="2023-9-12 07:15:00.737071+00:00",
+            end_date="2023-9-15 07:15:00.737071+00:00",
+            delivery_address="friday",
+            contact_name="friday",
+            contact_phone_number="222222222",
+            extra_info="weekend"
+        )
+        cls.test_bikerental3.bike_stock.set(
+            [
+                cls.test_bikeobject21.id,
+                cls.test_bikeobject22.id,
             ]
         )
 
@@ -303,7 +365,7 @@ class TestBikes(TestCase):
 
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(BikeStock.objects.all().count(), 8)
+        self.assertEqual(BikeStock.objects.all().count(), 10)
 
     def test_update_bikeobject(self):
         url = f"/bikes/stock/{self.test_bikeobject22.id}/"
@@ -329,7 +391,7 @@ class TestBikes(TestCase):
             f"{self.test_bikemodel.id}": 1
             },
             "start_date": timezone.now(),
-            "end_date": timezone.now(),
+            "end_date": timezone.now() + datetime.timedelta(days=2),
             "delivery_address": "bikestreet 123",
             "pickup": False,
             "contact_name": "Bikeman",
@@ -338,7 +400,7 @@ class TestBikes(TestCase):
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(BikeRental.objects.all().count(), 2)
+        self.assertEqual(BikeRental.objects.all().count(), 4)
         self.assertEqual(len(response.data["bike_stock"]), 3)
 
     def test_post_bikerental_bad_request(self):
@@ -369,8 +431,7 @@ class TestBikes(TestCase):
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(BikePackage.objects.all().count(), 2)
-        print(response.data)
+        self.assertEqual(BikePackage.objects.all().count(), 3)
 
     def test_update_bikepackage_part1(self):
         url = f"/bikes/packages/{self.test_bikepackage1.id}/"
@@ -387,8 +448,7 @@ class TestBikes(TestCase):
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(BikePackage.objects.all().count(), 1)
-        print(response.data)
+        self.assertEqual(BikePackage.objects.all().count(), 2)
 
     def test_update_bikepackage_part2(self):
         url = f"/bikes/packages/{self.test_bikepackage1.id}/"
@@ -406,8 +466,7 @@ class TestBikes(TestCase):
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(BikePackage.objects.all().count(), 1)
-        print(response.data)
+        self.assertEqual(BikePackage.objects.all().count(), 2)
 
     def test_get_availability_info(self):
         url = "/bikes/"

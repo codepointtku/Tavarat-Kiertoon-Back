@@ -70,6 +70,20 @@ class TestOrders(TestCase):
         cls.test_user4.is_active = True
         cls.test_user4.save()
 
+        cls.test_user5 = CustomUser.objects.create_user(
+            first_name="Cart",
+            last_name="Man3",
+            email="cartman3@turku.fi",
+            phone_number="2222222222",
+            password="eric3",
+            address="Katu 3",
+            zip_code="30300",
+            city="Kaupunki3",
+            username="cartman3@turku.fi",
+        )
+        cls.test_user5.is_active = True
+        cls.test_user5.save()
+
         cls.test_color = Color.objects.create(name="punainen")
         cls.test_color1 = Color.objects.create(name="sininen")
         cls.test_storage1 = Storage.objects.create(name="mokkavarasto")
@@ -146,10 +160,13 @@ class TestOrders(TestCase):
             )
 
         cls.test_order = Order.objects.create(
-            user=cls.test_user1, phone_number="1234567890"
+            user=cls.test_user1, recipient_phone_number="1234567890"
         )
         cls.test_order.product_items.set(
             [ProductItem.objects.get(id=cls.test_product_item1.id)]
+        )
+        cls.test_order2 = Order.objects.create(
+            user=cls.test_user1, status="Finished", recipient_phone_number="1234567890"
         )
 
         cls.test_shoppingcart = ShoppingCart.objects.create(user=cls.test_user1)
@@ -180,6 +197,8 @@ class TestOrders(TestCase):
         )
         cls.test_shoppingcart4.refresh_from_db()
 
+        cls.test_shoppingcart5 = ShoppingCart.objects.create(user=cls.test_user5)
+
         if Group.objects.filter(name="admin_group").count() == 0:
             cls.test_group_admin = Group.objects.create(name="admin_group")
             cls.test_group_admin.user_set.add(cls.test_user2)
@@ -188,6 +207,9 @@ class TestOrders(TestCase):
             cls.test_group_user = Group.objects.create(name="user_group")
             cls.test_group_user.user_set.add(cls.test_user1)
             cls.test_group_user.user_set.add(cls.test_user2)
+            cls.test_group_user.user_set.add(cls.test_user3)
+            cls.test_group_user.user_set.add(cls.test_user4)
+            cls.test_group_user.user_set.add(cls.test_user5)
         if Group.objects.filter(name="storage_group").count() == 0:
             cls.test_group_storage = Group.objects.create(name="storage_group")
             cls.test_group_storage.user_set.add(cls.test_user2)
@@ -215,6 +237,16 @@ class TestOrders(TestCase):
         }
         self.client.post(url, data, content_type="application/json")
         user = CustomUser.objects.get(username="kahvimake@turku.fi")
+        return user
+
+    def login_test_user5(self):
+        url = "/users/login/"
+        data = {
+            "username": "cartman3@turku.fi",
+            "password": "eric3",
+        }
+        self.client.post(url, data, content_type="application/json")
+        user = CustomUser.objects.get(username="cartman3@turku.fi")
         return user
 
     def test_post_shopping_cart(self):
@@ -274,12 +306,8 @@ class TestOrders(TestCase):
 
     def test_timed_clear_shopping_carts_function(self):
         clear_shopping_carts()
-        self.assertNotEqual(
-            list(self.test_shoppingcart3.product_items.values()), []
-        )
-        self.assertEqual(
-            list(self.test_shoppingcart4.product_items.values()), []
-        )
+        self.assertNotEqual(list(self.test_shoppingcart3.product_items.values()), [])
+        self.assertEqual(list(self.test_shoppingcart4.product_items.values()), [])
 
     def test_empty_shopping_cart(self):
         url = "/shopping_cart/"
@@ -341,19 +369,44 @@ class TestOrders(TestCase):
         data = {
             "user": self.test_user1.id,
             "status": "Waiting",
-            "delivery_address": "kuja123",
-            "contact": "Antero Alakulo",
+            "recipient": "Antero Alakulo",
             "order_info": "nyrillataan",
-            "phone_number": "99999",
+            "recipient_phone_number": "99999",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Order.objects.all().count(), 2)
+
+        data = {
+            "user": self.test_user1.id,
+            "status": "Waiting",
+            "delivery_address": "kuja123",
+            "recipient": "Antero Alakulo",
+            "order_info": "nyrillataan",
+            "recipient_phone_number": "99999",
+            "product_items": [self.test_product_item1.id],
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(Order.objects.all().count(), 2)
+        self.assertEqual(Order.objects.all().count(), 3)
 
         data = {"user": self.test_user1.id}
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(Order.objects.all().count(), 2)
+        self.assertEqual(Order.objects.all().count(), 3)
+
+    def test_post_order_no_products(self):
+        url = "/orders/"
+        self.login_test_user5()
+        data = {
+            "user": self.test_user5.id,
+            "recipient": "yes",
+            "order_info": "no products",
+            "recipient_phone_number": "2020202020",
+        }
+        response = self.client.post(url, data, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, "Order has no products")
 
     def test_get_order(self):
         self.login_test_user()
@@ -379,10 +432,10 @@ class TestOrders(TestCase):
         data = {
             "status": "Waiting",
             "delivery_address": "string",
-            "contact": "string",
+            "recipient": "string",
             "order_info": "string",
             "delivery_date": "2023-04-25T05:40:41.404Z",
-            "phone_number": "11212121",
+            "recipient_phone_number": "11212121",
             "user": self.test_user1.id,
             "product_items": [],
         }
@@ -398,10 +451,10 @@ class TestOrders(TestCase):
         data = {
             "status": "Waiting",
             "delivery_address": "string",
-            "contact": "string",
+            "recipient": "string",
             "order_info": "string",
             "delivery_date": "2023-04-25T05:40:41.404Z",
-            "phone_number": "11212121",
+            "recipient_phone_number": "11212121",
             "user": self.test_user1.id,
             "product_items": [
                 product_item.id
@@ -433,7 +486,7 @@ class TestOrders(TestCase):
         data = {
             "status": "Waiting",
             "user": self.test_user1.id,
-            "phone_number": "11212121",
+            "recipient_phone_number": "11212121",
             "delivery_date": "asd",
             "products": [
                 product_item.id for product_item in self.test_order.product_items.all()
@@ -441,6 +494,19 @@ class TestOrders(TestCase):
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
+
+    def test_delete_order(self):
+        self.login_test_user()
+        url = f"/orders/{self.test_order.id}/"
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 204)
+
+    def test_delete_finished_order(self):
+        self.login_test_user()
+        url = f"/orders/{self.test_order2.id}/"
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.data, "Cant delete finished orders")
 
     def test_get_order_email_recipient(self):
         self.login_test_user()

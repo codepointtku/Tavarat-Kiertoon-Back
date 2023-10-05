@@ -62,7 +62,7 @@ def check_product_watch(product: Product, additional_info="") -> bool:
                 if word.lower() not in product_colors:
                     match = False
                     break
-            elif word not in product.name.lower():
+            elif word.lower() not in product.name.lower():
                 match = False
                 break
         if match:

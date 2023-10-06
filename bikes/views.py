@@ -78,6 +78,7 @@ class BikeModelListView(generics.ListCreateAPIView):
     }
 
     def post(self, request, *args, **kwargs):
+        bikedata = request.data
         for file in request.FILES.getlist("pictures[]"):
             ext = file.content_type.split("/")[1]
             pic_serializer = PictureCreateSerializer(
@@ -90,9 +91,8 @@ class BikeModelListView(generics.ListCreateAPIView):
             pic_serializer.is_valid(raise_exception=True)
             pic_serializer.save()
             bikepicture = pic_serializer.data["id"]
+            bikedata["picture"] = bikepicture
 
-        bikedata = request.data
-        bikedata["picture"] = bikepicture
         serializer = BikeModelCreateSerializer(data=bikedata)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -377,47 +377,70 @@ class RentalListView(generics.ListCreateAPIView):
     serializer_class = BikeRentalSerializer
 
     def post(self, request, *args, **kwargs):
-        request_start_date = datetime.datetime.fromisoformat(request.data["start_date"])
-        request_end_date = datetime.datetime.fromisoformat(request.data["end_date"])
 
-        bikerentalserializer = BikeAvailabilityListSerializer(
-            BikeStock.objects.all(), many=True
-        )
-        for bike in bikerentalserializer.data:
-            bike["rental_dates"] = []
-            for rental in bike["rental"]:
-                start_date = datetime.datetime.fromisoformat(rental["start_date"])
-                end_date = datetime.datetime.fromisoformat(rental["end_date"])
-                end_date += datetime.timedelta(days=1)
-                while end_date.weekday() >= 5:
+        postserializer = BikeRentalSchemaPostSerializer(data=request.data)
+        if postserializer.is_valid():
+            request_start_date = datetime.datetime.fromisoformat(request.data["start_date"])
+            request_end_date = datetime.datetime.fromisoformat(request.data["end_date"])
+
+
+            bikerentalserializer = BikeAvailabilityListSerializer(
+                BikeStock.objects.all(), many=True
+            )
+            for bike in bikerentalserializer.data:
+                bike["rental_dates"] = []
+                for rental in bike["rental"]:
+                    start_date = datetime.datetime.fromisoformat(rental["start_date"])
+                    end_date = datetime.datetime.fromisoformat(rental["end_date"])
                     end_date += datetime.timedelta(days=1)
-                date = start_date
-                while date <= end_date:
-                    date_str = date.strftime("%d.%m.%Y")
-                    if date_str not in bike["rental_dates"]:
-                        bike["rental_dates"].append(date_str)
-                    date += datetime.timedelta(days=1)
-            del bike["rental"]
-        unavailable_dates = {}
-        for bikedata in bikerentalserializer.data:
-            unavailable_dates[bikedata["id"]] = bikedata["rental_dates"]
+                    while end_date.weekday() >= 5:
+                        end_date += datetime.timedelta(days=1)
+                    date = start_date
+                    while date <= end_date:
+                        date_str = date.strftime("%d.%m.%Y")
+                        if date_str not in bike["rental_dates"]:
+                            bike["rental_dates"].append(date_str)
+                        date += datetime.timedelta(days=1)
+                del bike["rental"]
+            unavailable_dates = {}
+            for bikedata in bikerentalserializer.data:
+                unavailable_dates[bikedata["id"]] = bikedata["rental_dates"]
 
-        instance = request.data
-        bikes_list = []
-        for rental_item in request.data["bike_stock"]:
-            if rental_item.startswith("package"):
-                package = BikePackage.objects.get(
-                    id=rental_item.split("-", 1)[1]
-                ).bikes.values("bike", "amount")
-                packageamount = request.data["bike_stock"][rental_item]
-                for packageitem in package:
-                    amount = packageamount * packageitem["amount"]
-                    available_bikes = (
-                        BikeStock.objects.filter(
-                            bike=packageitem["bike"], state="AVAILABLE"
+            instance = request.data
+            bikes_list = []
+            for rental_item in request.data["bike_stock"]:
+                if rental_item.startswith("package"):
+                    package = BikePackage.objects.get(
+                        id=rental_item.split("-", 1)[1]
+                    ).bikes.values("bike", "amount")
+                    packageamount = request.data["bike_stock"][rental_item]
+                    for packageitem in package:
+                        amount = packageamount * packageitem["amount"]
+                        available_bikes = (
+                            BikeStock.objects.filter(
+                                bike=packageitem["bike"], state="AVAILABLE"
+                            )
+                            .order_by("-package_only", "id")
+                            .exclude(id__in=bikes_list)
                         )
-                        .order_by("-package_only", "id")
-                        .exclude(id__in=bikes_list)
+                        for bike_id in available_bikes:
+                            check_date = request_start_date
+                            if bike_id.id in unavailable_dates.keys():
+                                while check_date <= request_end_date:
+                                    if (
+                                        check_date.strftime("%d.%m.%Y")
+                                        in unavailable_dates[bike_id.id]
+                                    ):
+                                        available_bikes = available_bikes.exclude(
+                                            id=bike_id.id
+                                        )
+                                    check_date += datetime.timedelta(days=1)
+                        for bike in range(amount):
+                            bikes_list.append(available_bikes[bike].id)
+
+                else:
+                    available_bikes = BikeStock.objects.filter(
+                        bike=rental_item, package_only=False, state="AVAILABLE"
                     )
                     for bike_id in available_bikes:
                         check_date = request_start_date
@@ -427,37 +450,19 @@ class RentalListView(generics.ListCreateAPIView):
                                     check_date.strftime("%d.%m.%Y")
                                     in unavailable_dates[bike_id.id]
                                 ):
-                                    available_bikes = available_bikes.exclude(
-                                        id=bike_id.id
-                                    )
+                                    available_bikes = available_bikes.exclude(id=bike_id.id)
                                 check_date += datetime.timedelta(days=1)
+                    amount = request.data["bike_stock"][rental_item]
                     for bike in range(amount):
                         bikes_list.append(available_bikes[bike].id)
-
-            else:
-                available_bikes = BikeStock.objects.filter(
-                    bike=rental_item, package_only=False, state="AVAILABLE"
-                )
-                for bike_id in available_bikes:
-                    check_date = request_start_date
-                    if bike_id.id in unavailable_dates.keys():
-                        while check_date <= request_end_date:
-                            if (
-                                check_date.strftime("%d.%m.%Y")
-                                in unavailable_dates[bike_id.id]
-                            ):
-                                available_bikes = available_bikes.exclude(id=bike_id.id)
-                            check_date += datetime.timedelta(days=1)
-                amount = request.data["bike_stock"][rental_item]
-                for bike in range(amount):
-                    bikes_list.append(available_bikes[bike].id)
-        instance["bike_stock"] = bikes_list
-        instance["user"] = self.request.user.id
-        serializer = BikeRentalSerializer(data=instance)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            instance["bike_stock"] = bikes_list
+            instance["user"] = self.request.user.id
+            serializer = BikeRentalSerializer(data=instance)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(postserializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema_view(

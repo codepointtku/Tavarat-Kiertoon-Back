@@ -61,37 +61,6 @@ def storages():
     )
 
 
-# def pictures():
-#     file = reader(open("tk-db/products_full.csv", encoding="utf8"))
-#     header = next(file)
-#     products = []
-#     for row in file:
-#         products.append(
-#             {
-#                 header[0]: row[0],
-#                 header[1]: row[1],
-#                 header[2]: row[2],
-#                 header[3]: row[3],
-#                 header[4]: row[4],
-#                 header[5]: row[5],
-#                 header[6]: row[6],
-#                 header[7]: row[7],
-#                 header[8]: row[8],
-#                 header[9]: row[9],
-#                 header[10]: row[10],
-#                 header[11]: row[11],
-#             }
-#         )
-
-#     for product in products:
-#         pictures = set(json.loads(product["file"]))
-#         for picture in pictures:
-#             if picture != None:
-#                 with Image.open(f"tk-db/media/{picture}") as im:
-#                     im.thumbnail((600, 600))
-#                     im.save(f"media/{picture}")
-
-
 def products():
     file = reader(open("tk-db/products_full.csv", encoding="utf8"))
     header = next(file)

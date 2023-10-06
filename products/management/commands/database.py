@@ -68,18 +68,22 @@ def categories():
     categories = [
         {"name": "Huonekalut"},
         #
+        #
         {"name": "Tuolit", "parent": "Huonekalut"},
+        #
         {"name": "Toimistotuolit", "parent": "Tuolit"},
         {"name": "Penkit", "parent": "Tuolit"},
         {"name": "Muut tuolit", "parent": "Tuolit"},
         #
         {"name": "Pöydät", "parent": "Huonekalut"},
+        #
         {"name": "Sähköpöydät", "parent": "Pöydät"},
         {"name": "Työpöydät", "parent": "Pöydät"},
         {"name": "Neuvottelupöydät", "parent": "Pöydät"},
         {"name": "Muut pöydät", "parent": "Pöydät"},
         #
         {"name": "Säilytys ja kaapit", "parent": "Huonekalut"},
+        #
         {"name": "Kaapit", "parent": "Säilytys ja kaapit"},
         {"name": "Naulakot", "parent": "Säilytys ja kaapit"},
         {"name": "Lipastot", "parent": "Säilytys ja kaapit"},
@@ -87,35 +91,43 @@ def categories():
         {"name": "Muu säilytys", "parent": "Säilytys ja kaapit"},
         #
         {"name": "Sisustus", "parent": "Huonekalut"},
+        #
         {"name": "Taulut", "parent": "Sisustus"},
         {"name": "Muu sisustus", "parent": "Sisustus"},
+        #
         #
         {"name": "Laitteet"},
         #
         {"name": "Kodinkoneet", "parent": "Laitteet"},
+        #
         {"name": "Jääkaapit", "parent": "Kodinkoneet"},
         {"name": "Kahvinkeittimet", "parent": "Kodinkoneet"},
         {"name": "Muut kodinkoneet", "parent": "Kodinkoneet"},
         #
         {"name": "Toimisto elektroniikka", "parent": "Laitteet"},
+        #
         {"name": "Näppäimistöt", "parent": "Toimisto elektroniikka"},
         {"name": "Näytöt", "parent": "Toimisto elektroniikka"},
         {"name": "Hiiret", "parent": "Toimisto elektroniikka"},
         {"name": "Videotykit", "parent": "Toimisto elektroniikka"},
         {"name": "Muu toimisto elektroniikka", "parent": "Toimisto elektroniikka"},
         #
+        #
         {"name": "Askartelu"},
         #
         {"name": "Materiaalit", "parent": "Askartelu"},
+        #
         {"name": "Tekstiilit", "parent": "Materiaalit"},
         {"name": "Maalit", "parent": "Materiaalit"},
         {"name": "Muut materiaalit", "parent": "Materiaalit"},
         #
         {"name": "Tarvikkeet", "parent": "Askartelu"},
+        #
         {"name": "Napit ja vetoketjut", "parent": "Tarvikkeet"},
         {"name": "Muut tarvikkeet", "parent": "Tarvikkeet"},
         #
         {"name": "Välineet", "parent": "Askartelu"},
+        #
         {"name": "Muut välineet", "parent": "Välineet"},
     ]
     for category in categories:
@@ -132,6 +144,30 @@ def categories():
 def products():
     file = reader(open("tk-db/products_full.csv", encoding="utf8"))
     header = next(file)
+    category_names = [
+        {"name": "Jääkaapit", "words": ["jääkaappi"]},
+        {"name": "Kahvinkeittimet", "words": ["kahvinkeitin"]},
+        {"name": "Näppäimistöt", "words": ["näppäimistö"]},
+        {"name": "Näytöt", "words": ["näyttö", "tv"]},
+        {"name": "Hiiret", "words": ["hiiri"]},
+        {"name": "Videotykit", "words": ["videotykki"]},
+        {"name": "Toimistotuolit", "words": ["toimistotuoli"]},
+        {"name": "Penkit", "words": ["penkki"]},
+        {"name": "Sähköpöydät", "words": ["sähköpöytä", "sähkötyöpöytä"]},
+        {"name": "Työpöydät", "words": ["työpöytä", "pöytä"]},
+        {"name": "Neuvottelupöydät", "words": ["neuvottelupöytä"]},
+        {"name": "Hyllyt", "words": ["hylly"]},
+        {"name": "Kaapit", "words": ["kaappi"]},
+        {"name": "Naulakot", "words": ["naulakko"]},
+        {"name": "Lipastot", "words": ["lipasto"]},
+        {"name": "Taulut", "words": ["taulu"]},
+        {"name": "Tekstiilit", "words": ["tekstiili", "kangas"]},
+        {"name": "Maalit", "words": ["maali"]},
+        {
+            "name": "Napit ja vetoketjut",
+            "words": ["nappi", "vetoketju", "nappeja", "vetoketjuja"],
+        },
+    ]
     products = []
     for row in file:
         products.append(
@@ -180,10 +216,26 @@ def products():
         except ValueError:
             weight = 0.0
 
-        # def
+        def find_category(product_name):
+            for cat in category_names:
+                for word in cat["words"]:
+                    if product_name.lower() == word.lower():
+                        return cat["name"]
+
+            for cat in category_names:
+                for word in cat["words"]:
+                    if product_name.lower() in word.lower():
+                        return cat["name"]
+
+            for cat in category_names:
+                for word in cat["words"]:
+                    if word.lower() in product_name.lower():
+                        return cat["name"]
+
+            return "Muut tuolit"
 
         product_object = Product.objects.create(
-            category=Category.objects.get(name="Muut tuolit"),
+            category=Category.objects.get(name=find_category(product["name"])),
             name=product["name"],
             price=float(product["price"]),
             free_description=free_description,
@@ -214,4 +266,5 @@ def run_database(self):
     colors()
     storages()
     categories()
+    self.stdout.write("Creating products, this might take a while")
     products()

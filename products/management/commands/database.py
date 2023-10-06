@@ -5,7 +5,7 @@ from typing import Any
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
-from PIL import Image
+from PIL import Image, ImageOps
 
 from categories.models import Category
 from products.models import Color, Picture, Product, ProductItem, Storage
@@ -118,6 +118,7 @@ def products():
         for picture in pictures:
             if picture != None:
                 with Image.open(f"tk-db/media/{picture}") as im:
+                    im = ImageOps.exif_transpose(im)
                     im.thumbnail((600, 600))
                     im.save(f"media/{picture}")
                 Picture.objects.create(picture_address=picture)

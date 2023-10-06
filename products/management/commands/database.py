@@ -187,7 +187,8 @@ def products():
             }
         )
     for product in products:
-        pictures = set(json.loads(product["file"]))
+        pictures = list(set(json.loads(product["file"])))
+        pictures.sort()
         for picture in pictures:
             if picture != None:
                 with Image.open(f"tk-db/media/{picture}") as im:

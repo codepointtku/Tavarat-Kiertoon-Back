@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand
 from PIL import Image, ImageOps
 
 from categories.models import Category
+from orders.models import ShoppingCart
 from products.models import Color, Picture, Product, ProductItem, Storage
 
 CustomUser = get_user_model()
@@ -36,6 +37,7 @@ def clear_data():
 
 def super_user():
     CustomUser.objects.create_superuser(username="super", password="super")
+    ShoppingCart.objects.create(user=CustomUser.objects.get(username="super"))
 
 
 def groups():
@@ -59,6 +61,72 @@ def storages():
         zip_code="20200",
         city="Turku",
     )
+
+
+def categories():
+    """Categories"""
+    categories = [
+        {"name": "Huonekalut"},
+        #
+        {"name": "Tuolit", "parent": "Huonekalut"},
+        {"name": "Toimistotuolit", "parent": "Tuolit"},
+        {"name": "Penkit", "parent": "Tuolit"},
+        {"name": "Muut tuolit", "parent": "Tuolit"},
+        #
+        {"name": "Pöydät", "parent": "Huonekalut"},
+        {"name": "Sähköpöydät", "parent": "Pöydät"},
+        {"name": "Työpöydät", "parent": "Pöydät"},
+        {"name": "Neuvottelupöydät", "parent": "Pöydät"},
+        {"name": "Muut pöydät", "parent": "Pöydät"},
+        #
+        {"name": "Säilytys ja kaapit", "parent": "Huonekalut"},
+        {"name": "Kaapit", "parent": "Säilytys ja kaapit"},
+        {"name": "Naulakot", "parent": "Säilytys ja kaapit"},
+        {"name": "Lipastot", "parent": "Säilytys ja kaapit"},
+        {"name": "Hyllyt", "parent": "Säilytys ja kaapit"},
+        {"name": "Muu säilytys", "parent": "Säilytys ja kaapit"},
+        #
+        {"name": "Sisustus", "parent": "Huonekalut"},
+        {"name": "Taulut", "parent": "Sisustus"},
+        {"name": "Muu sisustus", "parent": "Sisustus"},
+        #
+        {"name": "Laitteet"},
+        #
+        {"name": "Kodinkoneet", "parent": "Laitteet"},
+        {"name": "Jääkaapit", "parent": "Kodinkoneet"},
+        {"name": "Kahvinkeittimet", "parent": "Kodinkoneet"},
+        {"name": "Muut kodinkoneet", "parent": "Kodinkoneet"},
+        #
+        {"name": "Toimisto elektroniikka", "parent": "Laitteet"},
+        {"name": "Näppäimistöt", "parent": "Toimisto elektroniikka"},
+        {"name": "Näytöt", "parent": "Toimisto elektroniikka"},
+        {"name": "Hiiret", "parent": "Toimisto elektroniikka"},
+        {"name": "Videotykit", "parent": "Toimisto elektroniikka"},
+        {"name": "Muu toimisto elektroniikka", "parent": "Toimisto elektroniikka"},
+        #
+        {"name": "Askartelu"},
+        #
+        {"name": "Materiaalit", "parent": "Askartelu"},
+        {"name": "Tekstiilit", "parent": "Materiaalit"},
+        {"name": "Maalit", "parent": "Materiaalit"},
+        {"name": "Muut materiaalit", "parent": "Materiaalit"},
+        #
+        {"name": "Tarvikkeet", "parent": "Askartelu"},
+        {"name": "Napit ja vetoketjut", "parent": "Tarvikkeet"},
+        {"name": "Muut tarvikkeet", "parent": "Tarvikkeet"},
+        #
+        {"name": "Välineet", "parent": "Askartelu"},
+        {"name": "Muut välineet", "parent": "Välineet"},
+    ]
+    for category in categories:
+        if "parent" in category:
+            Category.objects.create(
+                name=category["name"],
+                parent=Category.objects.get(name=category["parent"]),
+            )
+        else:
+            Category.objects.create(name=category["name"])
+    # Category.objects.create(name="", parent=Category.objects.get(name=""))
 
 
 def products():
@@ -112,8 +180,10 @@ def products():
         except ValueError:
             weight = 0.0
 
+        # def
+
         product_object = Product.objects.create(
-            category=Category.objects.get(name="Muut Tuolit"),
+            category=Category.objects.get(name="Muut tuolit"),
             name=product["name"],
             price=float(product["price"]),
             free_description=free_description,
@@ -137,17 +207,6 @@ def products():
             product_object.pictures.add(*picture_objects)
 
 
-def categories():
-    """placeholder category for products"""
-    Category.objects.create(name="Huonekalut")
-    Category.objects.create(
-        name="Tuolit", parent=Category.objects.get(name="Huonekalut")
-    )
-    Category.objects.create(
-        name="Muut Tuolit", parent=Category.objects.get(name="Tuolit")
-    )
-
-
 def run_database(self):
     clear_data()
     super_user()
@@ -156,4 +215,3 @@ def run_database(self):
     storages()
     categories()
     products()
-    # pictures()

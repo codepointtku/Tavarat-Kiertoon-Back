@@ -23,7 +23,7 @@ from bikes.models import (
 from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
-from orders.models import Order, ShoppingCart
+from orders.models import Order, OrderEmailRecipient, ShoppingCart
 from products.models import Color, Picture, Product, ProductItem, Storage
 from users.models import UserAddress
 
@@ -55,9 +55,14 @@ def clear_data():
     Product.objects.all().delete()
     Picture.objects.all().delete()
 
-    Order.objects.all().delete()
-    UserAddress.objects.all().delete()
+    OrderEmailRecipient.objects.all().delete()
     Bulletin.objects.all().delete()
+    ContactForm.objects.all().delete()
+    Contact.objects.all().delete()
+    ShoppingCart.objects.all().delete()
+    Order.objects.all().delete()
+    ProductItem.objects.all().delete()
+    UserAddress.objects.all().delete()
 
     Bike.objects.all().delete()
     BikeAmount.objects.all().delete()
@@ -660,6 +665,15 @@ def create_contacts():
         contact_object.save()
 
 
+def create_order_email_recipients():
+    OrderEmailRecipient.objects.bulk_create(
+        [
+            OrderEmailRecipient(email="samimas@turku.fi"),
+            OrderEmailRecipient(email="samsam@turku.fi"),
+        ]
+    )
+
+
 def run_database(self, mode):
     clear_data()
     groups()
@@ -683,3 +697,4 @@ def run_database(self, mode):
         create_orders()
         create_contact_forms()
         create_contacts()
+        create_order_email_recipients()

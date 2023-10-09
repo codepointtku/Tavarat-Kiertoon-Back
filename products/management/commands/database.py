@@ -35,11 +35,6 @@ def clear_data():
     Picture.objects.all().delete()
 
 
-def super_user():
-    CustomUser.objects.create_superuser(username="super", password="super")
-    ShoppingCart.objects.create(user=CustomUser.objects.get(username="super"))
-
-
 def groups():
     """creates the user groups for permissions"""
     groups = ["user_group", "admin_group", "storage_group", "bicycle_group"]
@@ -47,11 +42,33 @@ def groups():
         Group.objects.create(name=group)
 
 
+def super_user():
+    super = CustomUser.objects.create_superuser(username="super", password="super")
+    ShoppingCart.objects.create(user=CustomUser.objects.get(username="super"))
+    for group in Group.objects.all():
+        group.user_set.add(super)
+
+
 def colors():
+    default_colors = [
+        "Keltainen",
+        "Sininen",
+        "Punainen",
+        "Vihreä",
+        "Violetti",
+        "Oranssi",
+        "Musta",
+        "Valkoinen",
+        "Harmaa",
+        "Ruskea",
+    ]
+    for color in default_colors:
+        Color.objects.create(name=color, default=True)
     file = reader(open("tk-db/colors.csv"))
     next(file)
     for row in file:
-        Color.objects.create(name=row[0])
+        if not row[0] in default_colors:
+            Color.objects.create(name=row[0])
 
 
 def storages():
@@ -138,7 +155,6 @@ def categories():
             )
         else:
             Category.objects.create(name=category["name"])
-    # Category.objects.create(name="", parent=Category.objects.get(name=""))
 
 
 def products():
@@ -262,8 +278,8 @@ def products():
 
 def run_database(self):
     clear_data()
-    super_user()
     groups()
+    super_user()
     colors()
     storages()
     categories()

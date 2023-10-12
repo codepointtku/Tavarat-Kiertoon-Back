@@ -247,7 +247,7 @@ def products():
                 with Image.open(f"tk-db/media/{picture}") as im:
                     im = ImageOps.exif_transpose(im)
                     im.thumbnail((600, 600))
-                    im.save(f"media/{picture}")
+                    im.save(f"media/{picture.split('/')[-1]}")
                 Picture.objects.create(picture_address=picture)
 
         picture_objects = [

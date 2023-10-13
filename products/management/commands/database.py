@@ -628,22 +628,25 @@ def create_shopping_carts():
     for user in users:
         cart_obj = ShoppingCart(user=user)
         cart_obj.save()
-    shopping_carts = ShoppingCart.objects.all()
-    product_items = [
-        product_item.id for product_item in ProductItem.objects.filter(available=True)
-    ]
-    for cart in shopping_carts:
-        print(cart, cart.user)
-        if cart.user.username == "super":
-            cart.product_items.set(random.sample(product_items, 5))
-            for product_item in cart.product_items.all():
-                product_item.available = False
-                product_item.save()
-        else:
-            cart.product_items.set(random.sample(product_items, random.randint(1, 6)))
-            for product_item in cart.product_items.all():
-                product_item.available = False
-                product_item.save()
+    if len(users) > 1:
+        shopping_carts = ShoppingCart.objects.all()
+        product_items = [
+            product_item.id
+            for product_item in ProductItem.objects.filter(available=True)
+        ]
+        for cart in shopping_carts:
+            if cart.user.username == "super":
+                cart.product_items.set(random.sample(product_items, 5))
+                for product_item in cart.product_items.all():
+                    product_item.available = False
+                    product_item.save()
+            else:
+                cart.product_items.set(
+                    random.sample(product_items, random.randint(1, 6))
+                )
+                for product_item in cart.product_items.all():
+                    product_item.available = False
+                    product_item.save()
 
 
 def create_contacts():
@@ -683,6 +686,7 @@ def run_database(self, mode):
     categories()
     self.stdout.write("Creating products, this might take a while")
     products()
+    create_shopping_carts()
     if mode == "populate":
         self.stdout.write("Populating rest of the data tables")
         create_bike_brands()
@@ -693,7 +697,6 @@ def run_database(self, mode):
         create_bike_package()
         create_users()
         create_bulletins()
-        create_shopping_carts()
         create_orders()
         create_contact_forms()
         create_contacts()

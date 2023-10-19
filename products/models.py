@@ -32,7 +32,8 @@ class Picture(models.Model):
 
     def __str__(self) -> str:
         return f"Picture: {basename(self.picture_address.name)}({self.id})"
-    
+
+
 @receiver(post_delete, sender=Picture)
 def delete_orphan_picture(sender, instance, using, **kwargs):
     if isfile(instance.picture_address.path):
@@ -68,6 +69,10 @@ class Product(models.Model):
 
     def __str__(self) -> str:
         return f"Product: {self.name}({self.id})"
+
+    @property
+    def category_name(self):
+        return self.category.name
 
 
 class ProductItemLogEntry(models.Model):
@@ -108,7 +113,7 @@ class ProductItem(models.Model):
     available = models.BooleanField(default=True)
     modified_date = models.DateTimeField(default=timezone.now)
     storage = models.ForeignKey(Storage, on_delete=models.SET_NULL, null=True)
-    shelf_id = models.CharField(max_length=255, default="")
+    shelf_id = models.CharField(max_length=255, default="", null=True, blank=True)
     barcode = models.CharField(max_length=255, default="")
     log_entries = models.ManyToManyField(ProductItemLogEntry, blank=True)
     status = models.CharField(

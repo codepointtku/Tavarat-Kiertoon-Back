@@ -170,10 +170,14 @@ class ProductCreateRequestSerializer(serializers.ModelSerializer):
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
-    new_pictures = serializers.ListField(child=serializers.IntegerField(), required=False)
-    old_pictures = serializers.ListField(child=serializers.IntegerField(), required=False)
+    new_pictures = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
+    old_pictures = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
     shelf_id = serializers.CharField(required=False)
-    
+
     class Meta:
         model = Product
         exclude = ["pictures"]
@@ -278,6 +282,7 @@ class ProductDetailResponseSerializer(ProductSerializer):
 
 class ProductStorageSerializer(serializers.ModelSerializer):
     product_items = serializers.SerializerMethodField()
+    category_name = serializers.ReadOnlyField()
 
     class Meta:
         model = Product
@@ -293,6 +298,7 @@ class ProductStorageResponseSerializer(serializers.ModelSerializer):
     product_items = ProductItemStorageSerializer(
         source="get_product_items", read_only=True, many=True
     )
+    category_name = serializers.ReadOnlyField()
 
     class Meta:
         model = Product

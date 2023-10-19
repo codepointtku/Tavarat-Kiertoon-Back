@@ -123,9 +123,9 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
                 product_item.save()
             instance.product_items.clear()
             instance.save()
-            updatedinstance = ShoppingCart.objects.get(user=request.user)
-            detailserializer = ShoppingCartDetailSerializer(updatedinstance)
-            return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
+            # updatedinstance = ShoppingCart.objects.get(user=request.user)
+            # detailserializer = ShoppingCartDetailSerializer(updatedinstance)
+            return Response(status=status.HTTP_202_ACCEPTED)
 
         changeable_product = Product.objects.get(id=request.data["product"])
         itemset = ProductItem.objects.filter(product=changeable_product, available=True)
@@ -163,9 +163,9 @@ class ShoppingCartDetailView(RetrieveUpdateAPIView):
                 removable_itemset[i].save()
             instance.save()
 
-        updatedinstance = ShoppingCart.objects.get(user=request.user)
-        detailserializer = ShoppingCartDetailSerializer(updatedinstance)
-        return Response(detailserializer.data, status=status.HTTP_202_ACCEPTED)
+        # updatedinstance = ShoppingCart.objects.get(user=request.user)
+        # detailserializer = ShoppingCartDetailSerializer(updatedinstance)
+        return Response(status=status.HTTP_202_ACCEPTED)
 
 
 class OrderListPagination(PageNumberPagination):
@@ -227,9 +227,7 @@ class OrderListView(ListCreateAPIView):
         shopping_cart = ShoppingCart.objects.get(user=user.id)
         serializer = OrderSerializer(data=request.data)
         if shopping_cart.product_items.count() < 1:
-            return Response(
-                "Order has no products", status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response("Order has no products", status=status.HTTP_400_BAD_REQUEST)
         if serializer.is_valid():
             serializer.save()
             order = Order.objects.get(id=serializer.data["id"])

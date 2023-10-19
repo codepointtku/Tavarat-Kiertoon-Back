@@ -378,6 +378,7 @@ class TestProducts(TestCase):
         data = {
             "product_items": [self.test_product_item.id, self.test_product_item1.id],
             "storage": self.test_storage1.id,
+            "shelf_id": "A1, A2"
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)

@@ -364,6 +364,17 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
                 productdata.pictures.add(picture_id)
         response = ProductUpdateResponseSerializer(productdata)
 
+        if "storage" in request.data:
+            new_storage = Storage.objects.get(pk=int(request.data["storage"]))
+            for product_item in ProductItem.objects.filter(product=instance.id):
+                product_item.storage = new_storage
+                product_item.save()
+
+        if "shelf_id" in request.data:
+            for product_item in ProductItem.objects.filter(product=instance.id):
+                product_item.shelf_id = request.data["shelf_id"]
+                product_item.save()
+
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.

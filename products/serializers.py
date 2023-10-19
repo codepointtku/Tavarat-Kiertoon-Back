@@ -170,18 +170,20 @@ class ProductCreateRequestSerializer(serializers.ModelSerializer):
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
-    new_pictures = serializers.ListField(required=False)
+    new_pictures = serializers.ListField(child=serializers.IntegerField(), required=False)
+    old_pictures = serializers.ListField(child=serializers.IntegerField(), required=False)
+    shelf_id = serializers.CharField(required=False)
     
     class Meta:
         model = Product
-        fields = "__all__"
+        exclude = ["pictures"]
         extra_kwargs = {
             "name": {"required": True},
             "category": {"required": True},
         }
 
 
-class ProductUpdateResponseSerializer(ProductUpdateSerializer):
+class ProductUpdateResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"

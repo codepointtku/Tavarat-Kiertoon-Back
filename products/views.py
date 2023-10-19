@@ -328,19 +328,20 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        original_pictures = instance.pictures.values_list("id", flat=True)
+        old_pictures = []
+        for picture in request.data.getlist("old_pictures[]"):
+            old_pictures.append(int(picture))
         serializer = ProductUpdateSerializer(
             instance, data=request.data, partial=partial
         )
         serializer.is_valid(raise_exception=True)
         productdata = serializer.save()
+
         for color in request.data.getlist("colors[]"):
             productdata.colors.add(color)
-        for picture in request.data.getlist("pictures[]"):
-            productdata.pictures.add(picture)
-            
-        for picture in original_pictures:
-            if picture not in productdata.pictures.values_list("id", flat=True):
+
+        for picture in productdata.pictures.values_list("id", flat=True):
+            if picture not in old_pictures:
                 ghost_picture = Picture.objects.get(id=picture)
                 ghost_picture.delete()
 
@@ -361,7 +362,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         for picture_id in picture_ids:
             if productdata.pictures.count() < 6:
                 productdata.pictures.add(picture_id)
-        response = ProductUpdateSerializer(productdata)
+        response = ProductUpdateResponseSerializer(productdata)
 
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
@@ -379,7 +380,6 @@ class ProductItemListPagination(PageNumberPagination):
 class ProductItemListFilter(filters.FilterSet):
     product = filters.ModelMultipleChoiceFilter(queryset=Product.objects.all())
     storage = filters.ModelMultipleChoiceFilter(queryset=Storage.objects.all())
-    search = filters.CharFilter(field_name="barcode", label="Barcode search")
     available = filters.BooleanFilter()
     shelf_id = filters.AllValuesFilter()
 

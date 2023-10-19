@@ -395,7 +395,7 @@ class TestProducts(TestCase):
                 "name": "kahvisohva",
                 "category": self.test_category1.id,
                 "colors[]": [self.test_color.id, self.test_color1.id],
-                "pictures[]": self.test_picture.id,
+                "old_pictures[]": (self.test_picture.id),
                 "new_pictures[]": {open(picture[0], "rb")},
             },
         )

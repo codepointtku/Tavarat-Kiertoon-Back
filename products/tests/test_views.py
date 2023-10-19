@@ -158,9 +158,6 @@ class TestProducts(TestCase):
         if Group.objects.filter(name="admin_group").count() == 0:
             cls.test_group_admin = Group.objects.create(name="admin_group")
             cls.test_group_admin.user_set.add(cls.test_user2)
-        if Group.objects.filter(name="user_group").count() == 0:
-            cls.test_group_user = Group.objects.create(name="user_group")
-            cls.test_group_user.user_set.add(cls.test_user2)
         if Group.objects.filter(name="storage_group").count() == 0:
             cls.test_group_storage = Group.objects.create(name="storage_group")
             cls.test_group_storage.user_set.add(cls.test_user2)

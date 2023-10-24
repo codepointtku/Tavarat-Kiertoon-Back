@@ -18,6 +18,8 @@ from products.serializers import (
     PictureCreateSerializer,
 )
 
+from users.serializers import UserBikeRentalSerializer
+
 
 class BikeRentalSerializer(serializers.ModelSerializer):
     class Meta:
@@ -291,7 +293,6 @@ class BikeModelSerializer(serializers.ModelSerializer):
 
 
 class BikeModelCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Bike
         fields = "__all__"
@@ -391,6 +392,7 @@ class BikeAvailabilityListSerializer(serializers.ModelSerializer):
 
 class BikeRentalDepthSerializer(serializers.ModelSerializer):
     bike_stock = BikeStockDetailSerializer(many=True, read_only=True)
+    user = UserBikeRentalSerializer(read_only=True)
 
     class Meta:
         model = BikeRental

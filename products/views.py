@@ -154,6 +154,7 @@ class ProductFilter(filters.FilterSet):
 )
 class ProductListView(generics.ListCreateAPIView):
     """View for listing and creating products. Create includes creation of ProductItem, Picture and Color"""
+
     """Fields pictures and colors must be sent as pictures[] and colors[] respectively in POST"""
 
     serializer_class = ProductSerializer
@@ -305,6 +306,7 @@ class ProductStorageListView(generics.ListAPIView):
 )
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     """View for retrieving, updating, (destroying) a single Product"""
+
     """Field new_pictures must be sent as new_pictures[] in PUT"""
 
     queryset = Product.objects.all()
@@ -373,6 +375,11 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         if "shelf_id" in request.data:
             for product_item in ProductItem.objects.filter(product=instance.id):
                 product_item.shelf_id = request.data["shelf_id"]
+                product_item.save()
+
+        if "barcode" in request.data:
+            for product_item in ProductItem.objects.filter(product=instance.id):
+                product_item.barcode = request.data["barcode"]
                 product_item.save()
 
         if getattr(instance, "_prefetched_objects_cache", None):

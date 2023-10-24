@@ -173,11 +173,6 @@ class OrderListPagination(PageNumberPagination):
     page_size_query_param = "page_size"
 
 
-class OrderSelfListPagination(PageNumberPagination):
-    page_size = 4
-    page_size_query_param = "page_size"
-
-
 class OrderFilter(filters.FilterSet):
     class Meta:
         model = Order
@@ -371,7 +366,6 @@ class OrderSelfListView(ListAPIView):
         "GET": ["user_group"],
     }
 
-    pagination_class = OrderSelfListPagination
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["creation_date", "status"]
     ordering = ["-creation_date"]

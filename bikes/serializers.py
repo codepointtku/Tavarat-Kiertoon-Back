@@ -214,6 +214,7 @@ class BikeStockDepthSerializer(serializers.ModelSerializer):
     brand = BikeBrandSerializer(read_only=True)
     size = BikeSizeSerializer(read_only=True)
     color = ColorSerializer(read_only=True)
+    picture = PictureSerializer(read_only=True)
 
     class Meta:
         model = Bike
@@ -246,6 +247,7 @@ class BikeStockCreateSerializer(serializers.ModelSerializer):
 class BikeStockDetailSerializer(serializers.ModelSerializer):
     bike = BikeStockDepthSerializer(read_only=True)
     storage = StorageSerializer(read_only=True)
+    color = ColorSerializer(read_only=True)
 
     class Meta:
         model = BikeStock
@@ -385,3 +387,11 @@ class BikeAvailabilityListSerializer(serializers.ModelSerializer):
             "id",
             "rental",
         ]
+
+
+class BikeRentalDepthSerializer(serializers.ModelSerializer):
+    bike_stock = BikeStockDetailSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = BikeRental
+        fields = "__all__"

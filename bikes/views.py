@@ -38,6 +38,7 @@ from bikes.serializers import (
     BikePackageCreateResponseSerializer,
     BikePackageSchemaResponseSerializer,
     BikePackageSerializer,
+    BikeRentalDepthSerializer,
     BikeRentalSchemaPostSerializer,
     BikeRentalSchemaResponseSerializer,
     BikeRentalSerializer,
@@ -466,7 +467,7 @@ class RentalListView(generics.ListCreateAPIView):
 
 
 @extend_schema_view(
-    get=extend_schema(responses=BikeRentalSchemaResponseSerializer),
+    get=extend_schema(responses=BikeRentalDepthSerializer),
     put=extend_schema(
         responses=BikeRentalSchemaResponseSerializer,
     ),
@@ -490,6 +491,11 @@ class RentalDetailView(generics.RetrieveUpdateDestroyAPIView):
         "PATCH": ["bicycle_group", "admin_group", "user_group"],
         "DELETE": ["bicycle_group", "admin_group", "user_group"],
     }
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = BikeRentalDepthSerializer(instance)
+        return Response(serializer.data)
 
 
 class BikeAmountListView(generics.ListAPIView):

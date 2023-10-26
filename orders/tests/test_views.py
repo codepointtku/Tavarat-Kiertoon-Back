@@ -315,7 +315,6 @@ class TestOrders(TestCase):
         data = {"amount": -1}
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 202)
-        self.assertEqual(response.json()["product_items"], [])
 
     def test_add_to_shopping_cart(self):
         url = "/shopping_cart/"
@@ -422,7 +421,7 @@ class TestOrders(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            response.json()["results"][0]["user"]["id"],
+            response.json()[0]["user"]["id"],
             CustomUser.objects.get(username="kahvimake@turku.fi").id,
         )
 

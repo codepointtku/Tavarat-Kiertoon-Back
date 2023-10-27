@@ -737,10 +737,14 @@ class ReturnProductItemsView(generics.ListCreateAPIView):
         return Response(response)
 
     def post(self, request, *args, **kwargs):
+        try: 
+            amount = int(request.data["amount"])
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         product = Product.objects.get(id=kwargs["pk"])
         product_itemset = ProductItem.objects.filter(
             product=product, status="Unavailable"
-        )[: request.data["amount"]]
+        )[: amount]
         log_entry = ProductItemLogEntry.objects.create(
             action=ProductItemLogEntry.ActionChoices.CIRCULATION, user=request.user
         )

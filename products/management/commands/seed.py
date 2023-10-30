@@ -691,7 +691,7 @@ def create_products_and_product_items():
         ):
             product_item = ProductItem.objects.create(
                 product=product_object,
-                available=random.choice(true_false),
+                available=True,
                 modified_date=timezone.now(),
                 storage=storage,
                 barcode=str(barcode),

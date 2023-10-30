@@ -366,18 +366,33 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
                 productdata.pictures.add(picture_id)
         response = ProductUpdateResponseSerializer(productdata)
 
-        if "storage" in request.data:
+        # Comparing previous storage, shelf_id and barcode against request data.
+        # If changes are present, they are made accordingly, and logs are created.
+        # This behaviour is needed because front sends the fields regardless of whether they changed or not
+        prev_data = ProductItem.objects.filter(product=instance.id).first()
+        if (
+            int(prev_data.storage.id) != int(request.data["storage"])
+            or prev_data.shelf_id != request.data["shelf_id"]
+            or prev_data.barcode != request.data["barcode"]
+        ):
+            log_entry = ProductItemLogEntry.objects.create(
+                action=ProductItemLogEntry.ActionChoices.MODIFY, user=request.user
+            )
+            for product_item in ProductItem.objects.filter(product=instance.id):
+                product_item.log_entries.add(log_entry)
+
+        if int(prev_data.storage.id) != int(request.data["storage"]):
             new_storage = Storage.objects.get(pk=int(request.data["storage"]))
             for product_item in ProductItem.objects.filter(product=instance.id):
                 product_item.storage = new_storage
                 product_item.save()
 
-        if "shelf_id" in request.data:
+        if prev_data.shelf_id != request.data["shelf_id"]:
             for product_item in ProductItem.objects.filter(product=instance.id):
                 product_item.shelf_id = request.data["shelf_id"]
                 product_item.save()
 
-        if "barcode" in request.data:
+        if prev_data.barcode != request.data["barcode"]:
             for product_item in ProductItem.objects.filter(product=instance.id):
                 product_item.barcode = request.data["barcode"]
                 product_item.save()
@@ -737,14 +752,14 @@ class ReturnProductItemsView(generics.ListCreateAPIView):
         return Response(response)
 
     def post(self, request, *args, **kwargs):
-        try: 
+        try:
             amount = int(request.data["amount"])
         except ValueError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         product = Product.objects.get(id=kwargs["pk"])
         product_itemset = ProductItem.objects.filter(
             product=product, status="Unavailable"
-        )[: amount]
+        )[:amount]
         log_entry = ProductItemLogEntry.objects.create(
             action=ProductItemLogEntry.ActionChoices.CIRCULATION, user=request.user
         )

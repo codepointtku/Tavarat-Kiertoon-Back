@@ -730,11 +730,13 @@ def create_shopping_carts():
             cart.product_items.set(random.sample(product_items, 5))
             for product_item in cart.product_items.all():
                 product_item.available = False
+                product_item.status = "In cart"
                 product_item.save()
         else:
             cart.product_items.set(random.sample(product_items, random.randint(1, 6)))
             for product_item in cart.product_items.all():
                 product_item.available = False
+                product_item.status = "In cart"
                 product_item.save()
 
 
@@ -787,8 +789,16 @@ def create_orders():
             recipient_phone_number=user.phone_number,
         )
         order_obj.save()
-        for product_id in ShoppingCart.objects.get(user=user).product_items.all():
-            order_obj.product_items.add(product_id)
+    for order in Order.objects.all():
+        product_items = [
+            product_item.id
+            for product_item in ProductItem.objects.filter(available=True)
+        ]
+        order.product_items.set(random.sample(product_items, random.randint(1, 6)))
+        for product_item in order.product_items.all():
+            product_item.available = False
+            product_item.status = "Unavailable"
+            product_item.save()
 
 
 def create_bulletins():

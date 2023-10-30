@@ -586,3 +586,18 @@ class UserLogResponseSchemaSerializer(serializers.ModelSerializer):
             "target": {"required": True},
             "user_who_did_this_action": {"required": True},
         }
+
+
+class UserBikeRentalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        exclude = [
+            "password",
+            "user_permissions",
+            "is_active",
+            "is_admin",
+            "is_staff",
+            "is_superuser",
+            "creation_date",
+            "groups",
+        ]

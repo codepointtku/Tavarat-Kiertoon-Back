@@ -354,7 +354,7 @@ class UserDetailsListView(generics.ListAPIView):
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
 
     ordering_fields = ["id", "is_active", "creation_date", "last_login"]
-    ordering = ["id"]
+    ordering = ["-id"]
     filterset_class = UserFilter
 
     required_groups = {

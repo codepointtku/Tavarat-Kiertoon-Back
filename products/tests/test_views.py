@@ -378,7 +378,8 @@ class TestProducts(TestCase):
         data = {
             "product_items": [self.test_product_item.id, self.test_product_item1.id],
             "storage": self.test_storage1.id,
-            "shelf_id": "A1, A2"
+            "shelf_id": "A1, A2",
+            "barcode": "9848484848",
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
@@ -392,7 +393,10 @@ class TestProducts(TestCase):
         )
         encoded_data = encode_multipart(
             BOUNDARY,
-            {
+            {   
+                "storage": self.test_storage1.id,
+                "shelf_id": "A1, A2",
+                "barcode": "91919191919",
                 "name": "kahvisohva",
                 "category": self.test_category1.id,
                 "colors[]": [self.test_color.id, self.test_color1.id],

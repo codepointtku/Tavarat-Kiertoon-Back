@@ -176,7 +176,9 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
     old_pictures = serializers.ListField(
         child=serializers.IntegerField(), required=False
     )
-    shelf_id = serializers.CharField(required=False)
+    shelf_id = serializers.CharField(required=True)
+    storage = serializers.IntegerField(required=True)
+    barcode = serializers.CharField(required=True)
 
     class Meta:
         model = Product

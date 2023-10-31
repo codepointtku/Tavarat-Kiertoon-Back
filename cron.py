@@ -17,6 +17,7 @@ def clear_shopping_carts():
         for product_item in cart.product_items.all():
             product_item.log_entries.add(log_entry)
             product_item.available = True
+            product_item.status = "Available"
             product_item.save()
         cart.product_items.clear()
         cart.save()

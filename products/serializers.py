@@ -156,30 +156,38 @@ class ProductCreateRequestSerializer(serializers.ModelSerializer):
     barcode = serializers.CharField()
     storage = serializers.IntegerField()
     shelf_id = serializers.CharField(required=False)
+    pictures = serializers.ListField(required=False)
 
-    class Meta:
-        model = Product
-        exclude = ["pictures", "colors"]
-        extra_kwargs = {
-            "name": {"required": True},
-            "amount": {"required": True},
-            "category": {"required": True},
-        }
-
-
-class ProductUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
         extra_kwargs = {
             "name": {"required": True},
+            "amount": {"required": True},
             "category": {"required": True},
-            "colors": {"required": True},
-            "pictures": {"read_only": True},
+            "colors": {"required": False},
         }
 
 
-class ProductUpdateResponseSerializer(ProductUpdateSerializer):
+class ProductUpdateSerializer(serializers.ModelSerializer):
+    new_pictures = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
+    old_pictures = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
+    shelf_id = serializers.CharField(required=False)
+
+    class Meta:
+        model = Product
+        exclude = ["pictures"]
+        extra_kwargs = {
+            "name": {"required": True},
+            "category": {"required": True},
+        }
+
+
+class ProductUpdateResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
@@ -274,6 +282,7 @@ class ProductDetailResponseSerializer(ProductSerializer):
 
 class ProductStorageSerializer(serializers.ModelSerializer):
     product_items = serializers.SerializerMethodField()
+    category_name = serializers.ReadOnlyField()
 
     class Meta:
         model = Product
@@ -289,6 +298,7 @@ class ProductStorageResponseSerializer(serializers.ModelSerializer):
     product_items = ProductItemStorageSerializer(
         source="get_product_items", read_only=True, many=True
     )
+    category_name = serializers.ReadOnlyField()
 
     class Meta:
         model = Product
@@ -350,3 +360,10 @@ class ProductItemDetailResponseSerializer(serializers.ModelSerializer):
             "storage": {"required": True},
             "log_entries": {"required": True},
         }
+
+
+class ReturnAddProductItemsSerializer(serializers.Serializer):
+    amount = serializers.IntegerField(required=True)
+
+    class Meta:
+        fields = "amount"

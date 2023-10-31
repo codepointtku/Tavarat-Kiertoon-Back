@@ -1,8 +1,11 @@
-from os.path import basename
+from os.path import basename, isfile
+from os import remove
 
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 from categories.models import Category
 
@@ -29,6 +32,12 @@ class Picture(models.Model):
 
     def __str__(self) -> str:
         return f"Picture: {basename(self.picture_address.name)}({self.id})"
+
+
+@receiver(post_delete, sender=Picture)
+def delete_orphan_picture(sender, instance, using, **kwargs):
+    if isfile(instance.picture_address.path):
+        remove(instance.picture_address.path)
 
 
 class Storage(models.Model):
@@ -61,6 +70,10 @@ class Product(models.Model):
     def __str__(self) -> str:
         return f"Product: {self.name}({self.id})"
 
+    @property
+    def category_name(self):
+        return self.category.name
+
 
 class ProductItemLogEntry(models.Model):
     """Model representing one log entry connected to ProductItem
@@ -89,11 +102,20 @@ class ProductItemLogEntry(models.Model):
 class ProductItem(models.Model):
     """Class representing single item that refers to Product"""
 
+    class ItemStatusChoices(models.Choices):
+        AVAILABLE = "Available"
+        IN_CART = "In cart"
+        UNAVAILABLE = "Unavailable"
+        RETIRED = "Retired"
+
     id = models.BigAutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
-    available = models.BooleanField(default=False)
+    available = models.BooleanField(default=True)
     modified_date = models.DateTimeField(default=timezone.now)
     storage = models.ForeignKey(Storage, on_delete=models.SET_NULL, null=True)
-    shelf_id = models.CharField(max_length=255, default="")
+    shelf_id = models.CharField(max_length=255, default="", null=True, blank=True)
     barcode = models.CharField(max_length=255, default="")
     log_entries = models.ManyToManyField(ProductItemLogEntry, blank=True)
+    status = models.CharField(
+        max_length=255, choices=ItemStatusChoices.choices, default="Available"
+    )

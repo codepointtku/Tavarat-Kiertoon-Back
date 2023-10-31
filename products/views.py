@@ -43,6 +43,7 @@ from .serializers import (
     ProductStorageTransferSerializer,
     ProductUpdateResponseSerializer,
     ProductUpdateSerializer,
+    ReturnAddProductItemsSerializer,
     ShoppingCartAvailableAmountListSerializer,
     StorageResponseSerializer,
     StorageSerializer,
@@ -153,6 +154,8 @@ class ProductFilter(filters.FilterSet):
 )
 class ProductListView(generics.ListCreateAPIView):
     """View for listing and creating products. Create includes creation of ProductItem, Picture and Color"""
+
+    """Fields pictures and colors must be sent as pictures[] and colors[] respectively in POST"""
 
     serializer_class = ProductSerializer
     authentication_classes = [
@@ -304,6 +307,8 @@ class ProductStorageListView(generics.ListAPIView):
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     """View for retrieving, updating, (destroying) a single Product"""
 
+    """Field new_pictures must be sent as new_pictures[] in PUT"""
+
     queryset = Product.objects.all()
     serializer_class = ProductDetailSerializer
 
@@ -325,19 +330,64 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
+        old_pictures = []
+        for picture in request.data.getlist("old_pictures[]"):
+            old_pictures.append(int(picture))
         serializer = ProductUpdateSerializer(
             instance, data=request.data, partial=partial
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        data = serializer.data
+        productdata = serializer.save()
+
+        for color in request.data.getlist("colors[]"):
+            productdata.colors.add(color)
+
+        for picture in productdata.pictures.values_list("id", flat=True):
+            if picture not in old_pictures:
+                ghost_picture = Picture.objects.get(id=picture)
+                ghost_picture.delete()
+
+        picture_ids = []
+        for file in request.FILES.getlist("new_pictures[]"):
+            ext = file.content_type.split("/")[1]
+            pic_serializer = PictureCreateSerializer(
+                data={
+                    "picture_address": ContentFile(
+                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                    )
+                }
+            )
+            pic_serializer.is_valid(raise_exception=True)
+            pic_serializer.save()
+            picture_ids.append(pic_serializer.data["id"])
+
+        for picture_id in picture_ids:
+            if productdata.pictures.count() < 6:
+                productdata.pictures.add(picture_id)
+        response = ProductUpdateResponseSerializer(productdata)
+
+        if "storage" in request.data:
+            new_storage = Storage.objects.get(pk=int(request.data["storage"]))
+            for product_item in ProductItem.objects.filter(product=instance.id):
+                product_item.storage = new_storage
+                product_item.save()
+
+        if "shelf_id" in request.data:
+            for product_item in ProductItem.objects.filter(product=instance.id):
+                product_item.shelf_id = request.data["shelf_id"]
+                product_item.save()
+
+        if "barcode" in request.data:
+            for product_item in ProductItem.objects.filter(product=instance.id):
+                product_item.barcode = request.data["barcode"]
+                product_item.save()
 
         if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
 
-        return Response(data)
+        return Response(response.data)
 
 
 class ProductItemListPagination(PageNumberPagination):
@@ -653,3 +703,114 @@ class ShoppingCartAvailableAmountList(APIView):
             product_ids, many=True
         )
         return Response(returnserializer.data)
+
+
+class ReturnProductItemsView(generics.ListCreateAPIView):
+    """View for returning product items back to circulation(available)"""
+
+    queryset = Product.objects.none()
+    serializer_class = ReturnAddProductItemsSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group", "user_group"],
+        "POST": ["storage_group", "user_group"],
+    }
+
+    def get(self, request, *args, **kwargs):
+        try:
+            product = Product.objects.get(id=kwargs["pk"])
+        except:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        amount = ProductItem.objects.filter(
+            product=product, status="Unavailable"
+        ).count()
+        response = {"amount": amount}
+
+        return Response(response)
+
+    def post(self, request, *args, **kwargs):
+        try: 
+            amount = int(request.data["amount"])
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        product = Product.objects.get(id=kwargs["pk"])
+        product_itemset = ProductItem.objects.filter(
+            product=product, status="Unavailable"
+        )[: amount]
+        log_entry = ProductItemLogEntry.objects.create(
+            action=ProductItemLogEntry.ActionChoices.CIRCULATION, user=request.user
+        )
+        for product_item in product_itemset:
+            product_item.available = True
+            product_item.status = "Available"
+            product_item.modified_date = timezone.now()
+            product_item.log_entries.add(log_entry)
+            product_item.save()
+
+        # checking if the created product was in product watch list on any user
+        check_product_watch(product)
+
+        return Response("items returned successfully")
+
+
+class AddProductItemsView(generics.ListCreateAPIView):
+    """View for adding product items to an existing product"""
+
+    queryset = Product.objects.none()
+    serializer_class = ReturnAddProductItemsSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group", "user_group"],
+        "POST": ["storage_group", "user_group"],
+    }
+
+    def get(self, request, *args, **kwargs):
+        try:
+            product = Product.objects.get(id=kwargs["pk"])
+        except:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        item = ProductItem.objects.filter(product=product).first()
+        response = {
+            "product": product.id,
+            "item": item.id,
+            "storage": item.storage.id,
+            "barcode": item.barcode,
+        }
+
+        return Response(response)
+
+    def post(self, request, *args, **kwargs):
+        product = Product.objects.get(id=kwargs["pk"])
+        item = ProductItem.objects.filter(product=kwargs["pk"]).first()
+        log_entry = ProductItemLogEntry.objects.create(
+            action=ProductItemLogEntry.ActionChoices.CREATE, user=request.user
+        )
+        for _ in range(request.data["amount"]):
+            product_item = ProductItem.objects.create(
+                product=product,
+                modified_date=timezone.now(),
+                storage=item.storage,
+                barcode=str(item.barcode),
+            )
+            product_item.log_entries.add(log_entry)
+
+        # checking if the created product was in product watch list on any user
+        check_product_watch(product)
+
+        return Response("items created successfully")

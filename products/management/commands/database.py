@@ -335,7 +335,7 @@ def create_bike_types():
 
 
 def create_bikes():
-    with Image.open(f"tk-db/media/bike.jpg") as im:
+    with Image.open(f"tk-db/media/Bike.jpg") as im:
         im = ImageOps.exif_transpose(im)
         im.thumbnail((600, 600))
         im.save(f"media/bike.jpg")

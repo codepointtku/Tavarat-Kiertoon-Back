@@ -44,8 +44,9 @@ class Command(BaseCommand):
         self.stdout.write("Done.")
 
 
-def clear_data():
+def clear_data(mode):
     """Deletes all the database tables that this script populates"""
+    print(mode)
 
     CustomUser.objects.all().delete()
     Group.objects.all().delete()
@@ -101,7 +102,7 @@ def colors():
     ]
     for color in default_colors:
         Color.objects.create(name=color, default=True)
-    file = reader(open("tk-db/colors.csv"))
+    file = reader(open("tk-db/colors.csv", encoding="utf-8"))
     next(file)
     for row in file:
         if not row[0] in default_colors:
@@ -255,7 +256,11 @@ def products():
             for picture_address in pictures
             if picture_address != None
         ]
-
+        # for color in Color.objects.all():
+        #     print(color.name)
+        # for color in json.loads(product["color"]):
+        #     if color != None:
+        #         print(color)
         color_objects = [
             Color.objects.get(name=color_name).id
             for color_name in json.loads(product["color"])
@@ -305,6 +310,7 @@ def products():
                 available=True,
                 storage=Storage.objects.get(name="Iso-Heikkilän Varasto"),
                 barcode=product["barcode"],
+                status="Available",
             )
 
         if color_objects:
@@ -623,12 +629,12 @@ def create_users():
         created_user.save()
 
 
-def create_shopping_carts():
+def create_shopping_carts(mode):
     users = CustomUser.objects.all()
     for user in users:
         cart_obj = ShoppingCart(user=user)
         cart_obj.save()
-    if len(users) > 1:
+    if mode == "populate":
         shopping_carts = ShoppingCart.objects.all()
         product_items = [
             product_item.id
@@ -678,7 +684,7 @@ def create_order_email_recipients():
 
 
 def run_database(self, mode):
-    clear_data()
+    clear_data(mode)
     groups()
     super_user()
     colors()
@@ -686,18 +692,20 @@ def run_database(self, mode):
     categories()
     self.stdout.write("Creating products, this might take a while")
     products()
-    create_shopping_carts()
     if mode == "populate":
         self.stdout.write("Populating rest of the data tables")
+        create_users()
+        create_shopping_carts(mode)
         create_bike_brands()
         create_bike_size()
         create_bike_types()
         create_bikes()
         create_bike_stock()
         create_bike_package()
-        create_users()
         create_bulletins()
         create_orders()
         create_contact_forms()
         create_contacts()
         create_order_email_recipients()
+    else:
+        create_shopping_carts(mode)

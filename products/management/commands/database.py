@@ -46,7 +46,6 @@ class Command(BaseCommand):
 
 def clear_data(mode):
     """Deletes all the database tables that this script populates"""
-    print(mode)
 
     CustomUser.objects.all().delete()
     Group.objects.all().delete()

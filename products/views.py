@@ -749,7 +749,7 @@ class ReturnProductItemsView(generics.ListCreateAPIView):
         amount = ProductItem.objects.filter(
             product=product, status="Unavailable"
         ).count()
-        response = {"amount": amount}
+        response = [{"amount": amount}]
 
         return Response(response)
 
@@ -803,12 +803,12 @@ class AddProductItemsView(generics.ListCreateAPIView):
         except:
             return Response(status=status.HTTP_204_NO_CONTENT)
         item = ProductItem.objects.filter(product=product).first()
-        response = {
+        response = [{
             "product": product.id,
             "item": item.id,
             "storage": item.storage.id,
             "barcode": item.barcode,
-        }
+        }]
 
         return Response(response)
 

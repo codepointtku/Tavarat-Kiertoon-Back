@@ -694,7 +694,7 @@ def create_products_and_product_items(mode):
         user=CustomUser.objects.get(username="super"),
     )
     barcode = 1234
-    print(len(products))
+
     if mode == "giga":
         for _ in range(81):
             for product in products:

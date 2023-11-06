@@ -41,6 +41,9 @@ MODE_REFRESH = "refresh"
 """Clear all data and do not create any object."""
 MODE_CLEAR = "clear"
 
+"""Create huge amounts of objects for testing"""
+MODE_GIGA = "giga"
+
 
 class Command(BaseCommand):
     help = "Seed database for testing and development."
@@ -242,76 +245,8 @@ def create_categories():
         category_object.save()
 
 
-def create_users():
+def create_users(mode):
     """Creates user objects from the list."""
-    users = [
-        {
-            "first_name": "Billy",
-            "last_name": "Herrington",
-            "email": "billy.herrington@turku.fi",
-            "phone_number": "0000000000",
-            "password": "testi",
-            "address": "Katulantiekuja 22",
-            "zip_code": "20100",
-            "city": "Turku",
-            "username": "billy.herrington@turku.fi",
-        },
-        {
-            "first_name": "Sami",
-            "last_name": "Imas",
-            "email": "testi@turku.fi",
-            "phone_number": "+358441234567",
-            "password": "samionkuningas1987",
-            "address": "Pizza on hyvää polku",
-            "zip_code": "80085",
-            "city": "Rauma",
-            "username": "Samin mashausopisto",
-        },
-        {
-            "first_name": "Pekka",
-            "last_name": "Python",
-            "email": "pekka.python@turku.fi",
-            "phone_number": "0401234567",
-            "password": "password",
-            "address": "Pythosentie 12",
-            "zip_code": "22222",
-            "city": "Lohja",
-            "username": "pekka.python@turku.fi",
-        },
-        {
-            "first_name": "Pirjo",
-            "last_name": "Pythonen",
-            "email": "pirjo.pythonen@turku.fi",
-            "phone_number": "0501234567",
-            "password": "salasana",
-            "address": "Pythosentie 12",
-            "zip_code": "22222",
-            "city": "Lohja",
-            "username": "pirjo.pythonen@turku.fi",
-        },
-        {
-            "first_name": "Jad",
-            "last_name": "TzTok",
-            "email": "TzTok-Jad@turku.fi",
-            "phone_number": "702-079597",
-            "password": "F-you-woox",
-            "address": "TzHaar Fight Cave",
-            "zip_code": "Wave 63",
-            "city": "Brimhaven",
-            "username": "TzTok-Jad@turku.fi",
-        },
-        {
-            "first_name": "Kavhi",
-            "last_name": "La",
-            "email": "kavhi@turku.fi",
-            "phone_number": "1112223344",
-            "password": "kavhi123",
-            "address": "kavhilantie 1",
-            "zip_code": "20100",
-            "city": "Turku",
-            "username": "Kavhila",
-        },
-    ]
     super = CustomUser.objects.create_superuser(username="super", password="super")
     super.phone_number = 900090009
     super.first_name = "Super"
@@ -323,21 +258,106 @@ def create_users():
     )
     for group in Group.objects.all():
         group.user_set.add(super)
+    if mode == "giga":
+        for i in range(10,1011):
+            user = CustomUser.objects.create_user(
+                first_name=f"first_name{i}",
+                last_name=f"last_name{i}",
+                email=f"email{i}@turku.fi",
+                phone_number="0505556677",
+                password=str(i),
+                address=str(i),
+                zip_code="20100",
+                city="Mänttä-Vilppula",
+                username=f"email{i}@turku.fi",
+            )
+            user.is_active = True
+            user.save()
 
-    for user in users:
-        created_user = CustomUser.objects.create_user(
-            first_name=user["first_name"],
-            last_name=user["last_name"],
-            email=user["email"],
-            phone_number=user["phone_number"],
-            password=user["password"],
-            address=user["address"],
-            zip_code=user["zip_code"],
-            city=user["city"],
-            username=user["username"],
-        )
-        created_user.is_active = True
-        created_user.save()
+    else:
+        users = [
+            {
+                "first_name": "Billy",
+                "last_name": "Herrington",
+                "email": "billy.herrington@turku.fi",
+                "phone_number": "0000000000",
+                "password": "testi",
+                "address": "Katulantiekuja 22",
+                "zip_code": "20100",
+                "city": "Turku",
+                "username": "billy.herrington@turku.fi",
+            },
+            {
+                "first_name": "Sami",
+                "last_name": "Imas",
+                "email": "testi@turku.fi",
+                "phone_number": "+358441234567",
+                "password": "samionkuningas1987",
+                "address": "Pizza on hyvää polku",
+                "zip_code": "80085",
+                "city": "Rauma",
+                "username": "Samin mashausopisto",
+            },
+            {
+                "first_name": "Pekka",
+                "last_name": "Python",
+                "email": "pekka.python@turku.fi",
+                "phone_number": "0401234567",
+                "password": "password",
+                "address": "Pythosentie 12",
+                "zip_code": "22222",
+                "city": "Lohja",
+                "username": "pekka.python@turku.fi",
+            },
+            {
+                "first_name": "Pirjo",
+                "last_name": "Pythonen",
+                "email": "pirjo.pythonen@turku.fi",
+                "phone_number": "0501234567",
+                "password": "salasana",
+                "address": "Pythosentie 12",
+                "zip_code": "22222",
+                "city": "Lohja",
+                "username": "pirjo.pythonen@turku.fi",
+            },
+            {
+                "first_name": "Jad",
+                "last_name": "TzTok",
+                "email": "TzTok-Jad@turku.fi",
+                "phone_number": "702-079597",
+                "password": "F-you-woox",
+                "address": "TzHaar Fight Cave",
+                "zip_code": "Wave 63",
+                "city": "Brimhaven",
+                "username": "TzTok-Jad@turku.fi",
+            },
+            {
+                "first_name": "Kavhi",
+                "last_name": "La",
+                "email": "kavhi@turku.fi",
+                "phone_number": "1112223344",
+                "password": "kavhi123",
+                "address": "kavhilantie 1",
+                "zip_code": "20100",
+                "city": "Turku",
+                "username": "Kavhila",
+            },
+        ]
+
+        for user in users:
+            created_user = CustomUser.objects.create_user(
+                first_name=user["first_name"],
+                last_name=user["last_name"],
+                email=user["email"],
+                phone_number=user["phone_number"],
+                password=user["password"],
+                address=user["address"],
+                zip_code=user["zip_code"],
+                city=user["city"],
+                username=user["username"],
+            )
+            created_user.is_active = True
+            created_user.save()
 
 
 def create_picture():
@@ -351,7 +371,7 @@ def create_picture():
     picture_object.save()
 
 
-def create_products_and_product_items():
+def create_products_and_product_items(mode):
     """Creates product objects from the list."""
     products = [
         {
@@ -674,29 +694,54 @@ def create_products_and_product_items():
         user=CustomUser.objects.get(username="super"),
     )
     barcode = 1234
-    for product in products:
-        storage = random.choice(storages)
-        barcode += 1
-        product_object = Product(
-            name=product["name"],
-            free_description=product["free_description"],
-            category=Category.objects.get(name=product["category"]),
-            measurements="",
-        )
-        product_object.save()
-        for _ in range(
-            random.choices(
-                range(1, 11), cum_weights=[10, 15, 18, 20, 21, 22, 23, 24, 25, 26]
-            )[0]
-        ):
-            product_item = ProductItem.objects.create(
-                product=product_object,
-                available=random.choice(true_false),
-                modified_date=timezone.now(),
-                storage=storage,
-                barcode=str(barcode),
+    print(len(products))
+    if mode == "giga":
+        for _ in range(81):
+            for product in products:
+                storage = random.choice(storages)
+                barcode += 1
+                product_object = Product(
+                    name=product["name"],
+                    free_description=product["free_description"],
+                    category=Category.objects.get(name=product["category"]),
+                    measurements="",
+                )
+                product_object.save()
+                for _ in range(1,
+                    random.randint(2,8)
+                ):
+                    product_item = ProductItem.objects.create(
+                        product=product_object,
+                        available=random.choice(true_false),
+                        modified_date=timezone.now(),
+                        storage=storage,
+                        barcode=str(barcode),
+                    )
+                    product_item.log_entries.add(log_entry)
+    else:
+        for product in products:
+            storage = random.choice(storages)
+            barcode += 1
+            product_object = Product(
+                name=product["name"],
+                free_description=product["free_description"],
+                category=Category.objects.get(name=product["category"]),
+                measurements="",
             )
-            product_item.log_entries.add(log_entry)
+            product_object.save()
+            for _ in range(
+                random.choices(
+                    range(1, 11), cum_weights=[10, 15, 18, 20, 21, 22, 23, 24, 25, 26]
+                )[0]
+            ):
+                product_item = ProductItem.objects.create(
+                    product=product_object,
+                    available=random.choice(true_false),
+                    modified_date=timezone.now(),
+                    storage=storage,
+                    barcode=str(barcode),
+                )
+                product_item.log_entries.add(log_entry)
     queryset = Product.objects.all()
     pictures = Picture.objects.all()
     for query in queryset:
@@ -969,10 +1014,10 @@ def run_seed(self, mode):
     create_groups()
     create_storages()
     create_categories()
-    create_users()
+    create_users(mode)
     for _ in range(6):
         create_picture()
-    create_products_and_product_items()
+    create_products_and_product_items(mode)
     create_shopping_carts()
     create_orders()
     create_bulletins()

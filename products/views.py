@@ -366,20 +366,37 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
                 productdata.pictures.add(picture_id)
         response = ProductUpdateResponseSerializer(productdata)
 
-        if "storage" in request.data:
-            new_storage = Storage.objects.get(pk=int(request.data["storage"]))
+        if "storage" in request.data or "shelf_id" in request.data or "barcode" in request.data:
+            storage = Storage.objects.get(pk=int(request.data["storage"]))
+            log_created = False
+            prev_data = ProductItem.objects.filter(product=instance.id).first()
+            if "storage" in request.data:
+                if int(prev_data.storage.id) != int(request.data["storage"]) and log_created == False:
+                    log_entry = ProductItemLogEntry.objects.create(
+                        action=ProductItemLogEntry.ActionChoices.MODIFY, user=request.user
+                    )
+                    log_created = True
+            if "shelf_id" in request.data:
+                if prev_data.shelf_id != request.data["shelf_id"] and log_created == False:
+                    log_entry = ProductItemLogEntry.objects.create(
+                        action=ProductItemLogEntry.ActionChoices.MODIFY, user=request.user
+                    )
+                    log_created = True
+            if "barcode" in request.data:
+                if prev_data.barcode != request.data["barcode"] and log_created == False:
+                    log_entry = ProductItemLogEntry.objects.create(
+                        action=ProductItemLogEntry.ActionChoices.MODIFY, user=request.user
+                    )
+                    log_created = True
             for product_item in ProductItem.objects.filter(product=instance.id):
-                product_item.storage = new_storage
-                product_item.save()
-
-        if "shelf_id" in request.data:
-            for product_item in ProductItem.objects.filter(product=instance.id):
-                product_item.shelf_id = request.data["shelf_id"]
-                product_item.save()
-
-        if "barcode" in request.data:
-            for product_item in ProductItem.objects.filter(product=instance.id):
-                product_item.barcode = request.data["barcode"]
+                if "storage" in request.data:
+                    product_item.storage = storage
+                if "shelf_id" in request.data:
+                    product_item.shelf_id = request.data["shelf_id"]
+                if "barcode" in request.data:
+                    product_item.barcode = request.data["barcode"]
+                if log_created == True:
+                    product_item.log_entries.add(log_entry)
                 product_item.save()
 
         if getattr(instance, "_prefetched_objects_cache", None):

@@ -43,7 +43,6 @@ class Bike(models.Model):
         BikeBrand, null=True, blank=True, on_delete=models.SET_NULL
     )
     size = models.ForeignKey(BikeSize, null=True, blank=True, on_delete=models.SET_NULL)
-    color = models.ForeignKey(Color, null=True, blank=True, on_delete=models.SET_NULL)
     picture = models.ForeignKey(Picture, null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self) -> str:

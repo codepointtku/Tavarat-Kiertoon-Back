@@ -9,7 +9,7 @@ from users.models import CustomUser
 class ShoppingCart(models.Model):
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-    product_items = models.ManyToManyField(ProductItem)  # product_items?
+    product_items = models.ManyToManyField(ProductItem)  # product_items? If cascade then action for product_items
     date = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:

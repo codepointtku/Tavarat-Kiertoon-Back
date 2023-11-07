@@ -813,12 +813,16 @@ class AddProductItemsView(generics.ListCreateAPIView):
         return Response(response)
 
     def post(self, request, *args, **kwargs):
+        try: 
+            amount = int(request.data["amount"])
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         product = Product.objects.get(id=kwargs["pk"])
         item = ProductItem.objects.filter(product=kwargs["pk"]).first()
         log_entry = ProductItemLogEntry.objects.create(
             action=ProductItemLogEntry.ActionChoices.CREATE, user=request.user
         )
-        for _ in range(request.data["amount"]):
+        for _ in range(amount):
             product_item = ProductItem.objects.create(
                 product=product,
                 modified_date=timezone.now(),

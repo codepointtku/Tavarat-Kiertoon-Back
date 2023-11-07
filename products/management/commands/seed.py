@@ -10,27 +10,14 @@ from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from bikes.models import (
-    Bike,
-    BikeAmount,
-    BikeBrand,
-    BikePackage,
-    BikeSize,
-    BikeStock,
-    BikeType,
-)
+from bikes.models import (Bike, BikeAmount, BikeBrand, BikePackage, BikeSize,
+                          BikeStock, BikeType)
 from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
 from orders.models import Order, OrderEmailRecipient, ShoppingCart
-from products.models import (
-    Color,
-    Picture,
-    Product,
-    ProductItem,
-    ProductItemLogEntry,
-    Storage,
-)
+from products.models import (Color, Picture, Product, ProductItem,
+                             ProductItemLogEntry, Storage)
 from users.models import CustomUser, UserAddress
 
 # python manage.py seed
@@ -909,7 +896,7 @@ def create_contacts():
     contacts = [
         {
             "name": "Vesa Lehtonen",
-            "address": "Rieskalähteentie 76, 20300 Turku",
+            "address": "Iso-Heikkiläntie 6 20200 Turku",
             "email": "tyokeskus.kierratys@turku.fi",
             "phone_number": "+358 40 531 8689",
         }

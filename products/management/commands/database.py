@@ -248,11 +248,7 @@ def products():
             for picture_address in pictures
             if picture_address != None
         ]
-        # for color in Color.objects.all():
-        #     print(color.name)
-        # for color in json.loads(product["color"]):
-        #     if color != None:
-        #         print(color)
+
         color_objects = [
             Color.objects.get(name=color_name).id
             for color_name in json.loads(product["color"])

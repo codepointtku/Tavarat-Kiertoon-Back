@@ -259,7 +259,7 @@ def create_users(mode):
     for group in Group.objects.all():
         group.user_set.add(super)
     if mode == "giga":
-        for i in range(10,1011):
+        for i in range(10, 1011):
             user = CustomUser.objects.create_user(
                 first_name=f"first_name{i}",
                 last_name=f"last_name{i}",
@@ -707,9 +707,7 @@ def create_products_and_product_items(mode):
                     measurements="",
                 )
                 product_object.save()
-                for _ in range(1,
-                    random.randint(2,8)
-                ):
+                for _ in range(1, random.randint(2, 8)):
                     product_item = ProductItem.objects.create(
                         product=product_object,
                         available=random.choice(true_false),
@@ -785,7 +783,7 @@ def create_shopping_carts():
                 product_item.save()
 
 
-def create_orders():
+def create_orders(mode):
     users = CustomUser.objects.filter(is_admin=False)
     statuses = ["Waiting", "Processing", "Finished"]
     order_infos = [
@@ -821,29 +819,53 @@ def create_orders():
         "Tilauksessa on asioita joita haluan kertoa teille "
         "Tällä tekstillä kerron mitä ne asiat joita haluan kertoa on",
     ]
-    for user in users:
-        order_obj = Order(
-            user=user,
-            status=random.choice(statuses),
-            delivery_address=random.choice(
-                UserAddress.objects.filter(user=user)
-            ).address,
-            recipient=user.first_name + " " + user.last_name,
-            order_info=random.choice(order_infos),
-            delivery_date=datetime.now(tz=timezone.utc),
-            recipient_phone_number=user.phone_number,
-        )
-        order_obj.save()
-    for order in Order.objects.all():
-        product_items = [
-            product_item.id
-            for product_item in ProductItem.objects.filter(available=True)
-        ]
-        order.product_items.set(random.sample(product_items, random.randint(1, 6)))
-        for product_item in order.product_items.all():
-            product_item.available = False
-            product_item.status = "Unavailable"
-            product_item.save()
+    if mode == "giga":
+        for i in range(10):
+            for user in users:
+                order_obj = Order(
+                    user=user,
+                    status=random.choice(statuses),
+                    delivery_address=random.choice(
+                        UserAddress.objects.filter(user=user)
+                    ).address,
+                    recipient=user.first_name + " " + user.last_name,
+                    order_info=random.choice(order_infos),
+                    delivery_date=datetime.now(tz=timezone.utc),
+                    recipient_phone_number=user.phone_number,
+                )
+                order_obj.save()
+            for order in Order.objects.all():
+                product_items = [
+                    product_item.id
+                    for product_item in ProductItem.objects.filter(available=True)
+                ]
+                order.product_items.set(
+                    random.sample(product_items, random.randint(1, 6))
+                )
+    else:
+        for user in users:
+            order_obj = Order(
+                user=user,
+                status=random.choice(statuses),
+                delivery_address=random.choice(
+                    UserAddress.objects.filter(user=user)
+                ).address,
+                recipient=user.first_name + " " + user.last_name,
+                order_info=random.choice(order_infos),
+                delivery_date=datetime.now(tz=timezone.utc),
+                recipient_phone_number=user.phone_number,
+            )
+            order_obj.save()
+        for order in Order.objects.all():
+            product_items = [
+                product_item.id
+                for product_item in ProductItem.objects.filter(available=True)
+            ]
+            order.product_items.set(random.sample(product_items, random.randint(1, 6)))
+            for product_item in order.product_items.all():
+                product_item.available = False
+                product_item.status = "Unavailable"
+                product_item.save()
 
 
 def create_bulletins():
@@ -1019,7 +1041,7 @@ def run_seed(self, mode):
         create_picture()
     create_products_and_product_items(mode)
     create_shopping_carts()
-    create_orders()
+    create_orders(mode)
     create_bulletins()
     create_contacts()
     create_bike_brands()

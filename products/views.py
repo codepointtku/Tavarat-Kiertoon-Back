@@ -371,7 +371,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
             log_created = False
             prev_data = ProductItem.objects.filter(product=instance.id).first()
             if "storage" in request.data:
-                if int(prev_data.storage.id) != int(request.data["storage"]) and log_created == False:
+                if prev_data.storage.id != int(request.data["storage"]) and log_created == False:
                     log_entry = ProductItemLogEntry.objects.create(
                         action=ProductItemLogEntry.ActionChoices.MODIFY, user=request.user
                     )
@@ -722,6 +722,11 @@ class ShoppingCartAvailableAmountList(APIView):
         return Response(returnserializer.data)
 
 
+@extend_schema_view(
+    post=extend_schema(
+        responses=None,
+    ),
+)
 class ReturnProductItemsView(generics.ListCreateAPIView):
     """View for returning product items back to circulation(available)"""
 
@@ -778,6 +783,11 @@ class ReturnProductItemsView(generics.ListCreateAPIView):
         return Response("items returned successfully")
 
 
+@extend_schema_view(
+    post=extend_schema(
+        responses=None,
+    ),
+)
 class AddProductItemsView(generics.ListCreateAPIView):
     """View for adding product items to an existing product"""
 
@@ -802,15 +812,8 @@ class AddProductItemsView(generics.ListCreateAPIView):
             product = Product.objects.get(id=kwargs["pk"])
         except:
             return Response(status=status.HTTP_204_NO_CONTENT)
-        item = ProductItem.objects.filter(product=product).first()
-        response = [{
-            "product": product.id,
-            "item": item.id,
-            "storage": item.storage.id,
-            "barcode": item.barcode,
-        }]
 
-        return Response(response)
+        return Response(status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
         try: 
@@ -828,6 +831,7 @@ class AddProductItemsView(generics.ListCreateAPIView):
                 modified_date=timezone.now(),
                 storage=item.storage,
                 barcode=str(item.barcode),
+                shelf_id=str(item.shelf_id),
             )
             product_item.log_entries.add(log_entry)
 
@@ -835,3 +839,59 @@ class AddProductItemsView(generics.ListCreateAPIView):
         check_product_watch(product)
 
         return Response("items created successfully")
+
+
+@extend_schema_view(
+    post=extend_schema(
+        responses=None,
+    ),
+)
+class RetireProductItemsView(generics.ListCreateAPIView):
+    """View for retiring product items from circulation"""
+
+    queryset = Product.objects.none()
+    serializer_class = ReturnAddProductItemsSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group", "user_group"],
+        "POST": ["storage_group", "user_group"],
+    }
+
+    def get(self, request, *args, **kwargs):
+        try:
+            product = Product.objects.get(id=kwargs["pk"])
+        except:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        amount = ProductItem.objects.filter(
+            product=product, status="Unavailable"
+        ).count()
+        response = [{"amount": amount}]
+
+        return Response(response)
+
+    def post(self, request, *args, **kwargs):
+        try: 
+            amount = int(request.data["amount"])
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        product = Product.objects.get(id=kwargs["pk"])
+        product_itemset = ProductItem.objects.filter(
+            product=product, status="Unavailable"
+        )[: amount]
+        log_entry = ProductItemLogEntry.objects.create(
+            action=ProductItemLogEntry.ActionChoices.RETIRED, user=request.user
+        )
+        for product_item in product_itemset:
+            product_item.available = False
+            product_item.status = "Retired"
+            product_item.log_entries.add(log_entry)
+            product_item.save()
+        return Response("items retired successfully")

@@ -60,7 +60,7 @@ class ProductSerializer(serializers.ModelSerializer):
         return product_amount
 
     def get_total_amount(self, obj) -> int:
-        total_product_amount = ProductItem.objects.filter(product=obj.id).exclude(status="Retired").count()
+        total_product_amount = ProductItem.objects.filter(product=obj.id).count()
         return total_product_amount
 
 
@@ -81,11 +81,11 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         return product_amount
 
     def get_total_amount(self, obj) -> int:
-        total_product_amount = ProductItem.objects.filter(product=obj.id).exclude(status="Retired").count()
+        total_product_amount = ProductItem.objects.filter(product=obj.id).count()
         return total_product_amount
 
     def get_product_items(self, obj):
-        qs = obj.productitem_set.exclude(status="Retired")
+        qs = obj.productitem_set.all()
         serializer = ProductItemStorageSerializer(qs, read_only=True, many=True)
         return serializer.data
 
@@ -279,7 +279,7 @@ class ProductDetailResponseSerializer(ProductSerializer):
         }
 
     def get_product_items(self, obj):
-        return obj.productitem_set.exclude(status="Retired")
+        return obj.productitem_set.all()
 
 
 class ProductStorageSerializer(serializers.ModelSerializer):
@@ -291,7 +291,7 @@ class ProductStorageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_product_items(self, obj):
-        qs = obj.productitem_set.exclude(status="Retired")
+        qs = obj.productitem_set.all()
         serializer = ProductItemStorageSerializer(qs, read_only=True, many=True)
         return serializer.data
 
@@ -316,7 +316,7 @@ class ProductStorageResponseSerializer(serializers.ModelSerializer):
         }
 
     def get_product_items(self, obj):
-        return obj.productitem_set.exclude(status="Retired")
+        return obj.productitem_set.all()
 
 
 class ProductItemResponseSerializer(serializers.ModelSerializer):

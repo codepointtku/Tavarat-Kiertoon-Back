@@ -89,7 +89,7 @@ class ProductItemLogEntry(models.Model):
         ORDER_REMOVE = "Removed from order"  # Done
         CIRCULATION = "Came back to circulation"  # Done
         MODIFY = "Modified at storage"  # Done
-        RETIRED = "Permanently removed from circulation"
+        GIFT = "Gifted away"
 
     id = models.BigAutoField(primary_key=True)
     date = models.DateTimeField(auto_now_add=True)

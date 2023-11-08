@@ -904,7 +904,6 @@ def create_bikes():
             size=BikeSize.objects.get(name=bike["size"]),
             brand=random.choice(brands),
             type=random.choice(types),
-            color=random.choice(colors),
             picture=random.choice(pictures),
         )
         bike_object.save()

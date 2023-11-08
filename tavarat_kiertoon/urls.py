@@ -19,11 +19,6 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView,
-)
 
 from bulletins.views import BulletinDetailView, BulletinListView
 from categories.views import CategoryDetailView, CategoryListView, CategoryTreeView
@@ -43,6 +38,7 @@ from orders.views import (
     ShoppingCartListView,
 )
 from products.views import (
+    AddProductItemsView,
     ColorDetailView,
     ColorListView,
     PictureDetailView,
@@ -51,7 +47,9 @@ from products.views import (
     ProductItemDetailView,
     ProductItemListView,
     ProductListView,
+    ProductStorageListView,
     ProductStorageTransferView,
+    ReturnProductItemsView,
     ShoppingCartAvailableAmountList,
     StorageDetailView,
     StorageListView,
@@ -64,8 +62,8 @@ from users.views import (
     UserActivationView,
     UserAddressAdminCreateView,
     UserAddressAdminEditView,
-    UserAddressEditDeleteView,
-    UserAddressEditView,
+    UserAddressDetailView,
+    UserAddressListView,
     UserCreateListView,
     UserDetailsListView,
     UserEmailChangeFinishView,
@@ -83,6 +81,7 @@ from users.views import (
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("storages/", StorageListView.as_view()),
+    path("storages/products/", ProductStorageListView.as_view()),
     path("storages/<int:pk>/", StorageDetailView.as_view()),
     path("pictures/", PictureListView.as_view()),
     path("pictures/<int:pk>/", PictureDetailView.as_view()),
@@ -99,7 +98,9 @@ urlpatterns = [
     path("products/", ProductListView.as_view()),
     path("products/<int:pk>/", ProductDetailView.as_view()),
     path("products/items/", ProductItemListView.as_view()),
-    path("products/items/<int:pk>", ProductItemDetailView.as_view()),
+    path("products/items/<int:pk>/", ProductItemDetailView.as_view()),
+    path("products/<int:pk>/return/", ReturnProductItemsView.as_view()),
+    path("products/<int:pk>/add/", AddProductItemsView.as_view()),
     path("products/transfer/", ProductStorageTransferView.as_view()),
     path("contact_forms/", ContactFormListView.as_view()),
     path("contact_forms/<int:pk>/", ContactFormDetailView.as_view()),
@@ -107,15 +108,15 @@ urlpatterns = [
     path("categories/<int:pk>/", CategoryDetailView.as_view()),
     path("categories/tree/", CategoryTreeView.as_view()),
     path("bulletins/", BulletinListView.as_view()),
-    path("bulletins/<int:pk>", BulletinDetailView.as_view()),
+    path("bulletins/<int:pk>/", BulletinDetailView.as_view()),
     path("bikes/", include("bikes.urls")),
     path("contacts/", ContactListView.as_view()),
     path("contacts/<int:pk>", ContactDetailView.as_view()),
     path("api-auth/", include("rest_framework.urls")),
     path("users/", UserDetailsListView.as_view()),
     path("user/", UserUpdateInfoView.as_view()),
-    path("user/address/edit/", UserAddressEditView.as_view()),
-    path("user/address/edit/<int:pk>/", UserAddressEditDeleteView.as_view()),
+    path("user/address/", UserAddressListView.as_view()),
+    path("user/address/<int:pk>/", UserAddressDetailView.as_view()),
     path("user/searchwatch/", SearchWatchListView.as_view()),
     path("user/searchwatch/<int:pk>/", SearchWatchDetailView.as_view()),
     path("users/create/", UserCreateListView.as_view()),

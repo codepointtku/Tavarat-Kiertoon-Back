@@ -359,373 +359,311 @@ def create_products_and_product_items():
         {
             "name": "Toimistotuoli 1",
             "free_description": "Istumakorkeuden säätö, selkänojan säätö",
-            "barcode": "1234",
             "category": "Toimistotuolit",
         },
         {
             "name": "Toimistotuoli 2",
             "free_description": "Istumakorkeuden säätö, selkänojan säätö",
-            "barcode": "1234",
             "category": "Toimistotuolit",
         },
         {
             "name": "Wau toimistotuoli",
             "free_description": "Istumakorkeuden, selkänojan, ja käsinojien säädöt",
-            "barcode": "1234",
             "category": "Toimistotuolit",
         },
         {
             "name": "Eisveikee jakkara",
             "free_description": "Savolaista designia",
-            "barcode": "1234",
             "category": "Jakkarat",
         },
         {
             "name": "Simmone jakkara",
             "free_description": "Turkulaista käsityötä",
-            "barcode": "1234",
             "category": "Jakkarat",
         },
         {
             "name": "Kui jakkara",
             "free_description": "Aurajoesta poimittu jakkara",
-            "barcode": "1234",
             "category": "Jakkarat",
         },
         {
             "name": "Painava jakkara",
             "free_description": "Tammilevy, valurauta jalat",
-            "barcode": "1234",
             "category": "Jakkarat",
         },
         {
             "name": "Rehtorin palli",
             "free_description": "Luotettava, mukava istua",
-            "barcode": "1234",
             "category": "Pallit",
         },
         {
             "name": "Punainen palli",
             "free_description": "Selkänojaton ja käsinojaton tuolimalli",
-            "barcode": "1234",
             "category": "Pallit",
         },
         {
             "name": "Sisustus palli",
             "free_description": "Mitat: 33cm * 33cm, korkeus 40cm",
-            "barcode": "1234",
             "category": "Pallit",
         },
         {
             "name": "Pehmeä nojatuoli",
             "free_description": "On muute mukava istua, herra siunaa",
-            "barcode": "1234",
             "category": "Nojatuolit",
         },
         {
             "name": "Rentoutumis nojatuoli",
             "free_description": "Tähän voisi vaikka nukahtaa.",
-            "barcode": "1234",
             "category": "Nojatuolit",
         },
         {
             "name": "Design nojatuoli",
             "free_description": "Fartek tuoli 50-luvulta, kolmannessa puurimassa pieni halkeama",
-            "barcode": "1234",
             "category": "Nojatuolit",
         },
         {
             "name": "Kiikkutuoli",
             "free_description": "Ihan jees, hyvä tuoli vauvan sylittelyyn ja nukuttamiseen, mukava kiikkusäde",
-            "barcode": "1234",
             "category": "Nojatuolit",
         },
         {
             "name": "Yöpöytä 1",
             "free_description": "Jee",
-            "barcode": "1234",
             "category": "Yöpöydät",
         },
         {
             "name": "Yöpöytä 2",
             "free_description": "Jee jee",
-            "barcode": "1234",
             "category": "Yöpöydät",
         },
         {
             "name": "Pöytä",
             "free_description": "Tämä on pöytä. Sen päälle voi laskea asioita, ja siihen voi nojata.",
-            "barcode": "1234",
             "category": "Päiväpöydät",
         },
         {
             "name": "Iso työpöytä",
             "free_description": "Nii iso pöytä ettei se mahdu farmariautoon. Helkkari hyvä toimistohommiin.",
-            "barcode": "1234",
             "category": "Päiväpöydät",
         },
         {
             "name": "Massiivinen ruokapöytä",
             "free_description": "Tämän pöydän ääreen mahtuu koko kylä aterioimaan.",
-            "barcode": "1234",
             "category": "Ruokapöydät",
         },
         {
             "name": "Rekursiivinen ruokapöytä",
             "free_description": "Pöytä pöytä pöytä pöytä pöytä pöytä.....",
-            "barcode": "1234",
             "category": "Ruokapöydät",
         },
         {
             "name": "Resessiivinen ruokapöytä",
             "free_description": "Perinnöllisyystieteessä resessiivinen eli väistyvä ominaisuus tulee näkyviin yksilön ilmiasussa eli fenotyypissä vain, mikäli ominaisuuden aiheuttava alleeli on periytynyt yksilölle homotsygoottina eli samaperintäisenä. Jos genotyyppi on lokuksen suhteen heterotsygootti eli eriperintäinen, dominoiva alleeli määrää ilmiasun ja resessiivisellä alleelilla ei ole vaikutusta. Tämän vuoksi resessiivinen alleeli voi periytyä monen sukupolven yli ilman, että se tulee näkyviin ilmiasussa. ",
-            "barcode": "1234",
             "category": "Ruokapöydät",
         },
         {
             "name": "Sopivan kokoinen ruoka pöytä",
             "free_description": "Sopiva pöytä esimerkiksi päiväkotiin tai ala-asteelle, missä opetellaan yhdyssanoja.",
-            "barcode": "1234",
             "category": "Ruokapöydät",
         },
         {
             "name": "Soffan kaveri",
             "free_description": "Helppokäyttöinen, sekä aivan passeli viinilasille ja feta-lautaselle.",
-            "barcode": "1234",
             "category": "Sohvapöydät",
         },
         {
             "name": "Outo sohvapöytä",
             "free_description": "Vaikeaselkoinen, epämääräinen, ja hassun muotoinen, kuten isoäitinikin oli.",
-            "barcode": "1234",
             "category": "Sohvapöydät",
         },
         {
             "name": "Päällikkö sohvapöytä",
             "free_description": "Jämpti vehje.",
-            "barcode": "1234",
             "category": "Sohvapöydät",
         },
         {
             "name": "Avulias sivupöytä",
             "free_description": "Ystävällinen ja kätevä pöytä. Aina paikalla.",
-            "barcode": "1234",
             "category": "Apupöydät",
         },
         {
             "name": "Abupöytä",
             "free_description": "Aladdinin apinan innoittama pöydänkäppänä. Vekkuli laite.",
-            "barcode": "1234",
             "category": "Apupöydät",
         },
         {
             "name": "Sivupöytä",
             "free_description": "Pyörillä varustettu, säädettävä korkeus",
-            "barcode": "1234",
             "category": "Apupöydät",
         },
         {
             "name": "Kolmen istuttava sohva",
             "free_description": "Käynnistyy myös kylmällä + iskarit vaihdettu viime vuonna",
-            "barcode": "1234",
             "category": "Normaalit",
         },
         {
             "name": "Perus sohva",
             "free_description": "Klassikko muotoilu. Perusvarma. Hyvä istua.",
-            "barcode": "1234",
             "category": "Normaalit",
         },
         {
             "name": "Divaani",
             "free_description": "Kulmasohva tummansininen. Syyläri räkii ja pakari pitäis hitsata, muute ok",
-            "barcode": "1234",
             "category": "Erikois",
         },
         {
             "name": "Kova sohva",
             "free_description": "Kuin kirkonpenkki.",
-            "barcode": "1234",
             "category": "Erikois",
         },
         {
             "name": "Makuualustoja",
             "free_description": "Hyvät esimerkiksi päiväkodin nukkariin. 15kpl 6cm paksuja vaahtomuovialustoja",
-            "barcode": "1234",
             "category": "Erikois",
         },
         {
             "name": "80cm sänky",
             "free_description": "Leveys 80cm",
-            "barcode": "1234",
             "category": "Erikois",
         },
         {
             "name": "Jenkkisänky",
             "free_description": "Ei nitise.",
-            "barcode": "1234",
             "category": "Erikois",
         },
         {
             "name": "Rulokaappi",
             "free_description": "Alle 18000km ajettu, ilmanputsari vaihdettu. Kuskinpuoleinen ikkuna ei aukene, pelkääjänpuoleinen ovi jäätyy umpeen talvisin. Suht uudet kitkarenkaat.",
-            "barcode": "1234",
             "category": "Arkistokaapit",
         },
         {
             "name": "Tulokaappi",
             "free_description": "Palkkakuitit ja shekit tulevat tänne",
-            "barcode": "1234",
             "category": "Säilytyskaapit",
         },
         {
             "name": "Kulokaappi",
             "free_description": "Kuivassa ruohikossa tai metsän pintakasvillisuudessa tai myös puiden latvuksissa leviävä tuli, kulovalkea, metsäpalo.",
-            "barcode": "1234",
             "category": "Säilytyskaapit",
         },
         {
             "name": "Mul o kaappi",
             "free_description": "On, on!",
-            "barcode": "1234",
             "category": "Säilytyskaapit",
         },
         {
             "name": "Sul o kaappi",
             "free_description": "ON!",
-            "barcode": "1234",
             "category": "Säilytyskaapit",
         },
         {
             "name": "Hyllylevy",
             "free_description": "1 metri levee, joku 30cm syvä. Ei kannakkeita",
-            "barcode": "1234",
             "category": "Hyllyt",
         },
         {
             "name": "Vichy-pullo",
             "free_description": "Tyhjä",
-            "barcode": "1237",
             "category": "Keittiö",
         },
         {
             "name": "Nyssykkä",
             "free_description": "Tää on hyvä",
-            "barcode": "1237",
             "category": "Keittiö",
         },
         {
             "name": "Sähkövatkain",
             "free_description": "Semmone",
-            "barcode": "1237",
             "category": "Keittiö",
         },
         {
             "name": "Mikro",
             "free_description": "Juuri huollettu, Täysi huoltohistoria, jakoremmi vaihdettu 12000km sitten",
-            "barcode": "1237",
             "category": "Keittiö",
         },
         {
             "name": "Mikroaaltouuni",
             "free_description": "Pinttyneitä pastakastikkeen jämiä, mutta toimii täysin. Ei syö paljoa öljyä.",
-            "barcode": "1237",
             "category": "Keittiö",
         },
         {
             "name": "Minijääkaappi",
             "free_description": "Erään koulun edesmenneen talonmiehen minijäkis tarjolla. Vetää 6packin helposti, 1.5l vissypullo mahtuu pystyyn. Sähkönkulutus B-",
-            "barcode": "1237",
             "category": "Keittiö",
         },
         {
             "name": "Leivänpaahdin",
             "free_description": "Lämmittää mukavasti. Säädettävä paahtoaika.",
-            "barcode": "1237",
             "category": "Keittiö",
         },
         {
             "name": "Kahvinkeitin",
             "free_description": "Alalemun koulu osti opehuoneeseen uuden mokkamasterin, tää wanha jäi ylimääräseks",
-            "barcode": "1238",
             "category": "Keittiö",
         },
         {
             "name": "Keitin kahvin",
             "free_description": "Vain yhden. Olisikko sääki halunnu?",
-            "barcode": "1238",
             "category": "Keittiö",
         },
         {
             "name": "Akkuporakone",
             "free_description": "Tällä voi porata reikiä.",
-            "barcode": "1238",
             "category": "Viihde-elektroniikka",
         },
         {
             "name": "Ruuvinväännin",
             "free_description": "Vasara-ominaisuudella varustettu",
-            "barcode": "1238",
             "category": "Viihde-elektroniikka",
         },
         {
             "name": "Piikkausvasara",
             "free_description": "TRRRRRRRrr",
-            "barcode": "1238",
             "category": "Viihde-elektroniikka",
         },
         {
             "name": "Lehtipuhallin",
             "free_description": "Se laite mikä herättää sinut päiväunilta vapaapäivänäsi",
-            "barcode": "1238",
             "category": "Viihde-elektroniikka",
         },
         {
             "name": "Piirtoheitin",
             "free_description": "Wanha kunno piirto heiti",
-            "barcode": "1238",
             "category": "Oheislaitteet",
         },
         {
             "name": "Kasa johtoja",
             "free_description": "Erilaisia kaapeleita SCART USB HDMI kaikkee..",
-            "barcode": "1238",
             "category": "Oheislaitteet",
         },
         {
             "name": "Videotykki",
             "free_description": "Ok",
-            "barcode": "1238",
             "category": "Oheislaitteet",
         },
         {
             "name": "Videokangas",
             "free_description": "Ok",
-            "barcode": "1238",
             "category": "Oheislaitteet",
         },
         {
             "name": "Pöytätietokone",
             "free_description": "Benttium i19, ati-radeon viistonnine, 18 gigaa ram, ladan virtalähde, 256mb kiintolevy",
-            "barcode": "1238",
             "category": "Viihde-elektroniikka",
         },
         {
             "name": "Lihasvasara",
             "free_description": "Nopeus 220 bpm",
-            "barcode": "1238",
             "category": "Viihde-elektroniikka",
         },
         {
             "name": "Paperikansio",
             "free_description": "Hyvä kansio ja klemmarit päälle",
-            "barcode": "1238",
             "category": "Sekalaiset",
         },
         {
             "name": "Niittijuttukone",
             "free_description": "Se mil voi niitata paperei yhteen",
-            "barcode": "1238",
             "category": "Sekalaiset",
         },
     ]
@@ -737,9 +675,10 @@ def create_products_and_product_items():
         action=ProductItemLogEntry.ActionChoices.CREATE,
         user=CustomUser.objects.get(username="super"),
     )
+    barcode = 1234
     for product in products:
         storage = random.choice(storages)
-        barcode = product["barcode"]
+        barcode += 1
         product_object = Product(
             name=product["name"],
             free_description=product["free_description"],
@@ -757,7 +696,7 @@ def create_products_and_product_items():
                 available=random.choice(true_false),
                 modified_date=timezone.now(),
                 storage=storage,
-                barcode=barcode,
+                barcode=str(barcode),
             )
             product_item.log_entries.add(log_entry)
     queryset = Product.objects.all()
@@ -793,11 +732,13 @@ def create_shopping_carts():
             cart.product_items.set(random.sample(product_items, 5))
             for product_item in cart.product_items.all():
                 product_item.available = False
+                product_item.status = "In cart"
                 product_item.save()
         else:
             cart.product_items.set(random.sample(product_items, random.randint(1, 6)))
             for product_item in cart.product_items.all():
                 product_item.available = False
+                product_item.status = "In cart"
                 product_item.save()
 
 
@@ -844,14 +785,22 @@ def create_orders():
             delivery_address=random.choice(
                 UserAddress.objects.filter(user=user)
             ).address,
-            contact=user.email,
+            recipient=user.first_name + " " + user.last_name,
             order_info=random.choice(order_infos),
             delivery_date=datetime.now(tz=timezone.utc),
-            phone_number=user.phone_number,
+            recipient_phone_number=user.phone_number,
         )
         order_obj.save()
-        for product_id in ShoppingCart.objects.get(user=user).product_items.all():
-            order_obj.product_items.add(product_id)
+    for order in Order.objects.all():
+        product_items = [
+            product_item.id
+            for product_item in ProductItem.objects.filter(available=True)
+        ]
+        order.product_items.set(random.sample(product_items, random.randint(1, 6)))
+        for product_item in order.product_items.all():
+            product_item.available = False
+            product_item.status = "Unavailable"
+            product_item.save()
 
 
 def create_bulletins():

@@ -28,7 +28,7 @@ from rest_framework_simplejwt.views import TokenViewBase
 from orders.models import ShoppingCart
 
 from .authenticate import CustomJWTAuthentication
-from .custom_functions import cookie_setter
+from .custom_functions import cookie_setter, get_tokens_for_user
 from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 from .permissions import HasGroupPermission
 from .serializers import (
@@ -63,14 +63,6 @@ from .serializers import (
 User = get_user_model()
 
 
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-    return {
-        "refresh": str(refresh),
-        "access": str(refresh.access_token),
-    }
-
-
 # Create your views here.
 
 
@@ -81,7 +73,6 @@ class UserCreateListView(APIView):
     if no username = normal user and email address gets copied to username and will be used to login
     """
 
-    # queryset = CustomUser.objects.all()
     serializer_class = UserCreateSerializer
 
     @extend_schema(responses=UserCreateReturnResponseSchemaSerializer)
@@ -93,16 +84,6 @@ class UserCreateListView(APIView):
         serialized_values = UserCreateSerializer(data=request.data)
 
         if serialized_values.is_valid():
-            # temporaty creating the user and admin groups here, for testing, this should be run first somewhere else
-            if not Group.objects.filter(name="user_group").exists():
-                Group.objects.create(name="user_group")
-            if not Group.objects.filter(name="admin_group").exists():
-                Group.objects.create(name="admin_group")
-            if not Group.objects.filter(name="storage_group").exists():
-                Group.objects.create(name="storage_group")
-            if not Group.objects.filter(name="bicycle_group").exists():
-                Group.objects.create(name="bicycle_group")
-
             # actually creating the user
             user = User.objects.create_user(
                 first_name=serialized_values["first_name"].value,
@@ -115,9 +96,12 @@ class UserCreateListView(APIView):
                 city=serialized_values["city"].value,
                 username=serialized_values["username"].value,
             )
+
+            # creating the users shopping cart
             cart_obj = ShoppingCart(user=user)
             cart_obj.save()
 
+            # creation log
             UserLogEntry.objects.create(
                 action=UserLogEntry.ActionChoices.CREATED,
                 target=user,
@@ -125,8 +109,10 @@ class UserCreateListView(APIView):
             )
 
             # create email verification for user creation
+            # skipping the need to click user activation email link
+            # setting is in different debug value than generic setings.debug for the ease of testing, remember to change .env value when needed
             if settings.TEST_DEBUG:  # settings.DEBUG:
-                # print("debug päällä, activating user without email")
+                # print("debug päällä, activating user without sending email")
                 activate_url_back = (
                     "debug on, user auto activated no need to visit activation place"
                 )
@@ -368,13 +354,13 @@ class UserDetailsListView(generics.ListAPIView):
     filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
 
     ordering_fields = ["id", "is_active", "creation_date", "last_login"]
-    ordering = ["id"]
+    ordering = ["-id"]
     filterset_class = UserFilter
 
     required_groups = {
-        "GET": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
         # "POST": ["admin_group"],
-        "PUT": ["admin_group"],
+        "PUT": ["admin_group", "user_group"],
     }
 
     queryset = CustomUser.objects.all()
@@ -401,10 +387,10 @@ class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
+        "POST": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
     }
 
     serializer_class = UserUpdateSerializer
@@ -458,8 +444,8 @@ class GroupListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["__all__"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
+        "POST": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
     }
 
     queryset = Group.objects.all()
@@ -486,9 +472,9 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
     }
 
     queryset = User.objects.all()
@@ -500,7 +486,13 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                 "admins cannot edit their own permissions",
                 status=status.HTTP_403_FORBIDDEN,
             )
-
+        if "admin_group" in [
+            group.name
+            for group in [
+                Group.objects.get(id=group_id) for group_id in request.data["groups"]
+            ]
+        ]:
+            request.data["groups"] = [group.id for group in Group.objects.all()]
         temp = self.update(request, *args, **kwargs)
 
         UserLogEntry.objects.create(
@@ -576,9 +568,9 @@ class UserUpdateInfoView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UserAddressEditView(APIView, ListModelMixin):
+class UserAddressListView(generics.ListCreateAPIView):
     """
-    Get list of all addresss logged in user has, and edit them
+    List of addresses belonging to the user who made the request.
     """
 
     authentication_classes = [
@@ -592,8 +584,6 @@ class UserAddressEditView(APIView, ListModelMixin):
     required_groups = {
         "GET": ["user_group"],
         "POST": ["user_group"],
-        "PUT": ["user_group"],
-        "PATCH": ["user_group"],
     }
 
     serializer_class = UserAddressSerializer
@@ -619,27 +609,58 @@ class UserAddressEditView(APIView, ListModelMixin):
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # used for updating existing address user has
-    @extend_schema(request=UserAddressPutRequestSerializer)
-    def put(self, request, format=None):
-        if "id" not in request.data:
-            msg = "no address id for adress updating"
-            return Response(msg, status=status.HTTP_204_NO_CONTENT)
 
-        copy_of_request = request.data.copy()
-        address1 = UserAddress.objects.get(id=copy_of_request["id"])
+@extend_schema_view(
+    put=extend_schema(
+        request=UserAddressPutRequestSerializer(),
+    ),
+    patch=extend_schema(exclude=True),
+)
+class UserAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Delete or Update an address. address needs to match logged in user id as owner.
+    """
 
-        # checking that only users themselves can change their own adressess
-        if address1.user.id != request.user.id:
-            msg = "address owner and loggerdin user need to match"
-            return Response(msg, status=status.HTTP_204_NO_CONTENT)
+    authentication_classes = [
+        CustomJWTAuthentication,
+    ]
 
-        copy_of_request["user"] = str(request.user.id)
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["user_group"],
+        "PUT": ["user_group"],
+        "PATCH": ["user_group"],
+        "DELETE": ["user_group"],
+    }
 
-        serializer = self.serializer_class(address1, data=copy_of_request, partial=True)
+    queryset = UserAddress.objects.all()
+    serializer_class = UserAddressSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if instance.user.id != request.user.id:
+            return Response(
+                "address owner and logged in user need to match",
+                status=status.HTTP_204_NO_CONTENT,
+            )
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # users can only delete their own addresses
+        if instance.user.id != request.user.id:
+            return Response(
+                "address owner and logged in user need to match",
+                status=status.HTTP_204_NO_CONTENT,
+            )
+
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        self.perform_update(serializer)
 
         UserLogEntry.objects.create(
             action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO,
@@ -649,45 +670,29 @@ class UserAddressEditView(APIView, ListModelMixin):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
-class UserAddressEditDeleteView(APIView):
-    """
-    Delete the specific address given in kwargs. address needs to match logged in user id as owner
-    """
-
-    authentication_classes = [
-        CustomJWTAuthentication,
-    ]
-
-    permission_classes = [IsAuthenticated, HasGroupPermission]
-    required_groups = {
-        "DELETE": ["user_group"],
-    }
-
-    serializer_class = None
-
     def delete(self, request, *args, **kwargs):
         to_be_deleted_id = kwargs["pk"]
 
         address = UserAddress.objects.get(id=to_be_deleted_id)
 
-        if request.user.id == address.user.id:
-            address_msg = address.address + " " + address.zip_code + " " + address.city
-            address.delete()
-
-            UserLogEntry.objects.create(
-                action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO_DELETE,
-                target=request.user,
-                user_who_did_this_action=request.user,
-            )
-
+        if request.user.id != address.user.id:
             return Response(
-                f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
+                "address owner and logged in user need to match",
+                status=status.HTTP_403_FORBIDDEN,
             )
 
-        else:
-            # print("user didnt match the  owner of address")
-            return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
+        address_msg = address.address + " " + address.zip_code + " " + address.city
+        address.delete()
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.USER_ADDRESS_INFO_DELETE,
+            target=request.user,
+            user_who_did_this_action=request.user,
+        )
+
+        return Response(
+            f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
+        )
 
 
 @extend_schema_view(patch=extend_schema(exclude=True))
@@ -706,11 +711,11 @@ class UserAddressAdminEditView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["admin_group"],
-        "POST": ["admin_group"],
-        "PUT": ["admin_group"],
-        "PATCH": ["admin_group"],
-        "DELETE": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
+        "POST": ["admin_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
     }
 
     serializer_class = UserAddressSerializer
@@ -762,7 +767,7 @@ class UserAddressAdminCreateView(generics.CreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "POST": ["admin_group"],
+        "POST": ["admin_group", "user_group"],
     }
 
     serializer_class = UserAddressSerializer
@@ -1046,7 +1051,7 @@ class UserLogView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["admin_group"],
+        "GET": ["admin_group", "user_group"],
     }
 
     pagination_class = UserLogListPagination
@@ -1063,7 +1068,7 @@ class UserLogView(generics.ListAPIView):
 @extend_schema_view(post=extend_schema(request=SearchWatchRequestSerializer))
 class SearchWatchListView(APIView, ListModelMixin):
     """
-    Get list of all search wacthes user has, and edit them
+    Get list of all search watches user has, and edit them
     """
 
     authentication_classes = [

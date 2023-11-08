@@ -1,7 +1,13 @@
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import generics, status
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from users.authenticate import CustomJWTAuthentication
+from users.permissions import HasGroupPermission
 
 from .models import Category
 from .serializers import (
@@ -19,6 +25,18 @@ from .serializers import (
 class CategoryListView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "POST": ["admin_group", "user_group"],
+    }
 
     def post(self, request, *args, **kwargs):
         instance = request.data
@@ -47,6 +65,20 @@ class CategoryListView(generics.ListCreateAPIView):
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [HasGroupPermission]
+    required_groups = {
+        "PUT": ["admin_group", "user_group"],
+        "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
+    }
 
 
 class CategoryTreeView(APIView):

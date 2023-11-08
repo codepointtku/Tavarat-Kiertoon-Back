@@ -388,7 +388,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
                         action=ProductItemLogEntry.ActionChoices.MODIFY, user=request.user
                     )
                     log_created = True
-            for product_item in ProductItem.objects.filter(product=instance.id):
+            for product_item in ProductItem.objects.filter(product=instance.id).exclude(status="Retired"):
                 if "storage" in request.data:
                     product_item.storage = storage
                 if "shelf_id" in request.data:
@@ -892,6 +892,7 @@ class RetireProductItemsView(generics.ListCreateAPIView):
         for product_item in product_itemset:
             product_item.available = False
             product_item.status = "Retired"
+            product_item.storage = None
             product_item.log_entries.add(log_entry)
             product_item.save()
         return Response("items retired successfully")

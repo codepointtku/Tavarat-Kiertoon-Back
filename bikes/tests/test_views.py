@@ -73,7 +73,6 @@ class TestBikes(TestCase):
             size=cls.test_bikesize,
             brand=cls.test_bikebrand,
             type=cls.test_biketype,
-            color=cls.test_color,
             description="a nice, comfortable bike"
         )
 
@@ -82,7 +81,6 @@ class TestBikes(TestCase):
             size=cls.test_bikesize,
             brand=cls.test_bikebrand,
             type=cls.test_biketype,
-            color=cls.test_color,
             description="a nicer, more comfortable bike"
         )
 
@@ -290,7 +288,6 @@ class TestBikes(TestCase):
             "size": self.test_bikesize.id,
             "brand": self.test_bikebrand.id,
             "type": self.test_biketype.id,
-            "color": self.test_color.id,
             "description": "A very large bike",
             "pictures[]": {open(picture[0], "rb")},
         }

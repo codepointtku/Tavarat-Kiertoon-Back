@@ -49,7 +49,6 @@ class TestBikes(TestCase):
             size=cls.test_bikesize,
             brand=cls.test_bikebrand,
             type=cls.test_biketype,
-            color=cls.test_color,
             description="a nice, comfortable bike"
         )
 

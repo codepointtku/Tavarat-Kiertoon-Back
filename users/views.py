@@ -488,22 +488,24 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                 "admins cannot edit their own permissions",
                 status=status.HTTP_403_FORBIDDEN,
             )
-
+        user_instance = User.objects.get(id=kwargs["pk"])
         admin = Group.objects.get(name="admin_group")
         storage = Group.objects.get(name="storage_group")
         user = Group.objects.get(name="user_group")
 
         match request.data["group"]:
             case "admin_group":
-                request.data["groups"] = [
-                    admin.id,
-                    storage.id,
-                    user.id,
-                ]
+                user_instance.groups.add(admin)
+                user_instance.groups.add(storage)
+                user_instance.groups.add(user)
             case "storage_group":
-                request.data["groups"] = [storage.id, user.id]
+                user_instance.groups.remove(admin)
+                user_instance.groups.add(storage)
+                user_instance.groups.add(user)
             case "user_group":
-                request.data["groups"] = [user.id]
+                user_instance.groups.remove(admin)
+                user_instance.groups.remove(storage)
+                user_instance.groups.add(user)
 
         temp = self.update(request, *args, **kwargs)
 

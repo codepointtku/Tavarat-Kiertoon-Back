@@ -11,8 +11,15 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from PIL import Image, ImageOps
 
-from bikes.models import (Bike, BikeAmount, BikeBrand, BikePackage, BikeSize,
-                          BikeStock, BikeType)
+from bikes.models import (
+    Bike,
+    BikeAmount,
+    BikeBrand,
+    BikePackage,
+    BikeSize,
+    BikeStock,
+    BikeType,
+)
 from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
@@ -68,7 +75,13 @@ def clear_data(mode):
 
 def groups():
     """creates the user groups for permissions"""
-    groups = ["user_group", "admin_group", "storage_group", "bicycle_group", "bicycle_admin_group"]
+    groups = [
+        "user_group",
+        "admin_group",
+        "storage_group",
+        "bicycle_group",
+        "bicycle_admin_group",
+    ]
     for group in groups:
         Group.objects.create(name=group)
 
@@ -241,10 +254,10 @@ def products():
                     im = ImageOps.exif_transpose(im)
                     im.thumbnail((600, 600))
                     im.save(f"media/{picture.split('/')[-1]}")
-                Picture.objects.create(picture_address=picture.split('/')[-1])
+                Picture.objects.create(picture_address=picture.split("/")[-1])
 
         picture_objects = [
-            Picture.objects.get(picture_address=picture_address.split('/')[-1]).id
+            Picture.objects.get(picture_address=picture_address.split("/")[-1]).id
             for picture_address in pictures
             if picture_address != None
         ]

@@ -68,7 +68,7 @@ def clear_data(mode):
 
 def groups():
     """creates the user groups for permissions"""
-    groups = ["user_group", "admin_group", "storage_group", "bicycle_group"]
+    groups = ["user_group", "admin_group", "storage_group", "bicycle_group", "bicycle_admin_group"]
     for group in groups:
         Group.objects.create(name=group)
 

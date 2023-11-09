@@ -121,7 +121,7 @@ def create_colors():
 
 def create_groups():
     """creates the user groups used in project"""
-    groups = ["user_group", "admin_group", "storage_group", "bicycle_group"]
+    groups = ["user_group", "admin_group", "storage_group", "bicycle_group", "bicycle_admin_group"]
     for group in groups:
         group_object = Group(name=group)
         group_object.save()

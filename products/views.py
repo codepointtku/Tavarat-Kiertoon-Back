@@ -286,7 +286,7 @@ class ProductStorageListView(generics.ListAPIView):
             if is_in_group(self.request.user, "storage_group") or is_in_group(
                 self.request.user, "admin_group"
             ):
-                return Product.objects.all()
+                return Product.objects.all().distinct()
 
         # Hides Products that are not available
         available_products = available_products_filter()

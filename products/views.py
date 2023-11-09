@@ -366,26 +366,42 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
                 productdata.pictures.add(picture_id)
         response = ProductUpdateResponseSerializer(productdata)
 
-        if "storage" in request.data or "shelf_id" in request.data or "barcode" in request.data:
+        if (
+            "storage" in request.data
+            or "shelf_id" in request.data
+            or "barcode" in request.data
+        ):
             storage = Storage.objects.get(pk=int(request.data["storage"]))
             log_created = False
             prev_data = ProductItem.objects.filter(product=instance.id).first()
             if "storage" in request.data:
-                if prev_data.storage.id != int(request.data["storage"]) and log_created == False:
+                if (
+                    prev_data.storage.id != int(request.data["storage"])
+                    and log_created == False
+                ):
                     log_entry = ProductItemLogEntry.objects.create(
-                        action=ProductItemLogEntry.ActionChoices.MODIFY, user=request.user
+                        action=ProductItemLogEntry.ActionChoices.MODIFY,
+                        user=request.user,
                     )
                     log_created = True
             if "shelf_id" in request.data:
-                if prev_data.shelf_id != request.data["shelf_id"] and log_created == False:
+                if (
+                    prev_data.shelf_id != request.data["shelf_id"]
+                    and log_created == False
+                ):
                     log_entry = ProductItemLogEntry.objects.create(
-                        action=ProductItemLogEntry.ActionChoices.MODIFY, user=request.user
+                        action=ProductItemLogEntry.ActionChoices.MODIFY,
+                        user=request.user,
                     )
                     log_created = True
             if "barcode" in request.data:
-                if prev_data.barcode != request.data["barcode"] and log_created == False:
+                if (
+                    prev_data.barcode != request.data["barcode"]
+                    and log_created == False
+                ):
                     log_entry = ProductItemLogEntry.objects.create(
-                        action=ProductItemLogEntry.ActionChoices.MODIFY, user=request.user
+                        action=ProductItemLogEntry.ActionChoices.MODIFY,
+                        user=request.user,
                     )
                     log_created = True
             for product_item in ProductItem.objects.filter(product=instance.id):
@@ -766,7 +782,7 @@ class ReturnProductItemsView(generics.ListCreateAPIView):
         product = Product.objects.get(id=kwargs["pk"])
         product_itemset = ProductItem.objects.filter(
             product=product, status="Unavailable"
-        )[: amount]
+        )[:amount]
         log_entry = ProductItemLogEntry.objects.create(
             action=ProductItemLogEntry.ActionChoices.CIRCULATION, user=request.user
         )

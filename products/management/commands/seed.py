@@ -10,14 +10,27 @@ from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from bikes.models import (Bike, BikeAmount, BikeBrand, BikePackage, BikeSize,
-                          BikeStock, BikeType)
+from bikes.models import (
+    Bike,
+    BikeAmount,
+    BikeBrand,
+    BikePackage,
+    BikeSize,
+    BikeStock,
+    BikeType,
+)
 from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
 from orders.models import Order, OrderEmailRecipient, ShoppingCart
-from products.models import (Color, Picture, Product, ProductItem,
-                             ProductItemLogEntry, Storage)
+from products.models import (
+    Color,
+    Picture,
+    Product,
+    ProductItem,
+    ProductItemLogEntry,
+    Storage,
+)
 from users.models import CustomUser, UserAddress
 
 # python manage.py seed
@@ -721,7 +734,7 @@ def create_products_and_product_items(mode):
             ):
                 product_item = ProductItem.objects.create(
                     product=product_object,
-                    available=random.choice(true_false),
+                    available=True,
                     modified_date=timezone.now(),
                     storage=storage,
                     barcode=str(barcode),

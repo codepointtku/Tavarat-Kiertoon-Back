@@ -88,6 +88,8 @@ def groups():
 
 def super_user():
     super = CustomUser.objects.create_superuser(username="super", password="super")
+    super.group = "admin_group"
+    super.save()
     for group in Group.objects.all():
         group.user_set.add(super)
 
@@ -556,6 +558,7 @@ def create_users():
             "zip_code": "20100",
             "city": "Turku",
             "username": "billy.herrington@turku.fi",
+            "group": "user_group",
         },
         {
             "first_name": "Sami",
@@ -567,6 +570,7 @@ def create_users():
             "zip_code": "80085",
             "city": "Rauma",
             "username": "Samin mashausopisto",
+            "group": "user_group",
         },
         {
             "first_name": "Pekka",
@@ -578,6 +582,7 @@ def create_users():
             "zip_code": "22222",
             "city": "Lohja",
             "username": "pekka.python@turku.fi",
+            "group": "user_group",
         },
         {
             "first_name": "Pirjo",
@@ -589,6 +594,7 @@ def create_users():
             "zip_code": "22222",
             "city": "Lohja",
             "username": "pirjo.pythonen@turku.fi",
+            "group": "user_group",
         },
         {
             "first_name": "Jad",
@@ -600,6 +606,7 @@ def create_users():
             "zip_code": "Wave 63",
             "city": "Brimhaven",
             "username": "TzTok-Jad@turku.fi",
+            "group": "user_group",
         },
         {
             "first_name": "Kavhi",
@@ -611,6 +618,7 @@ def create_users():
             "zip_code": "20100",
             "city": "Turku",
             "username": "Kavhila",
+            "group": "user_group",
         },
     ]
 
@@ -625,6 +633,7 @@ def create_users():
             zip_code=user["zip_code"],
             city=user["city"],
             username=user["username"],
+            group=user["group"],
         )
         created_user.is_active = True
         created_user.save()

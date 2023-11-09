@@ -43,7 +43,6 @@ class Bike(models.Model):
         BikeBrand, null=True, blank=True, on_delete=models.SET_NULL
     )
     size = models.ForeignKey(BikeSize, null=True, blank=True, on_delete=models.SET_NULL)
-    color = models.ForeignKey(Color, null=True, blank=True, on_delete=models.SET_NULL)
     picture = models.ForeignKey(Picture, null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self) -> str:
@@ -71,7 +70,7 @@ class BikeStock(models.Model):
         default="AVAILABLE",
     )
     bike = models.ForeignKey(Bike, related_name="stock", on_delete=models.CASCADE)
-    storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
+    storage = models.ForeignKey(Storage, null=True, on_delete=models.SET_NULL)
 
     def __str__(self) -> str:
         return f"Bike stock: {self.number}({self.id})"

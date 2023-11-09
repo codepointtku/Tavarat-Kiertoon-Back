@@ -21,6 +21,7 @@ class CustomUserManager(BaseUserManager):
         zip_code,
         city,
         username,
+        group,
     ):
         """function for creating a user"""
         if not first_name:
@@ -49,6 +50,7 @@ class CustomUserManager(BaseUserManager):
             first_name=first_name.title(),
             last_name=last_name.title(),
             username=username,
+            group=group,
         )
 
         user.set_password(raw_password=password)
@@ -88,8 +90,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ADMIN = "admin_group"
         STORAGE = "storage_group"
         USER = "user_group"
-        BIKE_ADMIN = "bicycle_admin_group"
-        BIKE = "bicycle_group"
         DEACTIVE = "deactive"
 
     id = models.BigAutoField(primary_key=True)

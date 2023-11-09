@@ -323,9 +323,7 @@ class GroupNameSerializer(serializers.ModelSerializer):
 class GroupPermissionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = [
-            "groups",
-        ]
+        fields = ["groups", "group"]
 
 
 class UsersLoginRefreshResponseSerializer(serializers.ModelSerializer):
@@ -517,15 +515,6 @@ class GroupPermissionsRequestSerializer(serializers.ModelSerializer):
     """
     FOR SCHEMA
     """
-
-    choices = [
-        "user_group",
-        "admin_group",
-        "storage_group",
-        "bicycle_group",
-        "bicycle_admin_group",
-    ]
-    group = serializers.ChoiceField(choices)
 
     class Meta:
         model = CustomUser

@@ -482,6 +482,7 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = GroupPermissionsSerializer
 
     def put(self, request, *args, **kwargs):
+        self.serializer_class = GroupPermissionsRequestSerializer
         if request.user.id == kwargs["pk"]:
             return Response(
                 "admins cannot edit their own permissions",
@@ -491,8 +492,6 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
         admin = Group.objects.get(name="admin_group")
         storage = Group.objects.get(name="storage_group")
         user = Group.objects.get(name="user_group")
-        bike = Group.objects.get(name="bicycle_group")
-        bike_admin = Group.objects.get(name="bicycle_admin_group")
 
         match request.data["group"]:
             case "admin_group":
@@ -500,36 +499,13 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                     admin.id,
                     storage.id,
                     user.id,
-                    bike.id,
-                    bike_admin.id,
                 ]
             case "storage_group":
                 request.data["groups"] = [storage.id, user.id]
             case "user_group":
                 request.data["groups"] = [user.id]
-            case "bicycle_admin_group":
-                request.data["groups"] = [bike_admin.id, bike.id, user.id]
-            case "bicycle_group":
-                request.data["groups"] = [bike.id, user.id]
 
         temp = self.update(request, *args, **kwargs)
-
-        UserLogEntry.objects.create(
-            action=UserLogEntry.ActionChoices.PERMISSIONS,
-            target=User.objects.get(id=kwargs["pk"]),
-            user_who_did_this_action=request.user,
-        )
-
-        return temp
-
-    def patch(self, request, *args, **kwargs):
-        if request.user.id == kwargs["pk"]:
-            return Response(
-                "admins cannot edit their own permissions",
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        temp = self.partial_update(request, *args, **kwargs)
 
         UserLogEntry.objects.create(
             action=UserLogEntry.ActionChoices.PERMISSIONS,

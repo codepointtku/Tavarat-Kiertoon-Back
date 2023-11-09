@@ -33,7 +33,8 @@ from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 from .permissions import HasGroupPermission
 from .serializers import (
     GroupNameSerializer,
-    GroupPermissionsResponseSchemaSerializer,
+    GroupPermissionsRequestSerializer,
+    GroupPermissionsResponseSerializer,
     GroupPermissionsSerializer,
     MessageSerializer,
     NewEmailFinishValidationSerializer,
@@ -454,8 +455,8 @@ class GroupListView(generics.ListAPIView):
 
 @extend_schema_view(patch=extend_schema(exclude=True))
 @extend_schema(
-    responses=GroupPermissionsResponseSchemaSerializer,
-    request=GroupPermissionsResponseSchemaSerializer,
+    responses=GroupPermissionsResponseSerializer,
+    request=GroupPermissionsRequestSerializer,
 )
 class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
@@ -493,7 +494,7 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
         bike = Group.objects.get(name="bicycle_group")
         bike_admin = Group.objects.get(name="bicycle_admin_group")
 
-        match request.data["groups"]:
+        match request.data["group"]:
             case "admin_group":
                 request.data["groups"] = [
                     admin.id,

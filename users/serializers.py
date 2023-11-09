@@ -513,7 +513,31 @@ class UserUpdateReturnSchemaSerializer(serializers.ModelSerializer):
         }
 
 
-class GroupPermissionsResponseSchemaSerializer(serializers.ModelSerializer):
+class GroupPermissionsRequestSerializer(serializers.ModelSerializer):
+    """
+    FOR SCHEMA
+    """
+
+    choices = [
+        "user_group",
+        "admin_group",
+        "storage_group",
+        "bicycle_group",
+        "bicycle_admin_group",
+    ]
+    group = serializers.ChoiceField(choices)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "group",
+        ]
+        extra_kwargs = {
+            "group": {"required": True},
+        }
+
+
+class GroupPermissionsResponseSerializer(serializers.ModelSerializer):
     """
     FOR SCHEMA
     """

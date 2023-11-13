@@ -15,7 +15,6 @@ from .models import (
 
 from products.serializers import (
     ColorSerializer,
-    StorageSerializer,
     PictureSerializer,
     PictureCreateSerializer,
 )
@@ -69,7 +68,6 @@ class BikeStockSerializer(serializers.ModelSerializer):
             "created_at",
             "state",
             "package_only",
-            "storage",
             "rental",
         ]
 
@@ -238,7 +236,6 @@ class BikeStockListSerializer(serializers.ModelSerializer):
             "frame_number": {"required": True},
             "created_at": {"required": True},
             "state": {"required": True},
-            "storage": {"required": True},
         }
 
 
@@ -250,7 +247,6 @@ class BikeStockCreateSerializer(serializers.ModelSerializer):
 
 class BikeStockDetailSerializer(serializers.ModelSerializer):
     bike = BikeStockDepthSerializer(read_only=True)
-    storage = StorageSerializer(read_only=True)
     color = ColorSerializer(read_only=True)
 
     class Meta:
@@ -263,7 +259,6 @@ class BikeStockDetailSerializer(serializers.ModelSerializer):
             "frame_number": {"required": True},
             "created_at": {"required": True},
             "state": {"required": True},
-            "storage": {"required": True},
         }
 
 
@@ -278,7 +273,6 @@ class BikeStockSchemaCreateUpdateSerializer(serializers.ModelSerializer):
             "frame_number": {"required": True},
             "created_at": {"required": True},
             "state": {"required": True},
-            "storage": {"required": True},
         }
 
 

@@ -177,6 +177,8 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
         child=serializers.IntegerField(), required=False
     )
     shelf_id = serializers.CharField(required=False)
+    storage = serializers.IntegerField(required=False)
+    barcode = serializers.IntegerField(required=False)
 
     class Meta:
         model = Product

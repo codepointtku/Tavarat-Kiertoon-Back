@@ -282,8 +282,8 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["admin_group", "user_group"],
-        "POST": ["admin_group", "user_group"],
+        "GET": ["storage_group", "user_group"],
+        "PUT": ["admin_group", "user_group"],
         "PATCH": ["admin_group", "user_group"],
         "DELETE": ["admin_group", "user_group"],
     }

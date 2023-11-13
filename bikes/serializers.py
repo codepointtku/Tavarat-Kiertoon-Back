@@ -46,7 +46,6 @@ class BikeRentalSchemaResponseSerializer(serializers.ModelSerializer):
             "end_date": {"required": True},
             "state": {"required": True},
             "delivery_address": {"required": True},
-            "pickup": {"required": True},
             "contact_name": {"required": True},
             "contact_phone_number": {"required": True},
             "extra_info": {"required": True},

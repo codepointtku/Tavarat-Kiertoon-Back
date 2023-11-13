@@ -113,7 +113,6 @@ class BikeRental(models.Model):
         default="WAITING",
     )
     delivery_address = models.CharField(max_length=255)
-    pickup = models.BooleanField(default=False)
     contact_name = models.CharField(max_length=255)
     contact_phone_number = models.CharField(max_length=255)
     extra_info = models.CharField(max_length=255, default="", blank=True)

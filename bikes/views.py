@@ -266,10 +266,15 @@ class MainBikeList(generics.ListAPIView):
                             rental["start_date"]
                         )
                         end_date = datetime.datetime.fromisoformat(rental["end_date"])
-                        # We want to give the warehouse workers a business day to maintain the bikes, after the rental has ended
+                        # We want to give the warehouse workers two business days to maintain the bikes, after the rental has ended
                         end_date += datetime.timedelta(days=1)
                         while end_date.weekday() >= 5 or end_date in fin_holidays:
                             end_date += datetime.timedelta(days=1)
+                        second_day = end_date + datetime.timedelta(days=1)
+                        if second_day.weekday() >= 5 or second_day in fin_holidays:
+                            while second_day.weekday() >= 5 or second_day in fin_holidays:
+                                end_date += datetime.timedelta(days=2)
+                                second_day += datetime.timedelta(days=1)
                         date = start_date
                         while date <= end_date:
                             date_str = date.strftime("%d.%m.%Y")
@@ -286,10 +291,15 @@ class MainBikeList(generics.ListAPIView):
                             rental["start_date"]
                         )
                         end_date = datetime.datetime.fromisoformat(rental["end_date"])
-                        # We want to give the warehouse workers a business day to maintain the bikes, after the rental has ended
+                        # We want to give the warehouse workers two business days to maintain the bikes, after the rental has ended
                         end_date += datetime.timedelta(days=1)
                         while end_date.weekday() >= 5 or end_date in fin_holidays:
                             end_date += datetime.timedelta(days=1)
+                        second_day = end_date + datetime.timedelta(days=1)
+                        if second_day.weekday() >= 5 or second_day in fin_holidays:
+                            while second_day.weekday() >= 5 or second_day in fin_holidays:
+                                end_date += datetime.timedelta(days=2)
+                                second_day += datetime.timedelta(days=1)
                         date = start_date
                         while date <= end_date:
                             date_str = date.strftime("%d.%m.%Y")
@@ -339,10 +349,15 @@ class MainBikeList(generics.ListAPIView):
                 for rental in trailer["trailer_rental"]:
                     start_date = datetime.datetime.fromisoformat(rental["start_date"])
                     end_date = datetime.datetime.fromisoformat(rental["end_date"])
-                    # We want to give the warehouse workers a business day to maintain the trailers, after the rental has ended
+                    # We want to give the warehouse workers two business days to maintain the trailers, after the rental has ended
                     end_date += datetime.timedelta(days=1)
                     while end_date.weekday() >= 5 or end_date in fin_holidays:
                         end_date += datetime.timedelta(days=1)
+                    second_day = end_date + datetime.timedelta(days=1)
+                    if second_day.weekday() >= 5 or second_day in fin_holidays:
+                        while second_day.weekday() >= 5 or second_day in fin_holidays:
+                            end_date += datetime.timedelta(days=2)
+                            second_day += datetime.timedelta(days=1)
                     date = start_date
                     while date <= end_date:
                         date_str = date.strftime("%d.%m.%Y")
@@ -433,8 +448,13 @@ class RentalListView(generics.ListCreateAPIView):
                 start_date = datetime.datetime.fromisoformat(rental["start_date"])
                 end_date = datetime.datetime.fromisoformat(rental["end_date"])
                 end_date += datetime.timedelta(days=1)
-                while end_date.weekday() >= 5:
+                while end_date.weekday() >= 5 or end_date in fin_holidays:
                     end_date += datetime.timedelta(days=1)
+                second_day = end_date + datetime.timedelta(days=1)
+                if second_day.weekday() >= 5 or second_day in fin_holidays:
+                    while second_day.weekday() >= 5 or second_day in fin_holidays:
+                        end_date += datetime.timedelta(days=2)
+                        second_day += datetime.timedelta(days=1)
                 date = start_date
                 while date <= end_date:
                     date_str = date.strftime("%d.%m.%Y")
@@ -452,8 +472,13 @@ class RentalListView(generics.ListCreateAPIView):
                 start_date = datetime.datetime.fromisoformat(rental["start_date"])
                 end_date = datetime.datetime.fromisoformat(rental["end_date"])
                 end_date += datetime.timedelta(days=1)
-                while end_date.weekday() >= 5:
+                while end_date.weekday() >= 5 or end_date in fin_holidays:
                     end_date += datetime.timedelta(days=1)
+                second_day = end_date + datetime.timedelta(days=1)
+                if second_day.weekday() >= 5 or second_day in fin_holidays:
+                    while second_day.weekday() >= 5 or second_day in fin_holidays:
+                        end_date += datetime.timedelta(days=2)
+                        second_day += datetime.timedelta(days=1)
                 date = start_date
                 while date <= end_date:
                     date_str = date.strftime("%d.%m.%Y")

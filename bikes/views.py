@@ -417,6 +417,8 @@ class RentalListView(generics.ListCreateAPIView):
             request_start_date = datetime.datetime.fromisoformat(request.data["start_date"])
             request_end_date = datetime.datetime.fromisoformat(request.data["end_date"])
 
+        else:
+            return Response(postserializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         bikerentalserializer = BikeAvailabilityListSerializer(
             BikeStock.objects.all(), many=True
@@ -536,12 +538,11 @@ class RentalListView(generics.ListCreateAPIView):
             else:
                 instance["bike_trailer"] = None
 
-            serializer = BikeRentalSerializer(data=instance)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response(postserializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = BikeRentalSerializer(data=instance)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema_view(

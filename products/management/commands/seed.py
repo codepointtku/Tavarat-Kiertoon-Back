@@ -964,7 +964,6 @@ def create_bikes():
     ]
     types = BikeType.objects.all()
     brands = BikeBrand.objects.all()
-    colors = Color.objects.all()
     pictures = Picture.objects.all()
     for bike in bikes:
         bike_object = Bike(
@@ -979,7 +978,6 @@ def create_bikes():
 
 
 def create_bike_stock():
-    storages = Storage.objects.all()
     bikes = Bike.objects.all()
     colors = Color.objects.all()
     for bike in bikes:
@@ -989,7 +987,6 @@ def create_bike_stock():
                 frame_number=uuid.uuid4(),
                 bike=bike,
                 color=random.choice(colors),
-                storage=random.choice(storages),
                 package_only=random.choice([True, False]),
             )
             stock_object.save()

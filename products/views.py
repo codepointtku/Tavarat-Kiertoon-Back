@@ -602,7 +602,7 @@ class StorageListView(generics.ListCreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["admin_group", "user_group"],
+        "GET": ["storage_group", "user_group"],
         "POST": ["admin_group", "user_group"],
     }
 

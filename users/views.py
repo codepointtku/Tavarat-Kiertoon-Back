@@ -506,6 +506,10 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                 user_instance.groups.remove(admin)
                 user_instance.groups.remove(storage)
                 user_instance.groups.add(user)
+            case "deactive":
+                user_instance.groups.remove(admin)
+                user_instance.groups.remove(storage)
+                user_instance.groups.remove(user)
 
         temp = self.update(request, *args, **kwargs)
 

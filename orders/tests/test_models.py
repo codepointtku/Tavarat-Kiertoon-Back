@@ -16,6 +16,7 @@ class TestOrdersModels(TestCase):
             zip_code="100500",
             city="Puuhamaa",
             username="kahvimake@turku.fi",
+            group="user_group",
         )
         self.test_user.is_active = True
         self.test_user.save()

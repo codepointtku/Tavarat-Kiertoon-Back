@@ -2,17 +2,18 @@ from django.test import TestCase
 from django.utils import timezone
 
 from bikes.models import (
-    BikeType,
-    BikeBrand,
-    BikeSize,
     Bike,
-    BikeStock,
-    BikeRental,
-    BikePackage,
     BikeAmount,
+    BikeBrand,
+    BikePackage,
+    BikeRental,
+    BikeSize,
+    BikeStock,
+    BikeType,
 )
 from products.models import Color, Storage
 from users.models import CustomUser
+
 
 class TestBikes(TestCase):
     @classmethod
@@ -27,6 +28,7 @@ class TestBikes(TestCase):
             zip_code="99999",
             city="Bikeland",
             username="bikeadmin@turku.fi",
+            group="user_group",
         )
         cls.test_user1.is_active = True
         cls.test_user1.save()
@@ -49,7 +51,7 @@ class TestBikes(TestCase):
             size=cls.test_bikesize,
             brand=cls.test_bikebrand,
             type=cls.test_biketype,
-            description="a nice, comfortable bike"
+            description="a nice, comfortable bike",
         )
 
         cls.test_bikeobject1 = BikeStock.objects.create(
@@ -58,18 +60,15 @@ class TestBikes(TestCase):
             frame_number=101,
             color=cls.test_color,
             storage=cls.test_storage,
-            bike=cls.test_bikemodel
+            bike=cls.test_bikemodel,
         )
 
         cls.test_bikepackage1 = BikePackage.objects.create(
-            name="test_package",
-            description="package for test purposes"
+            name="test_package", description="package for test purposes"
         )
 
         cls.test_bikeamount1 = BikeAmount.objects.create(
-            amount=1,
-            bike=cls.test_bikemodel,
-            package=cls.test_bikepackage1
+            amount=1, bike=cls.test_bikemodel, package=cls.test_bikepackage1
         )
 
         cls.test_bikerental = BikeRental.objects.create(
@@ -79,9 +78,8 @@ class TestBikes(TestCase):
             delivery_address="anywhere",
             contact_name="bikeperson",
             contact_phone_number="123456789",
-            extra_info="lets ride"
+            extra_info="lets ride",
         )
-
 
     def test_self_biketype_string(self):
         self.assertEqual(
@@ -104,29 +102,29 @@ class TestBikes(TestCase):
     def test_self_bikemodel_string(self):
         self.assertEqual(
             str(self.test_bikemodel),
-            f"Bike: {self.test_bikemodel.name}({self.test_bikemodel.id})"
+            f"Bike: {self.test_bikemodel.name}({self.test_bikemodel.id})",
         )
 
     def test_self_bikerental_string(self):
         self.assertEqual(
             str(self.test_bikerental),
-            f"Bike rental: {self.test_user1}({self.test_bikerental.id})"
+            f"Bike rental: {self.test_user1}({self.test_bikerental.id})",
         )
 
     def test_self_bikeitem_string(self):
         self.assertEqual(
             str(self.test_bikeobject1),
-            f"Bike stock: {self.test_bikeobject1.number}({self.test_bikeobject1.id})"
+            f"Bike stock: {self.test_bikeobject1.number}({self.test_bikeobject1.id})",
         )
 
     def test_self_bikepackage_string(self):
         self.assertEqual(
             str(self.test_bikepackage1),
-            f"Bike package: {self.test_bikepackage1.name}({self.test_bikepackage1.id})"
+            f"Bike package: {self.test_bikepackage1.name}({self.test_bikepackage1.id})",
         )
 
     def test_self_bikeamount_string(self):
         self.assertEqual(
             str(self.test_bikeamount1),
-            f"Bike amount: {self.test_bikeamount1.amount}x{self.test_bikeamount1.bike}({self.test_bikeamount1.id})"
+            f"Bike amount: {self.test_bikeamount1.amount}x{self.test_bikeamount1.bike}({self.test_bikeamount1.id})",
         )

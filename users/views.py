@@ -498,18 +498,26 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
                 user_instance.groups.add(admin)
                 user_instance.groups.add(storage)
                 user_instance.groups.add(user)
+                user_instance.is_active = True
+                user_instance.save()
             case "storage_group":
                 user_instance.groups.remove(admin)
                 user_instance.groups.add(storage)
                 user_instance.groups.add(user)
+                user_instance.is_active = True
+                user_instance.save()
             case "user_group":
                 user_instance.groups.remove(admin)
                 user_instance.groups.remove(storage)
                 user_instance.groups.add(user)
+                user_instance.is_active = True
+                user_instance.save()
             case "deactive":
                 user_instance.groups.remove(admin)
                 user_instance.groups.remove(storage)
                 user_instance.groups.remove(user)
+                user_instance.is_active = False
+                user_instance.save()
 
         temp = self.update(request, *args, **kwargs)
 

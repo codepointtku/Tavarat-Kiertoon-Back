@@ -21,7 +21,7 @@ class CustomUserManager(BaseUserManager):
         zip_code,
         city,
         username,
-        group,
+        group="user_group",
     ):
         """function for creating a user"""
         if not first_name:

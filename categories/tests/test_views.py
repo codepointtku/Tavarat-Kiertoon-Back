@@ -47,6 +47,7 @@ class TestCategories(TestCase):
             zip_code="admin",
             city="admin",
             username="admin",
+            group="user_group",
         )
         user_set.is_active = True
         user_set.save()

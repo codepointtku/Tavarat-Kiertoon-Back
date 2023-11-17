@@ -5,10 +5,10 @@ from django.test import TestCase
 from django.utils import timezone
 
 from categories.models import Category
+from cron import clear_shopping_carts
 from orders.models import Order, OrderEmailRecipient, ShoppingCart
 from products.models import Color, Product, ProductItem, Storage
 from users.models import CustomUser
-from cron import clear_shopping_carts
 
 
 class TestOrders(TestCase):
@@ -24,6 +24,7 @@ class TestOrders(TestCase):
             zip_code="100100",
             city="Puuhamaa",
             username="kahvimake@turku.fi",
+            group="user_group",
         )
         cls.test_user1.is_active = True
         cls.test_user1.save()
@@ -38,6 +39,7 @@ class TestOrders(TestCase):
             zip_code="100500",
             city="Puuhamaa",
             username="kahvimarkus@turku.fi",
+            group="user_group",
         )
         cls.test_user2.is_active = True
         cls.test_user2.save()
@@ -52,6 +54,7 @@ class TestOrders(TestCase):
             zip_code="10100",
             city="Kaupunki1",
             username="cartman@turku.fi",
+            group="user_group",
         )
         cls.test_user3.is_active = True
         cls.test_user3.save()
@@ -66,6 +69,7 @@ class TestOrders(TestCase):
             zip_code="20200",
             city="Kaupunki2",
             username="cartman2@turku.fi",
+            group="user_group",
         )
         cls.test_user4.is_active = True
         cls.test_user4.save()
@@ -80,6 +84,7 @@ class TestOrders(TestCase):
             zip_code="30300",
             city="Kaupunki3",
             username="cartman3@turku.fi",
+            group="user_group",
         )
         cls.test_user5.is_active = True
         cls.test_user5.save()

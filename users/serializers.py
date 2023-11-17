@@ -323,9 +323,7 @@ class GroupNameSerializer(serializers.ModelSerializer):
 class GroupPermissionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = [
-            "groups",
-        ]
+        fields = ["groups", "group"]
 
 
 class UsersLoginRefreshResponseSerializer(serializers.ModelSerializer):
@@ -513,7 +511,22 @@ class UserUpdateReturnSchemaSerializer(serializers.ModelSerializer):
         }
 
 
-class GroupPermissionsResponseSchemaSerializer(serializers.ModelSerializer):
+class GroupPermissionsRequestSerializer(serializers.ModelSerializer):
+    """
+    FOR SCHEMA
+    """
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "group",
+        ]
+        extra_kwargs = {
+            "group": {"required": True},
+        }
+
+
+class GroupPermissionsResponseSerializer(serializers.ModelSerializer):
     """
     FOR SCHEMA
     """

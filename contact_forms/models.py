@@ -9,7 +9,6 @@ class ContactForm(models.Model):
     class StatusChoices(models.Choices):
         NOT_READ = "Not read"
         READ = "Read"
-        HANDLED = "Handled"
 
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255)

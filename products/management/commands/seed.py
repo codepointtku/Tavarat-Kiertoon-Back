@@ -109,7 +109,7 @@ def create_contact_forms():
             "subject": "Rikkinäinen pelituoli",
             "message": "Se on rikki",
             "order_id": 7,
-            "status": "Ignored",
+            "status": "Not read",
         },
     ]
     for c_form in c_forms:

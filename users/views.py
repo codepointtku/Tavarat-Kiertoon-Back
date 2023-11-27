@@ -428,6 +428,16 @@ class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
         )
 
         return temp
+    
+    def delete(self, request, *args, **kwargs):
+        if request.user.id == kwargs["pk"]:
+            return Response(
+                "admin cannot delete themself",
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        instance = self.get_object()
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # getting all groups and their names

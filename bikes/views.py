@@ -428,6 +428,7 @@ class RentalListView(generics.ListCreateAPIView):
     serializer_class = BikeRentalSerializer
 
     def post(self, request, *args, **kwargs):
+        fin_holidays = holidays.FI()
         postserializer = BikeRentalSchemaPostSerializer(data=request.data)
         if postserializer.is_valid():
             request_start_date = datetime.datetime.fromisoformat(

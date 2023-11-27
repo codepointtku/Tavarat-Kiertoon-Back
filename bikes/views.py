@@ -26,11 +26,9 @@ from bikes.models import (
     BikeRental,
     BikeSize,
     BikeStock,
-    BikeType,
-    BikeSize,
-    BikeBrand,
     BikeTrailer,
     BikeTrailerModel,
+    BikeType,
 )
 from bikes.serializers import (
     BikeAmountListSerializer,
@@ -52,13 +50,13 @@ from bikes.serializers import (
     BikeStockDetailSerializer,
     BikeStockListSerializer,
     BikeStockSchemaCreateUpdateSerializer,
+    BikeTrailerAvailabilityListSerializer,
+    BikeTrailerMainSerializer,
+    BikeTrailerModelSerializer,
+    BikeTrailerSerializer,
     BikeTypeSerializer,
     MainBikeListSchemaSerializer,
     PictureCreateSerializer,
-    BikeTrailerSerializer,
-    BikeTrailerModelSerializer,
-    BikeTrailerMainSerializer,
-    BikeTrailerAvailabilityListSerializer,
 )
 from users.permissions import HasGroupPermission
 from users.views import CustomJWTAuthentication
@@ -272,7 +270,9 @@ class MainBikeList(generics.ListAPIView):
                             end_date += datetime.timedelta(days=1)
                         second_day = end_date + datetime.timedelta(days=1)
                         if second_day.weekday() >= 5 or second_day in fin_holidays:
-                            while second_day.weekday() >= 5 or second_day in fin_holidays:
+                            while (
+                                second_day.weekday() >= 5 or second_day in fin_holidays
+                            ):
                                 end_date += datetime.timedelta(days=2)
                                 second_day += datetime.timedelta(days=1)
                         date = start_date
@@ -297,7 +297,9 @@ class MainBikeList(generics.ListAPIView):
                             end_date += datetime.timedelta(days=1)
                         second_day = end_date + datetime.timedelta(days=1)
                         if second_day.weekday() >= 5 or second_day in fin_holidays:
-                            while second_day.weekday() >= 5 or second_day in fin_holidays:
+                            while (
+                                second_day.weekday() >= 5 or second_day in fin_holidays
+                            ):
                                 end_date += datetime.timedelta(days=2)
                                 second_day += datetime.timedelta(days=1)
                         date = start_date
@@ -426,10 +428,11 @@ class RentalListView(generics.ListCreateAPIView):
     serializer_class = BikeRentalSerializer
 
     def post(self, request, *args, **kwargs):
-
         postserializer = BikeRentalSchemaPostSerializer(data=request.data)
         if postserializer.is_valid():
-            request_start_date = datetime.datetime.fromisoformat(request.data["start_date"])
+            request_start_date = datetime.datetime.fromisoformat(
+                request.data["start_date"]
+            )
             request_end_date = datetime.datetime.fromisoformat(request.data["end_date"])
 
         else:
@@ -805,6 +808,25 @@ class BikeTrailerModelDetailView(generics.RetrieveUpdateDestroyAPIView):
 class BikeTrailerListView(generics.ListCreateAPIView):
     queryset = BikeTrailer.objects.all()
     serializer_class = BikeTrailerSerializer
+
+    def post(self, request, *args, **kwargs):
+        trailer_data = request.data
+        if BikeTrailerModel.objects.count() >= 1:
+            trailer_type = BikeTrailerModel.objects.first()
+            print(trailer_type)
+        else:
+            trailer_type = BikeTrailerModel.objects.create(
+                name="Peräkärry",
+                description="Peräkärry pyörien säilytystä ja kuljettamista varten",
+            )
+            print("asd")
+        trailer_data["trailer_type"] = trailer_type.id
+
+        serializer = BikeTrailerSerializer(data=trailer_data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class BikeTrailerDetailView(generics.RetrieveUpdateDestroyAPIView):

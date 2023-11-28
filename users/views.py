@@ -569,7 +569,7 @@ class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
         bike = Group.objects.get(name="bicycle_group")
         bike_admin = Group.objects.get(name="bicycle_admin_group")
 
-        match request.data["group"]:
+        match request.data["bike_group"]:
             case "bicycle_admin_group":
                 user_instance.groups.add(bike_admin)
                 user_instance.groups.add(bike)
@@ -579,6 +579,14 @@ class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
             case "remove_bicycle_group":
                 user_instance.groups.remove(bike_admin)
                 user_instance.groups.remove(bike)
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.PERMISSIONS,
+            target=User.objects.get(id=kwargs["pk"]),
+            user_who_did_this_action=request.user,
+        )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema_view(

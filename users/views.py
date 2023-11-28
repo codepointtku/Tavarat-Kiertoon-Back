@@ -392,6 +392,7 @@ class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
         "POST": ["admin_group", "user_group"],
         "PUT": ["admin_group", "user_group"],
         "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
     }
 
     serializer_class = UserUpdateSerializer
@@ -428,7 +429,7 @@ class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
         )
 
         return temp
-    
+
     def delete(self, request, *args, **kwargs):
         if request.user.id == kwargs["pk"]:
             return Response(
@@ -475,6 +476,9 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     users changing their own permissions isnt allowed
     """
 
+    queryset = User.objects.all()
+    serializer_class = GroupPermissionsSerializer
+
     authentication_classes = [
         SessionAuthentication,
         BasicAuthentication,
@@ -487,9 +491,6 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
         "PUT": ["admin_group", "user_group"],
         "PATCH": ["admin_group", "user_group"],
     }
-
-    queryset = User.objects.all()
-    serializer_class = GroupPermissionsSerializer
 
     def put(self, request, *args, **kwargs):
         self.serializer_class = GroupPermissionsRequestSerializer
@@ -538,6 +539,46 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
         )
 
         return temp
+
+
+class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = GroupPermissionsSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["bibycle_admin_group", "user_group"],
+        "PUT": ["bibycle_admin_group", "user_group"],
+        "PATCH": ["bibycle_admin_group", "user_group"],
+    }
+
+    def put(self, request, *args, **kwargs):
+        self.serializer_class = GroupPermissionsRequestSerializer
+        if request.user.id == kwargs["pk"]:
+            return Response(
+                "admins cannot edit their own permissions",
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        user_instance = User.objects.get(id=kwargs["pk"])
+        bike = Group.objects.get(name="bicycle_group")
+        bike_admin = Group.objects.get(name="bicycle_admin_group")
+
+        match request.data["group"]:
+            case "bicycle_admin_group":
+                user_instance.groups.add(bike_admin)
+                user_instance.groups.add(bike)
+            case "bicycle_group":
+                user_instance.groups.remove(bike_admin)
+                user_instance.groups.add(bike)
+            case "remove_bicycle_group":
+                user_instance.groups.remove(bike_admin)
+                user_instance.groups.remove(bike)
 
 
 @extend_schema_view(

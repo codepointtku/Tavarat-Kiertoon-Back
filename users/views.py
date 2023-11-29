@@ -32,6 +32,7 @@ from .custom_functions import cookie_setter, get_tokens_for_user
 from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 from .permissions import HasGroupPermission
 from .serializers import (
+    BikeGroupPermissionsRequestSerializer,
     GroupNameSerializer,
     GroupPermissionsRequestSerializer,
     GroupPermissionsResponseSerializer,
@@ -540,10 +541,10 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
 
         return temp
 
-
+@extend_schema_view(patch=extend_schema(exclude=True), put=extend_schema(request=BikeGroupPermissionsRequestSerializer))
 class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
-    serializer_class = GroupPermissionsSerializer
+    serializer_class = GroupPermissionsResponseSerializer
 
     authentication_classes = [
         SessionAuthentication,
@@ -562,7 +563,7 @@ class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
         self.serializer_class = GroupPermissionsRequestSerializer
         if request.user.id == kwargs["pk"]:
             return Response(
-                "admins cannot edit their own permissions",
+                "bike admins cannot edit their own permissions",
                 status=status.HTTP_403_FORBIDDEN,
             )
         user_instance = User.objects.get(id=kwargs["pk"])
@@ -585,8 +586,10 @@ class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
             target=User.objects.get(id=kwargs["pk"]),
             user_who_did_this_action=request.user,
         )
+        serializer = GroupPermissionsResponseSerializer(user_instance)
+        # serializer.is_valid(raise_exception=True)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.data)
 
 
 @extend_schema_view(

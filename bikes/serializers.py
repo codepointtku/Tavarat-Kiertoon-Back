@@ -30,6 +30,7 @@ class BikeRentalSerializer(serializers.ModelSerializer):
 
 class BikeRentalSchemaPostSerializer(serializers.ModelSerializer):
     bike_stock = serializers.DictField(child=serializers.IntegerField())
+    bike_trailer = serializers.IntegerField(required=False)
 
     class Meta:
         model = BikeRental

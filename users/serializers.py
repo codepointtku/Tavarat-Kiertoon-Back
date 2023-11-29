@@ -540,6 +540,11 @@ class GroupPermissionsResponseSerializer(serializers.ModelSerializer):
             "groups": {"required": True},
         }
 
+class BikeGroupPermissionsRequestSerializer(serializers.ModelSerializer):
+    bike_group = serializers.ChoiceField(choices=["bicycle_admin_group", "bicycle_group", "remove_bicycle_group"])
+    class Meta:
+        model = CustomUser
+        fields = ["bike_group"]
 
 class UserCreateReturnResponseSchemaSerializer(serializers.ModelSerializer):
     """

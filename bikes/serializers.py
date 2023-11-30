@@ -23,6 +23,7 @@ from users.serializers import UserBikeRentalSerializer
 
 
 class BikeRentalSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = BikeRental
         fields = "__all__"
@@ -422,10 +423,14 @@ class BikeTrailerMainSerializer(serializers.ModelSerializer):
             "max_available",
             "trailer",
         ]
+
+
 class BikeRentalDepthSerializer(serializers.ModelSerializer):
     bike_stock = BikeStockDetailSerializer(many=True, read_only=True)
     user = UserBikeRentalSerializer(read_only=True)
+    bike_trailer = BikeTrailerSerializer(read_only=True)
 
     class Meta:
         model = BikeRental
         fields = "__all__"
+

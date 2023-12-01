@@ -273,8 +273,10 @@ class MainBikeList(generics.ListAPIView):
                             while (
                                 second_day.weekday() >= 5 or second_day in fin_holidays
                             ):
-                                end_date += datetime.timedelta(days=2)
+                                end_date += datetime.timedelta(days=1)
                                 second_day += datetime.timedelta(days=1)
+                        else:
+                            end_date += datetime.timedelta(days=1)
                         date = start_date
                         while date <= end_date:
                             date_str = date.strftime("%d.%m.%Y")
@@ -300,8 +302,11 @@ class MainBikeList(generics.ListAPIView):
                             while (
                                 second_day.weekday() >= 5 or second_day in fin_holidays
                             ):
-                                end_date += datetime.timedelta(days=2)
+                                end_date += datetime.timedelta(days=1)
                                 second_day += datetime.timedelta(days=1)
+                            end_date += datetime.timedelta(days=1)
+                        else:
+                            end_date += datetime.timedelta(days=1)
                         date = start_date
                         while date <= end_date:
                             date_str = date.strftime("%d.%m.%Y")
@@ -358,8 +363,10 @@ class MainBikeList(generics.ListAPIView):
                     second_day = end_date + datetime.timedelta(days=1)
                     if second_day.weekday() >= 5 or second_day in fin_holidays:
                         while second_day.weekday() >= 5 or second_day in fin_holidays:
-                            end_date += datetime.timedelta(days=2)
+                            end_date += datetime.timedelta(days=1)
                             second_day += datetime.timedelta(days=1)
+                    else:
+                        end_date += datetime.timedelta(days=1)
                     date = start_date
                     while date <= end_date:
                         date_str = date.strftime("%d.%m.%Y")
@@ -457,8 +464,10 @@ class RentalListView(generics.ListCreateAPIView):
                 second_day = end_date + datetime.timedelta(days=1)
                 if second_day.weekday() >= 5 or second_day in fin_holidays:
                     while second_day.weekday() >= 5 or second_day in fin_holidays:
-                        end_date += datetime.timedelta(days=2)
+                        end_date += datetime.timedelta(days=1)
                         second_day += datetime.timedelta(days=1)
+                else:
+                    end_date += datetime.timedelta(days=1)
                 date = start_date
                 while date <= end_date:
                     date_str = date.strftime("%d.%m.%Y")
@@ -481,8 +490,10 @@ class RentalListView(generics.ListCreateAPIView):
                 second_day = end_date + datetime.timedelta(days=1)
                 if second_day.weekday() >= 5 or second_day in fin_holidays:
                     while second_day.weekday() >= 5 or second_day in fin_holidays:
-                        end_date += datetime.timedelta(days=2)
+                        end_date += datetime.timedelta(days=1)
                         second_day += datetime.timedelta(days=1)
+                else:
+                    end_date += datetime.timedelta(days=1)
                 date = start_date
                 while date <= end_date:
                     date_str = date.strftime("%d.%m.%Y")
@@ -546,7 +557,6 @@ class RentalListView(generics.ListCreateAPIView):
             instance["bike_stock"] = bikes_list
             instance["user"] = self.request.user.id
 
-        print(request.data)
         if "bike_trailer" in request.data:
             trailers = BikeTrailer.objects.filter(
                 trailer_type=request.data["bike_trailer"]
@@ -814,13 +824,11 @@ class BikeTrailerListView(generics.ListCreateAPIView):
         trailer_data = request.data
         if BikeTrailerModel.objects.count() >= 1:
             trailer_type = BikeTrailerModel.objects.first()
-            print(trailer_type)
         else:
             trailer_type = BikeTrailerModel.objects.create(
                 name="Peräkärry",
                 description="Peräkärry pyörien säilytystä ja kuljettamista varten",
             )
-            print("asd")
         trailer_data["trailer_type"] = trailer_type.id
 
         serializer = BikeTrailerSerializer(data=trailer_data)

@@ -1072,4 +1072,4 @@ def run_seed(self, mode):
     create_bikes()
     create_bike_stock()
     create_bike_package()
-    create_bike_trailers()
+    # create_bike_trailers()

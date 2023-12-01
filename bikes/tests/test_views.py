@@ -18,7 +18,7 @@ from bikes.models import (
     BikePackage,
     BikeAmount,
 )
-from products.models import Color, Storage, Picture
+from products.models import Color, Picture
 from users.models import CustomUser
 
 TEST_DIR = "testmedia/"
@@ -55,7 +55,6 @@ class TestBikes(TestCase):
         cls.test_user2.is_active = True
         cls.test_user2.save()
 
-        cls.test_storage = Storage.objects.create(name="Bikestorage")
         cls.test_color = Color.objects.create(name="musta")
 
         cls.test_bikesize = BikeSize.objects.create(
@@ -89,7 +88,6 @@ class TestBikes(TestCase):
             number=101,
             frame_number=101,
             color=cls.test_color,
-            storage=cls.test_storage,
             bike=cls.test_bikemodel
         )
 
@@ -98,7 +96,6 @@ class TestBikes(TestCase):
             number=101,
             frame_number=102,
             color=cls.test_color,
-            storage=cls.test_storage,
             bike=cls.test_bikemodel
         )
 
@@ -107,7 +104,6 @@ class TestBikes(TestCase):
             number=101,
             frame_number=103,
             color=cls.test_color,
-            storage=cls.test_storage,
             bike=cls.test_bikemodel
         )
 
@@ -116,7 +112,6 @@ class TestBikes(TestCase):
             number=101,
             frame_number=104,
             color=cls.test_color,
-            storage=cls.test_storage,
             bike=cls.test_bikemodel
         )
 
@@ -125,7 +120,6 @@ class TestBikes(TestCase):
             number=101,
             frame_number=111,
             color=cls.test_color,
-            storage=cls.test_storage,
             bike=cls.test_bikemodel
         )
 
@@ -134,7 +128,6 @@ class TestBikes(TestCase):
             number=101,
             frame_number=112,
             color=cls.test_color,
-            storage=cls.test_storage,
             bike=cls.test_bikemodel
         )
 
@@ -143,7 +136,6 @@ class TestBikes(TestCase):
             number=101,
             frame_number=113,
             color=cls.test_color,
-            storage=cls.test_storage,
             bike=cls.test_bikemodel
         )
 
@@ -152,7 +144,6 @@ class TestBikes(TestCase):
             number=201,
             frame_number=201,
             color=cls.test_color,
-            storage=cls.test_storage,
             bike=cls.test_bikemodel2
         )
 
@@ -161,7 +152,6 @@ class TestBikes(TestCase):
             number=201,
             frame_number=202,
             color=cls.test_color,
-            storage=cls.test_storage,
             bike=cls.test_bikemodel2
         )
 
@@ -356,7 +346,6 @@ class TestBikes(TestCase):
             "number": 1000,
             "frame_number": 2000,
             "color": self.test_color.id,
-            "storage": self.test_storage.id,
             "bike": self.test_bikemodel.id,
         }
 
@@ -372,7 +361,6 @@ class TestBikes(TestCase):
             "package_only": True,
             "frame_number": 2000,
             "color": self.test_color.id,
-            "storage": self.test_storage.id,
             "bike": self.test_bikemodel.id,
         }
 
@@ -390,7 +378,6 @@ class TestBikes(TestCase):
             "start_date": timezone.now(),
             "end_date": timezone.now() + datetime.timedelta(days=2),
             "delivery_address": "bikestreet 123",
-            "pickup": False,
             "contact_name": "Bikeman",
             "contact_phone_number": "123456789",
             "extra_info": "I like bikes"

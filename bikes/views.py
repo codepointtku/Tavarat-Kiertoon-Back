@@ -558,8 +558,8 @@ class RentalListView(generics.ListCreateAPIView):
                 amount = request.data["bike_stock"][rental_item]
                 for bike in range(amount):
                     bikes_list.append(available_bikes[bike].id)
-            instance["bike_stock"] = bikes_list
-            instance["user"] = self.request.user.id
+        instance["bike_stock"] = bikes_list
+        instance["user"] = self.request.user.id
 
         if "bike_trailer" in request.data:
             trailers = BikeTrailer.objects.filter(

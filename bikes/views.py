@@ -275,6 +275,7 @@ class MainBikeList(generics.ListAPIView):
                             ):
                                 end_date += datetime.timedelta(days=1)
                                 second_day += datetime.timedelta(days=1)
+                            end_date += datetime.timedelta(days=1)
                         else:
                             end_date += datetime.timedelta(days=1)
                         date = start_date
@@ -365,6 +366,7 @@ class MainBikeList(generics.ListAPIView):
                         while second_day.weekday() >= 5 or second_day in fin_holidays:
                             end_date += datetime.timedelta(days=1)
                             second_day += datetime.timedelta(days=1)
+                        end_date += datetime.timedelta(days=1)
                     else:
                         end_date += datetime.timedelta(days=1)
                     date = start_date
@@ -466,6 +468,7 @@ class RentalListView(generics.ListCreateAPIView):
                     while second_day.weekday() >= 5 or second_day in fin_holidays:
                         end_date += datetime.timedelta(days=1)
                         second_day += datetime.timedelta(days=1)
+                    end_date += datetime.timedelta(days=1)
                 else:
                     end_date += datetime.timedelta(days=1)
                 date = start_date
@@ -492,6 +495,7 @@ class RentalListView(generics.ListCreateAPIView):
                     while second_day.weekday() >= 5 or second_day in fin_holidays:
                         end_date += datetime.timedelta(days=1)
                         second_day += datetime.timedelta(days=1)
+                    end_date += datetime.timedelta(days=1)
                 else:
                     end_date += datetime.timedelta(days=1)
                 date = start_date

@@ -216,7 +216,6 @@ class BikeStockDepthSerializer(serializers.ModelSerializer):
     type = BikeTypeSerializer(read_only=True)
     brand = BikeBrandSerializer(read_only=True)
     size = BikeSizeSerializer(read_only=True)
-    color = ColorSerializer(read_only=True)
     picture = PictureSerializer(read_only=True)
 
     class Meta:
@@ -226,6 +225,7 @@ class BikeStockDepthSerializer(serializers.ModelSerializer):
 
 class BikeStockListSerializer(serializers.ModelSerializer):
     bike = BikeStockDepthSerializer(read_only=True)
+    color = ColorSerializer(read_only=True)
 
     class Meta:
         model = BikeStock

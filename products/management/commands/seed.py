@@ -111,7 +111,7 @@ def create_contact_forms():
             "subject": "Rikkinäinen pelituoli",
             "message": "Se on rikki",
             "order_id": 7,
-            "status": "Ignored",
+            "status": "Not read",
         },
     ]
     for c_form in c_forms:
@@ -136,7 +136,13 @@ def create_colors():
 
 def create_groups():
     """creates the user groups used in project"""
-    groups = ["user_group", "admin_group", "storage_group", "bicycle_group"]
+    groups = [
+        "user_group",
+        "admin_group",
+        "storage_group",
+        "bicycle_group",
+        "bicycle_admin_group",
+    ]
     for group in groups:
         group_object = Group(name=group)
         group_object.save()
@@ -254,6 +260,7 @@ def create_users(mode):
     super.first_name = "Super"
     super.last_name = "Super"
     super.email = "super@turku.fi"
+    super.group = "admin_group"
     super.save()
     UserAddress.objects.create(
         address="Superkatu6000", zip_code="9001", city="Superkylä", user=super
@@ -272,6 +279,7 @@ def create_users(mode):
                 zip_code="20100",
                 city="Mänttä-Vilppula",
                 username=f"email{i}@turku.fi",
+                group="user_group",
             )
             user.is_active = True
             user.save()
@@ -288,17 +296,19 @@ def create_users(mode):
                 "zip_code": "20100",
                 "city": "Turku",
                 "username": "billy.herrington@turku.fi",
+                "group": "user_group",
             },
             {
                 "first_name": "Sami",
                 "last_name": "Imas",
                 "email": "testi@turku.fi",
-                "phone_number": "+358441234567",
+                "phone_number": "358441234567",
                 "password": "samionkuningas1987",
                 "address": "Pizza on hyvää polku",
                 "zip_code": "80085",
                 "city": "Rauma",
                 "username": "Samin mashausopisto",
+                "group": "user_group",
             },
             {
                 "first_name": "Pekka",
@@ -310,6 +320,7 @@ def create_users(mode):
                 "zip_code": "22222",
                 "city": "Lohja",
                 "username": "pekka.python@turku.fi",
+                "group": "user_group",
             },
             {
                 "first_name": "Pirjo",
@@ -321,17 +332,19 @@ def create_users(mode):
                 "zip_code": "22222",
                 "city": "Lohja",
                 "username": "pirjo.pythonen@turku.fi",
+                "group": "user_group",
             },
             {
                 "first_name": "Jad",
                 "last_name": "TzTok",
                 "email": "TzTok-Jad@turku.fi",
-                "phone_number": "702-079597",
+                "phone_number": "702079597",
                 "password": "F-you-woox",
                 "address": "TzHaar Fight Cave",
                 "zip_code": "Wave 63",
                 "city": "Brimhaven",
                 "username": "TzTok-Jad@turku.fi",
+                "group": "user_group",
             },
             {
                 "first_name": "Kavhi",
@@ -343,6 +356,7 @@ def create_users(mode):
                 "zip_code": "20100",
                 "city": "Turku",
                 "username": "Kavhila",
+                "group": "user_group",
             },
         ]
 
@@ -357,6 +371,7 @@ def create_users(mode):
                 zip_code=user["zip_code"],
                 city=user["city"],
                 username=user["username"],
+                group=user["group"],
             )
             created_user.is_active = True
             created_user.save()

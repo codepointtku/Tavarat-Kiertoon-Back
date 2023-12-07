@@ -1,27 +1,28 @@
+import datetime
 import shutil
 import urllib.request
-import datetime
 
 from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
-from django.test.client import MULTIPART_CONTENT, encode_multipart, BOUNDARY
+from django.test.client import BOUNDARY, MULTIPART_CONTENT, encode_multipart
 from django.utils import timezone
 
 from bikes.models import (
-    BikeType,
-    BikeBrand,
-    BikeSize,
     Bike,
-    BikeStock,
-    BikeRental,
-    BikePackage,
     BikeAmount,
+    BikeBrand,
+    BikePackage,
+    BikeRental,
+    BikeSize,
+    BikeStock,
+    BikeType,
 )
 from products.models import Color, Picture
 from users.models import CustomUser
 
 TEST_DIR = "testmedia/"
+
 
 class TestBikes(TestCase):
     @classmethod
@@ -37,6 +38,7 @@ class TestBikes(TestCase):
             zip_code="99999",
             city="Bikeland",
             username="bikeadmin@turku.fi",
+            group="user_group",
         )
         cls.test_user1.is_active = True
         cls.test_user1.save()
@@ -51,6 +53,7 @@ class TestBikes(TestCase):
             zip_code="99999",
             city="Bikeland",
             username="bikerperson@turku.fi",
+            group="user_group",
         )
         cls.test_user2.is_active = True
         cls.test_user2.save()
@@ -72,7 +75,7 @@ class TestBikes(TestCase):
             size=cls.test_bikesize,
             brand=cls.test_bikebrand,
             type=cls.test_biketype,
-            description="a nice, comfortable bike"
+            description="a nice, comfortable bike",
         )
 
         cls.test_bikemodel2 = Bike.objects.create(
@@ -80,7 +83,7 @@ class TestBikes(TestCase):
             size=cls.test_bikesize,
             brand=cls.test_bikebrand,
             type=cls.test_biketype,
-            description="a nicer, more comfortable bike"
+            description="a nicer, more comfortable bike",
         )
 
         cls.test_bikeobject1 = BikeStock.objects.create(
@@ -156,25 +159,19 @@ class TestBikes(TestCase):
         )
 
         cls.test_bikepackage1 = BikePackage.objects.create(
-            name="test_package",
-            description="package for test purposes"
+            name="test_package", description="package for test purposes"
         )
 
         cls.test_bikeamount1 = BikeAmount.objects.create(
-            amount=2,
-            bike=cls.test_bikemodel,
-            package=cls.test_bikepackage1
+            amount=2, bike=cls.test_bikemodel, package=cls.test_bikepackage1
         )
 
         cls.test_bikepackage2 = BikePackage.objects.create(
-            name="test_package2",
-            description="empty package"
+            name="test_package2", description="empty package"
         )
 
         cls.test_bikeamount2 = BikeAmount.objects.create(
-            amount=0,
-            bike=cls.test_bikemodel,
-            package=cls.test_bikepackage2
+            amount=0, bike=cls.test_bikemodel, package=cls.test_bikepackage2
         )
 
         cls.test_bikerental = BikeRental.objects.create(
@@ -184,13 +181,10 @@ class TestBikes(TestCase):
             delivery_address="anywhere",
             contact_name="bikeperson",
             contact_phone_number="123456789",
-            extra_info="lets ride"
+            extra_info="lets ride",
         )
         cls.test_bikerental.bike_stock.set(
-            [
-                cls.test_bikeobject1.id,
-                cls.test_bikeobject12.id
-            ]
+            [cls.test_bikeobject1.id, cls.test_bikeobject12.id]
         )
 
         cls.test_bikerental2 = BikeRental.objects.create(
@@ -200,7 +194,7 @@ class TestBikes(TestCase):
             delivery_address="yes",
             contact_name="also yes",
             contact_phone_number="111111111",
-            extra_info="maybe yes"
+            extra_info="maybe yes",
         )
         cls.test_bikerental2.bike_stock.set(
             [
@@ -216,7 +210,7 @@ class TestBikes(TestCase):
             delivery_address="friday",
             contact_name="friday",
             contact_phone_number="222222222",
-            extra_info="weekend"
+            extra_info="weekend",
         )
         cls.test_bikerental3.bike_stock.set(
             [
@@ -243,7 +237,6 @@ class TestBikes(TestCase):
             cls.test_group_bicycle.user_set.add(cls.test_user2)
             cls.test_group_bicycle.user_set.add(cls.test_user1)
 
-
     def login_test_user(self):
         url = "/users/login/"
         data = {
@@ -253,7 +246,6 @@ class TestBikes(TestCase):
         self.client.post(url, data, content_type="application/json")
         user = CustomUser.objects.get(username="bikeadmin@turku.fi")
         return user
-    
 
     def login_test_user2(self):
         url = "/users/login/"
@@ -264,7 +256,6 @@ class TestBikes(TestCase):
         self.client.post(url, data, content_type="application/json")
         user = CustomUser.objects.get(username="bikerperson@turku.fi")
         return user
-
 
     def test_post_bikemodel(self):
         url = "/bikes/models/"
@@ -286,9 +277,8 @@ class TestBikes(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Bike.objects.all().count(), 3)
 
-
     def test_update_bikemodel(self):
-        url =  f"/bikes/models/{self.test_bikemodel.id}/"
+        url = f"/bikes/models/{self.test_bikemodel.id}/"
         self.login_test_user()
         picture = urllib.request.urlretrieve(
             url="https://picsum.photos/200.jpg",
@@ -297,20 +287,22 @@ class TestBikes(TestCase):
         encoded_data = encode_multipart(
             BOUNDARY,
             {
-            "name": "Funny bike",
-            "description": "Biking with uncontrollable laughter",
-            "pictures[]": {open(picture[0], "rb")},
+                "name": "Funny bike",
+                "description": "Biking with uncontrollable laughter",
+                "pictures[]": {open(picture[0], "rb")},
             },
         )
-        response = self.client.put(url, encoded_data, content_type=MULTIPART_CONTENT,)
+        response = self.client.put(
+            url,
+            encoded_data,
+            content_type=MULTIPART_CONTENT,
+        )
         self.assertEqual(response.status_code, 202)
 
     def test_post_bikesize(self):
         url = "/bikes/size/"
         self.login_test_user()
-        data = {
-            "name": "99¨"
-        }
+        data = {"name": "99¨"}
 
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
@@ -319,9 +311,7 @@ class TestBikes(TestCase):
     def test_post_biketype(self):
         url = "/bikes/type/"
         self.login_test_user()
-        data = {
-            "name": "Electric"
-        }
+        data = {"name": "Electric"}
 
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
@@ -330,9 +320,7 @@ class TestBikes(TestCase):
     def test_post_bikebrand(self):
         url = "/bikes/brand/"
         self.login_test_user()
-        data = {
-            "name": "Kuraharawa"
-        }
+        data = {"name": "Kuraharawa"}
 
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
@@ -372,15 +360,15 @@ class TestBikes(TestCase):
         self.login_test_user2()
         data = {
             "bike_stock": {
-            f"package-{self.test_bikepackage1.id}": 1,
-            f"{self.test_bikemodel.id}": 1
+                f"package-{self.test_bikepackage1.id}": 1,
+                f"{self.test_bikemodel.id}": 1,
             },
             "start_date": timezone.now(),
             "end_date": timezone.now() + datetime.timedelta(days=2),
             "delivery_address": "bikestreet 123",
             "contact_name": "Bikeman",
             "contact_phone_number": "123456789",
-            "extra_info": "I like bikes"
+            "extra_info": "I like bikes",
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
@@ -395,7 +383,7 @@ class TestBikes(TestCase):
             "pickup": False,
             "contact_name": "Bikeman",
             "contact_phone_number": "123456789",
-            "extra_info": "I like bikes"
+            "extra_info": "I like bikes",
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 400)
@@ -406,12 +394,7 @@ class TestBikes(TestCase):
         data = {
             "name": "package500",
             "description": "500package",
-            "bikes": [
-                {
-                    "amount": 1,
-                    "bike": self.test_bikemodel.id
-                }
-            ]
+            "bikes": [{"amount": 1, "bike": self.test_bikemodel.id}],
         }
         response = self.client.post(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 201)
@@ -423,12 +406,7 @@ class TestBikes(TestCase):
         data = {
             "name": "package-x",
             "description": "package for undefined purposes",
-            "bikes": [
-                {
-                    "amount": 2,
-                    "bike": self.test_bikemodel2.id
-                }
-            ]
+            "bikes": [{"amount": 2, "bike": self.test_bikemodel2.id}],
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)
@@ -444,9 +422,9 @@ class TestBikes(TestCase):
                 {
                     "id": self.test_bikeamount1.id,
                     "amount": 3,
-                    "bike": self.test_bikemodel.id
+                    "bike": self.test_bikemodel.id,
                 }
-            ]
+            ],
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)

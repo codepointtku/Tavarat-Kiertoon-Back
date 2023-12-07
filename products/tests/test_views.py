@@ -5,7 +5,7 @@ from os.path import basename
 from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
-from django.test.client import MULTIPART_CONTENT, encode_multipart, BOUNDARY
+from django.test.client import BOUNDARY, MULTIPART_CONTENT, encode_multipart
 from django.utils import timezone
 
 from categories.models import Category
@@ -132,6 +132,7 @@ class TestProducts(TestCase):
             zip_code="100500",
             city="Puuhamaa",
             username="kahvimake@turku.fi",
+            group="user_group",
         )
         cls.test_user1.is_active = True
         cls.test_user1.save()
@@ -146,6 +147,7 @@ class TestProducts(TestCase):
             zip_code="100500",
             city="Puuhamaa",
             username="kahvimarkus@turku.fi",
+            group="user_group",
         )
         cls.test_user2.is_active = True
         cls.test_user2.save()
@@ -378,7 +380,7 @@ class TestProducts(TestCase):
         data = {
             "product_items": [self.test_product_item.id, self.test_product_item1.id],
             "storage": self.test_storage1.id,
-            "shelf_id": "A1, A2"
+            "shelf_id": "A1, A2",
         }
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(response.status_code, 200)

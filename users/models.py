@@ -21,6 +21,7 @@ class CustomUserManager(BaseUserManager):
         zip_code,
         city,
         username,
+        group="user_group",
     ):
         """function for creating a user"""
         if not first_name:
@@ -49,6 +50,7 @@ class CustomUserManager(BaseUserManager):
             first_name=first_name.title(),
             last_name=last_name.title(),
             username=username,
+            group=group,
         )
 
         user.set_password(raw_password=password)
@@ -84,6 +86,12 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     """class representing User in database"""
 
+    class GroupChoices(models.Choices):
+        ADMIN = "admin_group"
+        STORAGE = "storage_group"
+        USER = "user_group"
+        DEACTIVE = "deactive"
+
     id = models.BigAutoField(primary_key=True)
     # name = models.CharField(max_length=255, null=True)
     first_name = models.CharField(max_length=255)
@@ -94,6 +102,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     creation_date = models.DateTimeField(auto_now_add=True)
     phone_number = models.CharField(max_length=255, null=True)
     username = models.CharField(max_length=255, unique=True)
+    group = models.CharField(
+        max_length=255, choices=GroupChoices.choices, default="user_group"
+    )
     is_active = models.BooleanField(
         default=False,
         help_text=(

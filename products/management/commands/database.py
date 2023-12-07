@@ -11,8 +11,15 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from PIL import Image, ImageOps
 
-from bikes.models import (Bike, BikeAmount, BikeBrand, BikePackage, BikeSize,
-                          BikeStock, BikeType)
+from bikes.models import (
+    Bike,
+    BikeAmount,
+    BikeBrand,
+    BikePackage,
+    BikeSize,
+    BikeStock,
+    BikeType,
+)
 from bulletins.models import Bulletin
 from categories.models import Category
 from contact_forms.models import Contact, ContactForm
@@ -68,13 +75,21 @@ def clear_data(mode):
 
 def groups():
     """creates the user groups for permissions"""
-    groups = ["user_group", "admin_group", "storage_group", "bicycle_group"]
+    groups = [
+        "user_group",
+        "admin_group",
+        "storage_group",
+        "bicycle_group",
+        "bicycle_admin_group",
+    ]
     for group in groups:
         Group.objects.create(name=group)
 
 
 def super_user():
     super = CustomUser.objects.create_superuser(username="super", password="super")
+    super.group = "admin_group"
+    super.save()
     for group in Group.objects.all():
         group.user_set.add(super)
 
@@ -241,10 +256,10 @@ def products():
                     im = ImageOps.exif_transpose(im)
                     im.thumbnail((600, 600))
                     im.save(f"media/{picture.split('/')[-1]}")
-                Picture.objects.create(picture_address=picture.split('/')[-1])
+                Picture.objects.create(picture_address=picture.split("/")[-1])
 
         picture_objects = [
-            Picture.objects.get(picture_address=picture_address.split('/')[-1]).id
+            Picture.objects.get(picture_address=picture_address.split("/")[-1]).id
             for picture_address in pictures
             if picture_address != None
         ]
@@ -543,17 +558,19 @@ def create_users():
             "zip_code": "20100",
             "city": "Turku",
             "username": "billy.herrington@turku.fi",
+            "group": "user_group",
         },
         {
             "first_name": "Sami",
             "last_name": "Imas",
             "email": "testi@turku.fi",
-            "phone_number": "+358441234567",
+            "phone_number": "358441234567",
             "password": "samionkuningas1987",
             "address": "Pizza on hyvää polku",
             "zip_code": "80085",
             "city": "Rauma",
             "username": "Samin mashausopisto",
+            "group": "user_group",
         },
         {
             "first_name": "Pekka",
@@ -565,6 +582,7 @@ def create_users():
             "zip_code": "22222",
             "city": "Lohja",
             "username": "pekka.python@turku.fi",
+            "group": "user_group",
         },
         {
             "first_name": "Pirjo",
@@ -576,17 +594,19 @@ def create_users():
             "zip_code": "22222",
             "city": "Lohja",
             "username": "pirjo.pythonen@turku.fi",
+            "group": "user_group",
         },
         {
             "first_name": "Jad",
             "last_name": "TzTok",
             "email": "TzTok-Jad@turku.fi",
-            "phone_number": "702-079597",
+            "phone_number": "702079597",
             "password": "F-you-woox",
             "address": "TzHaar Fight Cave",
             "zip_code": "Wave 63",
             "city": "Brimhaven",
             "username": "TzTok-Jad@turku.fi",
+            "group": "user_group",
         },
         {
             "first_name": "Kavhi",
@@ -598,6 +618,7 @@ def create_users():
             "zip_code": "20100",
             "city": "Turku",
             "username": "Kavhila",
+            "group": "user_group",
         },
     ]
 
@@ -612,6 +633,7 @@ def create_users():
             zip_code=user["zip_code"],
             city=user["city"],
             username=user["username"],
+            group=user["group"],
         )
         created_user.is_active = True
         created_user.save()

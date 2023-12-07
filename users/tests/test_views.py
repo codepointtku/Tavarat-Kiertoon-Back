@@ -59,6 +59,7 @@ class TestUsers(TestCase):
             zip_code="zip_code",
             city="city",
             username="testi1@turku.fi",
+            group="user_group",
         )
         user_set.is_active = True
         user_set.save()
@@ -73,6 +74,7 @@ class TestUsers(TestCase):
             zip_code="testi",
             city="tessti",
             username="testimies",
+            group="user_group",
         )
         user2_set.is_active = True
         user2_set.save()
@@ -87,6 +89,7 @@ class TestUsers(TestCase):
             zip_code="admin",
             city="admin",
             username="admin",
+            group="user_group",
         )
         user3_set.is_active = True
         user3_set.save()
@@ -111,7 +114,7 @@ class TestUsers(TestCase):
             f"/users/{user_for_testing.id}/",
             "/user/",
             "/users/groups/",
-            f"/users/{user_for_testing.id}/groups/permission/",
+            f"/users/{user_for_testing.id}/groups/",
             f"/users/{user_for_testing.id}/",
             "/user/address/",
             f"/user/address/{address_for_testing.id}/",
@@ -554,7 +557,7 @@ class TestUsers(TestCase):
         user_for_testing = CustomUser.objects.get(username="testi1@turku.fi")
         first = GroupPermissionsSerializer(user_for_testing)
         groups_before = first.data["groups"]
-        url = f"/users/{user_for_testing.id}/groups/permission/"
+        url = f"/users/{user_for_testing.id}/groups/"
 
         # checking logs creation count beofre and after
         log_count_before = UserLogEntry.objects.all().count()
@@ -576,16 +579,9 @@ class TestUsers(TestCase):
         self.assertEqual(response.status_code, 200, "admin should pass through")
 
         # getting the correct groups and their id so they can be changed
-        admin_group = Group.objects.get(name="admin_group")
-        user_group = Group.objects.get(name="user_group")
         first_response_json = response.json()
-        data = {
-            "groups": [
-                admin_group.id,
-                user_group.id,
-            ]
-        }
-        response = self.client.patch(url, data, content_type="application/json")
+        data = {"group": "storage_group"}
+        response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(
             response.status_code,
             200,
@@ -594,8 +590,8 @@ class TestUsers(TestCase):
         second_response_json = response.json()
         # checking that the permissions are actually changed in json
         self.assertNotEqual(
-            first_response_json["groups"],
-            second_response_json["groups"],
+            first_response_json["group"],
+            second_response_json["group"],
             "admin should able to change permissions",
         )
 
@@ -626,13 +622,7 @@ class TestUsers(TestCase):
 
         # checking that admins cant change their own permission
         user_for_testing = CustomUser.objects.get(username="admin")
-        url = f"/users/{user_for_testing.id}/groups/permission/"
-        response = self.client.patch(url, data, content_type="application/json")
-        self.assertEqual(
-            response.status_code,
-            403,
-            "admins shouldnt be able to change their own groups",
-        )
+        url = f"/users/{user_for_testing.id}/groups/"
         response = self.client.put(url, data, content_type="application/json")
         self.assertEqual(
             response.status_code,

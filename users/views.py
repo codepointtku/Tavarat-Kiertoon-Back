@@ -33,7 +33,8 @@ from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 from .permissions import HasGroupPermission
 from .serializers import (
     GroupNameSerializer,
-    GroupPermissionsResponseSchemaSerializer,
+    GroupPermissionsRequestSerializer,
+    GroupPermissionsResponseSerializer,
     GroupPermissionsSerializer,
     MessageSerializer,
     NewEmailFinishValidationSerializer,
@@ -427,6 +428,16 @@ class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
         )
 
         return temp
+    
+    def delete(self, request, *args, **kwargs):
+        if request.user.id == kwargs["pk"]:
+            return Response(
+                "admin cannot delete themself",
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        instance = self.get_object()
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # getting all groups and their names
@@ -454,8 +465,8 @@ class GroupListView(generics.ListAPIView):
 
 @extend_schema_view(patch=extend_schema(exclude=True))
 @extend_schema(
-    responses=GroupPermissionsResponseSchemaSerializer,
-    request=GroupPermissionsResponseSchemaSerializer,
+    responses=GroupPermissionsResponseSerializer,
+    request=GroupPermissionsRequestSerializer,
 )
 class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     """
@@ -481,36 +492,44 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = GroupPermissionsSerializer
 
     def put(self, request, *args, **kwargs):
+        self.serializer_class = GroupPermissionsRequestSerializer
         if request.user.id == kwargs["pk"]:
             return Response(
                 "admins cannot edit their own permissions",
                 status=status.HTTP_403_FORBIDDEN,
             )
-        if "admin_group" in [
-            group.name
-            for group in [
-                Group.objects.get(id=group_id) for group_id in request.data["groups"]
-            ]
-        ]:
-            request.data["groups"] = [group.id for group in Group.objects.all()]
+        user_instance = User.objects.get(id=kwargs["pk"])
+        admin = Group.objects.get(name="admin_group")
+        storage = Group.objects.get(name="storage_group")
+        user = Group.objects.get(name="user_group")
+
+        match request.data["group"]:
+            case "admin_group":
+                user_instance.groups.add(admin)
+                user_instance.groups.add(storage)
+                user_instance.groups.add(user)
+                user_instance.is_active = True
+                user_instance.save()
+            case "storage_group":
+                user_instance.groups.remove(admin)
+                user_instance.groups.add(storage)
+                user_instance.groups.add(user)
+                user_instance.is_active = True
+                user_instance.save()
+            case "user_group":
+                user_instance.groups.remove(admin)
+                user_instance.groups.remove(storage)
+                user_instance.groups.add(user)
+                user_instance.is_active = True
+                user_instance.save()
+            case "deactive":
+                user_instance.groups.remove(admin)
+                user_instance.groups.remove(storage)
+                user_instance.groups.remove(user)
+                user_instance.is_active = False
+                user_instance.save()
+
         temp = self.update(request, *args, **kwargs)
-
-        UserLogEntry.objects.create(
-            action=UserLogEntry.ActionChoices.PERMISSIONS,
-            target=User.objects.get(id=kwargs["pk"]),
-            user_who_did_this_action=request.user,
-        )
-
-        return temp
-
-    def patch(self, request, *args, **kwargs):
-        if request.user.id == kwargs["pk"]:
-            return Response(
-                "admins cannot edit their own permissions",
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        temp = self.partial_update(request, *args, **kwargs)
 
         UserLogEntry.objects.create(
             action=UserLogEntry.ActionChoices.PERMISSIONS,

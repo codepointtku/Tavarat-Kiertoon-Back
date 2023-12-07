@@ -1,29 +1,27 @@
 from rest_framework import serializers
 
+from products.serializers import (
+    ColorSerializer,
+    PictureCreateSerializer,
+    PictureSerializer,
+)
+from users.serializers import UserBikeRentalSerializer
+
 from .models import (
     Bike,
     BikeAmount,
+    BikeBrand,
     BikePackage,
     BikeRental,
-    BikeStock,
-    BikeType,
     BikeSize,
-    BikeBrand,
-    BikeTrailerModel,
+    BikeStock,
     BikeTrailer,
+    BikeTrailerModel,
+    BikeType,
 )
-
-from products.serializers import (
-    ColorSerializer,
-    PictureSerializer,
-    PictureCreateSerializer,
-)
-
-from users.serializers import UserBikeRentalSerializer
 
 
 class BikeRentalSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = BikeRental
         fields = "__all__"
@@ -225,7 +223,6 @@ class BikeStockDepthSerializer(serializers.ModelSerializer):
 
 class BikeStockListSerializer(serializers.ModelSerializer):
     bike = BikeStockDepthSerializer(read_only=True)
-    color = ColorSerializer(read_only=True)
 
     class Meta:
         model = BikeStock
@@ -433,4 +430,3 @@ class BikeRentalDepthSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeRental
         fields = "__all__"
-

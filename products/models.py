@@ -90,6 +90,7 @@ class ProductItemLogEntry(models.Model):
         CIRCULATION = "Came back to circulation"  # Done
         MODIFY = "Modified at storage"  # Done
         GIFT = "Gifted away"
+        RETIRED = "Removed from circulation"
 
     id = models.BigAutoField(primary_key=True)
     date = models.DateTimeField(auto_now_add=True)

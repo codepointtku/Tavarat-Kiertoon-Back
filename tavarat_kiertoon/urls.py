@@ -56,6 +56,7 @@ from products.views import (
 )
 from users.views import (
     BikeGroupPermissionView,
+    BikeUserListView,
     GroupListView,
     GroupPermissionUpdateView,
     SearchWatchDetailView,
@@ -124,6 +125,7 @@ urlpatterns = [
     path("users/<int:pk>/", UserUpdateSingleView.as_view()),
     path("users/<int:pk>/groups/", GroupPermissionUpdateView.as_view()),
     path("users/<int:pk>/bike_groups/", BikeGroupPermissionView.as_view()),
+    path("users/bike_users/", BikeUserListView.as_view()),
     path("users/address/", UserAddressAdminCreateView.as_view()),
     path("users/address/<int:pk>/", UserAddressAdminEditView.as_view()),
     path("users/groups/", GroupListView.as_view()),

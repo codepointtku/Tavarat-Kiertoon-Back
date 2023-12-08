@@ -546,6 +546,13 @@ class BikeGroupPermissionsRequestSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ["bike_group"]
 
+class BikeUserSerializer(serializers.ModelSerializer):
+    groups = GroupNameSerializer(many=True)
+    
+    class Meta:
+        model = CustomUser
+        fields = ["id", "first_name", "last_name", "username", "email", "is_active", "groups"]
+
 class UserCreateReturnResponseSchemaSerializer(serializers.ModelSerializer):
     """
     FOR SCHEMA, Serializer for users, in specific format for user creation

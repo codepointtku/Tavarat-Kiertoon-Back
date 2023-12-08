@@ -33,6 +33,7 @@ from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 from .permissions import HasGroupPermission
 from .serializers import (
     BikeGroupPermissionsRequestSerializer,
+    BikeUserSerializer,
     GroupNameSerializer,
     GroupPermissionsRequestSerializer,
     GroupPermissionsResponseSerializer,
@@ -1248,3 +1249,12 @@ class SearchWatchDetailView(generics.RetrieveUpdateDestroyAPIView):
         else:
             # print("user didnt match the  owner of address")
             return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
+        
+
+class BikeUserListPagination(PageNumberPagination):
+    page_size = 25
+    page_size_query_param = "page_size"
+        
+class BikeUserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = BikeUserSerializer

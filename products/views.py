@@ -858,3 +858,60 @@ class AddProductItemsView(generics.ListCreateAPIView):
         check_product_watch(product)
 
         return Response("items created successfully")
+
+
+@extend_schema_view(
+    post=extend_schema(
+        responses=None,
+    ),
+)
+class RetireProductItemsView(generics.ListCreateAPIView):
+    """View for retiring product items from circulation"""
+
+    queryset = Product.objects.none()
+    serializer_class = ReturnAddProductItemsSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group", "user_group"],
+        "POST": ["storage_group", "user_group"],
+    }
+
+    def get(self, request, *args, **kwargs):
+        try:
+            product = Product.objects.get(id=kwargs["pk"])
+        except:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        amount = ProductItem.objects.filter(
+            product=product, status="Available", available=True
+        ).count()
+        response = [{"amount": amount}]
+
+        return Response(response)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            amount = int(request.data["amount"])
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        product = Product.objects.get(id=kwargs["pk"])
+        product_itemset = ProductItem.objects.filter(
+            product=product, status="Available", available=True
+        )[:amount]
+        log_entry = ProductItemLogEntry.objects.create(
+            action=ProductItemLogEntry.ActionChoices.RETIRED, user=request.user
+        )
+        print(product_itemset)
+        for product_item in product_itemset:
+            product_item.available = False
+            product_item.status = "Retired"
+            product_item.log_entries.add(log_entry)
+            product_item.save()
+        return Response("items retired successfully")

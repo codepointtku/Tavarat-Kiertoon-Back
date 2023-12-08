@@ -404,7 +404,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
                         user=request.user,
                     )
                     log_created = True
-            for product_item in ProductItem.objects.filter(product=instance.id):
+            for product_item in ProductItem.objects.filter(product=instance.id).exclude(status="Retired"):
                 if "storage" in request.data:
                     product_item.storage = storage
                 if "shelf_id" in request.data:

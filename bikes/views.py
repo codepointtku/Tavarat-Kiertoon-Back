@@ -342,7 +342,7 @@ class MainBikeList(generics.ListAPIView):
                 if "picture" in serializer_package:
                     serializer_package[
                         "picture"
-                    ] = f"{serializer_package['picture']} & {bike_object.picture.picture_address}"
+                    ] = f"{serializer_package['picture']}&{bike_object.picture.picture_address}"
                 else:
                     serializer_package["picture"] = bike_object.picture.picture_address
                 if bike["amount"] == 0:

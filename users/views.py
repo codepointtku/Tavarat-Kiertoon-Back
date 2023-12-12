@@ -116,9 +116,7 @@ class UserCreateListView(APIView):
             # setting is in different debug value than generic setings.debug for the ease of testing, remember to change .env value when needed
             if settings.TEST_DEBUG:  # settings.DEBUG:
                 # print("debug päällä, activating user without sending email")
-                activate_url_back = (
-                    "debug on, user auto activated no need to visit activation place"
-                )
+                activate_url_back = "debug on, user auto activated no need to visit activation place"
                 user.is_active = True
                 user.save()
                 UserLogEntry.objects.create(
@@ -135,12 +133,8 @@ class UserCreateListView(APIView):
                 # should be removed when in deplayment stage from response
                 back_activate_url = "http://127.0.0.1:8000/users/activate/"
                 activate_url_back = f"back: {back_activate_url}     front: {settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"  # {uid}/{token_for_user}/"
-                activate_url = (
-                    f"{settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"
-                )
-                message = (
-                    "heres the activation link for tavarat kiertoon: " + activate_url
-                )
+                activate_url = f"{settings.USER_ACTIVATION_URL_FRONT}{uid}/{token_for_user}/"
+                message = "heres the activation link for tavarat kiertoon: " + activate_url
 
                 # sending activation email
                 subject = "welcome to use Tavarat Kiertoon"
@@ -179,9 +173,7 @@ class UserActivationView(APIView):
     @method_decorator(never_cache)
     def post(self, request, format=None, *args, **kwargs):
         # serializer is used to validate the data send, matching passwords and uid decode and token check
-        serializer = self.serializer_class(
-            data=request.data, context={"request": request}
-        )
+        serializer = self.serializer_class(data=request.data, context={"request": request})
 
         if serializer.is_valid():
             # activating the user
@@ -214,18 +206,14 @@ class UserLoginView(APIView):
         pw_data = self.serializer_class(data=request.data)
         pw_data.is_valid()
 
-        user = authenticate(
-            username=pw_data.data["username"], password=pw_data.data["password"]
-        )
+        user = authenticate(username=pw_data.data["username"], password=pw_data.data["password"])
 
         if user is not None:
             response = Response()
             # setting the jwt tokens as http only cookie to "login" the user
             data = get_tokens_for_user(user)
 
-            cookie_setter(
-                settings.SIMPLE_JWT["AUTH_COOKIE"], data["access"], False, response
-            )
+            cookie_setter(settings.SIMPLE_JWT["AUTH_COOKIE"], data["access"], False, response)
             cookie_setter(
                 settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
                 data["refresh"],
@@ -234,9 +222,7 @@ class UserLoginView(APIView):
             )
 
             msg = "Login successfully"
-            response_data = UsersLoginRefreshResponseSerializer(
-                user, context={"message": msg}
-            )
+            response_data = UsersLoginRefreshResponseSerializer(user, context={"message": msg})
             csrf.get_token(request)
             response.status_code = status.HTTP_200_OK
             response.data = response_data.data
@@ -263,9 +249,7 @@ class UserTokenRefreshView(TokenViewBase):
     def post(self, request, *args, **kwargs):
         # check that refresh cookie is found
         if settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"] not in request.COOKIES:
-            return Response(
-                "refresh token not found", status=status.HTTP_204_NO_CONTENT
-            )
+            return Response("refresh token not found", status=status.HTTP_204_NO_CONTENT)
 
         # serializer imported from the jwt token package performs the token validation
         refresh_token = {}
@@ -291,9 +275,7 @@ class UserTokenRefreshView(TokenViewBase):
         user_id = refresh_token_obj["user_id"]
         user = User.objects.get(id=user_id)
         msg = "Refresh succeess"
-        response_data = UsersLoginRefreshResponseSerializer(
-            user, context={"message": msg}
-        )
+        response_data = UsersLoginRefreshResponseSerializer(user, context={"message": msg})
         response.status_code = status.HTTP_200_OK
         response.data = response_data.data
 
@@ -542,10 +524,13 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
 
         return temp
 
-@extend_schema_view(patch=extend_schema(exclude=True), put=extend_schema(request=BikeGroupPermissionsRequestSerializer))
+
+@extend_schema_view(
+    patch=extend_schema(exclude=True), put=extend_schema(request=BikeGroupPermissionsRequestSerializer)
+)
 class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
-    serializer_class = GroupPermissionsResponseSerializer
+    serializer_class = BikeUserSerializer
 
     authentication_classes = [
         SessionAuthentication,
@@ -561,7 +546,6 @@ class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
     }
 
     def put(self, request, *args, **kwargs):
-        self.serializer_class = GroupPermissionsRequestSerializer
         if request.user.id == kwargs["pk"]:
             return Response(
                 "bike admins cannot edit their own permissions",
@@ -578,7 +562,7 @@ class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
             case "bicycle_group":
                 user_instance.groups.remove(bike_admin)
                 user_instance.groups.add(bike)
-            case "remove_bicycle_group":
+            case "no_bicycle_group":
                 user_instance.groups.remove(bike_admin)
                 user_instance.groups.remove(bike)
 
@@ -587,8 +571,7 @@ class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
             target=User.objects.get(id=kwargs["pk"]),
             user_who_did_this_action=request.user,
         )
-        serializer = GroupPermissionsResponseSerializer(user_instance)
-        # serializer.is_valid(raise_exception=True)
+        serializer = BikeUserSerializer(user_instance)
 
         return Response(serializer.data)
 
@@ -625,9 +608,7 @@ class UserUpdateInfoView(APIView):
         return Response(serializer.data)
 
     def put(self, request, format=None):
-        serializer = self.serializer_class(
-            request.user, data=request.data, partial=True
-        )
+        serializer = self.serializer_class(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -762,9 +743,7 @@ class UserAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
             user_who_did_this_action=request.user,
         )
 
-        return Response(
-            f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK
-        )
+        return Response(f"Successfully deleted: {address_msg}", status=status.HTTP_200_OK)
 
 
 @extend_schema_view(patch=extend_schema(exclude=True))
@@ -867,9 +846,7 @@ class UserPasswordResetMailView(APIView):
 
     def post(self, request, format=None):
         # using serializewr to check that user exists that the pw reset mail is sent to
-        serializer = self.serializer_class(
-            data=request.data, context={"request": request}, partial=True
-        )
+        serializer = self.serializer_class(data=request.data, context={"request": request}, partial=True)
 
         if serializer.is_valid():
             # creating token for user for pw reset and encoding the uid
@@ -938,9 +915,7 @@ class UserPasswordResetMailValidationView(APIView):
     @extend_schema(responses=None)
     def post(self, request, format=None, *args, **kwargs):
         # serializer is used to validate the data send, matching passwords and uid decode and token check
-        serializer = self.serializer_class(
-            data=request.data, context={"request": request}
-        )
+        serializer = self.serializer_class(data=request.data, context={"request": request})
 
         if serializer.is_valid():
             # updating the users pw in database
@@ -985,9 +960,7 @@ class UserEmailChangeView(APIView):
 
     def post(self, request, format=None):
         # checkign that the new email adress is allowed one before sending the change email itself
-        serializer = self.serializer_class(
-            data=request.data, context={"request": request}
-        )
+        serializer = self.serializer_class(data=request.data, context={"request": request})
 
         if serializer.is_valid():
             # building the link for changing the email address
@@ -1004,9 +977,7 @@ class UserEmailChangeView(APIView):
 
             email_unique_portion = f"{uid}/{token_for_user}/{new_email}/"
 
-            email_change_url_front = (
-                f"{settings.EMAIL_CHANGE_URL_FRONT}{email_unique_portion}"
-            )
+            email_change_url_front = f"{settings.EMAIL_CHANGE_URL_FRONT}{email_unique_portion}"
             email_change_url_back = "http://127.0.0.1:8000/users/emailchange/finish/"
 
             response_data = {
@@ -1042,9 +1013,7 @@ class UserEmailChangeView(APIView):
                     status=status.HTTP_200_OK,
                 )
             else:
-                message = {
-                    "message": "Check the email address for the link to change the email address"
-                }
+                message = {"message": "Check the email address for the link to change the email address"}
                 return Response(
                     MessageSerializer(data=message).initial_data,
                     status=status.HTTP_200_OK,
@@ -1249,12 +1218,13 @@ class SearchWatchDetailView(generics.RetrieveUpdateDestroyAPIView):
         else:
             # print("user didnt match the  owner of address")
             return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
-        
+
 
 class BikeUserListPagination(PageNumberPagination):
     page_size = 25
     page_size_query_param = "page_size"
-        
+
+
 class BikeUserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = BikeUserSerializer

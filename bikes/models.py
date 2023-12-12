@@ -2,7 +2,7 @@
 
 from django.db import models
 
-from products.models import Color, Storage, Picture
+from products.models import Color, Picture
 from users.models import CustomUser
 
 
@@ -70,10 +70,26 @@ class BikeStock(models.Model):
         default="AVAILABLE",
     )
     bike = models.ForeignKey(Bike, related_name="stock", on_delete=models.CASCADE)
-    storage = models.ForeignKey(Storage, null=True, on_delete=models.SET_NULL)
 
     def __str__(self) -> str:
         return f"Bike stock: {self.number}({self.id})"
+
+
+class BikeTrailerModel(models.Model):
+    """Model for trailers, used to transport and store bikes"""
+
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+
+    def __str__(self) -> str:
+        return f"Bike: {self.name}({self.id})"
+
+
+class BikeTrailer(models.Model):
+    """Model for individual trailers"""
+
+    register_number = models.CharField(max_length=255)
+    trailer_type = models.ForeignKey(BikeTrailerModel, related_name="trailer", on_delete=models.SET_NULL, null=True)
 
 
 class BikeRental(models.Model):
@@ -88,6 +104,7 @@ class BikeRental(models.Model):
 
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     bike_stock = models.ManyToManyField(BikeStock, related_name="rental")
+    bike_trailer = models.ForeignKey(BikeTrailer, related_name="trailer_rental", on_delete=models.SET_NULL, null=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     state = models.CharField(
@@ -96,7 +113,6 @@ class BikeRental(models.Model):
         default="WAITING",
     )
     delivery_address = models.CharField(max_length=255)
-    pickup = models.BooleanField(default=False)
     contact_name = models.CharField(max_length=255)
     contact_phone_number = models.CharField(max_length=255)
     extra_info = models.CharField(max_length=255, default="", blank=True)
@@ -126,4 +142,3 @@ class BikeAmount(models.Model):
 
     def __str__(self) -> str:
         return f"Bike amount: {self.amount}x{self.bike}({self.id})"
-

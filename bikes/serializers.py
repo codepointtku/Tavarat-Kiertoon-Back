@@ -1,24 +1,24 @@
 from rest_framework import serializers
 
+from products.serializers import (
+    ColorSerializer,
+    PictureCreateSerializer,
+    PictureSerializer,
+)
+from users.serializers import UserBikeRentalSerializer
+
 from .models import (
     Bike,
     BikeAmount,
+    BikeBrand,
     BikePackage,
     BikeRental,
-    BikeStock,
-    BikeType,
     BikeSize,
-    BikeBrand,
+    BikeStock,
+    BikeTrailer,
+    BikeTrailerModel,
+    BikeType,
 )
-
-from products.serializers import (
-    ColorSerializer,
-    StorageSerializer,
-    PictureSerializer,
-    PictureCreateSerializer,
-)
-
-from users.serializers import UserBikeRentalSerializer
 
 
 class BikeRentalSerializer(serializers.ModelSerializer):
@@ -29,6 +29,7 @@ class BikeRentalSerializer(serializers.ModelSerializer):
 
 class BikeRentalSchemaPostSerializer(serializers.ModelSerializer):
     bike_stock = serializers.DictField(child=serializers.IntegerField())
+    bike_trailer = serializers.IntegerField(required=False)
 
     class Meta:
         model = BikeRental
@@ -45,7 +46,6 @@ class BikeRentalSchemaResponseSerializer(serializers.ModelSerializer):
             "end_date": {"required": True},
             "state": {"required": True},
             "delivery_address": {"required": True},
-            "pickup": {"required": True},
             "contact_name": {"required": True},
             "contact_phone_number": {"required": True},
             "extra_info": {"required": True},
@@ -67,7 +67,6 @@ class BikeStockSerializer(serializers.ModelSerializer):
             "created_at",
             "state",
             "package_only",
-            "storage",
             "rental",
         ]
 
@@ -215,7 +214,6 @@ class BikeStockDepthSerializer(serializers.ModelSerializer):
     type = BikeTypeSerializer(read_only=True)
     brand = BikeBrandSerializer(read_only=True)
     size = BikeSizeSerializer(read_only=True)
-    color = ColorSerializer(read_only=True)
     picture = PictureSerializer(read_only=True)
 
     class Meta:
@@ -236,7 +234,6 @@ class BikeStockListSerializer(serializers.ModelSerializer):
             "frame_number": {"required": True},
             "created_at": {"required": True},
             "state": {"required": True},
-            "storage": {"required": True},
         }
 
 
@@ -248,7 +245,6 @@ class BikeStockCreateSerializer(serializers.ModelSerializer):
 
 class BikeStockDetailSerializer(serializers.ModelSerializer):
     bike = BikeStockDepthSerializer(read_only=True)
-    storage = StorageSerializer(read_only=True)
     color = ColorSerializer(read_only=True)
 
     class Meta:
@@ -261,7 +257,6 @@ class BikeStockDetailSerializer(serializers.ModelSerializer):
             "frame_number": {"required": True},
             "created_at": {"required": True},
             "state": {"required": True},
-            "storage": {"required": True},
         }
 
 
@@ -276,7 +271,6 @@ class BikeStockSchemaCreateUpdateSerializer(serializers.ModelSerializer):
             "frame_number": {"required": True},
             "created_at": {"required": True},
             "state": {"required": True},
-            "storage": {"required": True},
         }
 
 
@@ -390,9 +384,48 @@ class BikeAvailabilityListSerializer(serializers.ModelSerializer):
         ]
 
 
+class BikeTrailerModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeTrailerModel
+        fields = "__all__"
+
+
+class BikeTrailerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeTrailer
+        fields = "__all__"
+
+
+class BikeTrailerAvailabilityListSerializer(serializers.ModelSerializer):
+    trailer_rental = BikeRentalSerializer(many=True)
+
+    class Meta:
+        model = BikeTrailer
+        fields = [
+            "id",
+            "trailer_rental",
+        ]
+
+
+class BikeTrailerMainSerializer(serializers.ModelSerializer):
+    max_available = serializers.ReadOnlyField(source="trailer.count")
+    trailer = BikeTrailerAvailabilityListSerializer(many=True)
+
+    class Meta:
+        model = BikeTrailerModel
+        fields = [
+            "id",
+            "name",
+            "description",
+            "max_available",
+            "trailer",
+        ]
+
+
 class BikeRentalDepthSerializer(serializers.ModelSerializer):
     bike_stock = BikeStockDetailSerializer(many=True, read_only=True)
     user = UserBikeRentalSerializer(read_only=True)
+    bike_trailer = BikeTrailerSerializer(read_only=True)
 
     class Meta:
         model = BikeRental

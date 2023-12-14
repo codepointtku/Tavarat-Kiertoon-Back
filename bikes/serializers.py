@@ -326,11 +326,14 @@ class MainBikeSchemaBikesSerializer(serializers.Serializer):
     unavailable = serializers.DictField(child=serializers.IntegerField())
     package_only_count = serializers.IntegerField()
     package_only_unavailable = serializers.DictField(child=serializers.IntegerField())
+    picture = serializers.CharField()
 
 
 class MainBikeSchemaPackageBikeSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
     bike = serializers.IntegerField()
     amount = serializers.IntegerField()
+    picture = serializers.CharField()
 
 
 class MainBikeSchemaPackageSerializer(serializers.Serializer):
@@ -344,6 +347,7 @@ class MainBikeSchemaPackageSerializer(serializers.Serializer):
     color = serializers.IntegerField()
     size = serializers.CharField()
     max_available = serializers.IntegerField()
+    picture = serializers.CharField()
 
 
 class MainBikeListSchemaSerializer(serializers.Serializer):

@@ -18,6 +18,8 @@ from bikes.models import (
     BikeSize,
     BikeStock,
     BikeType,
+    BikeTrailerModel,
+    BikeTrailer,
 )
 from bulletins.models import Bulletin
 from categories.models import Category
@@ -977,7 +979,6 @@ def create_bikes():
     ]
     types = BikeType.objects.all()
     brands = BikeBrand.objects.all()
-    colors = Color.objects.all()
     pictures = Picture.objects.all()
     for bike in bikes:
         bike_object = Bike(
@@ -992,7 +993,6 @@ def create_bikes():
 
 
 def create_bike_stock():
-    storages = Storage.objects.all()
     bikes = Bike.objects.all()
     colors = Color.objects.all()
     for bike in bikes:
@@ -1002,7 +1002,6 @@ def create_bike_stock():
                 frame_number=uuid.uuid4(),
                 bike=bike,
                 color=random.choice(colors),
-                storage=random.choice(storages),
                 package_only=random.choice([True, False]),
             )
             stock_object.save()
@@ -1035,6 +1034,30 @@ def create_bike_package():
             amount_object.save()
 
 
+def create_bike_trailers():
+    trailer_model = BikeTrailerModel(
+        name="Peräkärry", description="Peräkärry pyöräpakettien kuljettamiseen"
+    )
+    trailer_model.save()
+
+    trailers = [
+        {
+            "register_number": "ASD-123",
+        },
+        {
+            "register_number": "QWE-123",
+        },
+        {
+            "register_number": "ZXC-123",
+        },
+    ]
+    for trailer in trailers:
+        trailer_object = BikeTrailer(
+            register_number=trailer["register_number"], trailer_type=trailer_model
+        )
+        trailer_object.save()
+
+
 def run_seed(self, mode):
     """Seed database based on mode.
 
@@ -1064,3 +1087,4 @@ def run_seed(self, mode):
     create_bikes()
     create_bike_stock()
     create_bike_package()
+    # create_bike_trailers()

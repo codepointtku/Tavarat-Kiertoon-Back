@@ -595,6 +595,19 @@ class BikeUserListView(generics.ListAPIView):
     pagination_class = BikeUserListPagination
     filterset_class = BikeUserFilter
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["bibycle_admin_group", "user_group"],
+        "PUT": ["bibycle_admin_group", "user_group"],
+        "PATCH": ["bibycle_admin_group", "user_group"],
+    }
+
 
 @extend_schema_view(
     get=extend_schema(responses=UserFullResponseSchemaSerializer),

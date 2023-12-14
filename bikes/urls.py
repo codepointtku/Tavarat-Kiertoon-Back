@@ -21,4 +21,8 @@ urlpatterns = [
     path("brand/<int:pk>/", views.BikeBrandDetailView.as_view()),
     path("size/", views.BikeSizeListView.as_view()),
     path("size/<int:pk>/", views.BikeSizeDetailView.as_view()),
+    path("trailermodels/", views.BikeTrailerModelListView.as_view()),
+    path("trailermodels/<int:pk>/", views.BikeTrailerModelDetailView.as_view()),
+    path("trailers/", views.BikeTrailerListView.as_view()),
+    path("trailers/<int:pk>/", views.BikeTrailerDetailView.as_view()),
 ]

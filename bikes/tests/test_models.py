@@ -11,7 +11,7 @@ from bikes.models import (
     BikeStock,
     BikeType,
 )
-from products.models import Color, Storage
+from products.models import Color
 from users.models import CustomUser
 
 
@@ -33,7 +33,6 @@ class TestBikes(TestCase):
         cls.test_user1.is_active = True
         cls.test_user1.save()
 
-        cls.test_storage = Storage.objects.create(name="Bikestorage")
         cls.test_color = Color.objects.create(name="musta")
 
         cls.test_bikesize = BikeSize.objects.create(
@@ -59,8 +58,7 @@ class TestBikes(TestCase):
             number=101,
             frame_number=101,
             color=cls.test_color,
-            storage=cls.test_storage,
-            bike=cls.test_bikemodel,
+            bike=cls.test_bikemodel
         )
 
         cls.test_bikepackage1 = BikePackage.objects.create(

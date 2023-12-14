@@ -286,7 +286,7 @@ class ProductStorageListView(generics.ListAPIView):
             if is_in_group(self.request.user, "storage_group") or is_in_group(
                 self.request.user, "admin_group"
             ):
-                return Product.objects.all().distinct()
+                return Product.objects.exclude(productitem__isnull=True).distinct()
 
         # Hides Products that are not available
         available_products = available_products_filter()
@@ -905,13 +905,7 @@ class RetireProductItemsView(generics.ListCreateAPIView):
         product_itemset = ProductItem.objects.filter(
             product=product, status="Available", available=True
         )[:amount]
-        log_entry = ProductItemLogEntry.objects.create(
-            action=ProductItemLogEntry.ActionChoices.RETIRED, user=request.user
-        )
         print(product_itemset)
         for product_item in product_itemset:
-            product_item.available = False
-            product_item.status = "Retired"
-            product_item.log_entries.add(log_entry)
-            product_item.save()
+            product_item.delete()
         return Response("items retired successfully")

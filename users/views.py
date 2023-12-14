@@ -581,10 +581,19 @@ class BikeUserListPagination(PageNumberPagination):
     page_size_query_param = "page_size"
 
 
+class BikeUserFilter(filters.FilterSet):
+    email = filters.CharFilter(lookup_expr="icontains")
+
+    class Meta:
+        model = CustomUser
+        fields = ["email"]
+
+
 class BikeUserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = BikeUserSerializer
     pagination_class = BikeUserListPagination
+    filterset_class = BikeUserFilter
 
 
 @extend_schema_view(

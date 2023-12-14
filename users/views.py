@@ -576,6 +576,17 @@ class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
         return Response(serializer.data)
 
 
+class BikeUserListPagination(PageNumberPagination):
+    page_size = 25
+    page_size_query_param = "page_size"
+
+
+class BikeUserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = BikeUserSerializer
+    pagination_class = BikeUserListPagination
+
+
 @extend_schema_view(
     get=extend_schema(responses=UserFullResponseSchemaSerializer),
     put=extend_schema(responses=UserUpdateReturnSchemaSerializer),
@@ -1218,13 +1229,3 @@ class SearchWatchDetailView(generics.RetrieveUpdateDestroyAPIView):
         else:
             # print("user didnt match the  owner of address")
             return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
-
-
-class BikeUserListPagination(PageNumberPagination):
-    page_size = 25
-    page_size_query_param = "page_size"
-
-
-class BikeUserListView(generics.ListAPIView):
-    queryset = User.objects.all()
-    serializer_class = BikeUserSerializer

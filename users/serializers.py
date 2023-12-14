@@ -547,7 +547,7 @@ class BikeUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["id", "first_name", "last_name", "username", "email", "is_active", "bike_group"]
+        fields = ["id", "first_name", "last_name", "username", "email", "phone_number", "is_active", "bike_group"]
 
     def get_bike_group(self, obj):
         group_names = [group.name for group in obj.groups.all()]

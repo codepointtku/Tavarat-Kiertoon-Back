@@ -540,9 +540,9 @@ class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bibycle_admin_group", "user_group"],
-        "PUT": ["bibycle_admin_group", "user_group"],
-        "PATCH": ["bibycle_admin_group", "user_group"],
+        "GET": ["bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_admin_group", "user_group"],
     }
 
     def put(self, request, *args, **kwargs):
@@ -603,9 +603,9 @@ class BikeUserListView(generics.ListAPIView):
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bibycle_admin_group", "user_group"],
-        "PUT": ["bibycle_admin_group", "user_group"],
-        "PATCH": ["bibycle_admin_group", "user_group"],
+        "GET": ["bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_admin_group", "user_group"],
     }
 
 

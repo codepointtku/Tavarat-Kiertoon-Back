@@ -228,8 +228,8 @@ class TestBikes(TestCase):
             ]
         )
 
-        if Group.objects.filter(name="admin_group").count() == 0:
-            cls.test_group_admin = Group.objects.create(name="admin_group")
+        if Group.objects.filter(name="bicycle_admin_group").count() == 0:
+            cls.test_group_admin = Group.objects.create(name="bicycle_admin_group")
             cls.test_group_admin.user_set.add(cls.test_user1)
         if Group.objects.filter(name="storage_group").count() == 0:
             cls.test_group_storage = Group.objects.create(name="storage_group")

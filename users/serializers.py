@@ -21,9 +21,7 @@ class UserPasswordSerializer(serializers.ModelSerializer):
     """
 
     password_correct = serializers.BooleanField(default=False)
-    message_for_user = serializers.CharField(
-        default="Your password was wrong/no entered"
-    )
+    message_for_user = serializers.CharField(default="Your password was wrong/no entered")
 
     class Meta:
         model = CustomUser
@@ -288,9 +286,7 @@ class UserLimitedSerializer(serializers.ModelSerializer):
     """
 
     # groups = SubSerializerForGroups(many=True, read_only=True) #comes out in dict
-    groups = serializers.SlugRelatedField(
-        many=True, read_only=True, slug_field="name"
-    )  # comes out in list
+    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")  # comes out in list
 
     address_list = UserAddressSerializer(many=True, read_only=True)
 
@@ -334,9 +330,7 @@ class UsersLoginRefreshResponseSerializer(serializers.ModelSerializer):
 
     message = serializers.CharField(default="Some message", max_length=255)
 
-    groups = serializers.SlugRelatedField(
-        many=True, read_only=True, slug_field="name"
-    )  # comes out in list
+    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")  # comes out in list
 
     class Meta:
         model = CustomUser
@@ -541,6 +535,30 @@ class GroupPermissionsResponseSerializer(serializers.ModelSerializer):
         }
 
 
+class BikeGroupPermissionsRequestSerializer(serializers.Serializer):
+    bike_group = serializers.ChoiceField(choices=["bicycle_admin_group", "bicycle_group", "no_bicycle_group"])
+
+    class Meta:
+        fields = ["bike_group"]
+
+
+class BikeUserSerializer(serializers.ModelSerializer):
+    bike_group = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = ["id", "first_name", "last_name", "username", "email", "phone_number", "is_active", "bike_group"]
+
+    def get_bike_group(self, obj):
+        group_names = [group.name for group in obj.groups.all()]
+        if "bicycle_admin_group" in group_names:
+            return "bicycle_admin_group"
+        elif "bicycle_group" in group_names:
+            return "bicycle_group"
+        else:
+            return "no_bicycle_group"
+
+
 class UserCreateReturnResponseSchemaSerializer(serializers.ModelSerializer):
     """
     FOR SCHEMA, Serializer for users, in specific format for user creation
@@ -572,9 +590,7 @@ class UsersLoginRefreshResponseSchemaSerializer(serializers.ModelSerializer):
 
     message = serializers.CharField(required=True, max_length=255)
 
-    groups = serializers.SlugRelatedField(
-        many=True, read_only=True, slug_field="name"
-    )  # comes out in list
+    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")  # comes out in list
 
     class Meta:
         model = CustomUser

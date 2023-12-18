@@ -32,6 +32,8 @@ from .custom_functions import cookie_setter, get_tokens_for_user
 from .models import CustomUser, SearchWatch, UserAddress, UserLogEntry
 from .permissions import HasGroupPermission
 from .serializers import (
+    BikeGroupPermissionsRequestSerializer,
+    BikeUserSerializer,
     GroupNameSerializer,
     GroupPermissionsRequestSerializer,
     GroupPermissionsResponseSerializer,
@@ -392,6 +394,7 @@ class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
         "POST": ["admin_group", "user_group"],
         "PUT": ["admin_group", "user_group"],
         "PATCH": ["admin_group", "user_group"],
+        "DELETE": ["admin_group", "user_group"],
     }
 
     serializer_class = UserUpdateSerializer
@@ -428,7 +431,7 @@ class UserUpdateSingleView(generics.RetrieveUpdateDestroyAPIView):
         )
 
         return temp
-    
+
     def delete(self, request, *args, **kwargs):
         if request.user.id == kwargs["pk"]:
             return Response(
@@ -475,6 +478,9 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
     users changing their own permissions isnt allowed
     """
 
+    queryset = User.objects.all()
+    serializer_class = GroupPermissionsSerializer
+
     authentication_classes = [
         SessionAuthentication,
         BasicAuthentication,
@@ -487,9 +493,6 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
         "PUT": ["admin_group", "user_group"],
         "PATCH": ["admin_group", "user_group"],
     }
-
-    queryset = User.objects.all()
-    serializer_class = GroupPermissionsSerializer
 
     def put(self, request, *args, **kwargs):
         self.serializer_class = GroupPermissionsRequestSerializer
@@ -538,6 +541,94 @@ class GroupPermissionUpdateView(generics.RetrieveUpdateAPIView):
         )
 
         return temp
+
+
+@extend_schema_view(
+    patch=extend_schema(exclude=True),
+    put=extend_schema(request=BikeGroupPermissionsRequestSerializer),
+)
+class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = BikeUserSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_admin_group", "user_group"],
+    }
+
+    def put(self, request, *args, **kwargs):
+        if request.user.id == kwargs["pk"]:
+            return Response(
+                "bike admins cannot edit their own permissions",
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        user_instance = User.objects.get(id=kwargs["pk"])
+        bike = Group.objects.get(name="bicycle_group")
+        bike_admin = Group.objects.get(name="bicycle_admin_group")
+
+        match request.data["bike_group"]:
+            case "bicycle_admin_group":
+                user_instance.groups.add(bike_admin)
+                user_instance.groups.add(bike)
+            case "bicycle_group":
+                user_instance.groups.remove(bike_admin)
+                user_instance.groups.add(bike)
+            case "no_bicycle_group":
+                user_instance.groups.remove(bike_admin)
+                user_instance.groups.remove(bike)
+
+        UserLogEntry.objects.create(
+            action=UserLogEntry.ActionChoices.PERMISSIONS,
+            target=User.objects.get(id=kwargs["pk"]),
+            user_who_did_this_action=request.user,
+        )
+        serializer = BikeUserSerializer(user_instance)
+
+        return Response(serializer.data)
+
+
+class BikeUserListPagination(PageNumberPagination):
+    page_size = 25
+    page_size_query_param = "page_size"
+
+
+class BikeUserFilter(filters.FilterSet):
+    email = filters.CharFilter(lookup_expr="icontains")
+
+    class Meta:
+        model = CustomUser
+        fields = ["email"]
+
+
+class BikeUserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = BikeUserSerializer
+    pagination_class = BikeUserListPagination
+    filterset_class = BikeUserFilter
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["id"]
+    ordering = ["-id"]
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_admin_group", "user_group"],
+    }
 
 
 @extend_schema_view(

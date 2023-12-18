@@ -80,8 +80,8 @@ class BikeModelListView(generics.ListCreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "POST": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "POST": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
     def post(self, request, *args, **kwargs):
@@ -125,11 +125,11 @@ class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "PUT": ["bicycle_group", "admin_group", "user_group"],
-        "PATCH": ["bicycle_group", "admin_group", "user_group"],
-        "UPDATE": ["bicycle_group", "admin_group", "user_group"],
-        "DELETE": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "UPDATE": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "DELETE": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
     def update(self, request, *args, **kwargs):
@@ -175,8 +175,8 @@ class BikeStockListView(generics.ListCreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "POST": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "POST": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
     def post(self, request, *args, **kwargs):
@@ -206,11 +206,11 @@ class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "PUT": ["bicycle_group", "admin_group", "user_group"],
-        "PATCH": ["bicycle_group", "admin_group", "user_group"],
-        "UPDATE": ["bicycle_group", "admin_group", "user_group"],
-        "DELETE": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "UPDATE": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "DELETE": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
     def update(self, request, *args, **kwargs):
@@ -429,7 +429,7 @@ class RentalListView(generics.ListCreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
         "POST": ["bicycle_group", "user_group"],
     }
 
@@ -614,10 +614,10 @@ class RentalDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "PUT": ["bicycle_group", "admin_group", "user_group"],
-        "PATCH": ["bicycle_group", "admin_group", "user_group"],
-        "DELETE": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "DELETE": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
     def retrieve(self, request, *args, **kwargs):
@@ -639,7 +639,7 @@ class BikeAmountListView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
 
@@ -663,8 +663,8 @@ class BikePackageListView(generics.ListCreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "POST": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "POST": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
 
@@ -686,10 +686,10 @@ class BikePackageDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "PUT": ["bicycle_group", "admin_group", "user_group"],
-        "PATCH": ["bicycle_group", "admin_group", "user_group"],
-        "DELETE": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "DELETE": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
 
@@ -706,8 +706,8 @@ class BikeTypeListView(generics.ListCreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "POST": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "POST": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
 
@@ -727,10 +727,10 @@ class BikeTypeDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "PUT": ["bicycle_group", "admin_group", "user_group"],
-        "PATCH": ["bicycle_group", "admin_group", "user_group"],
-        "DELETE": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "DELETE": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
 
@@ -747,8 +747,8 @@ class BikeBrandListView(generics.ListCreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "POST": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "POST": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
 
@@ -768,10 +768,10 @@ class BikeBrandDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "PUT": ["bicycle_group", "admin_group", "user_group"],
-        "PATCH": ["bicycle_group", "admin_group", "user_group"],
-        "DELETE": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "DELETE": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
 
@@ -788,8 +788,8 @@ class BikeSizeListView(generics.ListCreateAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "POST": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "POST": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
 
@@ -809,10 +809,10 @@ class BikeSizeDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bicycle_group", "admin_group", "user_group"],
-        "PUT": ["bicycle_group", "admin_group", "user_group"],
-        "PATCH": ["bicycle_group", "admin_group", "user_group"],
-        "DELETE": ["bicycle_group", "admin_group", "user_group"],
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "DELETE": ["bicycle_group", "bicycle_admin_group", "user_group"],
     }
 
 
@@ -820,15 +820,56 @@ class BikeTrailerModelListView(generics.ListCreateAPIView):
     queryset = BikeTrailerModel.objects.all()
     serializer_class = BikeTrailerModelSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "POST": ["bicycle_group", "bicycle_admin_group", "user_group"],
+    }
+
 
 class BikeTrailerModelDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeTrailerModel.objects.all()
     serializer_class = BikeTrailerModelSerializer
 
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "DELETE": ["bicycle_group", "bicycle_admin_group", "user_group"],
+    }
+
 
 class BikeTrailerListView(generics.ListCreateAPIView):
     queryset = BikeTrailer.objects.all()
     serializer_class = BikeTrailerSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "POST": ["bicycle_group", "bicycle_admin_group", "user_group"],
+    }
 
     def post(self, request, *args, **kwargs):
         trailer_data = request.data
@@ -851,3 +892,18 @@ class BikeTrailerListView(generics.ListCreateAPIView):
 class BikeTrailerDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BikeTrailer.objects.all()
     serializer_class = BikeTrailerSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_group", "bicycle_admin_group", "user_group"],
+        "DELETE": ["bicycle_group", "bicycle_admin_group", "user_group"],
+    }

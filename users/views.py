@@ -540,9 +540,9 @@ class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
     ]
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
-        "GET": ["bibycle_admin_group", "user_group"],
-        "PUT": ["bibycle_admin_group", "user_group"],
-        "PATCH": ["bibycle_admin_group", "user_group"],
+        "GET": ["bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_admin_group", "user_group"],
     }
 
     def put(self, request, *args, **kwargs):
@@ -574,6 +574,39 @@ class BikeGroupPermissionView(generics.RetrieveUpdateAPIView):
         serializer = BikeUserSerializer(user_instance)
 
         return Response(serializer.data)
+
+
+class BikeUserListPagination(PageNumberPagination):
+    page_size = 25
+    page_size_query_param = "page_size"
+
+
+class BikeUserFilter(filters.FilterSet):
+    email = filters.CharFilter(lookup_expr="icontains")
+
+    class Meta:
+        model = CustomUser
+        fields = ["email"]
+
+
+class BikeUserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = BikeUserSerializer
+    pagination_class = BikeUserListPagination
+    filterset_class = BikeUserFilter
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_admin_group", "user_group"],
+        "PUT": ["bicycle_admin_group", "user_group"],
+        "PATCH": ["bicycle_admin_group", "user_group"],
+    }
 
 
 @extend_schema_view(
@@ -1218,13 +1251,3 @@ class SearchWatchDetailView(generics.RetrieveUpdateDestroyAPIView):
         else:
             # print("user didnt match the  owner of address")
             return Response("Not Done", status=status.HTTP_204_NO_CONTENT)
-
-
-class BikeUserListPagination(PageNumberPagination):
-    page_size = 25
-    page_size_query_param = "page_size"
-
-
-class BikeUserListView(generics.ListAPIView):
-    queryset = User.objects.all()
-    serializer_class = BikeUserSerializer

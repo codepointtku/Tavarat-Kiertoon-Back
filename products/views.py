@@ -286,7 +286,7 @@ class ProductStorageListView(generics.ListAPIView):
             if is_in_group(self.request.user, "storage_group") or is_in_group(
                 self.request.user, "admin_group"
             ):
-                return Product.objects.all().distinct()
+                return Product.objects.exclude(productitem__isnull=True).distinct()
 
         # Hides Products that are not available
         available_products = available_products_filter()
@@ -858,3 +858,54 @@ class AddProductItemsView(generics.ListCreateAPIView):
         check_product_watch(product)
 
         return Response("items created successfully")
+
+
+@extend_schema_view(
+    post=extend_schema(
+        responses=None,
+    ),
+)
+class RetireProductItemsView(generics.ListCreateAPIView):
+    """View for retiring product items from circulation"""
+
+    queryset = Product.objects.none()
+    serializer_class = ReturnAddProductItemsSerializer
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["storage_group", "user_group"],
+        "POST": ["storage_group", "user_group"],
+    }
+
+    def get(self, request, *args, **kwargs):
+        try:
+            product = Product.objects.get(id=kwargs["pk"])
+        except:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        amount = ProductItem.objects.filter(
+            product=product, status="Available", available=True
+        ).count()
+        response = [{"amount": amount}]
+
+        return Response(response)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            amount = int(request.data["amount"])
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        product = Product.objects.get(id=kwargs["pk"])
+        product_itemset = ProductItem.objects.filter(
+            product=product, status="Available", available=True
+        )[:amount]
+        print(product_itemset)
+        for product_item in product_itemset:
+            product_item.delete()
+        return Response("items retired successfully")

@@ -19,7 +19,9 @@ services:
         container_name: tavarat-kiertoon-back
         build: .
         command: >
-            sh -cx "python manage.py migrate && python manage.py seed && python manage.py runserver 0.0.0.0:8000"
+            sh -cx "python manage.py migrate && service cron start && python manage.py crontab add && python manage.py runserver 0.0.0.0:8000"
+        # command: >
+        #     sh -cx "python manage.py migrate && python manage.py seed && python manage.py runserver 0.0.0.0:8000"
         restart: unless-stopped
         ports:
             - "8000:8000"
@@ -29,8 +31,6 @@ services:
             - medias:/usr/src/app/media
         networks:
             - tavaratnet
-        env_file:
-            - ".env"
 
 networks:
     tavaratnet:

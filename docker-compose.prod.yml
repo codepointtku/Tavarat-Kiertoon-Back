@@ -29,6 +29,7 @@ services:
             - db
         volumes:
             - medias:/usr/src/app/media
+            - /etc/ssl:/etc/ssl
         networks:
             - tavaratnet
         env_file:

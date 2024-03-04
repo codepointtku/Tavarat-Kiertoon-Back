@@ -1,6 +1,9 @@
 from functools import reduce
 from operator import and_, or_
 
+import PIL
+from io import BytesIO
+from PIL import Image
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.db.models import Q
@@ -48,6 +51,23 @@ from .serializers import (
     StorageResponseSerializer,
     StorageSerializer,
 )
+
+
+def resize_image(image, extension="JPEG"):
+    mywidth = 800
+    img = Image.open(BytesIO(image.read()))
+    wpercent = mywidth / float(img.size[0])
+    # if original image width is near 800 then we don't resize it
+    if wpercent >= 0.95:
+        return image.read()
+    hsize = int((float(img.size[1]) * float(wpercent)))
+
+    img = img.resize((mywidth, hsize))
+    outcont = None
+    with BytesIO() as output:
+        img.save(output, format=extension)
+        outcont = output.getvalue()
+    return outcont
 
 
 def color_check_create(instance):
@@ -209,10 +229,12 @@ class ProductListView(generics.ListCreateAPIView):
         picture_ids = []
         for file in request.FILES.getlist("pictures[]"):
             ext = file.content_type.split("/")[1]
+
             pic_serializer = PictureCreateSerializer(
                 data={
                     "picture_address": ContentFile(
-                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                        resize_image(file, ext),
+                        name=f"{timezone.now().timestamp()}.{ext}",
                     )
                 }
             )
@@ -353,7 +375,8 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
             pic_serializer = PictureCreateSerializer(
                 data={
                     "picture_address": ContentFile(
-                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                        resize_image(file, ext),
+                        name=f"{timezone.now().timestamp()}.{ext}",
                     )
                 }
             )

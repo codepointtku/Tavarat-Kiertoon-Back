@@ -1,0 +1,44 @@
+version: "3.9"
+services:
+    db:
+        container_name: tavarat-kiertoon-db
+        image: postgres:15.1-bullseye
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: tavarat_kiertoon
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        networks:
+            - tavaratnet
+
+    tavarat-kiertoon:
+        container_name: tavarat-kiertoon-back
+        build: .
+        command: >
+            sh -cx "python manage.py migrate && service cron start && python manage.py crontab add && gunicorn --config python:gunicorn_config tavarat_kiertoon.wsgi:application"
+        # command: >
+        #     sh -cx "python manage.py migrate && python manage.py seed && python manage.py runserver 0.0.0.0:8000"
+        restart: unless-stopped
+        ports:
+            - "8000:8000"
+        depends_on:
+            - db
+        volumes:
+            - medias:/usr/src/app/media
+            - /etc/ssl:/etc/ssl
+        networks:
+            - tavaratnet
+        env_file:
+            - ".env"
+
+networks:
+    tavaratnet:
+        driver: bridge
+
+volumes:
+    postgres_data:
+    medias:

@@ -54,16 +54,25 @@ from .serializers import (
 
 
 def resize_image(image, extension="JPEG"):
-    mywidth = 800
+    wsize = 1024
+    hsize = 1024
     img = Image.open(BytesIO(image.read()))
-    wpercent = mywidth / float(img.size[0])
-    # if original image width is near 800 then we don't resize it
-    if wpercent >= 0.95:
-        return image.read()
-    hsize = int((float(img.size[1]) * float(wpercent)))
+    wpercent = wsize / float(img.size[0])
+    hpercent = hsize / float(img.size[1])
 
-    img = img.resize((mywidth, hsize))
+    # if original image width or height is near 800 then we don't resize it
+    if wpercent >= 0.95 or hpercent >= 0.95:
+        return image.read()
+
+    # if image width is closer to 800 then change height while keeping aspect ratio, else change width
+    if hpercent < wpercent:
+        hsize = int((float(img.size[1]) * float(wpercent)))
+    else:
+        wsize = int((float(img.size[0]) * float(hpercent)))
+
+    img = img.resize((wsize, hsize))
     outcont = None
+    # open a new bytestream in memory and save now resized image to it and send that bytestream back
     with BytesIO() as output:
         img.save(output, format=extension)
         outcont = output.getvalue()

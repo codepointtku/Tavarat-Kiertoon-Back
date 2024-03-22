@@ -56,13 +56,13 @@ from .serializers import (
 def resize_image(image, extension="JPEG"):
     wsize = 1024
     hsize = 1024
-    img = Image.open(BytesIO(image.read()))
+    img = Image.open(BytesIO(image))
     wpercent = wsize / float(img.size[0])
     hpercent = hsize / float(img.size[1])
 
     # if original image width or height is near 800 then we don't resize it
     if wpercent >= 0.95 or hpercent >= 0.95:
-        return image.read()
+        return image
 
     # if image width is closer to 800 then change height while keeping aspect ratio, else change width
     if hpercent < wpercent:
@@ -242,7 +242,7 @@ class ProductListView(generics.ListCreateAPIView):
             pic_serializer = PictureCreateSerializer(
                 data={
                     "picture_address": ContentFile(
-                        resize_image(file, ext),
+                        resize_image(file.read(), ext),
                         name=f"{timezone.now().timestamp()}.{ext}",
                     )
                 }

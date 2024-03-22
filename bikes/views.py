@@ -333,18 +333,20 @@ class MainBikeList(generics.ListAPIView):
             for bike in package["bikes"]:
                 bike_object = Bike.objects.get(id=bike["bike"])
                 if "size" in serializer_package:
-                    serializer_package[
-                        "size"
-                    ] = f"{serializer_package['size']} & {bike_object.size.name}"
+                    serializer_package["size"] = (
+                        f"{serializer_package['size']} & {bike_object.size.name}"
+                    )
                 else:
                     serializer_package["size"] = bike_object.size.name
                 bike_object_serializer = BikeSerializer(bike_object)
                 if "picture" in serializer_package:
-                    serializer_package[
-                        "picture"
-                    ] = f"{serializer_package['picture']}&{bike_object.picture.picture_address}"
+                    serializer_package["picture"] = (
+                        f"{serializer_package['picture']}&{bike_object.picture.picture_address}"
+                    )
                 else:
-                    serializer_package["picture"] = bike_object.picture.picture_address
+                    serializer_package["picture"] = (
+                        f"{bike_object.picture.picture_address}"
+                    )
                 if bike["amount"] == 0:
                     bike_max_available = bike["amount"]
                 else:

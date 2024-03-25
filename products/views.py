@@ -1,9 +1,8 @@
 from functools import reduce
 from operator import and_, or_
 
-import PIL
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageOps
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.db.models import Q
@@ -54,23 +53,23 @@ from .serializers import (
 
 
 def resize_image(image, extension="JPEG"):
-    wsize = 1024
-    hsize = 1024
+    wsize = 600
+    hsize = 600
     img = Image.open(BytesIO(image))
     wpercent = wsize / float(img.size[0])
     hpercent = hsize / float(img.size[1])
-
-    # if original image width or height is near 800 then we don't resize it
+    img = ImageOps.exif_transpose(img)
+    # if original image width or height is near 600 then we don't resize it
     if wpercent >= 0.95 or hpercent >= 0.95:
         return image
 
-    # if image width is closer to 800 then change height while keeping aspect ratio, else change width
+    # if image width is closer to 600 then change height while keeping aspect ratio, else change width
     if hpercent < wpercent:
         hsize = int((float(img.size[1]) * float(wpercent)))
     else:
         wsize = int((float(img.size[0]) * float(hpercent)))
 
-    img = img.resize((wsize, hsize))
+    img = img.resize((wsize, hsize), Image.Resampling.LANCZOS)
     outcont = None
     # open a new bytestream in memory and save now resized image to it and send that bytestream back
     with BytesIO() as output:
@@ -384,7 +383,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
             pic_serializer = PictureCreateSerializer(
                 data={
                     "picture_address": ContentFile(
-                        resize_image(file, ext),
+                        resize_image(file.read(), ext),
                         name=f"{timezone.now().timestamp()}.{ext}",
                     )
                 }

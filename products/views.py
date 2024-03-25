@@ -53,23 +53,9 @@ from .serializers import (
 
 
 def resize_image(image, extension="JPEG"):
-    wsize = 600
-    hsize = 600
     img = Image.open(BytesIO(image))
-    wpercent = wsize / float(img.size[0])
-    hpercent = hsize / float(img.size[1])
     img = ImageOps.exif_transpose(img)
-    # if original image width or height is near 600 then we don't resize it
-    if wpercent >= 0.95 or hpercent >= 0.95:
-        return image
-
-    # if image width is closer to 600 then change height while keeping aspect ratio, else change width
-    if hpercent < wpercent:
-        hsize = int((float(img.size[1]) * float(wpercent)))
-    else:
-        wsize = int((float(img.size[0]) * float(hpercent)))
-
-    img = img.resize((wsize, hsize))
+    img.thumbnail((600, 600))
     outcont = None
     # open a new bytestream in memory and save now resized image to it and send that bytestream back
     with BytesIO() as output:

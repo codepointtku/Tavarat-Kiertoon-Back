@@ -69,7 +69,7 @@ def resize_image(image, extension="JPEG"):
     else:
         wsize = int((float(img.size[0]) * float(hpercent)))
 
-    img = img.resize((wsize, hsize), Image.Resampling.LANCZOS)
+    img = img.resize((wsize, hsize))
     outcont = None
     # open a new bytestream in memory and save now resized image to it and send that bytestream back
     with BytesIO() as output:

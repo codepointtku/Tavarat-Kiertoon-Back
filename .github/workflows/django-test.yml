@@ -39,6 +39,7 @@ jobs:
             URL_FRONT: http://localhost:3000/
             DEFAULT_EMAIL: placeholder@turku.fi
             REDIRECT_SSL: False
+            DEBUG: True
 
         services:
             postgres:

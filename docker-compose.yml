@@ -31,18 +31,7 @@ services:
             - medias:/usr/src/app/media
         networks:
             - tavaratnet
-        develop:
-            watch:
-                - action: sync
-                  path: ./
-                  target: /
-                  ignore:
-                      - venv/
-                      - .git
-                - action: rebuild
-                  path: .env
-                - action: rebuild
-                  path: docker-compose.yml
+
 networks:
     tavaratnet:
         driver: bridge

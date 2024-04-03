@@ -74,6 +74,10 @@ class Product(models.Model):
     def category_name(self):
         return self.category.name
 
+    @property
+    def color_name(self):
+        return self.colors.name
+
 
 class ProductItemLogEntry(models.Model):
     """Model representing one log entry connected to ProductItem

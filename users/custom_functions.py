@@ -66,12 +66,12 @@ def check_product_watch(product: Product, additional_info="") -> bool:
                 match = False
                 break
         if match:
-            subject = f"New item available you have set watch for: {product.name}"
+            subject = f"Uusi tuote saatavilla sinun hakuvahdin mukaan: {product.name}"
             message = (
-                f"There was new item for watch words: {', '.join(search.words)} you have set.\n\n"
-                f"Its name is: {additional_info}{product.name} and can be found in tavarat kiertoon system now."
-                f"\n\nDirect link to product: {settings.URL_FRONT}tuotteet/{product.id}"
-                f"\n\nIf you want to remove this search watch visit: [FRONTIN OSOTE TÄHÄN KUN VALMIS]"
+                f"Löytyi uusi tuote hakusanalla: {', '.join(search.words)}.\n\n"
+                f"Sen nimi on: {additional_info}{product.name} ja tuote löytyy tavarat kiertoon järjestelmästä nyt."
+                f"\n\Linkki tuotteeseen: {settings.URL_FRONT}tuotteet/{product.id}"
+                f"\n\nJos haluat poistaa tämän hakuvahdin, sinun pitää olla kirjautuneena tavarat kiertoon järjestelmään ja mene osoitteeseen: {settings.URL_FRONT}tili/hakuvahti"
             )
 
             send_mail(

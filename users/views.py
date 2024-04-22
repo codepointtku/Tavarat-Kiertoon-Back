@@ -143,11 +143,11 @@ class UserCreateListView(APIView):
                 )
 
                 # sending activation email
-                subject = "welcome to use Tavarat Kiertoon"
+                subject = "Tervetuloa käyttämään Tavarat Kiertoon sivuja"
                 message = (
-                    "Hi you have created account for tavarat kiertoon.\n\n"
-                    f"Please click the following link to activate your account: {activate_url} \n\n"
-                    "If you did not request account creation to tavarat kiertoon, ignore this mail."
+                    "Hei, olet luonut tunnukset tavarat kiertoon sivulle.\n\n"
+                    f"Pyydämme aktivoimaan tilinne tämän linkin avulla: {activate_url} \n\n"
+                    "Jos ette ole rekisteröityneet tavarat kiertoon järjestelmään, jättäkää tämä viesti huomioimatta."
                 )
 
                 send_mail(
@@ -924,11 +924,11 @@ class UserPasswordResetMailView(APIView):
             message = "heres the password reset link you requested: " + reset_url
 
             # sending the email
-            subject = "Reset password to Tavarat Kiertoon"
+            subject = "Salasanan vaihto Tavarat Kiertoon järjestelmään"
             message = (
-                "Hi you are trying to reset your Tavarat kiertoon password.\n\n"
-                f"Please click the following link to reset your user accounts password: {reset_url} \n\n"
-                "If you did not request this password reset ignore this mail."
+                "Hei, pyysit salasanan vaihtoa Tavarat kiertoon järjestelmään.\n\n"
+                f"Seuraavasta linkistä voitte vaihtaa salasananne: {reset_url} \n\n"
+                "Jos ette pyytäneet salasanan vaihtoa, jättäkää tämä viesti huomioimatta."
             )
 
             send_mail(
@@ -1057,11 +1057,11 @@ class UserEmailChangeView(APIView):
             }
 
             # sending the email
-            subject = "new email address for your Tavarat Kiertoon account"
+            subject = "Sähköposti vaihdettu Tavarat Kiertoon tilillesi"
             message = (
-                "This email address has been designed as the new contact email address for an account in Tavarat Kiertoon.\n\n"
-                f"Please click the following link to finalize this email address change: {email_change_url_front} \n\n"
-                "If you did not request this email change ignore this mail."
+                "Tämä sähköpostiosoite on määritetty uudeksi sähköpostiksi sinun Tavarat Kiertoon tilillesi.\n\n"
+                f"Vahvista sähköpostin muutos linkkiä painamalla: {email_change_url_front} \n\n"
+                "Jos ette pyytäneet sähköpostin vaihtoa, jättäkää tämä viesti huomioimatta."
             )
 
             send_mail(

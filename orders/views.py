@@ -251,7 +251,7 @@ class OrderListView(ListCreateAPIView):
             message = (
                 "Hei\n\n"
                 f"Käyttäjä {user.username} teki tilauksen Tavarat kiertoon järjestelmään.\n"
-                f"Linkki tilaukseen http://localhost:3000/varasto/tilaus/{order.id}/"
+                f"Linkki tilaukseen {settings.URL_FRONT}varasto/tilaus/{order.id}/"
             )
             recipients = [
                 recipient.email for recipient in OrderEmailRecipient.objects.all()

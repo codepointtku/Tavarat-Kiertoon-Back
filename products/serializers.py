@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import Color, Picture, Product, ProductItem, ProductItemLogEntry, Storage
+from categories.models import Category
 
 
 class PictureSerializer(serializers.ModelSerializer):
@@ -48,6 +49,8 @@ class ProductSerializer(serializers.ModelSerializer):
     pictures = PictureSerializer(many=True, read_only=True)
     amount = serializers.SerializerMethodField()
     total_amount = serializers.SerializerMethodField()
+    category_name = serializers.SerializerMethodField()
+    colors = ColorSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product
@@ -58,6 +61,9 @@ class ProductSerializer(serializers.ModelSerializer):
             product=obj.id, available=True
         ).count()
         return product_amount
+
+    def get_category_name(self, obj) -> str:
+        return obj.category_name
 
     def get_total_amount(self, obj) -> int:
         total_product_amount = ProductItem.objects.filter(product=obj.id).count()
@@ -178,7 +184,7 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
     )
     shelf_id = serializers.CharField(required=False)
     storage = serializers.IntegerField(required=False)
-    barcode = serializers.IntegerField(required=False)
+    barcode = serializers.CharField(required=False)
 
     class Meta:
         model = Product

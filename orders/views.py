@@ -221,7 +221,7 @@ class OrderListView(ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         user = request.user
         shopping_cart = ShoppingCart.objects.get(user=user.id)
-        pickup_date = request.data["pickup_date"]
+        pickup_date = request.data.get("pickup_date")
         serializer = OrderSerializer(data=request.data)
         if shopping_cart.product_items.count() < 1:
             return Response("Order has no products", status=status.HTTP_400_BAD_REQUEST)
@@ -240,7 +240,7 @@ class OrderListView(ListCreateAPIView):
             shopping_cart.product_items.clear()
             # Email for user who submitted order
             subject = f"Tavarat Kiertoon tilaus {order.id}"
-            if request.data["delivery_required"] == "true":
+            if request.data.get("delivery_required") == "true":
                 message = (
                     "Hei!\n\n"
                     "Vastaanotimme tilauksesi. Pyrimme toimittamaan sen 1-2 viikon sisällä\n"

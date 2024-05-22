@@ -7,5 +7,5 @@ cert = os.getenv("SSL_CRT", "./ssl/*.crt")
 certfile = glob.glob(cert)[0]
 keyfile = glob.glob(key)[0]
 
-bind = os.getenv("WEB_BIND", "0.0.0.0:8000")
+bind = os.getenv("WEB_BIND", "0.0.0.0:8989")
 reload = os.getenv("WEB_RELOAD", "false")

@@ -7,6 +7,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
+from datetime import datetime
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
@@ -220,6 +221,7 @@ class OrderListView(ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         user = request.user
         shopping_cart = ShoppingCart.objects.get(user=user.id)
+        pickup_date = request.data.get("pickup_date")
         serializer = OrderSerializer(data=request.data)
         if shopping_cart.product_items.count() < 1:
             return Response("Order has no products", status=status.HTTP_400_BAD_REQUEST)
@@ -236,15 +238,22 @@ class OrderListView(ListCreateAPIView):
                 product_item.status = "Unavailable"
                 product_item.save()
             shopping_cart.product_items.clear()
-
             # Email for user who submitted order
             subject = f"Tavarat Kiertoon tilaus {order.id}"
-            message = (
-                "Hei!\n\n"
-                "Vastaanotimme tilauksesi. Pyrimme toimittamaan sen 1-2 viikon sisällä\n"
-                f"Tilausnumeronne on {order.id}.\n\n"
-                "Terveisin Tavarat kiertoon väki!"
-            )
+            if request.data.get("delivery_required") == "true":
+                message = (
+                    "Hei!\n\n"
+                    "Vastaanotimme tilauksesi. Pyrimme toimittamaan sen 1-2 viikon sisällä\n"
+                    f"Tilausnumeronne on {order.id}.\n\n"
+                    "Terveisin Tavarat kiertoon väki!"
+                )
+            else:
+                message = (
+                    "Hei!\n\n"
+                    f"Vastaanotimme tilauksesi. tilaus noudettavissa {pickup_date}\n"
+                    f"Tilausnumeronne on {order.id}.\n\n"
+                    "Terveisin Tavarat kiertoon väki!"
+                )
             send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
 
             # Email for all OrderEmailRecipients notifying about new order

@@ -174,23 +174,6 @@ def categories():
         {"name": "Videotykit", "parent": "Toimisto elektroniikka"},
         {"name": "Muu toimisto elektroniikka", "parent": "Toimisto elektroniikka"},
         #
-        #
-        {"name": "Askartelu"},
-        #
-        {"name": "Materiaalit", "parent": "Askartelu"},
-        #
-        {"name": "Tekstiilit", "parent": "Materiaalit"},
-        {"name": "Maalit", "parent": "Materiaalit"},
-        {"name": "Muut materiaalit", "parent": "Materiaalit"},
-        #
-        {"name": "Tarvikkeet", "parent": "Askartelu"},
-        #
-        {"name": "Napit ja vetoketjut", "parent": "Tarvikkeet"},
-        {"name": "Muut tarvikkeet", "parent": "Tarvikkeet"},
-        #
-        {"name": "Välineet", "parent": "Askartelu"},
-        #
-        {"name": "Muut välineet", "parent": "Välineet"},
     ]
     for category in categories:
         if "parent" in category:
@@ -209,10 +192,10 @@ def products():
         {"name": "Jääkaapit", "words": ["jääkaappi"]},
         {"name": "Kahvinkeittimet", "words": ["kahvinkeitin"]},
         {"name": "Näppäimistöt", "words": ["näppäimistö"]},
-        {"name": "Näytöt", "words": ["näyttö", "tv"]},
+        {"name": "Näytöt", "words": ["näyttö", "tv", "televisio"]},
         {"name": "Hiiret", "words": ["hiiri"]},
         {"name": "Videotykit", "words": ["videotykki"]},
-        {"name": "Toimistotuolit", "words": ["toimistotuoli"]},
+        {"name": "Toimistotuolit", "words": ["toimistotuoli", "työtuoli"]},
         {"name": "Penkit", "words": ["penkki"]},
         {"name": "Sähköpöydät", "words": ["sähköpöytä", "sähkötyöpöytä"]},
         {"name": "Työpöydät", "words": ["työpöytä", "pöytä"]},
@@ -224,6 +207,17 @@ def products():
         {"name": "Taulut", "words": ["taulu"]},
         {"name": "Tekstiilit", "words": ["tekstiili", "kangas"]},
         {"name": "Maalit", "words": ["maali"]},
+        {"name": "Muut kodinkoneet", "words": ["ompelukone"]},
+        {
+            "name": "Muu toimisto elektroniikka",
+            "words": ["silppuri", "patteri", "kamera", "reijittäjä"],
+        },
+        {"name": "Muu säilytys", "words": ["teline", "mappi", "vaunu"]},
+        {
+            "name": "Muu sisustus",
+            "words": ["kello", "matto", "roska", "kehys", "sermi"],
+        },
+        {"name": "Muu toimisto elektroniikka", "words": ["radio"]},
         {
             "name": "Napit ja vetoketjut",
             "words": ["nappi", "vetoketju", "nappeja", "vetoketjuja"],
@@ -696,7 +690,7 @@ def create_order_email_recipients():
 def run_database(self, mode):
     clear_data(mode)
     groups()
-    super_user()
+    # super_user()
     colors()
     storages()
     categories()

@@ -9,3 +9,7 @@ keyfile = glob.glob(key)[0]
 
 bind = os.getenv("WEB_BIND", "0.0.0.0:8989")
 reload = os.getenv("WEB_RELOAD", "false")
+
+accesslog = "-"
+errorlog = "-"
+loglevel = "info"

@@ -13,7 +13,9 @@ services:
             - tavaratnet
 
     nginx:
-        build: nginx
+        build:
+            context: .
+            dockerfile: ./nginx/Dockerfile-prod
         ports:
           - "8000:8000"
         depends_on:
@@ -40,6 +42,7 @@ services:
             - db
         volumes:
             - medias:/usr/src/app/media
+            - static:/usr/src/app/static
             - /etc/ssl:/etc/ssl
         networks:
             - tavaratnet
@@ -53,3 +56,4 @@ networks:
 volumes:
     postgres_data:
     medias:
+    static:

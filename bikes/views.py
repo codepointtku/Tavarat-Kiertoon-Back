@@ -9,6 +9,9 @@ from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
+from io import BytesIO
+from PIL import Image, ImageOps
+
 # from rest_framework.permissions import IsAdminUser
 from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
@@ -62,6 +65,18 @@ from users.permissions import HasGroupPermission
 from users.views import CustomJWTAuthentication
 
 
+def resize_image(image, extension="JPEG"):
+    img = Image.open(BytesIO(image))
+    img = ImageOps.exif_transpose(img)
+    img.thumbnail((300, 300))
+    outcont = None
+    # open a new bytestream in memory and save now resized image to it and send that bytestream back
+    with BytesIO() as output:
+        img.save(output, format=extension)
+        outcont = output.getvalue()
+    return outcont
+
+
 @extend_schema_view(
     post=extend_schema(
         request=BikeModelCreateSerializer, responses=BikeModelSchemaResponseSerializer
@@ -91,7 +106,8 @@ class BikeModelListView(generics.ListCreateAPIView):
             pic_serializer = PictureCreateSerializer(
                 data={
                     "picture_address": ContentFile(
-                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                        resize_image(file.read(), ext),
+                        name=f"{timezone.now().timestamp()}.{ext}",
                     )
                 }
             )

@@ -156,7 +156,8 @@ class BikeModelDetailView(generics.RetrieveUpdateDestroyAPIView):
             pic_serializer = PictureCreateSerializer(
                 data={
                     "picture_address": ContentFile(
-                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                        resize_image(file.read(), ext),
+                        name=f"{timezone.now().timestamp()}.{ext}",
                     )
                 }
             )

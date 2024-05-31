@@ -670,7 +670,8 @@ class PictureListView(generics.ListCreateAPIView):
             serializer = self.get_serializer(
                 data={
                     "picture_address": ContentFile(
-                        file.read(), name=f"{timezone.now().timestamp()}.{ext}"
+                        resize_image(file.read(), ext),
+                        name=f"{timezone.now().timestamp()}.{ext}",
                     )
                 }
             )

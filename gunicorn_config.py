@@ -2,7 +2,7 @@ import glob
 import os
 
 key = os.getenv("SSL_KEY", "./ssl/*.key")
-cert = os.getenv("SSL_CRT", "./ssl/*.crt")
+cert = os.getenv("SSL_CERT", "./ssl/*.crt")
 
 certfile = glob.glob(cert)[0]
 keyfile = glob.glob(key)[0]

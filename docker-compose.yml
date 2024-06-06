@@ -1,4 +1,3 @@
-version: "3.9"
 services:
     db:
         container_name: tavarat-kiertoon-db
@@ -13,20 +12,37 @@ services:
         networks:
             - tavaratnet
 
+    nginx:
+        build:
+            context: .
+            dockerfile: nginx/Dockerfile
+        ports:
+          - "8000:8000"
+        depends_on:
+          - tavarat-kiertoon
+        volumes:
+          - medias:/medias
+          - static:/static
+        restart: "always"
+        networks:
+          - tavaratnet
+
     tavarat-kiertoon:
         container_name: tavarat-kiertoon-back
         build: .
         command: >
-            sh -cx "python manage.py migrate && service cron start && python manage.py crontab add && python manage.py runserver 0.0.0.0:8000"
+            sh -cx "python manage.py migrate && service cron start && python manage.py crontab add && python manage.py runserver 0.0.0.0:8989"
+        # sh -cx "python manage.py migrate && service cron start && python manage.py crontab add && gunicorn --config python:gunicorn_config tavarat_kiertoon.wsgi:application"
         # command: >
         #     sh -cx "python manage.py migrate && python manage.py seed && python manage.py runserver 0.0.0.0:8000"
         restart: unless-stopped
         ports:
-            - "8000:8000"
+            - "8989:8989"
         depends_on:
             - db
         volumes:
             - medias:/usr/src/app/media
+            - static:/usr/src/app/static
         networks:
             - tavaratnet
 
@@ -37,3 +53,4 @@ networks:
 volumes:
     postgres_data:
     medias:
+    static:

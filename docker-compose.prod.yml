@@ -1,4 +1,3 @@
-version: "3.9"
 services:
     db:
         container_name: tavarat-kiertoon-db
@@ -13,6 +12,25 @@ services:
         networks:
             - tavaratnet
 
+    nginx:
+        build:
+            context: .
+            dockerfile: ./nginx/Dockerfile-prod
+        env_file:
+            - ".env"
+        command: /bin/sh -c "export DOMAIN SSL_CERT SSL_KEY && envsubst '$$DOMAIN $$SSL_CERT $$SSL_KEY' < /etc/nginx/nginx.conf.tpl > /etc/nginx/conf.d/nginx.conf && nginx -g 'daemon off;'"
+        ports:
+          - "8000:8000"
+        depends_on:
+          - tavarat-kiertoon
+        volumes:
+          - medias:/medias
+          - static:/static
+          - /etc/ssl:/etc/ssl
+        restart: "always"
+        networks:
+          - tavaratnet
+
     tavarat-kiertoon:
         container_name: tavarat-kiertoon-back
         build: .
@@ -22,11 +40,12 @@ services:
         #     sh -cx "python manage.py migrate && python manage.py seed && python manage.py runserver 0.0.0.0:8000"
         restart: unless-stopped
         ports:
-            - "8000:8000"
+            - "8989:8989"
         depends_on:
             - db
         volumes:
             - medias:/usr/src/app/media
+            - static:/usr/src/app/static
             - /etc/ssl:/etc/ssl
         networks:
             - tavaratnet
@@ -40,3 +59,4 @@ networks:
 volumes:
     postgres_data:
     medias:
+    static:

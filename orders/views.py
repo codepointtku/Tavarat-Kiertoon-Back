@@ -24,6 +24,8 @@ from products.models import Product, ProductItem, ProductItemLogEntry
 from users.permissions import HasGroupPermission
 from users.views import CustomJWTAuthentication
 
+from rest_framework.views import APIView
+
 from .models import Order, OrderEmailRecipient, ShoppingCart
 from .serializers import (
     OrderDetailRequestSerializer,
@@ -429,7 +431,7 @@ class OrderEmailRecipientDetailView(RetrieveUpdateDestroyAPIView):
 @extend_schema_view(
     get=extend_schema(responses=OrderStatSerializer),
 )
-class OrderStatListView(ListAPIView):
+class OrderStatListView(APIView):
     queryset = Order.objects.all()
     serializer_class = OrderStatSerializer
     authentication_classes = [
@@ -443,11 +445,24 @@ class OrderStatListView(ListAPIView):
         "GET": ["admin_group"],
     }
 
-    def get_queryset(self):
-        orders = Order.objects.distinct("creation_date__year")
-        years = Order.objects.distinct("creation_date__year")
+    def get(self, request, *args, **kwargs):
+        orders = Order.objects.distinct("creation_date__year", "creation_date__month")
+        date_list = Order.objects.distinct("creation_date__year").dates(
+            "creation_date", "year"
+        )
         order_list = {}
-        for order in years:
-            print(order.objects.distinct("creation_date__month"))
+        for years in date_list:
+            orders2 = Order.objects.filter(creation_date__year=years.year).distinct(
+                "creation_date__month"
+            )
+            order_list[years.year] = {}
+            for order in orders2:
+                order_list[years.year][order.creation_date.month] = (
+                    Order.objects.filter(creation_date__year=order.creation_date.year)
+                    .filter(creation_date__month=order.creation_date.month)
+                    .count()
+                )
+                print(order.creation_date.year, order.creation_date.month)
+        print(order_list)
         # return Order.objects.distinct("creation_date__year", "creation_date__month")
-        return orders
+        return Response(order_list)

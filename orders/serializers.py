@@ -1,3 +1,4 @@
+import json
 from rest_framework import serializers
 
 from products.serializers import ProductItemResponseSerializer, ProductItemSerializer
@@ -111,15 +112,18 @@ class OrderEmailRecipientSerializer(serializers.ModelSerializer):
 class OrderStatSerializer(serializers.ModelSerializer):
     order_year = serializers.DateTimeField(format="%Y", source="creation_date")
     order_month = serializers.DateTimeField(format="%m", source="creation_date")
-    order_count = serializers.SerializerMethodField()
+    order_count = serializers.SerializerMethodField("get_order_dict")
 
     class Meta:
         model = Order
         fields = ["order_year", "order_month", "order_count"]
 
-    def get_order_count(self, obj):
-        return (
-            Order.objects.filter(creation_date__year=obj.creation_date.year)
+    def get_order_dict(self, obj):
+        return {
+            "order_month": obj.creation_date.month,
+            "order_count": Order.objects.filter(
+                creation_date__year=obj.creation_date.year
+            )
             .filter(creation_date__month=obj.creation_date.month)
-            .count()
-        )
+            .count(),
+        }

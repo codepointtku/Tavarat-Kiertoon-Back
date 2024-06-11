@@ -5,6 +5,7 @@ from users.custom_functions import validate_email_domain
 from users.serializers import UserFullResponseSchemaSerializer, UserFullSerializer
 
 from .models import Order, OrderEmailRecipient, ShoppingCart
+import datetime
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -105,3 +106,20 @@ class OrderEmailRecipientSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderEmailRecipient
         fields = "__all__"
+
+
+class OrderStatSerializer(serializers.ModelSerializer):
+    order_year = serializers.DateTimeField(format="%Y", source="creation_date")
+    order_month = serializers.DateTimeField(format="%m", source="creation_date")
+    order_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = ["order_year", "order_month", "order_count"]
+
+    def get_order_count(self, obj):
+        return (
+            Order.objects.filter(creation_date__year=obj.creation_date.year)
+            .filter(creation_date__month=obj.creation_date.month)
+            .count()
+        )

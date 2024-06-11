@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from datetime import datetime
+from django.db.models import Sum, Count
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
@@ -37,6 +38,7 @@ from .serializers import (
     ShoppingCartDetailSerializer,
     ShoppingCartResponseSerializer,
     ShoppingCartSerializer,
+    OrderStatSerializer,
 )
 
 # Create your views here.
@@ -422,3 +424,30 @@ class OrderEmailRecipientDetailView(RetrieveUpdateDestroyAPIView):
         "PATCH": ["admin_group", "user_group"],
         "DELETE": ["admin_group", "user_group"],
     }
+
+
+@extend_schema_view(
+    get=extend_schema(responses=OrderStatSerializer),
+)
+class OrderStatListView(ListAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderStatSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+    }
+
+    def get_queryset(self):
+        orders = Order.objects.distinct("creation_date__year")
+        years = Order.objects.distinct("creation_date__year")
+        order_list = {}
+        for order in years:
+            print(order.objects.distinct("creation_date__month"))
+        # return Order.objects.distinct("creation_date__year", "creation_date__month")
+        return orders

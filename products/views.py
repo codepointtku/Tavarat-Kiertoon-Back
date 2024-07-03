@@ -8,7 +8,8 @@ from django.core.files.base import ContentFile
 from django.db.models import Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.types import OpenApiTypes
 from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
@@ -255,6 +256,7 @@ class ProductListView(generics.ListCreateAPIView):
 
 class ProductStorageFilter(filters.FilterSet):
     barcode_search = filters.CharFilter(method="barcode_filter", label="Barcode search")
+    search = filters.CharFilter(method="search_filter", label="Search")
     category = filters.ModelMultipleChoiceFilter(queryset=Category.objects.all())
     storage = filters.ModelChoiceFilter(
         queryset=Storage.objects.all(), method="storage_filter", label="Storage filter"
@@ -271,6 +273,32 @@ class ProductStorageFilter(filters.FilterSet):
         )
         return qs
 
+    def search_filter(self, queryset, value, *args, **kwargs):
+        word_list = args[0].split(" ")
+
+        def filter_function(operator):
+            """Function that takes operator like 'and_' or 'or_' and returns reduced queryset
+            of products that have word of wordlist contained in name or free_description
+            """
+            qs = queryset.filter(
+                reduce(
+                    operator,
+                    (
+                        Q(name__icontains=word) | Q(free_description__icontains=word)
+                        for word in word_list
+                    ),
+                )
+            )
+            qs._hints["filter"] = operator.__name__.strip("_")
+            return qs
+
+        """Creates queryset with and_ and if its empty it creates new queryset with or_"""
+        and_queryset = filter_function(and_)
+        if and_queryset.count():
+            return and_queryset
+        or_queryset = filter_function(or_)
+        return or_queryset
+
     def storage_filter(self, queryset, value, *args, **kwargs):
         storage = args[0]
         qs = queryset.filter(
@@ -279,7 +307,14 @@ class ProductStorageFilter(filters.FilterSet):
         return qs
 
 
-@extend_schema_view(get=extend_schema(responses=ProductStorageResponseSerializer))
+@extend_schema_view(
+    get=extend_schema(
+        responses=ProductStorageResponseSerializer,
+        parameters=[
+            OpenApiParameter("all", OpenApiTypes.BOOL),
+        ],
+    )
+)
 class ProductStorageListView(generics.ListAPIView):
     """View for listing and creating products. Create includes creation of ProductItem, Picture and Color"""
 

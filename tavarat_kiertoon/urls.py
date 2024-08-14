@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.conf import settings
 from django.conf.urls import include
 from django.conf.urls.static import static
@@ -36,6 +37,7 @@ from orders.views import (
     OrderSelfListView,
     ShoppingCartDetailView,
     ShoppingCartListView,
+    OrderStatListView,
 )
 from products.views import (
     AddProductItemsView,
@@ -98,6 +100,7 @@ urlpatterns = [
     path("orders/emailrecipients/", OrderEmailRecipientListView.as_view()),
     path("orders/emailrecipients/<int:pk>/", OrderEmailRecipientDetailView.as_view()),
     path("orders/user/", OrderSelfListView.as_view()),
+    path("orders/stat/", OrderStatListView.as_view()),
     path("products/", ProductListView.as_view()),
     path("products/<int:pk>/", ProductDetailView.as_view()),
     path("products/items/", ProductItemListView.as_view()),

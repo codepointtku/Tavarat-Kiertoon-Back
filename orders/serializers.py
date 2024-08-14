@@ -113,10 +113,16 @@ class OrderStatSerializer(serializers.ModelSerializer):
     order_year = serializers.DateTimeField(format="%Y", source="creation_date")
     order_month = serializers.DateTimeField(format="%m", source="creation_date")
     order_count = serializers.SerializerMethodField("get_order_dict")
+    order_year_total = serializers.SerializerMethodField("get_yearly_total")
 
     class Meta:
         model = Order
-        fields = ["order_year", "order_month", "order_count"]
+        fields = ["order_year", "order_month", "order_count", "order_year_total"]
+
+    def get_yearly_total(self, obj):
+        return (
+            Order.objects.filter(creation_date__year=obj.creation_date.year).count(),
+        )
 
     def get_order_dict(self, obj):
         return {

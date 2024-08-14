@@ -446,7 +446,6 @@ class OrderStatListView(APIView):
     }
 
     def get(self, request, *args, **kwargs):
-        orders = Order.objects.distinct("creation_date__year", "creation_date__month")
         date_list = Order.objects.distinct("creation_date__year").dates(
             "creation_date", "year"
         )
@@ -462,7 +461,9 @@ class OrderStatListView(APIView):
                     .filter(creation_date__month=order.creation_date.month)
                     .count()
                 )
-                print(order.creation_date.year, order.creation_date.month)
+                order_list[years.year]["total"] = Order.objects.filter(
+                    creation_date__year=order.creation_date.year
+                ).count()
         print(order_list)
         # return Order.objects.distinct("creation_date__year", "creation_date__month")
         return Response(order_list)

@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.filters import OrderingFilter
 from datetime import datetime
+from django.db.models import Sum, Count
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
@@ -23,6 +24,8 @@ from products.models import Product, ProductItem, ProductItemLogEntry
 from users.permissions import HasGroupPermission
 from users.views import CustomJWTAuthentication
 
+from rest_framework.views import APIView
+
 from .models import Order, OrderEmailRecipient, ShoppingCart
 from .serializers import (
     OrderDetailRequestSerializer,
@@ -37,6 +40,7 @@ from .serializers import (
     ShoppingCartDetailSerializer,
     ShoppingCartResponseSerializer,
     ShoppingCartSerializer,
+    OrderStatSerializer,
 )
 
 # Create your views here.
@@ -422,3 +426,43 @@ class OrderEmailRecipientDetailView(RetrieveUpdateDestroyAPIView):
         "PATCH": ["admin_group", "user_group"],
         "DELETE": ["admin_group", "user_group"],
     }
+
+
+@extend_schema_view(
+    get=extend_schema(responses=OrderStatSerializer),
+)
+class OrderStatListView(APIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderStatSerializer
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["admin_group"],
+    }
+
+    def get(self, request, *args, **kwargs):
+        date_list = Order.objects.distinct("creation_date__year").dates(
+            "creation_date", "year"
+        )
+        order_list = {}
+        for years in date_list:
+            orders2 = Order.objects.filter(creation_date__year=years.year).distinct(
+                "creation_date__month"
+            )
+            order_list[years.year] = {}
+            for order in orders2:
+                order_list[years.year][order.creation_date.month] = (
+                    Order.objects.filter(creation_date__year=order.creation_date.year)
+                    .filter(creation_date__month=order.creation_date.month)
+                    .count()
+                )
+                order_list[years.year]["total"] = Order.objects.filter(
+                    creation_date__year=order.creation_date.year
+                ).count()
+        # return Order.objects.distinct("creation_date__year", "creation_date__month")
+        return Response(order_list)

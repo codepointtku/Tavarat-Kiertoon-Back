@@ -1,3 +1,4 @@
+import json
 from rest_framework import serializers
 
 from products.serializers import ProductItemResponseSerializer, ProductItemSerializer
@@ -5,6 +6,7 @@ from users.custom_functions import validate_email_domain
 from users.serializers import UserFullResponseSchemaSerializer, UserFullSerializer
 
 from .models import Order, OrderEmailRecipient, ShoppingCart
+import datetime
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -105,3 +107,29 @@ class OrderEmailRecipientSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderEmailRecipient
         fields = "__all__"
+
+
+class OrderStatSerializer(serializers.ModelSerializer):
+    order_year = serializers.DateTimeField(format="%Y", source="creation_date")
+    order_month = serializers.DateTimeField(format="%m", source="creation_date")
+    order_count = serializers.SerializerMethodField("get_order_dict")
+    order_year_total = serializers.SerializerMethodField("get_yearly_total")
+
+    class Meta:
+        model = Order
+        fields = ["order_year", "order_month", "order_count", "order_year_total"]
+
+    def get_yearly_total(self, obj):
+        return (
+            Order.objects.filter(creation_date__year=obj.creation_date.year).count(),
+        )
+
+    def get_order_dict(self, obj):
+        return {
+            "order_month": obj.creation_date.month,
+            "order_count": Order.objects.filter(
+                creation_date__year=obj.creation_date.year
+            )
+            .filter(creation_date__month=obj.creation_date.month)
+            .count(),
+        }

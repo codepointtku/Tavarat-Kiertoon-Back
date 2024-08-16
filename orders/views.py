@@ -179,12 +179,23 @@ class OrderListPagination(PageNumberPagination):
 
 
 class OrderFilter(filters.FilterSet):
+    id = filters.CharFilter(lookup_expr="iexact")
+    recipient = filters.CharFilter(lookup_expr="icontains")
+    recipient_phone_number = filters.CharFilter(lookup_expr="icontains")
+    order_info = filters.CharFilter(lookup_expr="icontains")
+    delivery_address = filters.CharFilter(lookup_expr="icontains")
+    status = filters.MultipleChoiceFilter(choices=Order.StatusChoices.choices)
+
     class Meta:
         model = Order
-        fields = ["status"]
-
-    def status_filter(self, queryset, name, value):
-        return queryset.filter(Q(status__iexact=value))
+        fields = [
+            "id",
+            "recipient",
+            "recipient_phone_number",
+            "order_info",
+            "status",
+            "delivery_address",
+        ]
 
 
 class UserOrderFilter(filters.FilterSet):

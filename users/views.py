@@ -334,9 +334,21 @@ class UserListPagination(PageNumberPagination):
 
 
 class UserFilter(filters.FilterSet):
+    first_name = filters.CharFilter(lookup_expr="icontains")
+    last_name = filters.CharFilter(lookup_expr="icontains")
+    email = filters.CharFilter(lookup_expr="icontains")
+    phone_number = filters.CharFilter(lookup_expr="icontains")
+
     class Meta:
         model = CustomUser
-        fields = ["is_active", "groups"]
+        fields = [
+            "is_active",
+            "groups",
+            "first_name",
+            "last_name",
+            "email",
+            "phone_number",
+        ]
 
 
 @extend_schema(responses=UserFullResponseSchemaSerializer)

@@ -271,6 +271,7 @@ class ProductDetailResponseSerializer(ProductSerializer):
     product_items = ProductItemStorageSerializer(
         source="get_product_items", read_only=True, many=True
     )
+    colors = serializers.ListField(child=serializers.IntegerField())
 
     class Meta:
         model = Product
@@ -291,6 +292,8 @@ class ProductDetailResponseSerializer(ProductSerializer):
 class ProductStorageSerializer(serializers.ModelSerializer):
     product_items = serializers.SerializerMethodField()
     category_name = serializers.ReadOnlyField()
+    amount = serializers.SerializerMethodField()
+    total_amount = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -300,6 +303,16 @@ class ProductStorageSerializer(serializers.ModelSerializer):
         qs = obj.productitem_set.all()
         serializer = ProductItemStorageSerializer(qs, read_only=True, many=True)
         return serializer.data
+
+    def get_amount(self, obj) -> int:
+        product_amount = ProductItem.objects.filter(
+            product=obj.id, available=True
+        ).count()
+        return product_amount
+
+    def get_total_amount(self, obj) -> int:
+        total_product_amount = ProductItem.objects.filter(product=obj.id).count()
+        return total_product_amount
 
 
 class ProductStorageResponseSerializer(serializers.ModelSerializer):

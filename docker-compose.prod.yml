@@ -28,6 +28,7 @@ services:
         volumes:
             - medias:/usr/src/app/media
             - /etc/ssl:/etc/ssl
+            - /var/log:/logs
         networks:
             - tavaratnet
         env_file:

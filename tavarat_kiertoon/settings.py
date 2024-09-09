@@ -264,7 +264,7 @@ LOGGING = {
     "handlers": {
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "/logs/django_errors.log",
+            "filename": "/var/log/django_errors.log",
             "maxBytes": 1024 * 1024,  # 1MB
             "backupCount": 5,
             "encoding": "utf-8",

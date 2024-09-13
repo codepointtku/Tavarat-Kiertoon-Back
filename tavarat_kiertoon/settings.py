@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 import json
 from datetime import timedelta
 from pathlib import Path
-
+import os
 from decouple import Csv, config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -105,6 +105,7 @@ REST_FRAMEWORK = {
         # "users.authenticate.CustomJWTAuthentication",  # <--- this ok????
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "tavarat_kiertoon.exceptions.custom_exception_handler",
 }
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -256,3 +257,30 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS")
 URL_FRONT = config("URL_FRONT")
 
 CRONJOBS = [("0 * * * *", "cron.clear_shopping_carts", ">> /usr/src/app/file.log")]
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": config("LOG_FILE"),
+            "maxBytes": 1024 * 1024,  # 1MB
+            "backupCount": 5,
+            "encoding": "utf-8",
+            "formatter": "verbose",
+        },
+    },
+    "formatters": {
+        "verbose": {
+            "format": "%(asctime)s [%(levelname)s] %(message)s (%(status_code)s %(method)s response: %(response_data)s)",
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["file"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}

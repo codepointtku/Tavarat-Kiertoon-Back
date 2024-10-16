@@ -76,7 +76,7 @@ class BikeSerializer(serializers.ModelSerializer):
     brand = serializers.StringRelatedField(source="brand.name")
     size = serializers.StringRelatedField(source="size.name")
     color = serializers.StringRelatedField(source="color.name")
-    max_available = serializers.ReadOnlyField(source="stock.count")
+    max_available = serializers.SerializerMethodField()
     picture = serializers.StringRelatedField(source="picture.picture_address")
 
     # bikes = serializers.StringRelatedField(many=True)
@@ -96,6 +96,10 @@ class BikeSerializer(serializers.ModelSerializer):
             "color",
             "picture",
         ]
+
+    def get_max_available(self, object):
+        available_stock = object.stock.filter(state="AVAILABLE")
+        return len(available_stock)
 
 
 class BikeAmountSerializer(serializers.ModelSerializer):

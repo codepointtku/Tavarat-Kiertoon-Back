@@ -43,7 +43,9 @@ class Bike(models.Model):
         BikeBrand, null=True, blank=True, on_delete=models.SET_NULL
     )
     size = models.ForeignKey(BikeSize, null=True, blank=True, on_delete=models.SET_NULL)
-    picture = models.ForeignKey(Picture, null=True, blank=True, on_delete=models.SET_NULL)
+    picture = models.ForeignKey(
+        Picture, null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     def __str__(self) -> str:
         return f"Bike: {self.name}({self.id})"
@@ -57,6 +59,7 @@ class BikeStock(models.Model):
 
         AVAILABLE = "AVAILABLE"
         MAINTENANCE = "MAINTENANCE"
+        RENTED = "RENTED"
         RETIRED = "RETIRED"
 
     package_only = models.BooleanField(default=False)
@@ -89,7 +92,9 @@ class BikeTrailer(models.Model):
     """Model for individual trailers"""
 
     register_number = models.CharField(max_length=255)
-    trailer_type = models.ForeignKey(BikeTrailerModel, related_name="trailer", on_delete=models.SET_NULL, null=True)
+    trailer_type = models.ForeignKey(
+        BikeTrailerModel, related_name="trailer", on_delete=models.SET_NULL, null=True
+    )
 
 
 class BikeRental(models.Model):
@@ -104,7 +109,9 @@ class BikeRental(models.Model):
 
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     bike_stock = models.ManyToManyField(BikeStock, related_name="rental")
-    bike_trailer = models.ForeignKey(BikeTrailer, related_name="trailer_rental", on_delete=models.SET_NULL, null=True)
+    bike_trailer = models.ForeignKey(
+        BikeTrailer, related_name="trailer_rental", on_delete=models.SET_NULL, null=True
+    )
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     state = models.CharField(

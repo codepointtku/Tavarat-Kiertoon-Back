@@ -36,5 +36,5 @@ def custom_exception_handler(exception: APIException, context: dict) -> Response
             },
         )
 
-    setattr(response, "_has_been_logged", True)
+    # setattr(response, "_has_been_logged", True)
     return response

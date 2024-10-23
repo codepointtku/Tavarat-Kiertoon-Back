@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 import json
 from datetime import timedelta
 from pathlib import Path
+import os
 
 from decouple import Csv, config
 
@@ -105,6 +106,7 @@ REST_FRAMEWORK = {
         # "users.authenticate.CustomJWTAuthentication",  # <--- this ok????
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "tavarat_kiertoon.exceptions.custom_exception_handler",
 }
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -256,3 +258,85 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS")
 URL_FRONT = config("URL_FRONT")
 
 CRONJOBS = [("0 * * * *", "cron.clear_shopping_carts", ">> /usr/src/app/file.log")]
+
+
+def add_status_code(record):
+    """
+    Adds response status code to the log
+    :param record:
+    :return:
+    """
+    try:
+        record.status_code = record.response.status_code
+    except AttributeError:
+        record.status_code = ""
+    return True
+
+
+def add_method(record):
+    """
+    Adds request method to the log
+    :param record:
+    :return:
+    """
+    try:
+        record.method = record.request.method
+    except AttributeError:
+        record.method = ""
+    return True
+
+
+def add_response_data(record):
+    """
+    Adds response data to the log
+    :param record:
+    :return:
+    """
+    try:
+        record.response_data = record.response.data
+    except AttributeError:
+        record.response_data = ""
+    return True
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": config("LOG_FILE"),
+            "maxBytes": 1024 * 1024,  # 1MB
+            "backupCount": 5,
+            "encoding": "utf-8",
+            "formatter": "verbose",
+            "filters": ["add_status_code", "add_method", "add_response_data"],
+        },
+    },
+    "formatters": {
+        "verbose": {
+            "format": "%(asctime)s [%(levelname)s] %(message)s (%(status_code)s %(method)s response: %(response_data)s)",
+        },
+    },
+    "filters": {
+        "add_status_code": {
+            "()": "django.utils.log.CallbackFilter",
+            "callback": add_status_code,
+        },
+        "add_method": {
+            "()": "django.utils.log.CallbackFilter",
+            "callback": add_method,
+        },
+        "add_response_data": {
+            "()": "django.utils.log.CallbackFilter",
+            "callback": add_response_data,
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["file"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}

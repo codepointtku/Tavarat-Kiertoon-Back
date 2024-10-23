@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 import json
 from datetime import timedelta
 from pathlib import Path
-import os
+
 from decouple import Csv, config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -105,7 +105,6 @@ REST_FRAMEWORK = {
         # "users.authenticate.CustomJWTAuthentication",  # <--- this ok????
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "EXCEPTION_HANDLER": "tavarat_kiertoon.exceptions.custom_exception_handler",
 }
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases

@@ -40,7 +40,6 @@ jobs:
             DEFAULT_EMAIL: placeholder@turku.fi
             REDIRECT_SSL: False
             DEBUG: True
-            LOG_FILE: ./tk-django_errors.log
 
         services:
             postgres:

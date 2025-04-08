@@ -182,7 +182,9 @@ class BikeStockListView(generics.ListCreateAPIView):
     queryset = BikeStock.objects.all()
     serializer_class = BikeStockListSerializer
     # permission_classes = [isAdminUser]
-
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["id", "number", "bike__type"]
+    ordering = ["-id"]
     authentication_classes = [
         SessionAuthentication,
         BasicAuthentication,
@@ -268,7 +270,6 @@ class MainBikeList(generics.ListAPIView):
         trailer_serializer = BikeTrailerMainSerializer(
             BikeTrailerModel.objects.all(), many=True
         )
-
         for index, bike in enumerate(bike_serializer.data):
             package_only_count = 0
             unavailable = {}

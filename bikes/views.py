@@ -1,6 +1,8 @@
 """The bike rental views."""
 
 import datetime
+from functools import reduce
+from operator import and_, or_
 import math
 
 import holidays
@@ -8,6 +10,7 @@ from django.core.files.base import ContentFile
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from django.db.models import Q
 
 from io import BytesIO
 from PIL import Image, ImageOps
@@ -75,6 +78,37 @@ def resize_image(image, extension="JPEG"):
         img.save(output, format=extension)
         outcont = output.getvalue()
     return outcont
+
+
+class BikeStockFilter(filters.FilterSet):
+    search = filters.CharFilter(method="search_filter", label="Search")
+
+    class Meta:
+        model = BikeStock
+        fields = ["search"]
+
+    def search_filter(self, queryset, value, *args, **kwargs):
+        word_list = args[0].split(" ")
+
+        def filter_function(operator):
+            """Function that takes operator like 'and_' or 'or_' and returns reduced queryset
+            of products that have word of wordlist contained in name or free_description
+            """
+            qs = queryset.filter(
+                reduce(
+                    operator,
+                    (Q(bike__name__icontains=word) for word in word_list),
+                )
+            )
+            qs._hints["filter"] = operator.__name__.strip("_")
+            return qs
+
+        """Creates queryset with and_ and if its empty it creates new queryset with or_"""
+        and_queryset = filter_function(and_)
+        if and_queryset.count():
+            return and_queryset
+        or_queryset = filter_function(or_)
+        return or_queryset
 
 
 @extend_schema_view(
@@ -192,6 +226,7 @@ class BikeStockListView(generics.ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
+    filterset_class = BikeStockFilter
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],

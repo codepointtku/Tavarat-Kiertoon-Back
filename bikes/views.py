@@ -92,7 +92,7 @@ class BikeStockFilter(filters.FilterSet):
 
         def filter_function(operator):
             """Function that takes operator like 'and_' or 'or_' and returns reduced queryset
-            of products that have word of wordlist contained in name or free_description
+            of bikes that have word of wordlist contained in name
             """
             qs = queryset.filter(
                 reduce(

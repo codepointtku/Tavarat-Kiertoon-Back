@@ -11,6 +11,8 @@ from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.db.models import Q
+from django.conf import settings
+from django.core.mail import send_mail
 
 from io import BytesIO
 from PIL import Image, ImageOps
@@ -645,6 +647,36 @@ class RentalListView(generics.ListCreateAPIView):
         serializer = BikeRentalSerializer(data=instance)
         if serializer.is_valid():
             serializer.save()
+            message = ["Hei\n", "Kiitos tilauksesta. Tilauksen sisältö:\n"]
+            for pyora in BikeStock.objects.filter(
+                pk__in=serializer.data["bike_stock"]
+            ).distinct("bike__name"):
+                count = BikeStock.objects.filter(
+                    pk__in=serializer.data["bike_stock"], bike__name=pyora.bike.name
+                ).count()
+                message.append(f"{count}X {pyora.bike.name}")
+            # datetime string to datetime and then to correct date format string
+            start_date = datetime.datetime.strptime(
+                serializer.data["start_date"], "%Y-%m-%dT%H:%M:%S+03:00"
+            ).strftime("%d.%m.%Y %H:%M")
+            end_date = datetime.datetime.strptime(
+                serializer.data["end_date"], "%Y-%m-%dT%H:%M:%S+03:00"
+            ).strftime("%d.%m.%Y %H:%M")
+            message.append(
+                f"\ntilasit yhteensä {len(serializer.data['bike_stock'])} pyörää\n"
+            )
+            if serializer.data["bike_trailer"]:
+                message.append(
+                    f"Peräkärry: {BikeTrailer.objects.get(pk=serializer.data['bike_trailer']).register_number}"
+                )
+            message.append(f"Tilauksesi kesto: {start_date} - {end_date}")
+
+            send_mail(
+                "Tilauksen vahvistus",
+                "\n".join(message),
+                settings.EMAIL_HOST_USER,
+                [request.user.email],
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

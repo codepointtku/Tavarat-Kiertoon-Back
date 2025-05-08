@@ -655,12 +655,15 @@ class RentalListView(generics.ListCreateAPIView):
                     pk__in=serializer.data["bike_stock"], bike__name=pyora.bike.name
                 ).count()
                 message.append(f"{count}X {pyora.bike.name}")
+
+            print(serializer.data["start_date"])
+            print(serializer.data["end_date"])
             # datetime string to datetime and then to correct date format string
-            start_date = datetime.datetime.strptime(
-                serializer.data["start_date"], "%Y-%m-%dT%H:%M:%S+03:00"
+            start_date = datetime.datetime.fromisoformat(
+                serializer.data["start_date"]
             ).strftime("%d.%m.%Y %H:%M")
-            end_date = datetime.datetime.strptime(
-                serializer.data["end_date"], "%Y-%m-%dT%H:%M:%S+03:00"
+            end_date = datetime.datetime.fromisoformat(
+                serializer.data["end_date"]
             ).strftime("%d.%m.%Y %H:%M")
             message.append(
                 f"\ntilasit yhteensä {len(serializer.data['bike_stock'])} pyörää\n"

@@ -1,6 +1,8 @@
 """The bike rental views."""
 
 import datetime
+from functools import reduce
+from operator import and_, or_
 import math
 
 import holidays
@@ -8,6 +10,9 @@ from django.core.files.base import ContentFile
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from django.db.models import Q
+from django.conf import settings
+from django.core.mail import send_mail
 
 from io import BytesIO
 from PIL import Image, ImageOps
@@ -75,6 +80,37 @@ def resize_image(image, extension="JPEG"):
         img.save(output, format=extension)
         outcont = output.getvalue()
     return outcont
+
+
+class BikeStockFilter(filters.FilterSet):
+    search = filters.CharFilter(method="search_filter", label="Search")
+
+    class Meta:
+        model = BikeStock
+        fields = ["search"]
+
+    def search_filter(self, queryset, value, *args, **kwargs):
+        word_list = args[0].split(" ")
+
+        def filter_function(operator):
+            """Function that takes operator like 'and_' or 'or_' and returns reduced queryset
+            of bikes that have word of wordlist contained in name
+            """
+            qs = queryset.filter(
+                reduce(
+                    operator,
+                    (Q(bike__name__icontains=word) for word in word_list),
+                )
+            )
+            qs._hints["filter"] = operator.__name__.strip("_")
+            return qs
+
+        """Creates queryset with and_ and if its empty it creates new queryset with or_"""
+        and_queryset = filter_function(and_)
+        if and_queryset.count():
+            return and_queryset
+        or_queryset = filter_function(or_)
+        return or_queryset
 
 
 @extend_schema_view(
@@ -182,7 +218,9 @@ class BikeStockListView(generics.ListCreateAPIView):
     queryset = BikeStock.objects.all()
     serializer_class = BikeStockListSerializer
     # permission_classes = [isAdminUser]
-
+    filter_backends = [filters.DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["id", "number", "bike__type"]
+    ordering = ["-id"]
     authentication_classes = [
         SessionAuthentication,
         BasicAuthentication,
@@ -190,6 +228,7 @@ class BikeStockListView(generics.ListCreateAPIView):
         CustomJWTAuthentication,
     ]
 
+    filterset_class = BikeStockFilter
     permission_classes = [IsAuthenticated, HasGroupPermission]
     required_groups = {
         "GET": ["bicycle_group", "bicycle_admin_group", "user_group"],
@@ -268,7 +307,6 @@ class MainBikeList(generics.ListAPIView):
         trailer_serializer = BikeTrailerMainSerializer(
             BikeTrailerModel.objects.all(), many=True
         )
-
         for index, bike in enumerate(bike_serializer.data):
             package_only_count = 0
             unavailable = {}
@@ -609,6 +647,39 @@ class RentalListView(generics.ListCreateAPIView):
         serializer = BikeRentalSerializer(data=instance)
         if serializer.is_valid():
             serializer.save()
+            message = ["Hei\n", "Kiitos tilauksesta. Tilauksen sisältö:\n"]
+            for pyora in BikeStock.objects.filter(
+                pk__in=serializer.data["bike_stock"]
+            ).distinct("bike__name"):
+                count = BikeStock.objects.filter(
+                    pk__in=serializer.data["bike_stock"], bike__name=pyora.bike.name
+                ).count()
+                message.append(f"{count}X {pyora.bike.name}")
+
+            print(serializer.data["start_date"])
+            print(serializer.data["end_date"])
+            # datetime string to datetime and then to correct date format string
+            start_date = datetime.datetime.fromisoformat(
+                serializer.data["start_date"]
+            ).strftime("%d.%m.%Y %H:%M")
+            end_date = datetime.datetime.fromisoformat(
+                serializer.data["end_date"]
+            ).strftime("%d.%m.%Y %H:%M")
+            message.append(
+                f"\ntilasit yhteensä {len(serializer.data['bike_stock'])} pyörää\n"
+            )
+            if serializer.data["bike_trailer"]:
+                message.append(
+                    f"Peräkärry: {BikeTrailer.objects.get(pk=serializer.data['bike_trailer']).register_number}"
+                )
+            message.append(f"Tilauksesi kesto: {start_date} - {end_date}")
+
+            send_mail(
+                "Tilauksen vahvistus",
+                "\n".join(message),
+                settings.EMAIL_HOST_USER,
+                [request.user.email],
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

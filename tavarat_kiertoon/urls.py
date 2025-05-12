@@ -82,7 +82,7 @@ from users.views import (
     UserUpdateInfoView,
     UserUpdateSingleView,
 )
-from pauseshop.views import PauseView
+from pauseshop.views import PauseView, PauseEditView, TodayPauseView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -154,6 +154,8 @@ urlpatterns = [
     path("users/emailchange/finish/", UserEmailChangeFinishView.as_view()),
     path("users/log/", UserLogView.as_view()),
     path("pausestore/", PauseView.as_view()),
+    path("pausestore/today", TodayPauseView.as_view()),
+    path("pausestore/<int:pk>/", PauseEditView.as_view()),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # works only during developoment? check when ready for deplayment?

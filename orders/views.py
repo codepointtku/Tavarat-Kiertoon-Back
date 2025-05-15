@@ -42,6 +42,7 @@ from .serializers import (
     ShoppingCartSerializer,
     OrderStatSerializer,
 )
+from pauseshop.models import Pause
 
 # Create your views here.
 
@@ -238,6 +239,12 @@ class OrderListView(ListCreateAPIView):
         shopping_cart = ShoppingCart.objects.get(user=user.id)
         pickup_date = request.data.get("pickup_date")
         serializer = OrderSerializer(data=request.data)
+        pause_test = Pause.objects.filter(
+            start_date__lte=datetime.now().date(), end_date__gte=datetime.now().date()
+        )
+        print(pause_test)
+        if pause_test.count() > 0:
+            return Response("System is on hiatus", status=status.HTTP_418_IM_A_TEAPOT)
         if shopping_cart.product_items.count() < 1:
             return Response("Order has no products", status=status.HTTP_400_BAD_REQUEST)
         if serializer.is_valid():

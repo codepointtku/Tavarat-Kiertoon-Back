@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "holidays",
     "django_crontab",
+    "pauseshop",
 ]
 
 MIDDLEWARE = [

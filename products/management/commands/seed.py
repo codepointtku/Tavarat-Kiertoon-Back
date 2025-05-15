@@ -33,6 +33,7 @@ from products.models import (
     ProductItemLogEntry,
     Storage,
 )
+from pauseshop.models import Pause
 from users.models import CustomUser, UserAddress
 
 # python manage.py seed
@@ -83,6 +84,7 @@ def clear_data():
     BikeStock.objects.all().delete()
     BikeType.objects.all().delete()
     Group.objects.all().delete()
+    Pause.objects.all().delete()
 
 
 def create_order_email_recipients():

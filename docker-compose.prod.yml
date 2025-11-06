@@ -29,7 +29,7 @@ services:
             - medias:/usr/src/app/media
             - /etc/ssl:/etc/ssl
             - /var/log:/logs
-            - /var/log:/var/log
+            - /var/log/tk_logs:/var/log/tk_logs
         networks:
             - tavaratnet
         env_file:

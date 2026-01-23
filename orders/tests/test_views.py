@@ -480,7 +480,7 @@ class TestOrders(TestCase):
         response = self.client.put(url, data, content_type="application/json")
 
         self.assertEqual(response.status_code, 202)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             comparison_list,
             self.test_order.product_items.all()
             .values_list("id", flat=True)

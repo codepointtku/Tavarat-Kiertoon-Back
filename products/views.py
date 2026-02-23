@@ -257,6 +257,7 @@ class ProductListView(generics.ListCreateAPIView):
 class ProductStorageFilter(filters.FilterSet):
     barcode_search = filters.CharFilter(method="barcode_filter", label="Barcode search")
     search = filters.CharFilter(method="search_filter", label="Search")
+    name = filters.CharFilter(field_name="name", lookup_expr="contains")
     category = filters.ModelMultipleChoiceFilter(queryset=Category.objects.all())
     storage = filters.ModelChoiceFilter(
         queryset=Storage.objects.all(), method="storage_filter", label="Storage filter"
@@ -264,7 +265,7 @@ class ProductStorageFilter(filters.FilterSet):
 
     class Meta:
         model = Product
-        fields = ["barcode_search", "category", "storage"]
+        fields = ["barcode_search", "category", "storage", "name"]
 
     def barcode_filter(self, queryset, value, *args, **kwargs):
         barcode = args[0]

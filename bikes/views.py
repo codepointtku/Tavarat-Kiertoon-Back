@@ -543,7 +543,7 @@ class RentalListView(generics.ListCreateAPIView):
             del bike["rental"]
         unavailable_dates = {}
         for bikedata in bikerentalserializer.data:
-            unavailable_dates[bikedata["id"]] = bikedata["rental_dates"]
+            unavailable_dates[bikedata["bike_id"]] = bikedata["rental_dates"]
 
         for trailer in trailer_rental_serializer.data:
             trailer["rental_dates"] = []

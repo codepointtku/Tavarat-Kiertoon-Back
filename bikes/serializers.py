@@ -391,6 +391,7 @@ class BikeAvailabilityListSerializer(serializers.ModelSerializer):
         model = BikeStock
         fields = [
             "id",
+            "bike_id",
             "rental",
         ]
 

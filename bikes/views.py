@@ -537,13 +537,17 @@ class RentalListView(generics.ListCreateAPIView):
                 date = start_date
                 while date <= end_date:
                     date_str = date.strftime("%d.%m.%Y")
-                    if date_str not in bike["rental_dates"]:
+                    if (
+                        date_str not in bike["rental_dates"]
+                        and date > timezone.now() - datetime.timedelta(days=10)
+                        and date <= end_date - datetime.timedelta(days=10)
+                    ):
                         bike["rental_dates"].append(date_str)
                     date += datetime.timedelta(days=1)
             del bike["rental"]
         unavailable_dates = {}
         for bikedata in bikerentalserializer.data:
-            unavailable_dates[bikedata["bike_id"]] = bikedata["rental_dates"]
+            unavailable_dates[bikedata["id"]] = bikedata["rental_dates"]
 
         for trailer in trailer_rental_serializer.data:
             trailer["rental_dates"] = []

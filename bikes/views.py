@@ -512,7 +512,10 @@ class RentalListView(generics.ListCreateAPIView):
             return Response(postserializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         bikerentalserializer = BikeAvailabilityListSerializer(
-            BikeStock.objects.all(), many=True
+            BikeStock.objects.filter(
+                bike_id__in=list(request.data["bike_stock"].keys())
+            ),
+            many=True,
         )
         trailer_rental_serializer = BikeTrailerAvailabilityListSerializer(
             BikeTrailer.objects.all(), many=True
@@ -537,14 +540,11 @@ class RentalListView(generics.ListCreateAPIView):
                 date = start_date
                 while date <= end_date:
                     date_str = date.strftime("%d.%m.%Y")
-                    if (
-                        date_str not in bike["rental_dates"]
-                        and date > timezone.now() - datetime.timedelta(days=10)
-                        and date <= end_date - datetime.timedelta(days=10)
-                    ):
+                    if date_str not in bike["rental_dates"]:
                         bike["rental_dates"].append(date_str)
                     date += datetime.timedelta(days=1)
             del bike["rental"]
+
         unavailable_dates = {}
         for bikedata in bikerentalserializer.data:
             unavailable_dates[bikedata["id"]] = bikedata["rental_dates"]
@@ -621,6 +621,8 @@ class RentalListView(generics.ListCreateAPIView):
                                 in unavailable_dates[bike_id.id]
                             ):
                                 available_bikes = available_bikes.exclude(id=bike_id.id)
+                                break
+
                             check_date += datetime.timedelta(days=1)
                 amount = request.data["bike_stock"][rental_item]
                 for bike in range(amount):

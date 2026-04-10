@@ -9,7 +9,12 @@ import holidays
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiParameter,
+    OpenApiTypes,
+)
 from django.db.models import Q
 from django.conf import settings
 from django.core.mail import send_mail
@@ -58,6 +63,7 @@ from bikes.serializers import (
     BikeStockDetailSerializer,
     BikeStockListSerializer,
     BikeStockSchemaCreateUpdateSerializer,
+    BikeStockSerializer,
     BikeTrailerAvailabilityListSerializer,
     BikeTrailerMainSerializer,
     BikeTrailerModelSerializer,
@@ -277,6 +283,26 @@ class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="start_date",
+                description="Filter: start date (DD.MM.YYYY).",
+                required=False,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            ),
+            OpenApiParameter(
+                name="end_date",
+                description="Filter: end date (DD.MM.YYYY).",
+                required=False,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            ),
+        ]
+    )
+)
 class MainBikeList(generics.ListAPIView):
     serializer_class = MainBikeListSchemaSerializer
     queryset = Bike.objects.none()
@@ -300,6 +326,36 @@ class MainBikeList(generics.ListAPIView):
         available_to = today + datetime.timedelta(days=183)
         fin_holidays = holidays.FI()
 
+        # Optional filters: allow callers to pass `start_date` and `end_date`
+        # as DD.MM.YYYY dates. When provided, the
+        # unavailable date maps are limited to this range and the
+        # `date_info` returned reflects these values.
+        start_param = request.query_params.get("start_date")
+        end_param = request.query_params.get("end_date")
+        filter_start = None
+        filter_end = None
+        if start_param:
+            try:
+                filter_start = datetime.date.fromisoformat(start_param)
+            except Exception:
+                try:
+                    filter_start = datetime.datetime.fromisoformat(start_param).date()
+                except Exception:
+                    filter_start = None
+        if end_param:
+            try:
+                filter_end = datetime.date.fromisoformat(end_param)
+            except Exception:
+                try:
+                    filter_end = datetime.datetime.fromisoformat(end_param).date()
+                except Exception:
+                    filter_end = None
+
+        if filter_start:
+            available_from = filter_start
+        if filter_end:
+            available_to = filter_end
+
         bike_serializer = BikeSerializer(Bike.objects.all(), many=True)
         bike_package_serializer = BikePackageSerializer(
             BikePackage.objects.all(), many=True
@@ -307,11 +363,16 @@ class MainBikeList(generics.ListAPIView):
         trailer_serializer = BikeTrailerMainSerializer(
             BikeTrailerModel.objects.all(), many=True
         )
-        for index, bike in enumerate(bike_serializer.data):
+        for index, bike_model in enumerate(bike_serializer.data):
             package_only_count = 0
             unavailable = {}
             package_only_unavailable = {}
-            for bike in bike["stock"]:
+            unavailable_amount = 0
+            for bike in bike_model["stock"]:
+                bike_unavailable = False
+                bike_unavailable_amount = 0
+
+                bike["rental_dates"] = []
                 if bike["package_only"] is True:
                     package_only_count += 1
                     for rental in bike["rental"]:
@@ -335,13 +396,22 @@ class MainBikeList(generics.ListAPIView):
                             end_date += datetime.timedelta(days=1)
                         date = start_date
                         while date <= end_date:
-                            date_str = date.strftime("%d.%m.%Y")
-                            if date_str in package_only_unavailable:
-                                package_only_unavailable[date_str] = (
-                                    1 + package_only_unavailable[date_str]
-                                )
-                            else:
-                                package_only_unavailable[date_str] = 1
+                            # consider filter range if provided
+                            current_date = (
+                                date.date()
+                                if isinstance(date, datetime.datetime)
+                                else date
+                            )
+                            if (
+                                filter_start is None or current_date >= filter_start
+                            ) and (filter_end is None or current_date <= filter_end):
+                                date_str = date.strftime("%d.%m.%Y")
+                                if date_str in package_only_unavailable:
+                                    package_only_unavailable[date_str] = (
+                                        1 + package_only_unavailable[date_str]
+                                    )
+                                else:
+                                    package_only_unavailable[date_str] = 1
                             date += datetime.timedelta(days=1)
                 else:
                     for rental in bike["rental"]:
@@ -365,18 +435,37 @@ class MainBikeList(generics.ListAPIView):
                             end_date += datetime.timedelta(days=1)
                         date = start_date
                         while date <= end_date:
-                            date_str = date.strftime("%d.%m.%Y")
-                            if date_str in unavailable:
-                                unavailable[date_str] = 1 + unavailable[date_str]
-                            else:
-                                unavailable[date_str] = 1
+                            # consider filter range if provided
+                            current_date = (
+                                date.date()
+                                if isinstance(date, datetime.datetime)
+                                else date
+                            )
+                            if (
+                                filter_start is None or current_date >= filter_start
+                            ) and (filter_end is None or current_date <= filter_end):
+                                date_str = date.strftime("%d.%m.%Y")
+                                # if date_str not in bike["rental_dates"]:
+                                #    bike["rental_dates"].append(date_str)
+                                if date_str in unavailable:
+                                    bike_unavailable_amount += 1
+                                    unavailable[date_str] = 1 + unavailable[date_str]
+                                else:
+                                    unavailable[date_str] = 1
                             date += datetime.timedelta(days=1)
+                del bike["rental"]
+                # if bike_model["id"] == 2:
+                #    print("bike id: ", bike["id"], ", unavailable: ", unavailable)
+                bike["unavailable"] = bike_unavailable_amount
+                if bike_unavailable:
+                    unavailable_amount += 1
             bike_serializer.data[index]["unavailable"] = unavailable
+            bike_serializer.data[index]["bike_unavailable"] = bike_unavailable
             bike_serializer.data[index]["package_only_count"] = package_only_count
             bike_serializer.data[index][
                 "package_only_unavailable"
             ] = package_only_unavailable
-            del bike_serializer.data[index]["stock"]
+            # del bike_serializer.data[index]["stock"]
 
         for index, package in enumerate(bike_package_serializer.data):
             serializer_package = bike_package_serializer.data[index]
@@ -434,11 +523,18 @@ class MainBikeList(generics.ListAPIView):
                         end_date += datetime.timedelta(days=1)
                     date = start_date
                     while date <= end_date:
-                        date_str = date.strftime("%d.%m.%Y")
-                        if date_str in unavailable:
-                            unavailable[date_str] = 1 + unavailable[date_str]
-                        else:
-                            unavailable[date_str] = 1
+                        # consider filter range if provided
+                        current_date = (
+                            date.date() if isinstance(date, datetime.datetime) else date
+                        )
+                        if (filter_start is None or current_date >= filter_start) and (
+                            filter_end is None or current_date <= filter_end
+                        ):
+                            date_str = date.strftime("%d.%m.%Y")
+                            if date_str in unavailable:
+                                unavailable[date_str] = 1 + unavailable[date_str]
+                            else:
+                                unavailable[date_str] = 1
                         date += datetime.timedelta(days=1)
             trailer_serializer.data[index]["unavailable"] = unavailable
             del trailer_serializer.data[index]["trailer"]
@@ -512,31 +608,33 @@ class RentalListView(generics.ListCreateAPIView):
             return Response(postserializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         bikerentalserializer = BikeAvailabilityListSerializer(
-            BikeStock.objects.filter(
-                bike_id__in=list(request.data["bike_stock"].keys())
-            ),
-            many=True,
+            BikeStock.objects.all(), many=True
         )
         trailer_rental_serializer = BikeTrailerAvailabilityListSerializer(
             BikeTrailer.objects.all(), many=True
         )
-
+        end_date_with_maintenance = request_end_date
         for bike in bikerentalserializer.data:
             bike["rental_dates"] = []
             for rental in bike["rental"]:
                 start_date = datetime.datetime.fromisoformat(rental["start_date"])
                 end_date = datetime.datetime.fromisoformat(rental["end_date"])
                 end_date += datetime.timedelta(days=1)
+                end_date_with_maintenance += datetime.timedelta(days=1)
                 while end_date.weekday() >= 5 or end_date in fin_holidays:
                     end_date += datetime.timedelta(days=1)
+                    end_date_with_maintenance += datetime.timedelta(days=1)
                 second_day = end_date + datetime.timedelta(days=1)
                 if second_day.weekday() >= 5 or second_day in fin_holidays:
                     while second_day.weekday() >= 5 or second_day in fin_holidays:
                         end_date += datetime.timedelta(days=1)
+                        end_date_with_maintenance += datetime.timedelta(days=1)
                         second_day += datetime.timedelta(days=1)
                     end_date += datetime.timedelta(days=1)
+                    end_date_with_maintenance += datetime.timedelta(days=1)
                 else:
                     end_date += datetime.timedelta(days=1)
+                    end_date_with_maintenance += datetime.timedelta(days=1)
                 date = start_date
                 while date <= end_date:
                     date_str = date.strftime("%d.%m.%Y")
@@ -596,7 +694,7 @@ class RentalListView(generics.ListCreateAPIView):
                     for bike_id in available_bikes:
                         check_date = request_start_date
                         if bike_id.id in unavailable_dates.keys():
-                            while check_date <= request_end_date:
+                            while check_date <= end_date_with_maintenance:
                                 if (
                                     check_date.strftime("%d.%m.%Y")
                                     in unavailable_dates[bike_id.id]
@@ -610,12 +708,12 @@ class RentalListView(generics.ListCreateAPIView):
 
             else:
                 available_bikes = BikeStock.objects.filter(
-                    bike=rental_item, package_only=False, state="AVAILABLE"
+                    package_only=False, state="AVAILABLE"
                 )
                 for bike_id in available_bikes:
                     check_date = request_start_date
                     if bike_id.id in unavailable_dates.keys():
-                        while check_date <= request_end_date:
+                        while check_date <= end_date_with_maintenance:
                             if (
                                 check_date.strftime("%d.%m.%Y")
                                 in unavailable_dates[bike_id.id]

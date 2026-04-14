@@ -72,7 +72,7 @@ class BikeRentalSchemaResponseSerializer(serializers.ModelSerializer):
 
 
 class BikeStockSerializer(serializers.ModelSerializer):
-    rental = BikeRentalSerializer(many=True)
+    rental = BikeRentalFilteredSerializer(many=True)
 
     class Meta:
         model = BikeStock
@@ -402,7 +402,7 @@ class BikePackageCreateResponseSerializer(serializers.ModelSerializer):
 
 
 class BikeAvailabilityListSerializer(serializers.ModelSerializer):
-    rental = BikeRentalFilteredSerializer(
+    rental = BikeRentalSerializer(
         many=True,
     )
 

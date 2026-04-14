@@ -334,27 +334,29 @@ class MainBikeList(generics.ListAPIView):
         end_param = request.query_params.get("end_date")
         filter_start = None
         filter_end = None
+        print(start_param, end_param)
         if start_param:
             try:
-                filter_start = datetime.date.fromisoformat(start_param)
+                filter_start = datetime.datetime.strptime(
+                    start_param, "%d.%m.%Y"
+                ).date()
             except Exception:
                 try:
-                    filter_start = datetime.datetime.fromisoformat(start_param).date()
+                    filter_start = datetime.datetime.strptime(
+                        start_param, "%d.%m.%Y"
+                    ).date()
                 except Exception:
                     filter_start = None
         if end_param:
             try:
-                filter_end = datetime.date.fromisoformat(end_param)
+                filter_end = datetime.datetime.strptime(end_param, "%d.%m.%Y").date()
             except Exception:
                 try:
-                    filter_end = datetime.datetime.fromisoformat(end_param).date()
+                    filter_end = datetime.datetime.strptime(
+                        end_param, "%d.%m.%Y"
+                    ).date()
                 except Exception:
                     filter_end = None
-
-        if filter_start:
-            available_from = filter_start
-        if filter_end:
-            available_to = filter_end
 
         bike_serializer = BikeSerializer(Bike.objects.all(), many=True)
         bike_package_serializer = BikePackageSerializer(
@@ -370,7 +372,6 @@ class MainBikeList(generics.ListAPIView):
             unavailable_amount = 0
             for bike in bike_model["stock"]:
                 bike_unavailable = False
-                bike_unavailable_amount = 0
 
                 bike["rental_dates"] = []
                 if bike["package_only"] is True:
@@ -441,26 +442,47 @@ class MainBikeList(generics.ListAPIView):
                                 if isinstance(date, datetime.datetime)
                                 else date
                             )
-                            if (
-                                filter_start is None or current_date >= filter_start
-                            ) and (filter_end is None or current_date <= filter_end):
-                                date_str = date.strftime("%d.%m.%Y")
-                                # if date_str not in bike["rental_dates"]:
-                                #    bike["rental_dates"].append(date_str)
-                                if date_str in unavailable:
-                                    bike_unavailable_amount += 1
-                                    unavailable[date_str] = 1 + unavailable[date_str]
-                                else:
-                                    unavailable[date_str] = 1
+                            date_str = date.strftime("%d.%m.%Y")
+                            # if date_str not in bike["rental_dates"]:
+                            #    bike["rental_dates"].append(date_str)
+                            if date_str in unavailable:
+
+                                unavailable[date_str] = 1 + unavailable[date_str]
+                            else:
+                                unavailable[date_str] = 1
                             date += datetime.timedelta(days=1)
+
+                            if (
+                                (filter_start is None or current_date >= filter_start)
+                                and (filter_end is None or current_date <= filter_end)
+                                and date_str in unavailable
+                            ):
+                                bike_unavailable = True
+                                """ if bike_model["id"] == 2:
+                                    print(
+                                        "date_str: ",
+                                        date_str,
+                                        "current_date: ",
+                                        current_date,
+                                        "filter_start: ",
+                                        filter_start,
+                                        "filter_end: ",
+                                        filter_end,
+                                    ) """
                 del bike["rental"]
                 # if bike_model["id"] == 2:
                 #    print("bike id: ", bike["id"], ", unavailable: ", unavailable)
-                bike["unavailable"] = bike_unavailable_amount
+                bike["unavailable"] = bike_unavailable
                 if bike_unavailable:
                     unavailable_amount += 1
+
+                date = filter_start
+                while date <= filter_end:
+                    date_str = date.strftime("%d.%m.%Y")
+                    unavailable[date_str] = unavailable_amount
+                    date += datetime.timedelta(days=1)
             bike_serializer.data[index]["unavailable"] = unavailable
-            bike_serializer.data[index]["bike_unavailable"] = bike_unavailable
+            bike_serializer.data[index]["bike_unavailable"] = unavailable_amount
             bike_serializer.data[index]["package_only_count"] = package_only_count
             bike_serializer.data[index][
                 "package_only_unavailable"
@@ -708,7 +730,7 @@ class RentalListView(generics.ListCreateAPIView):
 
             else:
                 available_bikes = BikeStock.objects.filter(
-                    package_only=False, state="AVAILABLE"
+                    bike=rental_item, package_only=False, state="AVAILABLE"
                 )
                 for bike_id in available_bikes:
                     check_date = request_start_date

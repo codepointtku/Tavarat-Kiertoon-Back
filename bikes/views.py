@@ -283,6 +283,217 @@ class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
+class MainBikeList(generics.ListAPIView):
+    serializer_class = MainBikeListSchemaSerializer
+    queryset = Bike.objects.none()
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "user_group"],
+        "LIST": ["bicycle_group", "user_group"],
+    }
+
+    def list(self, request, *args, **kwargs):
+        today = datetime.date.today()
+        available_from = today + datetime.timedelta(days=7)
+        available_to = today + datetime.timedelta(days=183)
+        fin_holidays = holidays.FI()
+
+        bike_serializer = BikeSerializer(Bike.objects.all(), many=True)
+        bike_type_serializer = BikeTypeSerializer(BikeType.objects.all(), many=True)
+        bike_package_serializer = BikePackageSerializer(
+            BikePackage.objects.all(), many=True
+        )
+        trailer_serializer = BikeTrailerMainSerializer(
+            BikeTrailerModel.objects.all(), many=True
+        )
+
+        for index, bike_model in enumerate(bike_serializer.data):
+            package_only_count = 0
+            unavailable = {}
+            package_only_unavailable = {}
+            for bike in bike_model["stock"]:
+                bike["rental_dates"] = []
+                if bike["package_only"] is True:
+                    package_only_count += 1
+                    for rental in bike["rental"]:
+                        start_date = datetime.datetime.fromisoformat(
+                            rental["start_date"]
+                        )
+                        end_date = datetime.datetime.fromisoformat(rental["end_date"])
+                        # We want to give the warehouse workers two business days to maintain the bikes, after the rental has ended
+                        end_date += datetime.timedelta(days=1)
+                        while end_date.weekday() >= 5 or end_date in fin_holidays:
+                            end_date += datetime.timedelta(days=1)
+                        second_day = end_date + datetime.timedelta(days=1)
+                        if second_day.weekday() >= 5 or second_day in fin_holidays:
+                            while (
+                                second_day.weekday() >= 5 or second_day in fin_holidays
+                            ):
+                                end_date += datetime.timedelta(days=1)
+                                second_day += datetime.timedelta(days=1)
+                            end_date += datetime.timedelta(days=1)
+                        else:
+                            end_date += datetime.timedelta(days=1)
+                        date = start_date
+                        while date <= end_date:
+                            # consider filter range if provided
+                            current_date = (
+                                date.date()
+                                if isinstance(date, datetime.datetime)
+                                else date
+                            )
+                            date_str = date.strftime("%d.%m.%Y")
+                            if date_str in package_only_unavailable:
+                                package_only_unavailable[date_str] = (
+                                    1 + package_only_unavailable[date_str]
+                                )
+                            else:
+                                package_only_unavailable[date_str] = 1
+                            date += datetime.timedelta(days=1)
+                else:
+                    for rental in bike["rental"]:
+                        start_date = datetime.datetime.fromisoformat(
+                            rental["start_date"]
+                        )
+                        end_date = datetime.datetime.fromisoformat(rental["end_date"])
+                        # We want to give the warehouse workers two business days to maintain the bikes, after the rental has ended
+                        end_date += datetime.timedelta(days=1)
+                        while end_date.weekday() >= 5 or end_date in fin_holidays:
+                            end_date += datetime.timedelta(days=1)
+                        second_day = end_date + datetime.timedelta(days=1)
+                        if second_day.weekday() >= 5 or second_day in fin_holidays:
+                            while (
+                                second_day.weekday() >= 5 or second_day in fin_holidays
+                            ):
+                                end_date += datetime.timedelta(days=1)
+                                second_day += datetime.timedelta(days=1)
+                            end_date += datetime.timedelta(days=1)
+                        else:
+                            end_date += datetime.timedelta(days=1)
+                        date = start_date
+                        while date <= end_date:
+                            # consider filter range if provided
+                            current_date = (
+                                date.date()
+                                if isinstance(date, datetime.datetime)
+                                else date
+                            )
+                            date_str = date.strftime("%d.%m.%Y")
+                            # if date_str not in bike["rental_dates"]:
+                            #    bike["rental_dates"].append(date_str)
+                            if date_str in unavailable:
+
+                                unavailable[date_str] = 1 + unavailable[date_str]
+                            else:
+                                unavailable[date_str] = 1
+                            date += datetime.timedelta(days=1)
+
+                del bike["rental"]
+
+            bike_serializer.data[index]["unavailable"] = unavailable
+            bike_serializer.data[index]["package_only_count"] = package_only_count
+            bike_serializer.data[index][
+                "package_only_unavailable"
+            ] = package_only_unavailable
+            # del bike_serializer.data[index]["stock"]
+
+        for index, package in enumerate(bike_package_serializer.data):
+            serializer_package = bike_package_serializer.data[index]
+            serializer_package["type"] = "Paketti"
+            serializer_package["unavailable"] = {}
+            serializer_package["brand"] = None
+            serializer_package["color"] = None
+            max_available = None
+            for bike in package["bikes"]:
+                bike_object = Bike.objects.get(id=bike["bike"])
+                if "size" in serializer_package:
+                    serializer_package["size"] = (
+                        f"{serializer_package['size']} & {bike_object.size.name}"
+                    )
+                else:
+                    serializer_package["size"] = bike_object.size.name
+                bike_object_serializer = BikeSerializer(bike_object)
+                if "picture" in serializer_package:
+                    serializer_package["picture"] = (
+                        f"{serializer_package['picture']}&{bike_object.picture.picture_address}"
+                    )
+                else:
+                    serializer_package["picture"] = (
+                        f"{bike_object.picture.picture_address}"
+                    )
+                if bike["amount"] == 0:
+                    bike_max_available = bike["amount"]
+                else:
+                    bike_max_available = math.floor(
+                        bike_object_serializer.data["max_available"] / bike["amount"]
+                    )
+                if max_available is None:
+                    max_available = bike_max_available
+                else:
+                    max_available = min(max_available, bike_max_available)
+            serializer_package["max_available"] = max_available
+
+        for index, trailer in enumerate(trailer_serializer.data):
+            unavailable = {}
+            for trailer in trailer["trailer"]:
+                for rental in trailer["trailer_rental"]:
+                    start_date = datetime.datetime.fromisoformat(rental["start_date"])
+                    end_date = datetime.datetime.fromisoformat(rental["end_date"])
+                    # We want to give the warehouse workers two business days to maintain the trailers, after the rental has ended
+                    end_date += datetime.timedelta(days=1)
+                    while end_date.weekday() >= 5 or end_date in fin_holidays:
+                        end_date += datetime.timedelta(days=1)
+                    second_day = end_date + datetime.timedelta(days=1)
+                    if second_day.weekday() >= 5 or second_day in fin_holidays:
+                        while second_day.weekday() >= 5 or second_day in fin_holidays:
+                            end_date += datetime.timedelta(days=1)
+                            second_day += datetime.timedelta(days=1)
+                        end_date += datetime.timedelta(days=1)
+                    else:
+                        end_date += datetime.timedelta(days=1)
+                    date = start_date
+                    while date <= end_date:
+                        # consider filter range if provided
+                        current_date = (
+                            date.date() if isinstance(date, datetime.datetime) else date
+                        )
+                        date_str = date.strftime("%d.%m.%Y")
+                        if date_str in unavailable:
+                            unavailable[date_str] = 1 + unavailable[date_str]
+                        else:
+                            unavailable[date_str] = 1
+                        date += datetime.timedelta(days=1)
+            trailer_serializer.data[index]["unavailable"] = unavailable
+            del trailer_serializer.data[index]["trailer"]
+
+        return Response(
+            {
+                "date_info": {
+                    "available_from": available_from,
+                    "available_to": available_to,
+                },
+                "bikes": bike_serializer.data,
+                "packages": bike_package_serializer.data,
+                "bike_types": bike_type_serializer.data,
+                "bike_sizes": BikeSizeSerializer(
+                    BikeSize.objects.all(), many=True
+                ).data,
+                "bike_brands": BikeBrandSerializer(
+                    BikeBrand.objects.all(), many=True
+                ).data,
+                "trailers": trailer_serializer.data,
+            }
+        )
+
+
 @extend_schema_view(
     get=extend_schema(
         parameters=[
@@ -303,7 +514,7 @@ class BikeStockDetailView(generics.RetrieveUpdateDestroyAPIView):
         ]
     )
 )
-class MainBikeList(generics.ListAPIView):
+class BikeAvailability(generics.ListAPIView):
     serializer_class = MainBikeListSchemaSerializer
     queryset = Bike.objects.none()
 
@@ -563,13 +774,8 @@ class MainBikeList(generics.ListAPIView):
 
         return Response(
             {
-                "date_info": {
-                    "available_from": available_from,
-                    "available_to": available_to,
-                },
                 "bikes": bike_serializer.data,
                 "packages": bike_package_serializer.data,
-                "trailers": trailer_serializer.data,
             }
         )
 

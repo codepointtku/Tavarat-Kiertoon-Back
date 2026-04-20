@@ -503,6 +503,8 @@ class BikeAvailability(generics.ListAPIView):
                         end_date = datetime.datetime.fromisoformat(rental["end_date"])
                         # We want to give the warehouse workers two business days to maintain the bikes, after the rental has ended
                         end_date += datetime.timedelta(days=1)
+                        while start_date.weekday() >= 5 or start_date in fin_holidays:
+                            start_date -= datetime.timedelta(days=1)
                         while end_date.weekday() >= 5 or end_date in fin_holidays:
                             end_date += datetime.timedelta(days=1)
                         second_day = end_date + datetime.timedelta(days=1)

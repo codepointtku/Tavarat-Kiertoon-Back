@@ -676,8 +676,8 @@ class RentalListView(generics.ListCreateAPIView):
             BikeTrailer.objects.all(), many=True
         )
         end_date_with_maintenance = request_end_date
-        _, end_date_with_maintenance = add_maintananse_dates(
-            None, end_date_with_maintenance.isoformat()
+        end_date_with_maintenance = add_maintananse_dates(
+            end_date_with_maintenance.isoformat()
         )
 
         for bike in bikerentalserializer.data:

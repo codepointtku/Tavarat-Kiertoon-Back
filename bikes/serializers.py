@@ -1,3 +1,6 @@
+import datetime
+from django.utils import timezone
+
 from rest_framework import serializers
 
 from products.serializers import (
@@ -24,6 +27,20 @@ from .models import (
 class BikeRentalSerializer(serializers.ModelSerializer):
     class Meta:
         model = BikeRental
+        fields = "__all__"
+
+
+# allows filtering bike rentals by start date, so that we don't show year old rentals in bike availability endpoint
+class BikeRentalDateSerializer(serializers.ListSerializer):
+    def to_representation(self, data):
+        data = data.filter(start_date__gte=timezone.now() - datetime.timedelta(days=30))
+        return super(BikeRentalDateSerializer, self).to_representation(data)
+
+
+class BikeRentalFilteredSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BikeRental
+        list_serializer_class = BikeRentalDateSerializer
         fields = "__all__"
 
 
@@ -55,7 +72,7 @@ class BikeRentalSchemaResponseSerializer(serializers.ModelSerializer):
 
 
 class BikeStockSerializer(serializers.ModelSerializer):
-    rental = BikeRentalSerializer(many=True)
+    rental = BikeRentalFilteredSerializer(many=True)
 
     class Meta:
         model = BikeStock
@@ -385,12 +402,15 @@ class BikePackageCreateResponseSerializer(serializers.ModelSerializer):
 
 
 class BikeAvailabilityListSerializer(serializers.ModelSerializer):
-    rental = BikeRentalSerializer(many=True)
+    rental = BikeRentalSerializer(
+        many=True,
+    )
 
     class Meta:
         model = BikeStock
         fields = [
             "id",
+            "bike_id",
             "rental",
         ]
 

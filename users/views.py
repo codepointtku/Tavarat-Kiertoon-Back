@@ -317,6 +317,9 @@ class UserLogoutView(APIView):
         if settings.SIMPLE_JWT["AUTH_COOKIE"] in request.COOKIES:
             response.delete_cookie(settings.SIMPLE_JWT["AUTH_COOKIE"])
 
+        if "csrftoken" in request.COOKIES:
+            response.delete_cookie("csrftoken")
+
         response.status_code = status.HTTP_200_OK
         response.data = {
             "Success": "log out done here, do the front stuff",

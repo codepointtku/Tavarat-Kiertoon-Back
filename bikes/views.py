@@ -9,7 +9,12 @@ import holidays
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiParameter,
+    OpenApiTypes,
+)
 from django.db.models import Q
 from django.conf import settings
 from django.core.mail import send_mail
@@ -58,6 +63,7 @@ from bikes.serializers import (
     BikeStockDetailSerializer,
     BikeStockListSerializer,
     BikeStockSchemaCreateUpdateSerializer,
+    BikeStockSerializer,
     BikeTrailerAvailabilityListSerializer,
     BikeTrailerMainSerializer,
     BikeTrailerModelSerializer,
@@ -80,6 +86,25 @@ def resize_image(image, extension="JPEG"):
         img.save(output, format=extension)
         outcont = output.getvalue()
     return outcont
+
+
+def add_maintananse_dates(end_date):
+    fin_holidays = holidays.FI()
+    end_date = datetime.datetime.fromisoformat(end_date)
+    # We want to give the warehouse workers two business days to maintain the bikes, after the rental has ended
+    end_date += datetime.timedelta(days=1)
+    while end_date.weekday() >= 5 or end_date in fin_holidays:
+        end_date += datetime.timedelta(days=1)
+    second_day = end_date + datetime.timedelta(days=1)
+    if second_day.weekday() >= 5 or second_day in fin_holidays:
+        while second_day.weekday() >= 5 or second_day in fin_holidays:
+            end_date += datetime.timedelta(days=1)
+            second_day += datetime.timedelta(days=1)
+        end_date += datetime.timedelta(days=1)
+    else:
+        end_date += datetime.timedelta(days=1)
+
+    return end_date
 
 
 class BikeStockFilter(filters.FilterSet):
@@ -299,6 +324,122 @@ class MainBikeList(generics.ListAPIView):
         available_from = today + datetime.timedelta(days=7)
         available_to = today + datetime.timedelta(days=183)
         fin_holidays = holidays.FI()
+        bike_type_serializer = BikeTypeSerializer(BikeType.objects.all(), many=True)
+
+        trailer_serializer = BikeTrailerMainSerializer(
+            BikeTrailerModel.objects.all(), many=True
+        )
+        for index, trailer in enumerate(trailer_serializer.data):
+            unavailable = {}
+            for trailer in trailer["trailer"]:
+                for rental in trailer["trailer_rental"]:
+                    start_date = datetime.datetime.fromisoformat(rental["start_date"])
+                    end_date = datetime.datetime.fromisoformat(rental["end_date"])
+                    # We want to give the warehouse workers two business days to maintain the trailers, after the rental has ended
+                    end_date = add_maintananse_dates(end_date.isoformat())
+                    date = start_date
+                    while date <= end_date:
+                        date_str = date.strftime("%d.%m.%Y")
+                        if date_str in unavailable:
+                            unavailable[date_str] = 1 + unavailable[date_str]
+                        else:
+                            unavailable[date_str] = 1
+                        date += datetime.timedelta(days=1)
+            trailer_serializer.data[index]["unavailable"] = unavailable
+            del trailer_serializer.data[index]["trailer"]
+
+        return Response(
+            {
+                "date_info": {
+                    "available_from": available_from,
+                    "available_to": available_to,
+                },
+                "bike_types": bike_type_serializer.data,
+                "bike_sizes": BikeSizeSerializer(
+                    BikeSize.objects.all(), many=True
+                ).data,
+                "bike_brands": BikeBrandSerializer(
+                    BikeBrand.objects.all(), many=True
+                ).data,
+                "trailers": trailer_serializer.data,
+            }
+        )
+
+
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="start_date",
+                description="Filter: start date (DD.MM.YYYY).",
+                required=True,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            ),
+            OpenApiParameter(
+                name="end_date",
+                description="Filter: end date (DD.MM.YYYY).",
+                required=True,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            ),
+        ]
+    )
+)
+class BikeAvailability(generics.ListAPIView):
+    serializer_class = MainBikeListSchemaSerializer
+    queryset = Bike.objects.none()
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        JWTAuthentication,
+        CustomJWTAuthentication,
+    ]
+
+    permission_classes = [IsAuthenticated, HasGroupPermission]
+    required_groups = {
+        "GET": ["bicycle_group", "user_group"],
+        "LIST": ["bicycle_group", "user_group"],
+    }
+
+    def list(self, request, *args, **kwargs):
+        today = datetime.date.today()
+        available_from = today + datetime.timedelta(days=7)
+        available_to = today + datetime.timedelta(days=183)
+        fin_holidays = holidays.FI()
+
+        # Optional filters: allow callers to pass `start_date` and `end_date`
+        # as DD.MM.YYYY dates. When provided, the
+        # unavailable date maps are limited to this range and the
+        # `date_info` returned reflects these values.
+        start_param = request.query_params.get("start_date")
+        end_param = request.query_params.get("end_date")
+        filter_start = None
+        filter_end = None
+
+        if start_param:
+            try:
+                filter_start = datetime.datetime.strptime(
+                    start_param, "%d.%m.%Y"
+                ).date()
+            except Exception:
+                try:
+                    filter_start = datetime.datetime.strptime(
+                        start_param, "%d.%m.%Y"
+                    ).date()
+                except Exception:
+                    filter_start = None
+        if end_param:
+            try:
+                filter_end = datetime.datetime.strptime(end_param, "%d.%m.%Y").date()
+            except Exception:
+                try:
+                    filter_end = datetime.datetime.strptime(
+                        end_param, "%d.%m.%Y"
+                    ).date()
+                except Exception:
+                    filter_end = None
 
         bike_serializer = BikeSerializer(Bike.objects.all(), many=True)
         bike_package_serializer = BikePackageSerializer(
@@ -307,71 +448,98 @@ class MainBikeList(generics.ListAPIView):
         trailer_serializer = BikeTrailerMainSerializer(
             BikeTrailerModel.objects.all(), many=True
         )
-        for index, bike in enumerate(bike_serializer.data):
+
+        maintananse_start_date = datetime.datetime.fromisoformat(
+            filter_start.isoformat()
+        )
+        maintananse_end_date = add_maintananse_dates(filter_end.isoformat())
+        for index, bike_model in enumerate(bike_serializer.data):
             package_only_count = 0
             unavailable = {}
             package_only_unavailable = {}
-            for bike in bike["stock"]:
+            unavailable_amount = 0
+            for bike in bike_model["stock"]:
+                bike_unavailable = False
+
+                bike["rental_dates"] = []
                 if bike["package_only"] is True:
                     package_only_count += 1
                     for rental in bike["rental"]:
                         start_date = datetime.datetime.fromisoformat(
                             rental["start_date"]
                         )
-                        end_date = datetime.datetime.fromisoformat(rental["end_date"])
-                        # We want to give the warehouse workers two business days to maintain the bikes, after the rental has ended
-                        end_date += datetime.timedelta(days=1)
-                        while end_date.weekday() >= 5 or end_date in fin_holidays:
-                            end_date += datetime.timedelta(days=1)
-                        second_day = end_date + datetime.timedelta(days=1)
-                        if second_day.weekday() >= 5 or second_day in fin_holidays:
-                            while (
-                                second_day.weekday() >= 5 or second_day in fin_holidays
-                            ):
-                                end_date += datetime.timedelta(days=1)
-                                second_day += datetime.timedelta(days=1)
-                            end_date += datetime.timedelta(days=1)
-                        else:
-                            end_date += datetime.timedelta(days=1)
+                        start_date -= datetime.timedelta(days=2)
+                        end_date = add_maintananse_dates(rental["end_date"])
                         date = start_date
                         while date <= end_date:
-                            date_str = date.strftime("%d.%m.%Y")
-                            if date_str in package_only_unavailable:
-                                package_only_unavailable[date_str] = (
-                                    1 + package_only_unavailable[date_str]
-                                )
-                            else:
-                                package_only_unavailable[date_str] = 1
+                            # consider filter range if provided
+                            current_date = (
+                                date.date()
+                                if isinstance(date, datetime.datetime)
+                                else date
+                            )
+                            if (
+                                filter_start is None or current_date >= filter_start
+                            ) and (filter_end is None or current_date <= filter_end):
+                                date_str = date.strftime("%d.%m.%Y")
+                                if date_str in package_only_unavailable:
+                                    package_only_unavailable[date_str] = (
+                                        1 + package_only_unavailable[date_str]
+                                    )
+                                else:
+                                    package_only_unavailable[date_str] = 1
                             date += datetime.timedelta(days=1)
                 else:
                     for rental in bike["rental"]:
                         start_date = datetime.datetime.fromisoformat(
                             rental["start_date"]
                         )
-                        end_date = datetime.datetime.fromisoformat(rental["end_date"])
-                        # We want to give the warehouse workers two business days to maintain the bikes, after the rental has ended
-                        end_date += datetime.timedelta(days=1)
-                        while end_date.weekday() >= 5 or end_date in fin_holidays:
-                            end_date += datetime.timedelta(days=1)
-                        second_day = end_date + datetime.timedelta(days=1)
-                        if second_day.weekday() >= 5 or second_day in fin_holidays:
-                            while (
-                                second_day.weekday() >= 5 or second_day in fin_holidays
-                            ):
-                                end_date += datetime.timedelta(days=1)
-                                second_day += datetime.timedelta(days=1)
-                            end_date += datetime.timedelta(days=1)
-                        else:
-                            end_date += datetime.timedelta(days=1)
+                        start_date -= datetime.timedelta(days=2)
+                        end_date = add_maintananse_dates(rental["end_date"])
                         date = start_date
+
                         while date <= end_date:
+                            # consider filter range if provided
+                            current_date = (
+                                date.date()
+                                if isinstance(date, datetime.datetime)
+                                else date
+                            )
                             date_str = date.strftime("%d.%m.%Y")
+
                             if date_str in unavailable:
+
                                 unavailable[date_str] = 1 + unavailable[date_str]
                             else:
                                 unavailable[date_str] = 1
                             date += datetime.timedelta(days=1)
+
+                            if (
+                                (
+                                    filter_start is None
+                                    or current_date >= maintananse_start_date.date()
+                                )
+                                and (
+                                    filter_end is None
+                                    or current_date <= maintananse_end_date.date()
+                                )
+                                and date_str in unavailable
+                            ):
+                                bike_unavailable = True
+
+                del bike["rental"]
+                bike["unavailable"] = bike_unavailable
+                if bike_unavailable:
+                    unavailable_amount += 1
+
+                date = filter_start
+
+                while date <= maintananse_end_date.date():
+                    date_str = date.strftime("%d.%m.%Y")
+                    unavailable[date_str] = unavailable_amount
+                    date += datetime.timedelta(days=1)
             bike_serializer.data[index]["unavailable"] = unavailable
+            bike_serializer.data[index]["bike_unavailable"] = unavailable_amount
             bike_serializer.data[index]["package_only_count"] = package_only_count
             bike_serializer.data[index][
                 "package_only_unavailable"
@@ -419,39 +587,29 @@ class MainBikeList(generics.ListAPIView):
             for trailer in trailer["trailer"]:
                 for rental in trailer["trailer_rental"]:
                     start_date = datetime.datetime.fromisoformat(rental["start_date"])
-                    end_date = datetime.datetime.fromisoformat(rental["end_date"])
-                    # We want to give the warehouse workers two business days to maintain the trailers, after the rental has ended
-                    end_date += datetime.timedelta(days=1)
-                    while end_date.weekday() >= 5 or end_date in fin_holidays:
-                        end_date += datetime.timedelta(days=1)
-                    second_day = end_date + datetime.timedelta(days=1)
-                    if second_day.weekday() >= 5 or second_day in fin_holidays:
-                        while second_day.weekday() >= 5 or second_day in fin_holidays:
-                            end_date += datetime.timedelta(days=1)
-                            second_day += datetime.timedelta(days=1)
-                        end_date += datetime.timedelta(days=1)
-                    else:
-                        end_date += datetime.timedelta(days=1)
+                    end_date = add_maintananse_dates(rental["end_date"])
                     date = start_date
                     while date <= end_date:
-                        date_str = date.strftime("%d.%m.%Y")
-                        if date_str in unavailable:
-                            unavailable[date_str] = 1 + unavailable[date_str]
-                        else:
-                            unavailable[date_str] = 1
+                        # consider filter range if provided
+                        current_date = (
+                            date.date() if isinstance(date, datetime.datetime) else date
+                        )
+                        if (filter_start is None or current_date >= filter_start) and (
+                            filter_end is None or current_date <= filter_end
+                        ):
+                            date_str = date.strftime("%d.%m.%Y")
+                            if date_str in unavailable:
+                                unavailable[date_str] = 1 + unavailable[date_str]
+                            else:
+                                unavailable[date_str] = 1
                         date += datetime.timedelta(days=1)
             trailer_serializer.data[index]["unavailable"] = unavailable
             del trailer_serializer.data[index]["trailer"]
 
         return Response(
             {
-                "date_info": {
-                    "available_from": available_from,
-                    "available_to": available_to,
-                },
                 "bikes": bike_serializer.data,
                 "packages": bike_package_serializer.data,
-                "trailers": trailer_serializer.data,
             }
         )
 
@@ -517,23 +675,16 @@ class RentalListView(generics.ListCreateAPIView):
         trailer_rental_serializer = BikeTrailerAvailabilityListSerializer(
             BikeTrailer.objects.all(), many=True
         )
+        end_date_with_maintenance = request_end_date
+        end_date_with_maintenance = add_maintananse_dates(
+            end_date_with_maintenance.isoformat()
+        )
 
         for bike in bikerentalserializer.data:
             bike["rental_dates"] = []
             for rental in bike["rental"]:
                 start_date = datetime.datetime.fromisoformat(rental["start_date"])
-                end_date = datetime.datetime.fromisoformat(rental["end_date"])
-                end_date += datetime.timedelta(days=1)
-                while end_date.weekday() >= 5 or end_date in fin_holidays:
-                    end_date += datetime.timedelta(days=1)
-                second_day = end_date + datetime.timedelta(days=1)
-                if second_day.weekday() >= 5 or second_day in fin_holidays:
-                    while second_day.weekday() >= 5 or second_day in fin_holidays:
-                        end_date += datetime.timedelta(days=1)
-                        second_day += datetime.timedelta(days=1)
-                    end_date += datetime.timedelta(days=1)
-                else:
-                    end_date += datetime.timedelta(days=1)
+                end_date = add_maintananse_dates(rental["end_date"])
                 date = start_date
                 while date <= end_date:
                     date_str = date.strftime("%d.%m.%Y")
@@ -541,6 +692,7 @@ class RentalListView(generics.ListCreateAPIView):
                         bike["rental_dates"].append(date_str)
                     date += datetime.timedelta(days=1)
             del bike["rental"]
+
         unavailable_dates = {}
         for bikedata in bikerentalserializer.data:
             unavailable_dates[bikedata["id"]] = bikedata["rental_dates"]
@@ -549,18 +701,7 @@ class RentalListView(generics.ListCreateAPIView):
             trailer["rental_dates"] = []
             for rental in trailer["trailer_rental"]:
                 start_date = datetime.datetime.fromisoformat(rental["start_date"])
-                end_date = datetime.datetime.fromisoformat(rental["end_date"])
-                end_date += datetime.timedelta(days=1)
-                while end_date.weekday() >= 5 or end_date in fin_holidays:
-                    end_date += datetime.timedelta(days=1)
-                second_day = end_date + datetime.timedelta(days=1)
-                if second_day.weekday() >= 5 or second_day in fin_holidays:
-                    while second_day.weekday() >= 5 or second_day in fin_holidays:
-                        end_date += datetime.timedelta(days=1)
-                        second_day += datetime.timedelta(days=1)
-                    end_date += datetime.timedelta(days=1)
-                else:
-                    end_date += datetime.timedelta(days=1)
+                end_date = add_maintananse_dates(rental["end_date"])
                 date = start_date
                 while date <= end_date:
                     date_str = date.strftime("%d.%m.%Y")
@@ -592,7 +733,7 @@ class RentalListView(generics.ListCreateAPIView):
                     for bike_id in available_bikes:
                         check_date = request_start_date
                         if bike_id.id in unavailable_dates.keys():
-                            while check_date <= request_end_date:
+                            while check_date <= end_date_with_maintenance:
                                 if (
                                     check_date.strftime("%d.%m.%Y")
                                     in unavailable_dates[bike_id.id]
@@ -611,12 +752,14 @@ class RentalListView(generics.ListCreateAPIView):
                 for bike_id in available_bikes:
                     check_date = request_start_date
                     if bike_id.id in unavailable_dates.keys():
-                        while check_date <= request_end_date:
+                        while check_date <= end_date_with_maintenance:
                             if (
                                 check_date.strftime("%d.%m.%Y")
                                 in unavailable_dates[bike_id.id]
                             ):
                                 available_bikes = available_bikes.exclude(id=bike_id.id)
+                                break
+
                             check_date += datetime.timedelta(days=1)
                 amount = request.data["bike_stock"][rental_item]
                 for bike in range(amount):

@@ -621,10 +621,13 @@ class BikeRentalPagination(PageNumberPagination):
 
 class BikeRentalFilter(filters.FilterSet):
     state = filters.MultipleChoiceFilter(choices=BikeRental.StateChoices.choices)
+    start_date = filters.DateFilter(field_name="start_date", lookup_expr="gte")
+    end_date = filters.DateFilter(field_name="end_date", lookup_expr="lte")
+    bike = filters.NumberFilter(field_name="bike_stock__bike__id", distinct=True)
 
     class Meta:
         model = BikeRental
-        fields = ["state"]
+        fields = ["state", "start_date", "end_date"]
 
 
 @extend_schema_view(

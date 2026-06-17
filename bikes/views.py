@@ -627,7 +627,7 @@ class BikeRentalFilter(filters.FilterSet):
 
     class Meta:
         model = BikeRental
-        fields = ["state", "start_date", "end_date"]
+        fields = ["state", "start_date", "end_date", "bike"]
 
 
 @extend_schema_view(

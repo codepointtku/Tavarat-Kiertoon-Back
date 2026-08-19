@@ -468,11 +468,15 @@ class OrderStatListView(APIView):
             "creation_date", "year"
         )
         order_list = {}
+        price_list = {}
+        product_items_list = {}
         for years in date_list:
             orders2 = Order.objects.filter(creation_date__year=years.year).distinct(
                 "creation_date__month"
             )
             order_list[years.year] = {}
+            price_list[years.year] = {}
+            product_items_list[years.year] = {}
             for order in orders2:
                 order_list[years.year][order.creation_date.month] = (
                     Order.objects.filter(creation_date__year=order.creation_date.year)
@@ -482,5 +486,31 @@ class OrderStatListView(APIView):
                 order_list[years.year]["total"] = Order.objects.filter(
                     creation_date__year=order.creation_date.year
                 ).count()
+
+                price_list[years.year][order.creation_date.month] = (
+                    Order.objects.filter(creation_date__year=years.year)
+                    .filter(creation_date__month=order.creation_date.month)
+                    .aggregate(total_price=Sum("product_items__product__price"))[
+                        "total_price"
+                    ]
+                )
+                price_list[years.year]["total"] = Order.objects.filter(
+                    creation_date__year=years.year
+                ).aggregate(total_price=Sum("product_items__product__price"))[
+                    "total_price"
+                ]
+                product_items_list[years.year][order.creation_date.month] = (
+                    Order.objects.filter(creation_date__year=years.year)
+                    .filter(creation_date__month=order.creation_date.month)
+                    .aggregate(total_product_items=Count("product_items"))[
+                        "total_product_items"
+                    ]
+                )
         # return Order.objects.distinct("creation_date__year", "creation_date__month")
-        return Response(order_list)
+        return Response(
+            {
+                "order_list": order_list,
+                "price_list": price_list,
+                "product_items_list": product_items_list,
+            }
+        )

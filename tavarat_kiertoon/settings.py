@@ -32,7 +32,7 @@ TEST_DEBUG = config("TEST_DEBUG", cast=bool)
 SECURE_SSL_REDIRECT = config("REDIRECT_SSL", cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
-CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", cast=Csv())
 CSRF_TRUSTED_ORIGINS = config("CORS_ALLOWED_ORIGINS", cast=Csv())
 
@@ -69,12 +69,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -125,7 +124,28 @@ DATABASES = {
         "PASSWORD": config("DATABASE_PASSWORD"),
         "HOST": config("DATABASE_HOST"),
         "PORT": config("DATABASE_PORT"),
-    }
+    },
+    "postgres": {
+        "ENGINE": config("DATABASE_ENGINE"),
+        "NAME": config("DATABASE_NAME"),
+        "USER": config("DATABASE_USER"),
+        "PASSWORD": config("DATABASE_PASSWORD"),
+        "HOST": config("DATABASE_HOST"),
+        "PORT": config("DATABASE_PORT"),
+    },
+    "azure": {
+        "ENGINE": config("DATABASE_ENGINE"),
+        "NAME": config("DATABASE_NAME"),
+        "USER": config("DATABASE_USER"),
+        "PASSWORD": config("DATABASE_PASSWORD"),
+        "HOST": config("DATABASE_HOST"),
+        "PORT": config("DATABASE_PORT"),
+        "CONN_MAX_AGE": 60,
+        "OPTIONS": {
+            "driver": "ODBC Driver 18 for SQL Server",
+            "Extra_Params": "Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;",
+        },
+    },
 }
 
 # Password validation

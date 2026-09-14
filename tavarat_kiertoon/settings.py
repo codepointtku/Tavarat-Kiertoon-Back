@@ -259,8 +259,16 @@ URL_FRONT = config("URL_FRONT")
 
 CRONJOBS = [
     ("0 * * * *", "cron.clear_shopping_carts", ">> /usr/src/app/file.log"),
-    ("0 * * * *", "cron.notify_user_of_bike_rental_start", ">> /usr/src/app/file.log"),
-    ("0 * * * *", "cron.notify_user_of_bike_rental_end", ">> /usr/src/app/file.log"),
+    (
+        "7 * * * *",
+        "cron.notify_user_of_bike_rental_start",
+        ">> /usr/src/app/file.log 2>&1",
+    ),
+    (
+        "7 * * * *",
+        "cron.notify_user_of_bike_rental_end",
+        ">> /usr/src/app/file.log 2>&1",
+    ),
 ]
 
 

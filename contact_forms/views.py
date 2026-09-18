@@ -64,8 +64,9 @@ class ContactFormListView(ListCreateAPIView):
             f"{serializer.data['email']}"
         )
 
-        print(serializer.data)
-        send_mail(subject, message, settings.EMAIL_HOST_USER, [settings.DEFAULT_EMAIL])
+        send_mail(
+            subject, message, serializer.data["email"], [settings.EMAIL_HOST_USER]
+        )
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers

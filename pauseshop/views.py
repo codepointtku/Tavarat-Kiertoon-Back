@@ -43,7 +43,9 @@ class TodayPauseView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
 
         instance = Pause.objects.filter(
-            start_date__lte=datetime.today(), end_date__gte=datetime.today()
+            start_date__lte=datetime.today(),
+            end_date__gte=datetime.today(),
+            department=request.data["department"],
         )
         serializer = PauseSerializer(instance, many=True)
 

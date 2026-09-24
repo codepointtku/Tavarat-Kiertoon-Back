@@ -14,10 +14,16 @@ from rest_framework.views import APIView
 from django.core.exceptions import ObjectDoesNotExist
 
 
+class PauseFilter(filters.FilterSet):
+    department = filters.MultipleChoiceFilter(choices=Pause.DepartmentChoices.choices)
+
+
 # Shows when store is on hiatus
 class PauseView(generics.ListCreateAPIView):
     queryset = Pause.objects.all()
     serializer_class = PauseSerializer
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = PauseFilter
     authentication_classes = [
         SessionAuthentication,
         BasicAuthentication,
@@ -33,6 +39,8 @@ class PauseView(generics.ListCreateAPIView):
 class TodayPauseView(generics.ListAPIView):
     queryset = Pause.objects.all()
     serializer_class = PauseSerializer
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = PauseFilter
     authentication_classes = [
         SessionAuthentication,
         BasicAuthentication,
@@ -45,7 +53,6 @@ class TodayPauseView(generics.ListAPIView):
         instance = Pause.objects.filter(
             start_date__lte=datetime.today(),
             end_date__gte=datetime.today(),
-            department=request.data["department"],
         )
         serializer = PauseSerializer(instance, many=True)
 

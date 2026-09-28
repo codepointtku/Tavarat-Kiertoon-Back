@@ -1,13 +1,14 @@
 from django.db import models
 
 
-# Create your models here.
-class Pause(models.Model):
-    class DepartmentChoices(models.TextChoices):
-        """Choices for which department to pause."""
+class DepartmentChoices(models.TextChoices):
+    """Choices for which department to pause."""
 
-        TAVARATKIERTOON = "TAVARATKIERTOON"
-        BIKES = "BIKES"
+    TAVARATKIERTOON = "TAVARATKIERTOON"
+    BIKES = "BIKES"
+
+
+class Pause(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     start_date = models.DateField()

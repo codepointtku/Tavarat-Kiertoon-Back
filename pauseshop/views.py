@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from datetime import datetime
-from .models import Pause
+from .models import Pause, DepartmentChoices
 from .serializers import PauseSerializer
 from rest_framework.filters import OrderingFilter
 from django_filters import rest_framework as filters
@@ -15,7 +15,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 class PauseFilter(filters.FilterSet):
-    department = filters.MultipleChoiceFilter(choices=Pause.DepartmentChoices.choices)
+    department = filters.MultipleChoiceFilter(choices=DepartmentChoices)
 
 
 # Shows when store is on hiatus
@@ -53,9 +53,9 @@ class TodayPauseView(generics.ListAPIView):
         instance = Pause.objects.filter(
             start_date__lte=datetime.today(),
             end_date__gte=datetime.today(),
+            department=request.GET.get("department", "TAVARATKIERTOON"),
         )
         serializer = PauseSerializer(instance, many=True)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

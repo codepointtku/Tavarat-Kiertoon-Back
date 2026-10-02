@@ -240,7 +240,9 @@ class OrderListView(ListCreateAPIView):
         pickup_date = request.data.get("pickup_date")
         serializer = OrderSerializer(data=request.data)
         pause_test = Pause.objects.filter(
-            start_date__lte=datetime.now().date(), end_date__gte=datetime.now().date()
+            start_date__lte=datetime.now().date(),
+            end_date__gte=datetime.now().date(),
+            department="TAVARATKIERTOON",
         )
         print(pause_test)
         if pause_test.count() > 0:

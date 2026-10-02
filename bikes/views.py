@@ -72,6 +72,7 @@ from bikes.serializers import (
     MainBikeListSchemaSerializer,
     PictureCreateSerializer,
 )
+from pauseshop.models import Pause
 from users.permissions import HasGroupPermission
 from users.views import CustomJWTAuthentication
 
@@ -672,6 +673,14 @@ class RentalListView(generics.ListCreateAPIView):
         else:
             return Response(postserializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        pause_test = Pause.objects.filter(
+            start_date__lte=datetime.datetime.today(),
+            end_date__gte=datetime.datetime.today(),
+            department="BIKES",
+        )
+        print(pause_test)
+        if pause_test.count() > 0:
+            return Response("System is on hiatus", status=status.HTTP_418_IM_A_TEAPOT)
         bikerentalserializer = BikeAvailabilityListSerializer(
             BikeStock.objects.all(), many=True
         )

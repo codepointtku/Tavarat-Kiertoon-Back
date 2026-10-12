@@ -65,7 +65,7 @@ class ContactFormListView(ListCreateAPIView):
         )
 
         send_mail(
-            subject, message, serializer.data["email"], [settings.EMAIL_HOST_USER]
+            subject, message, serializer.data["email"], [settings.EMAIL_RECEIVER]
         )
         headers = self.get_success_headers(serializer.data)
         return Response(
